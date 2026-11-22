@@ -1,0 +1,715 @@
+[
+  {
+    "function": {
+      "description": "Continue pending messages omitted by memcal_open, using its cursor. Messages are nominated for this entry, not every message in the thread. Reading does not review them; cite line ids in a correction or memcal_reviewed.",
+      "name": "memcal_activity",
+      "parameters": {
+        "properties": {
+          "cursor": {
+            "description": "an archive id to read after (for paging)",
+            "type": "integer"
+          },
+          "handle": {
+            "description": "brief handle, e.g. E46",
+            "type": "string"
+          },
+          "limit": {
+            "description": "default 20",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "handle"
+        ],
+        "type": "object"
+      }
+    },
+    "type": "function"
+  },
+  {
+    "function": {
+      "description": "Add one private memory event. Use memcal_schedule for recurring events, including several weekdays; do not add each weekday separately. Tentative plans are allowed. Use memcal_update for an existing event.",
+      "name": "memcal_add",
+      "parameters": {
+        "properties": {
+          "context_source_ids": {
+            "description": "background archive ids; no field authority. Only valid with field_sources.",
+            "items": {
+              "type": "integer"
+            },
+            "type": "array"
+          },
+          "field_sources": {
+            "additionalProperties": {
+              "items": {
+                "type": "integer"
+              },
+              "type": "array"
+            },
+            "description": "map of field name → archive line ids supporting that field (newest timestamp wins per field). Prefer over flat source_ids when fields have different supporting messages.",
+            "type": "object"
+          },
+          "kind": {
+            "description": "commitment = they are doing it; availability = someone else's state ('Alex free Monday'); opportunity = something they could go to but have not committed to",
+            "enum": [
+              "commitment",
+              "availability",
+              "opportunity",
+              "observed"
+            ],
+            "type": "string"
+          },
+          "location": {
+            "description": "Place, address, or video-call URL; omit if unknown",
+            "type": "string"
+          },
+          "note": {
+            "description": "Other event details in plain text",
+            "type": "string"
+          },
+          "participants": {
+            "description": "full names where known, not the user",
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "series": {
+            "description": "the recurring thing this is one of, as a slug ('tutoring'). Sets it where repetition alone could not prove it — a new instance then starts with what the series already knows",
+            "type": "string"
+          },
+          "source_ids": {
+            "description": "archive line ids supporting this creation (flat). Do not combine with field_sources.",
+            "items": {
+              "type": "integer"
+            },
+            "type": "array"
+          },
+          "status": {
+            "description": "declined = not going. confirmed = locked in. happened = done.",
+            "enum": [
+              "mentioned",
+              "tentative",
+              "confirmed",
+              "declined",
+              "happened"
+            ],
+            "type": "string"
+          },
+          "subject": {
+            "description": "whose thing this is; 'me' unless it is someone else's state or plan",
+            "type": "string"
+          },
+          "time": {
+            "description": "'18:00' or 'after 6'; omit if unsaid",
+            "type": "string"
+          },
+          "title": {
+            "description": "short, as a person would say it",
+            "type": "string"
+          },
+          "until": {
+            "description": "last day, for things spanning days",
+            "type": "string"
+          },
+          "when": {
+            "description": "'saturday', 'tomorrow', 'this weekend', or yyyy-mm-dd",
+            "type": "string"
+          }
+        },
+        "required": [
+          "title",
+          "when"
+        ],
+        "type": "object"
+      }
+    },
+    "type": "function"
+  },
+  {
+    "function": {
+      "description": "Two names, one person: a legal name behind a nickname, a surname arriving late. Points the other name at the page that already exists so it never gets a second one. Only on evidence the user gave you — merging two real people is not recoverable, and two friends sharing a first name is the opposite situation.",
+      "name": "memcal_alias",
+      "parameters": {
+        "properties": {
+          "name": {
+            "description": "the other name, e.g. 'Robin West'",
+            "type": "string"
+          },
+          "page": {
+            "description": "the page that already exists, e.g. 'robbie'",
+            "type": "string"
+          }
+        },
+        "required": [
+          "page",
+          "name"
+        ],
+        "type": "object"
+      }
+    },
+    "type": "function"
+  },
+  {
+    "function": {
+      "description": "Resolve anything the brief is holding open — an 'Ask about' question OR an 'Open' to-do — when the user tells you the answer or says it's done. This is how those loops close; nothing closes by inference.",
+      "name": "memcal_answer",
+      "parameters": {
+        "properties": {
+          "answer": {
+            "description": "what the user said",
+            "type": "string"
+          },
+          "question": {
+            "description": "distinctive words from the question or to-do",
+            "type": "string"
+          }
+        },
+        "required": [
+          "question",
+          "answer"
+        ],
+        "type": "object"
+      }
+    },
+    "type": "function"
+  },
+  {
+    "function": {
+      "description": "Read a stretch of the conversation a memory came out of, in order, as it was actually said. Use after memcal_open_source when the cited lines are not enough — the user asks 'what were they talking about', 'who else was in on it', 'what did they decide' — or to check a row against what was really said.\nGive it the id of a line (every line from memcal_open_source, memcal_conversation and memcal_search_archive carries one) and it returns the messages around that moment. Or give a channel and thread for the tail of a conversation.",
+      "name": "memcal_conversation",
+      "parameters": {
+        "properties": {
+          "after": {
+            "description": "lines after; default 12",
+            "type": "integer"
+          },
+          "before": {
+            "description": "lines before; default 12",
+            "type": "integer"
+          },
+          "channel": {
+            "description": "imessage | groupme | whatsapp | email | ical | agent",
+            "type": "string"
+          },
+          "line_id": {
+            "description": "id of a line to centre on, from any memcal result",
+            "type": "integer"
+          },
+          "thread": {
+            "description": "the conversation id or name",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      }
+    },
+    "type": "function"
+  },
+  {
+    "function": {
+      "description": "Delete a row that should never have been there — a newsletter that became an event, something about a person the user does not know. NOT for things they are simply not attending: that is memcal_update with status 'declined', which keeps the row so it stops being suggested.",
+      "name": "memcal_drop",
+      "parameters": {
+        "properties": {
+          "which": {
+            "description": "the row's E# handle or distinctive words",
+            "type": "string"
+          }
+        },
+        "required": [
+          "which"
+        ],
+        "type": "object"
+      }
+    },
+    "type": "function"
+  },
+  {
+    "function": {
+      "description": "List a day or date range beyond the brief, using plain date words or YYYY-MM-DD and days. For a year, use YYYY-01-01 with days=365 (366 in a leap year). Weekly overviews within the brief need no lookup.",
+      "name": "memcal_list_days",
+      "parameters": {
+        "properties": {
+          "days": {
+            "description": "how many days from there; default 1",
+            "type": "integer"
+          },
+          "when": {
+            "description": "'saturday', 'tomorrow', 'this weekend', or yyyy-mm-dd",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      }
+    },
+    "type": "function"
+  },
+  {
+    "function": {
+      "description": "List a whole calendar month, YYYY-MM. For one day or a short range use memcal_list_days. Weekly overviews within the brief need no lookup.",
+      "name": "memcal_list_month",
+      "parameters": {
+        "properties": {
+          "month": {
+            "description": "yyyy-mm; omit for this month",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      }
+    },
+    "type": "function"
+  },
+  {
+    "function": {
+      "description": "Two rows are the same thing — 'the Rowan meetup IS the beer garden'. Folds one into the other: details pool, guest lists combine, the duplicate goes away. Only when the user says they are one event; two similar plans on nearby days are usually two plans.",
+      "name": "memcal_merge",
+      "parameters": {
+        "properties": {
+          "drop": {
+            "description": "the duplicate row's E# handle or distinctive words",
+            "type": "string"
+          },
+          "keep": {
+            "description": "the surviving row's E# handle or distinctive words — prefer the more specific one",
+            "type": "string"
+          }
+        },
+        "required": [
+          "keep",
+          "drop"
+        ],
+        "type": "object"
+      }
+    },
+    "type": "function"
+  },
+  {
+    "function": {
+      "description": "Move or cancel one occurrence without changing the series. Use an event E# handle, or the series name plus on for a date not yet materialized. Give to for a move; cancelled=true skips it without requiring to.",
+      "name": "memcal_move_once",
+      "parameters": {
+        "properties": {
+          "cancelled": {
+            "description": "the week is skipped, not moved",
+            "type": "boolean"
+          },
+          "on": {
+            "description": "Original occurrence date when which names the series",
+            "type": "string"
+          },
+          "time": {
+            "type": "string"
+          },
+          "to": {
+            "description": "'wednesday' or yyyy-mm-dd",
+            "type": "string"
+          },
+          "which": {
+            "description": "the row's E# handle when available, otherwise distinctive words",
+            "type": "string"
+          }
+        },
+        "required": [
+          "which"
+        ],
+        "type": "object"
+      }
+    },
+    "type": "function"
+  },
+  {
+    "function": {
+      "description": "Remember or correct one fact. page='me' stores a fact about the user; updating the same fact replaces its value while retaining history. Record a durable fact about a person, place, or project on their wiki page — a role, a relationship, an interest, where they live. Use this when the user states something that will still be true next month, so it lands as a labelled fact instead of a sentence the nightly pass has to re-derive.\nOne fact per call: page='quinn delgado', slot='likes', value='Pokemon'. The slot is the label; the value is the bare answer, not a sentence. Only what the user actually said — if you are inferring it, ask instead.",
+      "name": "memcal_note",
+      "parameters": {
+        "properties": {
+          "page": {
+            "description": "who or what this is about, e.g. 'Quinn Brooks'; 'me' for the user",
+            "type": "string"
+          },
+          "section": {
+            "description": "omit unless it is obviously not a person",
+            "enum": [
+              "people",
+              "places",
+              "projects"
+            ],
+            "type": "string"
+          },
+          "slot": {
+            "description": "the label, e.g. 'likes', 'dungeon master for', 'works at'",
+            "type": "string"
+          },
+          "value": {
+            "description": "the bare answer, e.g. 'Pokemon'",
+            "type": "string"
+          }
+        },
+        "required": [
+          "page",
+          "slot",
+          "value"
+        ],
+        "type": "object"
+      }
+    },
+    "type": "function"
+  },
+  {
+    "function": {
+      "description": "Open a brief handle or wiki page for details and history. Includes labeled citations, nearby context, and capped pending messages. Use memcal_activity only to continue omitted messages. Accepts E#, T#, Q#, page names, aliases, or me.",
+      "name": "memcal_open",
+      "parameters": {
+        "properties": {
+          "ref": {
+            "description": "brief handle (E258), page name, alias, or me",
+            "type": "string"
+          }
+        },
+        "required": [
+          "ref"
+        ],
+        "type": "object"
+      }
+    },
+    "type": "function"
+  },
+  {
+    "function": {
+      "description": "Read full original messages or email when memcal_open's details and linked evidence are not enough. Open the relevant record with memcal_open first; use this for a fuller quotation or verification against the source. Brief handles include E46, T3, Q5, or S1. Lines marked as evidence are what the row was built from; the rest is nearby conversation. If it comes back saying there is no line-level citation, say so — that row is a summary of a conversation, not a quote from it, and it may simply be wrong.\nFor the wider conversation around it, follow up with memcal_conversation.",
+      "name": "memcal_open_source",
+      "parameters": {
+        "properties": {
+          "source": {
+            "description": "brief source handle, e.g. E46",
+            "type": "string"
+          }
+        },
+        "required": [
+          "source"
+        ],
+        "type": "object"
+      }
+    },
+    "type": "function"
+  },
+  {
+    "function": {
+      "description": "Re-render the current brief on demand — the same snapshot prefetch injects, without model work. For turns where injection may have been skipped or source state changed mid-turn.",
+      "name": "memcal_refresh",
+      "parameters": {
+        "properties": {},
+        "type": "object"
+      }
+    },
+    "type": "function"
+  },
+  {
+    "function": {
+      "description": "Mark activity lines as reviewed with no change to the row — the stored plan still stands after reading them. Only the cited lines stop raising hints. Cite the line ids memcal_open or memcal_activity returned.",
+      "name": "memcal_reviewed",
+      "parameters": {
+        "properties": {
+          "handle": {
+            "description": "brief handle, e.g. E46",
+            "type": "string"
+          },
+          "source_ids": {
+            "description": "archive line ids this review covered",
+            "items": {
+              "type": "integer"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "handle",
+          "source_ids"
+        ],
+        "type": "object"
+      }
+    },
+    "type": "function"
+  },
+  {
+    "function": {
+      "description": "Create or change ONE recurring series. weekdays lists all days: Monday/Wednesday/Friday is one weekly rule. interval repeats every N days/weeks/months. starting dates a change while preserving the earlier schedule. status paused/active/ended pauses, resumes, or stops it. Use memcal_move_once for one occurrence.",
+      "name": "memcal_schedule",
+      "parameters": {
+        "properties": {
+          "cadence": {
+            "enum": [
+              "daily",
+              "weekly",
+              "every_two_weeks",
+              "monthly"
+            ],
+            "type": "string"
+          },
+          "day_of_month": {
+            "description": "1-31, for monthly",
+            "type": "integer"
+          },
+          "ended": {
+            "description": "only when they say they stopped",
+            "type": "boolean"
+          },
+          "interval": {
+            "description": "Repeat every N days/weeks/months; default 1",
+            "maximum": 366,
+            "minimum": 1,
+            "type": "integer"
+          },
+          "location": {
+            "description": "Place, address, or video-call URL; omit if unknown",
+            "type": "string"
+          },
+          "starting": {
+            "description": "the day the new schedule begins; omit for 'from now on'. Never retro-dates what already happened",
+            "type": "string"
+          },
+          "status": {
+            "description": "Pause, resume (active), or stop the series, from starting",
+            "enum": [
+              "active",
+              "paused",
+              "ended"
+            ],
+            "type": "string"
+          },
+          "time": {
+            "description": "HH:MM",
+            "type": "string"
+          },
+          "weekday": {
+            "description": "'tuesday', for a single weekly day; prefer weekdays",
+            "type": "string"
+          },
+          "weekdays": {
+            "description": "All repeating days, e.g. [monday, wednesday, friday]; one series",
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "which": {
+            "description": "the recurring thing, as a name or slug ('tutoring')",
+            "type": "string"
+          }
+        },
+        "required": [
+          "which"
+        ],
+        "type": "object"
+      }
+    },
+    "type": "function"
+  },
+  {
+    "function": {
+      "description": "Search original messages when records and wiki facts do not answer. Filter by person, channel, or date; query may be empty with filters. Results include line_id for reading surrounding conversation.",
+      "name": "memcal_search_archive",
+      "parameters": {
+        "properties": {
+          "channel": {
+            "description": "imessage | groupme | whatsapp | email | ical | agent",
+            "type": "string"
+          },
+          "limit": {
+            "description": "default 20",
+            "type": "integer"
+          },
+          "person": {
+            "description": "who said it, or who it is with",
+            "type": "string"
+          },
+          "query": {
+            "description": "words to look for; may be empty",
+            "type": "string"
+          },
+          "since": {
+            "description": "yyyy-mm-dd",
+            "type": "string"
+          },
+          "until": {
+            "description": "yyyy-mm-dd",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      }
+    },
+    "type": "function"
+  },
+  {
+    "function": {
+      "description": "Find remembered facts when the page is unknown. Searches names, aliases, fact labels, values, and prose. Use before searching original messages.",
+      "name": "memcal_search_wiki",
+      "parameters": {
+        "properties": {
+          "limit": {
+            "description": "max pages to return; default 10",
+            "type": "integer"
+          },
+          "query": {
+            "description": "name, alias, fact label, value, or prose to find",
+            "type": "string"
+          }
+        },
+        "required": [
+          "query"
+        ],
+        "type": "object"
+      }
+    },
+    "type": "function"
+  },
+  {
+    "function": {
+      "description": "Something the user said they would do. Short imperative, their words. Use wake_condition when it should wait on something ('Rowan is back from Italy') rather than on a date. Use event to link an obligation to an existing occasion; it then expires when that event is over. done=true closes one they say they have finished — any distinctive words from it will find it.",
+      "name": "memcal_todo",
+      "parameters": {
+        "properties": {
+          "done": {
+            "description": "close the to-do named by text instead of opening one",
+            "type": "boolean"
+          },
+          "due": {
+            "description": "'saturday', 'tomorrow', 'this weekend', or yyyy-mm-dd",
+            "type": "string"
+          },
+          "event": {
+            "description": "event E# handle, key, or distinctive words naming it",
+            "type": "string"
+          },
+          "remind": {
+            "description": "Set when the user wants poking about this rather than just a record of it. 'yes' picks the hour — 09:00 the day before whatever it is anchored to — or give an ISO datetime to say exactly when. Needs a due date or an event to count back from. It reaches their phone and their Telegram, so only when the user asked to be reminded.",
+            "type": "string"
+          },
+          "text": {
+            "description": "e.g. 'Return Rowan's EZ-Pass'",
+            "type": "string"
+          },
+          "wake_condition": {
+            "description": "what has to become true before asking",
+            "type": "string"
+          }
+        },
+        "required": [
+          "text"
+        ],
+        "type": "object"
+      }
+    },
+    "type": "function"
+  },
+  {
+    "function": {
+      "description": "Update one event by its E# handle or distinctive title. Omitted fields stay unchanged; an empty string clears an optional detail. Use status declined for cancellation or non-attendance. Use memcal_schedule to change a series. Returns the updated record; no verification read needed.",
+      "name": "memcal_update",
+      "parameters": {
+        "properties": {
+          "add_participants": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "context_source_ids": {
+            "description": "background archive ids; no field authority. Only valid with field_sources.",
+            "items": {
+              "type": "integer"
+            },
+            "type": "array"
+          },
+          "field_sources": {
+            "additionalProperties": {
+              "items": {
+                "type": "integer"
+              },
+              "type": "array"
+            },
+            "description": "map of field name → archive line ids supporting that field (newest timestamp wins per field). Prefer over flat source_ids when fields have different supporting messages.",
+            "type": "object"
+          },
+          "kind": {
+            "description": "commitment = they are doing it; availability = someone else's state ('Alex free Monday'); opportunity = something they could go to but have not committed to",
+            "enum": [
+              "commitment",
+              "availability",
+              "opportunity",
+              "observed"
+            ],
+            "type": "string"
+          },
+          "location": {
+            "description": "Place, address, or video-call URL; omit if unknown",
+            "type": "string"
+          },
+          "note": {
+            "description": "a detail with nowhere else to go",
+            "type": "string"
+          },
+          "remove_participants": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "series": {
+            "description": "the recurring thing this is one of, as a slug ('tutoring'). Sets it where repetition alone could not prove it — a new instance then starts with what the series already knows",
+            "type": "string"
+          },
+          "source_ids": {
+            "description": "archive line ids from memcal_open or memcal_activity (flat oldest-line). Do not combine with field_sources.",
+            "items": {
+              "type": "integer"
+            },
+            "type": "array"
+          },
+          "status": {
+            "description": "declined = not going. confirmed = locked in. happened = done.",
+            "enum": [
+              "mentioned",
+              "tentative",
+              "confirmed",
+              "declined",
+              "happened"
+            ],
+            "type": "string"
+          },
+          "subject": {
+            "description": "whose thing this is; only to correct a row filed under the wrong person",
+            "type": "string"
+          },
+          "time": {
+            "type": "string"
+          },
+          "title": {
+            "description": "only to correct a wrong one",
+            "type": "string"
+          },
+          "until": {
+            "description": "last day, for things spanning days",
+            "type": "string"
+          },
+          "when": {
+            "description": "'saturday', 'tomorrow', 'this weekend', or yyyy-mm-dd",
+            "type": "string"
+          },
+          "which": {
+            "description": "the row's E# handle when available, otherwise distinctive words",
+            "type": "string"
+          }
+        },
+        "required": [
+          "which"
+        ],
+        "type": "object"
+      }
+    },
+    "type": "function"
+  }
+]

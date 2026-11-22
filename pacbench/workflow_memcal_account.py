@@ -13,14 +13,14 @@ from .context_isolation import validate_recall_environment
 from .frozen import load_bundle
 from .gateway_client import client_settings
 from .gateway_reuse import PersistentGateway
-from .provider_versions import MEMCAL_REVISION, verify_memcal_source
+from .provider_versions import memcal_week_pin, verify_memcal_source
 from .workflow_delivery import MemCalReaders
 from .workflow_memcal_chat import MemCalChatWitness
 from .workflow_native import NativeAccount, WarmHermes
 from .workflow_runner import Condition
 from .workflow_spec import ROOT, SPEC
 from .prepare import read_spec
-from .workflow_tracks import HERMES_TOOLS
+from .workflow_tracks import memcal_week_tools
 
 
 def _source_messages():
@@ -75,8 +75,9 @@ def open_account(*, root, site, scope, ledger, upstream):
         raise ValueError('existing Hermes home or clock requires its original warm owner')
     validate_recall_environment()
     release = verify_memcal_source(harness.REPO)
-    if release['revision'] != MEMCAL_REVISION:
-        raise ValueError('MemCal requires the reviewed 0.8.11 release')
+    label, revision, version = memcal_week_pin()
+    if release['revision'] != revision or verified['access']['memcal_revision'] != revision:
+        raise ValueError('MemCal Week source differs from the qualified site')
     # Checks pinned import, dedicated OS home and both real readers, without fetching bodies.
     inspect_memcal_site(site)
     from memcal import db
@@ -84,7 +85,7 @@ def open_account(*, root, site, scope, ledger, upstream):
     messages = _source_messages()
     if frozen != verified['frozen_inputs']:
         raise ValueError('scoped dataset differs from the verified v2 inputs')
-    tools = HERMES_TOOLS['memcal']
+    tools = memcal_week_tools(revision)
     profile = PROFILES['luna-bedrock-global']
     model = profile['model']
     roles = verified['projects']['memcal']
@@ -108,7 +109,7 @@ def open_account(*, root, site, scope, ledger, upstream):
                                provider_name='memcal',model=model,model_provider='openrouter',model_base_url=driver_url)
         env = harness.turn_env(documents[0].cutoff,home,','.join(tools),dict(
             HOME=str(fallback), MEMCAL_HOME=str(cfg.home), MEMCAL_SRC=release['source'],
-            PACBENCH_MEMCAL_CONDITION='stable-0.8.11', PACBENCH_PROVIDER_ONLY='1', HERMES_ENABLE_PROJECT_PLUGINS='0',
+            PACBENCH_MEMCAL_CONDITION=label, PACBENCH_PROVIDER_ONLY='1', HERMES_ENABLE_PROJECT_PLUGINS='0',
             PACBENCH_WORKFLOW_CAPTURE='pizza-week-conversation-v2', PACBENCH_API_INPUT_TRACE=str(root/'api-inputs.jsonl'),
             OPENROUTER_API_KEY=driver_key, OPENROUTER_BASE_URL=driver_url, OPENROUTER_API_BASE=driver_url,
             PACBENCH_PREFETCH_PROVENANCE=json.dumps({'protocol':'native-prefetch-provenance-v1','provider':'memcal',
@@ -125,7 +126,7 @@ def open_account(*, root, site, scope, ledger, upstream):
         service_clock = ('simulated MemCal and Hermes clocks; physical IMAP and execution clocks' if site.synthetic_chatdb
                          else 'physical connector service clock; scheduled source visibility and simulated Hermes question clock')
         condition = Condition('memcal','first-party-connector','continuing-account','Hermes '+owner.pins['hermes'],
-            model,profile['endpoint'],deployment,'0.8.11',owner.pins['hermes_isolation_sha256'],service_clock,tools)
+            model,profile['endpoint'],deployment,version,owner.pins['hermes_isolation_sha256'],service_clock,tools)
         yield condition, account
     except BaseException as primary:
         try:

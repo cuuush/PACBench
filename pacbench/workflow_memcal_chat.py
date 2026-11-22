@@ -31,8 +31,9 @@ class MemCalChatWitness:
         from .hermes_gateway import _identity
         from .openrouter_direct import BASE_URL
         from .openrouter_route import PROFILES
-        from .provider_versions import MEMCAL_REVISION
-        from .workflow_tracks import HERMES_TOOLS, validate_native_deployment
+        from .provider_versions import MEMCAL_WEEK_REVISION, memcal_week_pin
+        from .workflow_memcal_tools import manifest
+        from .workflow_tracks import memcal_week_tools, validate_native_deployment
         if not callable(self.deployment):
             raise ValueError('MemCal requires independent synthetic site deployment observations')
         site = self.deployment()
@@ -42,13 +43,15 @@ class MemCalChatWitness:
         profile = PROFILES['luna-bedrock-global']
         cfg = YAML(typ='safe').load((self.owner.home / 'config.yaml').read_text())
         granted = sorted(env.get('PACBENCH_TOOL_ALLOWLIST','').split(','))
-        if (self.owner.provider != 'memcal' or self.owner.pins['memcal'] != MEMCAL_REVISION
+        label, revision, version = memcal_week_pin()
+        if (self.owner.provider != 'memcal' or self.owner.pins['memcal'] != revision
+                or env.get('PACBENCH_MEMCAL_CONDITION') != label
                 or hashlib.sha256((self.owner.home/'config.yaml').read_bytes()).hexdigest() != self.owner.config_sha256
                 or cfg['model'].get('provider') != 'openrouter' or cfg['model'].get('default') != profile['model']
                 or cfg['model'].get('base_url') != BASE_URL or cfg.get('provider_routing') != {'only':[profile['endpoint']]}
                 or cfg['memory'].get('provider') != 'memcal'
                 or cfg['memory'].get('memory_enabled') is not False or cfg['memory'].get('user_profile_enabled') is not False
-                or granted != list(HERMES_TOOLS['memcal']) or env.get('PACBENCH_PROVIDER_ONLY') != '1'
+                or granted != list(memcal_week_tools(revision)) or env.get('PACBENCH_PROVIDER_ONLY') != '1'
                 or env.get('PACBENCH_DIRECT') != '1' or env.get('PACBENCH_OPENROUTER_PROFILE') != 'luna-bedrock-global'
                 or env.get('MEMCAL_HOME') != str(self.store.parent) or self.store.resolve() != self.store):
             raise ValueError('MemCal gateway route, stable release, store, or tool grants differ')
@@ -60,11 +63,13 @@ class MemCalChatWitness:
             if key in site:
                 result[key] = site[key]
         result.update(account=identity, store_identity=str(self.store.parent), condition=vars(condition),
-                      observed_version='0.8.11', memcal_revision=MEMCAL_REVISION,
+                      observed_version=version, memcal_revision=revision,
                       frontend_identity='Hermes ' + self.owner.pins['hermes'], observed_patch=self.owner.pins['hermes_isolation_sha256'],
                       effective_model_route=profile['endpoint'], granted_tools=granted,
                       native_processes={'driver':process_identity(pid),'memory':process_identity()},
                       route_evidence='Direct route configuration; actual request payloads and receipts audited separately')
+        if revision == MEMCAL_WEEK_REVISION:
+            result.update(manifest())
         validate_native_deployment(condition, result)
         self.account = identity
         return result

@@ -14,7 +14,8 @@ import ssl
 import sys
 from urllib.parse import urlsplit
 
-from .provider_versions import MEMCAL_REVISION, verify_memcal_source
+from .provider_versions import MEMCAL_WEEK_REVISION, memcal_week_pin, verify_memcal_source
+from .workflow_memcal_tools import manifest
 from .workflow_tracks import BOTH
 
 
@@ -71,13 +72,14 @@ def _homes(site):
 def _pin():
     repo = Path(__file__).resolve().parents[1]
     try:
+        _, revision, _ = memcal_week_pin()
         pin = verify_memcal_source(repo)
         package = find_spec('memcal')
     except Exception:
         raise MemCalSiteError('Reviewed MemCal checkout and its importable stock package are required') from None
-    if (pin['revision'] != MEMCAL_REVISION or not package or not package.origin
+    if (pin['revision'] != revision or not package or not package.origin
             or Path(package.origin).resolve() != Path(pin['source']) / 'memcal' / '__init__.py'):
-        raise MemCalSiteError('MemCal import differs from the reviewed 0.8.11 checkout')
+        raise MemCalSiteError('MemCal import differs from the selected Week checkout')
     return pin
 
 
@@ -232,7 +234,9 @@ def inspect_memcal_readers(site, connection, config, *, channels=BOTH):
     except Exception:
         # Native client errors can contain account names, paths or credential-bearing URLs.
         raise MemCalSiteError('Native MemCal source-access check failed for the declared site') from None
-    return {'state': 'source-access-verified', 'memcal_revision': MEMCAL_REVISION,
+    revision = memcal_week_pin()[1]
+    return {'state': 'source-access-verified', 'memcal_revision': revision,
+            **(manifest() if revision == MEMCAL_WEEK_REVISION else {}),
             'imessage_backend': site.imessage_backend, 'imap': mail,
             **({'source_condition':'synthetic-chatdb-imap-v1'} if site.synthetic_chatdb else {}),
             'scope': 'Read-only source access. Platform provenance, as-of inventory and processing require separate witnesses.'}

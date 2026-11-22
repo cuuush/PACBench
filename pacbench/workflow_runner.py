@@ -14,6 +14,8 @@ import hashlib
 from pathlib import Path
 from typing import Protocol
 
+from .provider_versions import MEMCAL_WEEK_VERSION
+from .workflow_memcal_tools import verify_captured_driver
 from .semantic_grade import (CONTEXT_JUDGE_PROTOCOL, UnusableJudgeResponse,
                              audit_native_judge_attempts, grade_native_semantic)
 from .workflow_spec import Document, instant
@@ -136,6 +138,8 @@ def captured_turn(surface, turn, prior, condition, expected_prefix):
     captured_prefixes = set()
     wire_tool_newline_removed = set()
     for request in surface['model_requests']:
+        if condition.provider == 'memcal' and condition.version == MEMCAL_WEEK_VERSION:
+            verify_captured_driver(request)
         if (not request.get('request_id') or not request.get('messages') or
                 sorted(request['tools']) != sorted(condition.tool_names) or
                 request['model'] != condition.model):

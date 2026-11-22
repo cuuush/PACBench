@@ -2,7 +2,10 @@
 
 Documentation is a capability claim, not proof of a deployed service or grant.
 """
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, replace
+
+from . import workflow_memcal_tools
+from .provider_versions import MEMCAL_REVISION, MEMCAL_WEEK_REVISION, MEMCAL_WEEK_VERSION
 
 
 @dataclass(frozen=True)
@@ -120,6 +123,26 @@ MEMOS_OSS_PROVIDER = Provider(MEMOS_OSS_VERSION, document(
     GH+'MemTensor/MemOS/releases/tag/v2.0.36')
 
 
+def memcal_week_tools(revision):
+    if revision == MEMCAL_REVISION:
+        return HERMES_TOOLS['memcal']
+    if revision == MEMCAL_WEEK_REVISION:
+        return workflow_memcal_tools.TOOLS
+    raise ValueError('unqualified MemCal Week revision')
+
+
+def reviewed_provider(provider, version):
+    if provider == 'memos' and version == MEMOS_OSS_VERSION:
+        return MEMOS_OSS_PROVIDER
+    original = PROVIDERS[provider]
+    if provider == 'memcal' and version == MEMCAL_WEEK_VERSION:
+        return replace(original, reviewed_version=version,
+                       connectors=tuple(replace(r, reference=r.reference.replace('v0.8.11', MEMCAL_WEEK_REVISION))
+                                        for r in original.connectors),
+                       version_source=GH+'cuuush/memcal/tree/'+MEMCAL_WEEK_REVISION)
+    return original
+
+
 def validate_native_deployment(condition, record):
     if (not record.get('synthetic_source_provenance') or not record.get('observed_version')
             or record['observed_version'] != condition.version or not record.get('store_identity')
@@ -142,8 +165,12 @@ def validate_native_deployment(condition, record):
                            for v in grants.values())):
             raise ValueError('missing per-channel connector grants')
     oss = condition.provider == 'memos' and condition.version == MEMOS_OSS_VERSION
-    reviewed = MEMOS_OSS_PROVIDER if oss else PROVIDERS[condition.provider]
+    reviewed = reviewed_provider(condition.provider, condition.version)
     tools = MEMOS_OSS_TOOLS if oss else HERMES_TOOLS[condition.provider]
+    if condition.provider == 'memcal' and condition.version == MEMCAL_WEEK_VERSION:
+        if any(record.get(k) != v for k, v in workflow_memcal_tools.manifest().items()):
+            raise ValueError('unqualified MemCal Week product or driver manifest')
+        tools = workflow_memcal_tools.TOOLS
     if (condition.version != reviewed.reviewed_version or sorted(condition.tool_names) != list(tools)):
         raise ValueError('native version or tool grants differ from reviewed integration')
     if condition.model != 'openai/gpt-6-luna' or condition.model_route != 'amazon-bedrock/global':
@@ -151,7 +178,7 @@ def validate_native_deployment(condition, record):
 
 
 def eligibility(provider, track, channels=BOTH, *, version=None):
-    p = MEMOS_OSS_PROVIDER if provider == 'memos' and version == MEMOS_OSS_VERSION else PROVIDERS[provider]
+    p = reviewed_provider(provider, version)
     if track not in ('nightly-document', 'first-party-connector'):
         raise ValueError('unrecognized ingestion track')
     if not channels or not set(channels) <= set(BOTH):
@@ -162,5 +189,6 @@ def eligibility(provider, track, channels=BOTH, *, version=None):
     return {'provider': provider, 'track': track, 'channels': list(channels),
             'documented_for_scope': not missing, 'missing_channels': sorted(missing),
             'routes': [asdict(r) for r in routes], 'reviewed_version': p.reviewed_version,
-            'version_source': p.version_source, 'review_date': '2026-11-18',
+            'version_source': p.version_source, 'review_date': (
+                '2026-11-22' if provider == 'memcal' and version == MEMCAL_WEEK_VERSION else '2026-11-18'),
             'boundary': p.boundary, 'live_verified': False}

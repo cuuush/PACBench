@@ -36,7 +36,10 @@ def test_factory_preserves_synthetic_store_and_primary_failure(tmp_path, monkeyp
         release=lambda at:pytest.fail('unexpected source release'),observe=lambda at:pytest.fail('unexpected source read'),
         deployment=lambda:pytest.fail('fixture cannot qualify live'))
     scope = {'path':'binding','sha256':'fixture'}
-    cfg = {'root':str(root),'provider':'memcal', 'spec_sha256':spec_sha, 'frozen_inputs':frozen,'canary':True,
+    from pacbench.provider_versions import memcal_week_pin
+    from pacbench.workflow_tracks import memcal_week_tools
+    label, revision, version = memcal_week_pin()
+    cfg = {'access':{'memcal_revision':revision}, 'root':str(root),'provider':'memcal', 'spec_sha256':spec_sha, 'frozen_inputs':frozen,'canary':True,
            'site_sha256':digest(asdict(site)),'account':site.account,'store':str(store),
            'projects':{'memcal':{'driver':'fixture-driver','memory':'fixture-memory','judge':'fixture-judge'}}}
     monkeypatch.setattr(cap,'load',lambda:cfg)
@@ -44,7 +47,7 @@ def test_factory_preserves_synthetic_store_and_primary_failure(tmp_path, monkeyp
     monkeypatch.setenv('PACBENCH_DIRECT','1')
     monkeypatch.setenv('PACBENCH_TRANSPORT','openrouter')
     monkeypatch.setenv(cap.ENV,json.dumps(scope))
-    monkeypatch.setenv('PACBENCH_MEMCAL_CONDITION','stable-0.8.11')
+    monkeypatch.setenv('PACBENCH_MEMCAL_CONDITION',label)
     monkeypatch.setattr(route,'MODEL','openai/gpt-6-luna')
     monkeypatch.setattr(route,'ENDPOINT','amazon-bedrock/global')
     monkeypatch.delenv('OPENAI_COMPAT_API_KEY',raising=False)
@@ -61,7 +64,8 @@ def test_factory_preserves_synthetic_store_and_primary_failure(tmp_path, monkeyp
             assert account.client.config.db_path == store/'memcal.db' and account.identity == site.account
             assert account.source_witness.documents == canary_docs and len(account.source_witness.rows) == 142
             assert len({d.cutoff for d in canary_docs}) == 1
-            assert condition.track == 'first-party-connector' and len(condition.tool_names) == 21
+            assert condition.track == 'first-party-connector' and condition.tool_names == memcal_week_tools(revision)
+            assert condition.version == version
             assert (root/'hermes-home/plugins/memcal').is_dir()
             raise ValueError('primary')
     assert caught.value.__notes__ == ['MemCal account cleanup also failed (RuntimeError)']

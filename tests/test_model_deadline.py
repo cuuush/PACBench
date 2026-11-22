@@ -13,6 +13,7 @@ from pacbench.direct_http import UrllibResponse
 
 class Budget:
     def __init__(self):self.records=[];self.metadata=[]
+    def observe_response(self,*args,**kwargs):pass
     def settle(self,*args,**kwargs):self.records.append(args);self.metadata.append(kwargs)
 
 

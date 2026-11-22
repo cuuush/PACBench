@@ -141,3 +141,32 @@ def test_shutdown_observation_preserves_primary_failure_and_both_cleanup_errors(
     assert json.loads((tmp_path/'shutdown-observation.json').read_text()) == {
         'original_error_type':'ValueError','native_hook':'failed','native_error_type':'TimeoutError',
         'fallback_cleanup':{'state':'failed','error_type':'OSError'}}
+
+
+def test_document_return_and_trace_survive_failed_native_write_barrier(tmp_path):
+    from pacbench.workflow_native import NativeAccount
+    from pacbench.workflow_conformance import RecordingAccount
+    from pacbench.workflow_runner import run_current_week
+    from pacbench.workflow_progress import WorkflowProgress
+    from pacbench.workflow_spec import compile_week
+    from tests.test_workflow_realism import condition
+    route = condition(p='reme')
+    _, docs, turns, _ = compile_week(route.state)
+    calls = []
+    class Fixture(RecordingAccount, NativeAccount):
+        ask = NativeAccount.ask
+        def capture_answer(self, prompt, *, at, session_id, on_return):
+            calls.append(prompt)
+            on_return({'answer':'returned CLI answer'})
+            return {'session_id':'fixture', 'answer':'returned CLI answer'}
+        def observe_answer(self, trace):
+            raise RuntimeError('unwitnessed write')
+    dest = tmp_path/'week'
+    with pytest.raises(RuntimeError, match='unwitnessed'):
+        run_current_week(route, Fixture(route, docs), dest)
+    key = json.loads((dest/'run.json').read_text())['run_key']
+    with WorkflowProgress(dest, key) as p:
+        assert p.observation('answer',turns[0].id,'cli-return')['answer'] == 'returned CLI answer'
+        assert p.observation('answer',turns[0].id,'trace')['session_id'] == 'fixture'
+        assert list(p.iter_verified()) == [] and p.claim_grade() is None
+    assert calls == [turns[0].prompt]

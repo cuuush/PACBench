@@ -385,7 +385,12 @@ def run_workflow(condition, account: BoundAccount, documents, turns, journal, *,
             journal.write('dispatch', question=turn.id, account=observation.identity, at=turn.at,
                           prompt=turn.prompt, session=prior['session_id'] if prior else None)
             def ask():
-                return observation.ask(turn.prompt, at=turn.at, session_id=prior['session_id'] if prior else None)
+                from .workflow_native import NativeAccount
+                hooks = {}
+                if progress is not None and isinstance(observation, NativeAccount):
+                    hooks['on_return'] = lambda raw: progress.record_observation('answer',turn.id,'cli-return',raw)
+                    hooks['on_trace'] = lambda trace: progress.record_observation('answer',turn.id,'trace',trace)
+                return observation.ask(turn.prompt, at=turn.at, session_id=prior['session_id'] if prior else None, **hooks)
             if progress is None:
                 surface = ask()
             else:

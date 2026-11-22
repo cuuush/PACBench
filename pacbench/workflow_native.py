@@ -319,8 +319,10 @@ class NativeAccount:
                 'tool_boundaries':self.witness.tool_boundaries(trace['tool_results']),
                 'attempts':self.witness.request_lineage(trace['model_requests'])}
 
-    def ask(self, prompt, *, at, session_id):
-        trace = self.capture_answer(prompt, at=at, session_id=session_id)
+    def ask(self, prompt, *, at, session_id, on_return=None, on_trace=None):
+        trace = self.capture_answer(prompt, at=at, session_id=session_id, on_return=on_return)
+        if on_trace is not None:
+            on_trace(trace)
         return self.observe_answer(trace)
 
     def verify_resume(self, progress, plan):

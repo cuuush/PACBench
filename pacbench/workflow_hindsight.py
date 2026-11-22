@@ -30,7 +30,7 @@ class NativeFileClient:
 
 
 class HindsightAccount(NativeAccount):
-    def ask(self, prompt, *, at, session_id):
+    def ask(self, prompt, *, at, session_id, on_return=None, on_trace=None):
         from .gateway_reuse import atomic
 
         folder = self.witness.root/'native-cli-returns'
@@ -41,8 +41,12 @@ class HindsightAccount(NativeAccount):
             if path.exists():
                 raise ValueError('Hindsight native CLI return already retained for this question')
             atomic(path,snapshot)
+            if on_return is not None:
+                on_return(snapshot)
 
         trace = self.capture_answer(prompt,at=at,session_id=session_id,on_return=save_return)
+        if on_trace is not None:
+            on_trace(trace)
         return self.observe_answer(trace)
 
 

@@ -24,8 +24,8 @@ class CogneeAccount(NativeAccount):
     def submit(self, doc):
         return self.witness.submit(doc)
 
-    def ask(self, prompt, *, at, session_id):
-        surface = super().ask(prompt,at=at,session_id=session_id)
+    def ask(self, prompt, *, at, session_id, on_return=None, on_trace=None):
+        surface = super().ask(prompt,at=at,session_id=session_id,on_return=on_return,on_trace=on_trace)
         self.witness.observe_explicit_captures(surface)
         return surface
 

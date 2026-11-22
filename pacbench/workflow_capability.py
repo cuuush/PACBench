@@ -111,6 +111,10 @@ def load():
         from .pizza_day_lineup import validate
         validate(c, bound)
         return c
+    if c.get('admission') == 'luna-judge-development-ab-v1':
+        from .judge_development_live import validate
+        validate(c, bound)
+        return c
     if c.get('admission') == 'pizza-day-wrong-answer-judge-v1':
         from .pizza_day_control import validate
         validate(c, bound)
@@ -196,6 +200,9 @@ def budget(*, project=None, profile=None):
         raise ValueError('prepaid receipt and recorded observation differ')
     if observed <= 0:
         raise ValueError('OpenRouter prepaid credit exhausted')
+    if c.get('admission') == 'luna-judge-development-ab-v1':
+        from .judge_development_live import JudgeJournal
+        return JudgeJournal(path)
     if c['provider'] == 'memcal':
         from .observational_receipts import IndexedRunReceiptJournal
         return IndexedRunReceiptJournal(path)
@@ -250,6 +257,9 @@ def admission(project, profile, body):
         raise ValueError('unexpected workflow role or model route')
     if c.get('admission') == 'pizza-day-native-document-v1':
         from .pizza_day_lineup import admit
+        return admit(c, project, body)
+    if c.get('admission') == 'luna-judge-development-ab-v1':
+        from .judge_development_live import admit
         return admit(c, project, body)
     if c.get('admission') == 'pizza-day-wrong-answer-judge-v1':
         from .pizza_day_control import admit

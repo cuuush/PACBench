@@ -149,6 +149,7 @@ class ObservedBudget:
    check_cohort_stop()
    stop=os.environ.get('PACBENCH_STOP_FILE')
    if stop and Path(stop).exists():raise RuntimeError('Execution stopped')
+   self.check_prepared(rows, row)
    indexed=isinstance(rows,IndexedAttempts)
    refused=rows.refused() if indexed else any(account_refused(r) for r in rows.values())
    if refused:
@@ -168,6 +169,9 @@ class ObservedBudget:
     raise CanaryBusy('Current execution request still active')
    append('prepared',row['id'],row)
   return {'id':row['id'],'request':request}
+
+ def check_prepared(self,rows,row):
+  """Optional scope-specific admission under the journal lock."""
 
  def mark_dispatch_possible(self,ident,*,sender=None):
   from .live_dispatch import mark_possible

@@ -39,3 +39,20 @@ Auto Recharge off and finite nonresetting limit, current shared serial lock and
 stop state, durable reservation before dispatch, and unique settled receipts.
 One attempt per cell; stop on ambiguity or missing settlement. No alternative
 route, automatic retry or account changes are permitted by this experiment.
+
+## Standalone prepaid admission
+
+`pacbench.judge_development_live` is the separate live entry point on the
+authorized shared executor. It accepts only the twenty ordered bodies from
+the reviewed manifest. The ordinary PACBench direct transport writes a
+prepared attempt before each send. The next cell requires the prior exact
+wire stream and a unique settled generation receipt. A stop, missing receipt,
+interrupted stream or unexpected route ends the batch without an automatic
+retry. The shared account lock remains held for the batch. The run directory
+is single-use, including after interruption.
+
+This observational path uses the existing prepaid balance and the provider's
+finite nonresetting key limit. It requires the matching execution account,
+retained operator confirmation of Auto Recharge off, and no contrary live
+billing evidence. It never changes account settings. The conditional sizing
+figure above is reference arithmetic for the original offline proposal.

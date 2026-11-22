@@ -68,8 +68,10 @@ def reconcile_cancelled(attempt_path,evidence_dir,key,*,budget=None):
     """
     budget=budget or live_budget();attempt_path=Path(attempt_path);directory=Path(evidence_dir)
     attempt,identifier,stream_hash=_attempt(attempt_path)
-    row=next(r for r in budget.snapshot() if r['id']==attempt['accounting_receipt']['id'])
-    row.pop('accounted_upper_bound_usd',None)
+    # Compare the original ledger row at both ends of the lookup. The public
+    # snapshot also contains derived financial fields absent from the ledger.
+    with budget.locked(write=False) as original:
+        row=dict(next(r for r in original['calls'] if r['id']==attempt['accounting_receipt']['id']))
     request_hash=hashlib.sha256(json.dumps(attempt['request'],sort_keys=True,ensure_ascii=False).encode()).hexdigest()
     if (row['state']!='uncertain' or row.get('transport')!=DIRECT_PROTOCOL or
             row.get('http_status')!=200 or not row.get('finished') or row.get('served_model')!=MODEL or
@@ -111,7 +113,9 @@ def reconcile_cancelled(attempt_path,evidence_dir,key,*,budget=None):
         if current!=row:raise ValueError('Original accounting attempt changed during lookup')
         if any(r['id']!=row['id'] and r.get('upstream_request_id')==identifier and r['state']=='settled' for r in state['calls']):
             raise ValueError('Generation already belongs to another settled attempt')
-        current.update(state='settled',accounted=str(cost),input_tokens=inp,output_tokens=out,
+        current.update(state='settled',accounted=str(cost),settled_charge_usd=str(cost),
+            generation_receipt={'id':identifier,'total_cost':str(cost)},
+            generation_receipt_source='openrouter.generation.total_cost',input_tokens=inp,output_tokens=out,
             error_label='upstream_cancelled_charge_confirmed',cancelled=True,reconciled_at=receipt['lookup_at'])
         current.setdefault('reconciliations',[]).append({**receipt,'receipt_path':str((directory/'receipt.json').resolve())})
         if cost>money(row['reserved']):current['reported_liability_exceeds_bound']=True

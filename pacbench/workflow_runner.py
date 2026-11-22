@@ -322,7 +322,7 @@ def confirm_source_only(account, prefix, journal, question=None):
         raise ValueError('account is not source-only')
 
 
-def run_workflow(condition, account: BoundAccount, documents, turns, journal, *, spec_digest, evidence_kind, all_source_documents=None):
+def run_workflow(condition, account: BoundAccount, documents, turns, journal, *, spec_digest, evidence_kind, all_source_documents=None, progress=None):
     """Run on the supplied account; stop on uncertainty without replaying an import or answer."""
     route = eligibility(condition.provider, condition.track, condition.channels, version=condition.version)
     if not route['documented_for_scope']:
@@ -384,7 +384,13 @@ def run_workflow(condition, account: BoundAccount, documents, turns, journal, *,
                 raise ValueError('unexpected sources before answer dispatch')
             journal.write('dispatch', question=turn.id, account=observation.identity, at=turn.at,
                           prompt=turn.prompt, session=prior['session_id'] if prior else None)
-            surface = observation.ask(turn.prompt, at=turn.at, session_id=prior['session_id'] if prior else None)
+            def ask():
+                return observation.ask(turn.prompt, at=turn.at, session_id=prior['session_id'] if prior else None)
+            if progress is None:
+                surface = ask()
+            else:
+                surface = progress.effect('answer', turn.id, {'at':turn.at,'prompt':turn.prompt,
+                                          'session_id':prior['session_id'] if prior else None}, ask, role='driver')
             journal.write('answer-visible', question=turn.id, measure=turn.measure, surface=surface)
             activity = captured_turn(surface, turn, prior, condition, prefix)
             ids = [r['request_id'] for r in surface['model_requests']]
@@ -415,7 +421,10 @@ def run_workflow(condition, account: BoundAccount, documents, turns, journal, *,
             native_sessions.add(surface['session_id'])
             surface['conversation_times'] = [*(prior['conversation_times'] if prior else ()), turn.at]
             sessions[turn.session] = surface
-            snapshots.append((turn, surface))
+            if progress is None:
+                snapshots.append((turn, surface))
+            else:
+                progress.verified_turn(turn, surface, activity)
             journal.write('verified-turn',question=turn.id,measure=turn.measure,activity=activity)
             if last_in_chat[turn.session] == turn.id:
                 started = time.monotonic()
@@ -426,6 +435,8 @@ def run_workflow(condition, account: BoundAccount, documents, turns, journal, *,
                 if (closure.get('session_id') != surface['session_id'] or not closure.get('readback')
                         or closure.get('pending_writes') != 0):
                     raise ValueError('native chat-end writes unverified')
+            if progress is not None:
+                progress.mark_turn_done(turn.id)
         finally:
             if isolated and observation is not account:
                 observation.close()
@@ -506,6 +517,11 @@ def run_current_week(condition, account, directory, *, judge=None, canary=False,
                                   judge=judge, canary=canary, resume=resume)
     if resume:
         raise ValueError('This account route has no verified incremental resume')
+    from . import workflow_document_progress
+    if (condition.track == 'nightly-document' and condition.state == 'continuing-account'
+            and condition.provider in workflow_document_progress.PROVIDERS and turns):
+        return workflow_document_progress.run(condition, account, docs, turns, directory, spec,
+                                              fingerprint, source_basis, all_source_documents, judge, canary)
     summary = {}
     for t in turns:
         row = summary.setdefault(t.measure, {'planned_turns':0,'planned_criteria':0,

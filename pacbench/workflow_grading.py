@@ -33,7 +33,12 @@ def judge_only_owner(progress, scope):
 
     root = Path(scope['root'])
     bound = binding(root/'workflow-scope.json')
-    if ((scope['provider'] != 'memcal' and scope.get('admission') != 'pizza-day-native-document-v1')
+    from .workflow_document_progress import PROTOCOL, PROVIDERS
+    identity = progress.binding('identity') or {}
+    document = (identity.get('protocol') == PROTOCOL and scope['provider'] in PROVIDERS
+                and identity.get('condition', {}).get('provider') == scope['provider']
+                and identity.get('account') == str(root) and identity.get('spec_sha256') == scope['spec_sha256'])
+    if ((not document and scope['provider'] != 'memcal' and scope.get('admission') != 'pizza-day-native-document-v1')
             or progress.directory != root/'workflow'
             or progress.binding('workflow_scope') != bound):
         raise ValueError('judge recovery requires the original qualified run scope')
@@ -323,7 +328,8 @@ def main(argv=None):
     meta = read_json(directory/'run.json')
     from .workflow_stream import fingerprint
     identity = meta.get('identity', {})
-    if (identity.get('protocol') != 'memcal-incremental-v1' or meta.get('evidence_kind') != 'native'
+    from .workflow_document_progress import PROTOCOL
+    if (identity.get('protocol') not in ('memcal-incremental-v1', PROTOCOL) or meta.get('evidence_kind') != 'native'
             or identity.get('evidence_kind') != 'native' or fingerprint(identity) != meta['run_key']):
         raise ValueError('expected the original incremental native run')
     with WorkflowProgress(directory, meta['run_key']) as progress:

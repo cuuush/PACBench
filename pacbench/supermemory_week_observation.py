@@ -1,4 +1,5 @@
 """Read-only ordinary document processing on the stock Supermemory v5 API."""
+from datetime import datetime, time as midnight, timedelta, timezone
 from hashlib import sha256
 from math import ceil, isfinite
 import time
@@ -7,6 +8,41 @@ from .document_audit import same_submitted_text
 from .workflow_spec import instant
 
 PENDING = {'queued', 'extracting', 'processing', 'chunking', 'embedding', 'indexing'}
+
+
+def stock_temporal_metadata(cutoff):
+    """Stock v0.0.9 projection of an Add request with date and no user metadata."""
+    date = datetime.fromisoformat(cutoff).date()
+    start = datetime.combine(date, midnight.min, tzinfo=timezone.utc)
+    return {
+        'temporalContext': {'documentDate': date.isoformat(), 'eventDate': None},
+        'temporalEventStartMs': int(start.timestamp()) * 1000,
+        'temporalEventEndMs': int((start + timedelta(days=1)).timestamp()) * 1000,
+    }
+
+
+def verify_native_version(native, document, *, native_id, namespace, wire):
+    """Bind the live v5 projection to the accepted database ID and revision."""
+    if ((native.get('id'), native.get('customId'), native.get('containerTags'))
+            != (native_id, document.filename, [namespace])):
+        raise ValueError('Foreign Supermemory native readback identity or namespace')
+    revision = native.get('latestRevision')
+    system = wire['system']
+    if (type(revision) is not int or revision < 0 or native.get('status') != system.get('status')
+            or instant(native['updatedAt']) != instant(system['updatedAt'])
+            or instant(native['createdAt']) != instant(system['createdAt'])):
+        raise ValueError('Supermemory native revision or version timestamp differs from v5')
+    if native.get('content') != wire.get('content'):
+        raise ValueError('Supermemory native content differs from its v5 projection')
+    # These internal keys are deliberately excluded by the pinned v5 serializer.
+    # Every returned caller-visible value must still match the live native row.
+    metadata = native.get('metadata')
+    if not isinstance(metadata, dict):
+        raise ValueError('Missing Supermemory native metadata')
+    public = {k: value for k, value in metadata.items() if not k.startswith('sm_') and k != 'commonQuestions'}
+    if public != wire.get('metadata'):
+        raise ValueError('Supermemory native public metadata differs from v5')
+    return revision
 
 
 def _wire(response):
@@ -43,7 +79,7 @@ def verify_release_inventory(client, namespace, expected_ids, *, deadline):
 
 
 def wait_for_batch_processing(client, namespace, documents, acknowledgements, *, deadline,
-                              previous_ids=(), before_read=None):
+                              previous_ids=(), before_read=None, native_readback=None):
     """Verify one release in an exclusively owned namespace using ordered add responses."""
     expected = {doc.filename: doc for doc in documents}
     if (not namespace or not expected or len(expected) != len(documents)
@@ -74,7 +110,8 @@ def wait_for_batch_processing(client, namespace, documents, acknowledgements, *,
             content = row.get('content')
             returned_sha = sha256(content.encode('utf-8')).hexdigest() if isinstance(content, str) else None
             metadata = row.get('metadata')
-            if not same_submitted_text(content, doc.text) or metadata != {}:
+            expected_metadata = stock_temporal_metadata(doc.cutoff)
+            if not same_submitted_text(content, doc.text) or metadata != expected_metadata:
                 metadata_state = ('omitted' if 'metadata' not in row else 'null' if metadata is None
                                   else f'mapping-with-{len(metadata)}-fields' if isinstance(metadata, dict)
                                   else 'unexpected-type')
@@ -82,12 +119,17 @@ def wait_for_batch_processing(client, namespace, documents, acknowledgements, *,
                                  f'expected_sha256={doc.sha256}, returned_sha256={returned_sha}, '
                                  f'metadata_state={metadata_state}')
             version = system.get('updatedAt')
-            if not isinstance(version, str):
-                raise ValueError(f'Supermemory document {ident} lacks a version timestamp')
-            instant(version)
+            created = system.get('createdAt')
+            if (not isinstance(version, str) or not isinstance(created, str)
+                    or instant(version) < instant(created)):
+                raise ValueError(f'Supermemory document {ident} lacks a valid version timestamp')
+            native_revision = native_readback(doc, row) if native_readback is not None else None
+            original_size, retained_size = len(doc.text.encode('utf-8')), len(content.encode('utf-8'))
             observed[ident] = dict(status=status, sha256=doc.sha256, updated_at=version,
-                                   returned_sha256=returned_sha,
+                                   returned_sha256=returned_sha, original_bytes=original_size,
+                                   canonical_bytes=retained_size, removed_trailing_lf_bytes=original_size-retained_size,
                                    source_projection=('exact' if content == doc.text else 'single-final-lf-omitted'),
+                                   metadata=metadata, native_revision=native_revision,
                                    dreaming_status=system.get('dreamingStatus'))
         if len(observed) < len(expected):
             time.sleep(min(0.5, _options(deadline)['timeout']))

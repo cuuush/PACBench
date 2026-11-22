@@ -9,6 +9,7 @@ import json
 import os
 from pathlib import Path
 import time
+from urllib.parse import quote
 from urllib.request import Request
 
 from . import workflow_capability as cap
@@ -23,7 +24,9 @@ from .openrouter_route import MODEL, PROFILE_NAME
 from .openrouter_run import fetch_catalog
 from .supermemory_source_admission import BINARY_SHA, PROFILE, PROVIDER, SCOPE, project_name, source_release
 from .supermemory_source_effect import BOUNDARY, NATIVE_ID
-from .supermemory_week_observation import verify_release_inventory, wait_for_batch_processing
+from .supermemory_week_observation import (
+    stock_temporal_metadata, verify_native_version, verify_release_inventory, wait_for_batch_processing,
+)
 from .workflow_delivery import submit_document
 from .workflow_memcal_live import run_environment
 from .workflow_receipts import receipt_summary
@@ -138,14 +141,33 @@ def check_runtime():
         raise ValueError('Pinned local embedding health failed')
 
 
-def run(campaign, checkpoint):
+def verify_closed_source_attempt(campaign, diagnostic):
+    old = campaign/'supermemory-source-qualification-v1'/'supermemory'
+    previous = json.loads((old/'result.json').read_text())
+    if (previous['state'] != 'incomplete' or previous['cleanup'] != 'verified-inventory-stopped'
+            or previous['billing']['attempts'] != 0 or (old/'receipts.jsonl').stat().st_size != 0):
+        raise RuntimeError('Earlier Supermemory attempt does not establish zero dispatched work')
+    evidence = json.loads(Path(diagnostic).read_text())
+    if (evidence['binary_sha256'] != BINARY_SHA
+            or evidence['snapshot_sha256'] != sha(old/'supermemory-data'/'data')
+            or evidence['original_receipt_attempts'] != 0):
+        raise ValueError('Supermemory metadata diagnostic is not bound to the closed store')
+    first, _, _ = source_release()
+    expected = [(d.filename, d.sha256, stock_temporal_metadata(d.cutoff)) for d in first]
+    observed = [(r['public_id'], r['source_sha256'], r['stock_v5_visible_projection'])
+                for r in evidence['documents']]
+    if observed != expected:
+        raise ValueError('Supermemory metadata diagnostic differs from the frozen first release')
+
+
+def run(campaign, checkpoint, diagnostic):
     from supermemory import Supermemory
     from provider_adapters.supermemory_local import start
     from .execution_capability import selected
 
     campaign = Path(campaign).resolve(strict=True)
     checkpoint = Path(checkpoint).resolve(strict=True)
-    one_shot = campaign/'supermemory-source-qualification-v1'
+    one_shot = campaign/'supermemory-source-qualification-metadata-v2'
     root = one_shot/'supermemory'
     first, _, basis = source_release()
     namespace = 'supermemory-data-'+one_shot.name+'-supermemory'
@@ -158,6 +180,7 @@ def run(campaign, checkpoint):
         check_stops(campaign)
         if one_shot.exists():
             raise RuntimeError('Preserve the existing source qualifier and do not replay')
+        verify_closed_source_attempt(campaign, diagnostic)
         check_runtime()
         fetch_catalog(profile=PROFILE)
         proof, raw, prepaid = verify_prepaid(checkpoint, key)
@@ -170,7 +193,8 @@ def run(campaign, checkpoint):
         scope = dict(root=str(root), run_id=one_shot.name, provider=PROVIDER, admission=SCOPE,
                      projects={PROVIDER:{'memory':project}}, spec_sha256=sha(SPEC), frozen_inputs=basis,
                      controller=process_identity(), lock_fd=fd, cutoff=first[0].cutoff, namespace=namespace,
-                     native_effect=BOUNDARY, prepaid=prepaid, auto_recharge_evidence=proof)
+                     native_effect=BOUNDARY, prepaid=prepaid, auto_recharge_evidence=proof,
+                     prior_metadata_diagnostic=binding(Path(diagnostic)))
         atomic(root/'workflow-scope.json',scope)
         settings = {cap.ENV:json.dumps(binding(root/'workflow-scope.json')), JOURNAL:str(root/'receipts.jsonl'),
                     COHORT_STOP:str(campaign/'ACCOUNT_STOP'), 'PACBENCH_STOP_FILE':str(root/'STOP'),
@@ -204,9 +228,24 @@ def run(campaign, checkpoint):
                                 journal.flush()
                                 os.fsync(journal.fileno())
                                 publish_membership(endpoint, native_token, root, namespace, first[:index])
+                        memberships = [json.loads(p.read_text()) for p in (root/'source-membership').glob('*.json')]
+                        accepted_ids = {row['public_id']:row['native_id'] for row in memberships}
+                        if len(accepted_ids) != len(memberships) or set(accepted_ids) != set(acknowledgements):
+                            raise ValueError('Incomplete Supermemory native ID bindings at readiness')
+
+                        def native_readback(document, wire):
+                            native_id = accepted_ids[document.filename]
+                            path = endpoint+'/v3/documents/'+quote(native_id, safe='')
+                            request = Request(path, headers={'Authorization':'Bearer '+native_token})
+                            with open_without_redirect(request, timeout=5) as response:
+                                native = json.load(response)
+                            return verify_native_version(native, document, native_id=native_id,
+                                                         namespace=namespace, wire=wire)
+
                         report['release'] = wait_for_batch_processing(
                             client, namespace, first, acknowledgements, deadline=deadline,
-                            before_read=lambda:check_stops(campaign))
+                            before_read=lambda:check_stops(campaign), native_readback=native_readback)
+                        atomic(root/'ready-source-proof.json', report['release'])
                         # Normal document readiness is independent of dreaming.
                         # An already admitted request must still get its ordinary
                         # response boundary before the owned worker is stopped.
@@ -240,8 +279,9 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('campaign', type=Path)
     parser.add_argument('checkpoint', type=Path)
+    parser.add_argument('diagnostic', type=Path)
     args = parser.parse_args()
-    report = run(args.campaign, args.checkpoint)
+    report = run(args.campaign, args.checkpoint, args.diagnostic)
     print(json.dumps({key:report[key] for key in ('state','billing','cleanup')}))
     return int(report['state'] != 'stock-first-release-processed')
 

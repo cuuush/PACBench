@@ -14,7 +14,8 @@ from pacbench.workflow_spec import compile_week
 @pytest.mark.parametrize(('fault', 'error'), [
     (None, None), ('framing-lf', None), ('ack', ValueError), ('identity', ValueError),
     ('content', ValueError), ('interior-whitespace', ValueError), ('metadata', ValueError),
-    ('metadata-omitted', ValueError), ('metadata-null', ValueError),
+    ('metadata-omitted', ValueError), ('metadata-null', ValueError), ('metadata-empty', ValueError),
+    ('wrong-source-date', ValueError), ('wrong-boundary', ValueError),
     ('version', ValueError), ('failed', ValueError), ('inventory', ValueError), ('pending', TimeoutError),
 ])
 def test_stock_sdk_first_evening(monkeypatch, fault, error):
@@ -36,7 +37,7 @@ def test_stock_sdk_first_evening(monkeypatch, fault, error):
             doc = batch[len(saved)]
             assert not request.url.query
             assert json.loads(request.content) == {'id': doc.filename, 'content': doc.text, 'date': doc.cutoff}
-            saved[doc.filename] = dict(id=doc.filename, type='text', content=doc.text, metadata={},
+            saved[doc.filename] = dict(id=doc.filename, type='text', content=doc.text, metadata=observation.stock_temporal_metadata(doc.cutoff),
                                        system=dict(status='done', createdAt=doc.cutoff, updatedAt=doc.cutoff))
             ack_id = batch[0].filename if fault == 'ack' and doc.filename == last else doc.filename
             return httpx.Response(200, json=dict(id=ack_id, status='queued'))
@@ -64,7 +65,13 @@ def test_stock_sdk_first_evening(monkeypatch, fault, error):
             elif fault == 'interior-whitespace':
                 row['content'] = row['content'].replace('\n', '\r\n', 1)
             elif fault == 'metadata':
-                row['metadata'] = {'foreign': True}
+                row['metadata'] = {**row['metadata'], 'foreign': True}
+            elif fault == 'metadata-empty':
+                row['metadata'] = {}
+            elif fault == 'wrong-source-date':
+                row['metadata']['temporalContext'] = {'documentDate':'2026-10-06', 'eventDate':None}
+            elif fault == 'wrong-boundary':
+                row['metadata']['temporalEventEndMs'] += 1
             elif fault == 'metadata-omitted':
                 del row['metadata']
             elif fault == 'metadata-null':
@@ -85,7 +92,7 @@ def test_stock_sdk_first_evening(monkeypatch, fault, error):
         if error:
             with pytest.raises(error) as err:
                 observation.wait_for_batch_processing(client, 'smoke', batch, acks, deadline=2.)
-            metadata_states = {'metadata':'mapping-with-1-fields', 'metadata-null':'null',
+            metadata_states = {'metadata':'mapping-with-4-fields', 'metadata-null':'null',
                                'metadata-omitted':'omitted'}
             if fault in metadata_states:
                 assert 'metadata_state='+metadata_states[fault] in str(err.value)
@@ -96,9 +103,43 @@ def test_stock_sdk_first_evening(monkeypatch, fault, error):
     assert list(result['documents']) == list(acks)
     assert sum(reads.values()) == 13
     for doc in batch:
+        omitted = int(fault == 'framing-lf' and doc.filename == last)
         assert result['documents'][doc.filename] == dict(
             status='done', sha256=doc.sha256, updated_at=doc.cutoff,
+            metadata=observation.stock_temporal_metadata(doc.cutoff), native_revision=None,
+            original_bytes=len(doc.text.encode()), canonical_bytes=len(doc.text.encode())-omitted,
+            removed_trailing_lf_bytes=omitted,
             returned_sha256=(sha256(doc.text[:-1].encode()).hexdigest()
                              if fault == 'framing-lf' and doc.filename == last else doc.sha256),
             source_projection=('single-final-lf-omitted' if fault == 'framing-lf' and doc.filename == last else 'exact'),
             dreaming_status='dreaming' if doc.filename == last else None)
+
+
+def test_pinned_temporal_projection_keeps_submitted_calendar_date():
+    assert observation.stock_temporal_metadata('2026-10-05T21:00:00-04:00') == {
+        'temporalContext': {'documentDate': '2026-10-05', 'eventDate': None},
+        'temporalEventEndMs': 1791244800000,
+        'temporalEventStartMs': 1791158400000,
+    }
+
+
+@pytest.mark.parametrize('field', [None, 'id', 'customId', 'containerTags', 'latestRevision',
+                                    'updatedAt', 'createdAt', 'content', 'metadata'])
+def test_native_version_is_bound_to_accepted_readback(field):
+    document = compile_week('continuing-account')[1][0]
+    metadata = observation.stock_temporal_metadata(document.cutoff)
+    wire = dict(id=document.filename, content=document.text[:-1], metadata=metadata,
+                system=dict(status='done', createdAt=document.cutoff, updatedAt=document.cutoff))
+    native = {'id':'d'*22, 'customId':document.filename, 'containerTags':['only-owned'],
+              'latestRevision':0, 'status':'done', 'createdAt':document.cutoff, 'updatedAt':document.cutoff,
+              'content':wire['content'], 'metadata':{**metadata, 'sm_internal-hidden':True}}
+    bad = {'id':'f'*22, 'customId':'other', 'containerTags':['another'], 'latestRevision':-1,
+           'updatedAt':'2026-10-08T00:00:00Z', 'createdAt':'2026-10-03T00:00:00Z', 'content':'changed',
+           'metadata':{**metadata, 'extra-user-metadata':True}}
+    if field is not None:
+        with pytest.raises(ValueError):
+            observation.verify_native_version({**native, field:bad[field]}, document,
+                native_id='d'*22, namespace='only-owned', wire=wire)
+    else:
+        assert observation.verify_native_version(native, document,
+            native_id='d'*22, namespace='only-owned', wire=wire) == 0

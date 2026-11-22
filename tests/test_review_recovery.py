@@ -74,3 +74,19 @@ def test_private_export_checks_grade_and_returns_only_counts(tmp_path):
     with pytest.raises(ValueError, match='checkpoint grade differs'):
         export(run,tmp_path/'corrupt')
     assert not (tmp_path/'corrupt').exists()
+
+
+def test_blind_packet_and_saved_verdict_comparison():
+    from pathlib import Path
+    from pacbench.judge_blind_controls import evaluate
+    from pacbench.semantic_grade import CONTEXT_JUDGE_PROTOCOL, DATE_SCOPED_JUDGE_PROTOCOL
+    root = Path(__file__).parent/'fixtures/grader-review'
+    cases = json.loads((root/'cases.json').read_text())
+    key = json.loads((root/'proposed-key.json').read_text())['verdicts']
+    packets = [evaluate(cases, p) for p in (CONTEXT_JUDGE_PROTOCOL, DATE_SCOPED_JUDGE_PROTOCOL)]
+    assert packets[0]['A'] != packets[1]['A']
+    assert all(c['answer'] in packet[c['id']] for c in cases for packet in packets)
+    answers = {c['id']:json.dumps({'verdicts':[{'id':c['claims'][0][0],
+               'verdict':'missed','reason':'offline replay fixture'}]}) for c in cases}
+    compared = evaluate(cases, CONTEXT_JUDGE_PROTOCOL, answers, key)
+    assert [k for k,v in compared.items() if v['agrees']] == ['B','F']

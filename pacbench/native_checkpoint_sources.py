@@ -166,6 +166,7 @@ def memcal_archive_readback(preparation,ids,store):
                 raise GatewayLifecycleError('Duplicate native archive identity')
             actual[ch,key] = text,ts,owner,handle,thread
     witnesses=[]
+    matched=set()
     for identifier in ids:
         source=Path(preparation)/'sources'/identifier;fixture=json.loads((source/'chat.fixture.json').read_text())
         mailbox=json.loads((source/'mailbox.json').read_text()) if (source/'mailbox.json').exists() else {'messages':[]}
@@ -187,13 +188,22 @@ def memcal_archive_readback(preparation,ids,store):
                     raise GatewayLifecycleError('Mailbox differs from frozen email')
                 key = row['message_id'].strip('<>')
                 message = email.message_from_string(row['rfc822'])
+                from .email_fixture import OBSERVED_HEADERS
+                from .memcal_import_audit import verify_envelope
+                verify_envelope(message, m, mailbox.get('header_condition') == OBSERVED_HEADERS)
+                if message.get('Message-ID','').strip('<>') != key:
+                    raise GatewayLifecycleError('Mailbox message identity differs from native wire input')
                 raw = proton.extract_text(message)
                 if raw.replace('\r\n','\n').strip() != m['text'].strip():
                     raise GatewayLifecycleError('Native reader received different source text')
                 subject = proton.header_str(message, 'Subject')
                 expected = subject+'\n\n'+m['text']
-                shaped = proton._shape_body(raw,subject)[0].strip()
-            found=actual.get((m['channel'],key))
+                shaped = proton._shape_body(raw,subject)[0]
+            address = (m['channel'],key)
+            if address in matched:
+                raise GatewayLifecycleError('Duplicate submitted archive identity')
+            matched.add(address)
+            found=actual.get(address)
             if (found is None or datetime.fromisoformat(found[1]) != datetime.fromisoformat(m['written_at'])
                     or found[2] != int(m['from_owner']) or found[0] != shaped
                     or m['channel']=='imessage' and (found[3],found[4]) != (handle,'id:'+target)):
@@ -202,6 +212,8 @@ def memcal_archive_readback(preparation,ids,store):
             condition=('exact' if text==expected else 'line-ending-only' if text.replace('\r\n','\n')==expected else 'native-text-transformation')
             witnesses.append({'source_id':m['source_id'],'channel':m['channel'],'condition':condition,
                 'submitted_text_sha256':hashlib.sha256(expected.encode()).hexdigest(),'archive_text_sha256':hashlib.sha256(text.encode()).hexdigest()})
+    if matched != set(actual):
+        raise GatewayLifecycleError('Native archive has unrelated source records')
     return {'protocol':'native-archive-source-comparison-v1','compared':len(witnesses),
         'all_identities_and_times_match':True,'rows':witnesses,'native_text_unchanged':all(w['condition']=='exact' for w in witnesses)}
 

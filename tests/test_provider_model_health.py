@@ -59,7 +59,7 @@ def test_cost_stop_invokes_only_the_failed_arms_native_shutdown(tmp_path, monkey
     monkeypatch.setattr(native_pilot, '_ARM_SHUTDOWNS', {
         first.resolve(): lambda: stopped.append('first'),
         other.resolve(): lambda: stopped.append('other')})
-    monkeypatch.setattr(process_cleanup, 'cleanup_run_processes', lambda root: cleaned.append(root))
+    monkeypatch.setattr(process_cleanup, 'cleanup_run_processes', lambda root: cleaned.append(root) or [])
     native_pilot.stop_arm_model_work(first)
     native_pilot.stop_arm_model_work(first)
     assert stopped == ['first']

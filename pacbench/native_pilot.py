@@ -154,9 +154,10 @@ def stop_arm_model_work(root):
     stop = _ARM_SHUTDOWNS.pop(root.resolve(), None)
     prior = sys.exc_info()[1]
     receipt = root/'shutdown-observation.json'
-    if stop is None and receipt.exists():
-        return json.loads(receipt.read_text())
     record = {'native_hook':'absent', 'original_error_type':type(prior).__name__ if prior else None}
+    if stop is None and receipt.exists():
+        record = json.loads(receipt.read_text())
+        record.setdefault('earlier_cleanup', []).append(record['fallback_cleanup'])
     try:
         if stop is not None:
             proof = stop()

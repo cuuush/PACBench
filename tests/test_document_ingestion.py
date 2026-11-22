@@ -241,6 +241,8 @@ def test_apple_fixture_has_real_address_identity_and_preserves_source(tmp_path):
 
 def test_group_membership_and_outgoing_handle_are_not_fake_senders(tmp_path):
     rows=[message('a','Me',True),message('b','Devon'),message('c','Maya')]
+    for row in rows:
+        row['structured'] = {'participants':['Me','Devon','Maya']}
     path=tmp_path/'chat.db';append_messages(path,rows)
     with sqlite3.connect(path) as db:
         assert db.execute('SELECT count(*) FROM chat_handle_join').fetchone()[0]==2
@@ -301,7 +303,7 @@ def test_clock_offsets_and_collection_day_not_string_prefix():
 
 def test_unavailable_recipient_is_not_invented(tmp_path):
     with pytest.raises(ValueError,match='recipient'):
-        append_messages(tmp_path/'chat.db',[message('sent','Me',True)])
+        append_messages(tmp_path/'chat.db',[{**message('sent','Me',True),'structured':None}])
 
 
 def test_evaluation_cannot_use_future_source_or_nightly_processing():

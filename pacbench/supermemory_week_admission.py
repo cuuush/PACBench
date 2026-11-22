@@ -19,7 +19,7 @@ from .workflow_progress import WorkflowProgress
 from .workflow_spec import SPEC, instant
 
 SCOPE = 'supermemory-stock-document-week-v1'
-WEEK_RUN = 'supermemory-stock-week-v1'
+WEEK_RUN = 'supermemory-stock-week-v2'
 
 
 @lru_cache(maxsize=1)

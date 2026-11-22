@@ -1,6 +1,7 @@
 """Seven chronological source documents for new Pizza Week runs."""
 from collections import Counter, defaultdict
 from functools import lru_cache
+from hashlib import sha256
 import json
 import uuid
 from zoneinfo import ZoneInfo
@@ -13,9 +14,9 @@ from .pizza_week_dataset import MANIFEST, ROOT, checked_file
 from .workflow_memcal_contract import member_digest, verify_contract
 from .workflow_spec import Document, SPEC, compile_week, instant
 
-DAILY_SPEC = ROOT / 'specs/pizza_week_daily_documents_v1.json'
+DAILY_SPEC = ROOT / 'specs/pizza_week_daily_documents_v2.json'
 DAILY_CHANNEL = 'daily-messages'
-LAYOUT = 'pizza-week-seven-daily-documents-v1'
+LAYOUT = 'pizza-week-seven-daily-documents-v2'
 STORAGE_METADATA = ('SQLite ROWID and Apple control records', 'IMAP UID and UIDVALIDITY',
                     'transport cursors and collection clocks', 'provider-assigned document and revision IDs')
 
@@ -46,7 +47,7 @@ def message_block(row):
     return json.dumps(message_metadata(row), ensure_ascii=False, sort_keys=True, separators=(',', ':')) + '\n' + row['text']
 
 
-def daily_documents(originals, messages, timezone):
+def daily_documents(originals, messages, timezone, *, mail_history=None):
     zone = ZoneInfo(timezone)
     records = {row['source_id']: row for row in messages}
     expected = [(doc.cutoff, doc.channel, ident, text) for doc in originals
@@ -62,6 +63,16 @@ def daily_documents(originals, messages, timezone):
             raise ValueError('Source creation day differs from the frozen release day; prior-day backfill is forbidden')
         if (row['channel'], row['text']) != (channel, text):
             raise ValueError('Daily export differs from the original source record')
+        if mail_history is not None and ident == mail_history['source_id']:
+            old = records[mail_history['quoted_prior_source_id']]
+            raw = text.encode()
+            body = raw[:mail_history['retained_authored_bytes']]
+            if (channel != 'email' or old['channel'] != 'email' or instant(old['written_at']).astimezone(zone).date() >= creation.date()
+                    or sha256(raw).hexdigest() != mail_history['raw_body_sha256']
+                    or sha256(body).hexdigest() != mail_history['projected_body_sha256']
+                    or old['text'].encode() not in raw[len(body):] or old['text'].encode() in body):
+                raise ValueError('Frozen MemCal email body projection differs from its verified prior-day quote exclusion')
+            row = {**row, 'text': body.decode()}
         groups[cutoff].append(row)
     docs = []
     for cutoff, rows in sorted(groups.items(), key=lambda item: instant(item[0])):
@@ -84,7 +95,8 @@ def compile_daily_week():
     manifest = json.loads(checked_file(root, 'manifest.json', MANIFEST))
     bundle = load_bundle(root / manifest['source_bundle'], manifest['source_bundle_hash'])
     messages = [row for life in bundle['lives'].values() for row in life['messages']]
-    docs = daily_documents(original, messages, spec['timezone'])
+    mail_history = layout['verified_mail_history_exclusion']
+    docs = daily_documents(original, messages, spec['timezone'], mail_history=mail_history)
     if (len(docs) != 7 or [doc.cutoff for doc in docs] != contract['nightly_cutoffs']
             or sum(len(doc.source_ids) for doc in docs) != contract['records']):
         raise ValueError('Pizza Week requires one complete document per frozen creation day')
@@ -97,4 +109,6 @@ def compile_daily_week():
         'normalized_index_sha256': index_sha, 'documents': len(docs), 'document_index': index,
         'source_records_by_channel': dict(Counter(row['channel'] for row in messages)),
         'excluded_storage_metadata': list(STORAGE_METADATA),
+        'memcal_ingestion_revision': layout['memcal_ingestion_revision'],
+        'verified_mail_history_exclusion': mail_history,
     }

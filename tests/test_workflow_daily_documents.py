@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta
+from hashlib import sha256
 import json
 
 import pytest
@@ -18,11 +19,12 @@ def test_seven_verified_source_files_retain_the_original_evaluation():
     assert [len(d.source_ids) for d in docs] == [39, 23, 27, 24, 9, 10, 10]
     assert [d.cutoff for d in docs] == list(dict.fromkeys(doc.cutoff for doc in original))
     assert manifest['source_records_by_channel'] == {'imessage': 120, 'email': 22}
-    assert manifest['normalized_index_sha256'] == '94c9708c17c2140b4733c741bd0937ed5472b1a71e56edfdf0074224710e8ac3'
+    assert manifest['normalized_index_sha256'] == '55e204958b1c38d0dc4177d47789bc78473c44b96f183a554f98390bb5b22ce9'
     root = ROOT / spec['dataset']
     source = json.loads((root / 'manifest.json').read_text())
     bundle = load_bundle(root / source['source_bundle'], source['source_bundle_hash'])
     rows = {r['source_id']: r for life in bundle['lives'].values() for r in life['messages']}
+    correction = manifest['verified_mail_history_exclusion']
     for daily in docs:
         records = [rows[key] for key in daily.source_ids]
         assert records == sorted(records, key=lambda row: (datetime.fromisoformat(row['written_at']), row['source_id']))
@@ -30,7 +32,14 @@ def test_seven_verified_source_files_retain_the_original_evaluation():
         # additional record outside the original day's ordered message blocks.
         assert daily.text == '\n\n'.join(
             json.dumps(message_metadata(row), ensure_ascii=False, sort_keys=True, separators=(',', ':'))
-            + '\n' + row['text'] for row in records) + '\n'
+            + '\n' + (row['text'].encode()[:correction['retained_authored_bytes']].decode()
+                      if row['source_id'] == correction['source_id'] else row['text']) for row in records) + '\n'
+    cutoff = rows[correction['source_id']]['written_at'][:10]
+    file = next(doc for doc in docs if doc.filename.startswith(cutoff))
+    assert rows[correction['quoted_prior_source_id']]['text'] not in file.text
+    assert rows['message-70eaf4efec7abbe141b4813e']['text'] in file.text
+    text = file.bodies[file.source_ids.index(correction['source_id'])]
+    assert sha256(text.encode()).hexdigest() == correction['projected_body_sha256']
 
 
 def fixture_row(text, day, ident):

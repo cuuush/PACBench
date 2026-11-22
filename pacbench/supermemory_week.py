@@ -34,6 +34,7 @@ from .supermemory_source_admission import BINARY_SHA, PROFILE, PROVIDER
 from .supermemory_source_effect import BOUNDARY, NATIVE_ID
 from .supermemory_source_qualify import account_lock, check_runtime, check_stops, verify_prepaid
 from .supermemory_week_admission import SCOPE, WEEK_RUN, plan, prepare_driver, verified_final_response
+from .supermemory_worker_rounds import PROTOCOL as WORKER_ROUND_PROTOCOL
 from .supermemory_week_observation import PENDING, read_release_processing, verify_native_version, verify_release_inventory
 from .workflow_memcal_live import run_environment
 from .workflow_native import NativeAccount, WarmHermes
@@ -351,14 +352,16 @@ def run(campaign, checkpoint, plugin_home):
             stream.write(credit)
         scope = dict(admission=SCOPE, protocol=PROTOCOL, root=str(root), provider=PROVIDER, run_id=WEEK_RUN, canary=False,
                      namespace=f'supermemory-data-{WEEK_RUN}-{PROVIDER}', contract=contract, frozen_inputs=basis,
-                     native_effect=BOUNDARY, prepaid=prepaid, auto_recharge_evidence=confirmation, controller=process_identity(),
+                     native_effect=BOUNDARY, worker_round_protocol=WORKER_ROUND_PROTOCOL, prepaid=prepaid,
+                     auto_recharge_evidence=confirmation, controller=process_identity(),
                      lock_fd=lock, projects=projects(root), spec_sha256=sha(SPEC))
         atomic(root / 'workflow-scope.json', scope)
         settings = {cap.ENV: json.dumps(binding(root / 'workflow-scope.json')), JOURNAL: str(root / 'receipts.jsonl'),
                     COHORT_STOP: str(campaign / 'ACCOUNT_STOP'), 'PACBENCH_STOP_FILE': str(root / 'STOP'),
                     'PACBENCH_DIRECT_STOP_ON_429': str(root / 'STOP'), 'PACBENCH_DISPATCH_TRACKING': CONDITION,
                     'PACBENCH_ROLE_ROUTES': 'luna-all-roles-v1', 'PACBENCH_LUNA_COMPATIBILITY': 'temperature-omitted-default-v1',
-                    'PACBENCH_EFFECTIVE_OUTPUT_TOKENS': '32768', 'PACBENCH_SUPERMEMORY_STOCK_SOURCE': '1'}
+                    'PACBENCH_EFFECTIVE_OUTPUT_TOKENS': '32768', 'PACBENCH_SUPERMEMORY_STOCK_SOURCE': '1',
+                    'PACBENCH_SUPERMEMORY_STOCK_ROUNDS': '1'}
         result = dict(state='incomplete', condition=SCOPE, cleanup='unverified', contract=contract)
         with run_environment(settings):
             ledger = cap.budget()

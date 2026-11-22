@@ -15,11 +15,12 @@ from .openrouter_route import validate_request
 from .supermemory_question_admission import PROTOCOL, check_driver_rounds, driver_slot, projects, terminal_response
 from .supermemory_source_admission import PROFILE, PROVIDER, check_lock, physical_effect
 from .supermemory_source_effect import BOUNDARY
+from . import supermemory_worker_rounds as rounds
 from .workflow_progress import WorkflowProgress
 from .workflow_spec import SPEC, instant
 
 SCOPE = 'supermemory-stock-document-week-v1'
-WEEK_RUN = 'supermemory-stock-week-v2'
+WEEK_RUN = 'supermemory-stock-week-v3'
 
 
 @lru_cache(maxsize=1)
@@ -39,6 +40,8 @@ def validate(scope, bound):
             or scope['spec_sha256'] != sha(SPEC) or scope['frozen_inputs'] != plan()[2]
             or scope['contract'] != plan()[3] or scope['canary'] is not False
             or scope['namespace'] != f'supermemory-data-{WEEK_RUN}-{PROVIDER}' or scope['native_effect'] != BOUNDARY
+            or scope['worker_round_protocol'] != rounds.PROTOCOL
+            or os.environ.get('PACBENCH_SUPERMEMORY_STOCK_ROUNDS') != '1'
             or os.environ.get('PACBENCH_STOP_FILE') != str(root / 'STOP')
             or os.environ.get(COHORT_STOP) != str(campaign / 'ACCOUNT_STOP')
             or os.environ.get('PACBENCH_DISPATCH_TRACKING') != CONDITION
@@ -146,11 +149,13 @@ def memory_slot(scope, body=None):
                     and progress.active_effect('answer', pending_turn.id) is not None):
                 raise OwnershipConflict('Supermemory mutable capture lacks an unambiguous native append')
         slot = dict(kind='background', question_id=entry['question_id'])
+    slot = dict(provider=PROVIDER, stock_source_effect=asdict(effect), **slot)
     if body is not None:
         validate_request(body, profile=PROFILE)
         names = {json.loads(f.read_text())['public_id'] for f in (root / 'source-membership').glob('*.json')}
         inspect_source_cutoff({'model_requests': [body], 'prefetch': None}, docs, names, [])
-    return dict(provider=PROVIDER, stock_source_effect=asdict(effect), **slot)
+        slot['worker_round'] = rounds.describe_request(body, rounds.witness(slot['stock_source_effect']))
+    return slot
 
 
 def admit(scope, project, body):
@@ -197,9 +202,7 @@ class WeekJournal(RunReceiptJournal):
                     raise OwnershipConflict('Earlier Supermemory operation already prepared this question')
                 check_driver_rounds(drivers, slot)
             else:
-                update_id = slot['stock_source_effect']['update_id']
-                if any((r['workflow_slot'].get('stock_source_effect') or {}).get('update_id') == update_id for r in prior):
-                    raise OwnershipConflict('Supermemory durable update already prepared; no automatic replay')
+                rounds.check_history(prior, row)
             if any(r.get('finished') and r['accounting_role'] == 'memory_provider' and not terminal_response(r)
                    for r in prior):
                 raise OwnershipConflict('A native Supermemory worker response remains uncertain')
@@ -209,12 +212,29 @@ class WeekJournal(RunReceiptJournal):
 
     def mark_dispatch_possible(self, identifier, *, sender=None):
         if sender is not None:
+            from .direct_accounting import stop_measured_admission
             from .workflow_capability import load
 
-            row = next(r for r in self.snapshot() if r['id'] == identifier)
-            if row['workflow_slot'] != memory_slot(load()) or sender != process_identity(os.getppid()):
-                raise OwnershipConflict('Supermemory native worker changed before dispatch')
+            try:
+                row = next(r for r in self.snapshot() if r['id'] == identifier)
+                scope = {key: val for key, val in row['workflow_slot'].items() if key != 'worker_round'}
+                if scope != memory_slot(load()) or sender != process_identity(os.getppid()):
+                    raise OwnershipConflict('Supermemory native worker changed before dispatch')
+                rounds.confirm(row['workflow_slot']['worker_round'], rounds.witness(scope['stock_source_effect']))
+            except (OwnershipConflict, OSError, ValueError, KeyError):
+                stop_measured_admission('supermemory_stock_round_changed_before_dispatch', identifier)
+                raise
         super().mark_dispatch_possible(identifier, sender=sender)
+
+    def outcome_evidence(self, row, frames, outcome):
+        observed = rounds.observed_response(row, frames, outcome)
+        prior = row.get('stock_worker_tool_response')
+        if prior is not None and prior != observed:
+            from .direct_accounting import stop_measured_admission
+
+            stop_measured_admission('supermemory_stock_tool_response_changed', row['id'])
+            raise OwnershipConflict('Stock tool evidence differs from the previously settled response')
+        return {'stock_worker_tool_response': observed} if observed is not None else {}
 
     def retry_delay(self, identifier):
         return None

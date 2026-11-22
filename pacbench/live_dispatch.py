@@ -79,6 +79,8 @@ def operation_id(row):
     if (slot.get('provider') == 'supermemory' and slot.get('stock_source_effect')
             and row.get('accounting_role') == 'memory_provider'):
         scope['stock_source_effect'] = slot['stock_source_effect']
+        if slot.get('worker_round'):
+            scope['worker_round'] = slot['worker_round']['ordinal']
     return hashlib.sha256(json.dumps({'request':row['request_sha256'],'scope':scope},sort_keys=True).encode()).hexdigest()
 
 

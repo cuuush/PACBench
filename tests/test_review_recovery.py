@@ -258,3 +258,33 @@ def test_legacy_partial_exports_verified_prefix_without_inventing_grade(tmp_path
     assert summary == dict(verified_answers=1,audited_judgments=0,graded_criteria=0,correct=0)
     row = json.loads((tmp_path/'private/answers.private.jsonl').read_bytes())
     assert row['checkpoint_grade_state'] == 'ungraded' and row['criteria'] is None
+
+
+def test_claimed_grade_exports_returned_attempt_without_awarding_criteria(tmp_path,monkeypatch):
+    from pacbench.workflow_answer_export import checkpoint_rows
+    from pacbench.workflow_grading import grade_verified
+    from tests.test_workflow_grading import checkpoints, Recorder, local_judge
+    with checkpoints(tmp_path,verified=1) as (progress, turns):
+        def crashed(*args,**kwargs):
+            raise InterruptedError()
+        monkeypatch.setattr(progress,'finish_grade',crashed)
+        with pytest.raises(InterruptedError):
+            grade_verified(progress,local_judge(tmp_path,[]),tmp_path,Recorder(),limit=1)
+        row, = checkpoint_rows(progress,tmp_path,tmp_path/'audit')
+        assert row['checkpoint_grade_state'] == 'claimed' and row['criteria'] is None
+        assert row['judge_attempts'][0]['provenance'] == 'retained-return'
+        assert row['judge_attempts'][0]['request_id'] == 'offline-attempt-1'
+
+
+def test_financial_torn_tail_does_not_discard_known_answers(tmp_path):
+    from pacbench.workflow_answer_export import financial_evidence
+    (tmp_path/'workflow-scope.json').write_text(json.dumps(dict(run_id='fixture',root=str(tmp_path))))
+    journal = tmp_path/'receipts.jsonl'
+    tail = b'{"kind":"prep'
+    journal.write_bytes(tail)
+    attempts,status = financial_evidence(tmp_path/'workflow')
+    assert not attempts and status == {'state':'incomplete-tail','bytes':len(tail),'offset':0}
+    assert journal.read_bytes() == tail
+    journal.write_bytes(tail+b'\n')
+    with pytest.raises(ValueError):
+        financial_evidence(tmp_path/'workflow')

@@ -25,7 +25,9 @@ def receipt_summary(root, rows, run_id, *, attempts=None):
             raise ValueError('foreign receipt attribution')
         if attempts is not None:
             attempts[row['id']] = dict(actual_usd=None, retry_of=row.get('retry_of'), operation_id=ctx['operation_id'],
-                                       phase=ctx['phase'], attempt_state=row.get('state'))
+                                       phase=ctx['phase'], attempt_state=row.get('state'),
+                                       question_id=(row.get('workflow_slot') or {}).get('question_id'),
+                                       role=row.get('accounting_role'))
         item = row.get('billing_receipt')
         if row.get('state') != 'settled' or not item:
             missing.append(row['id'])

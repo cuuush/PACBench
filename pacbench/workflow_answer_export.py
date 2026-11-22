@@ -72,6 +72,35 @@ def legacy_rows(directory):
         raise ValueError('grade without a verified answer')
 
 
+def ungraded_attempts(directory, turn, surface, folder):
+    from .canary_capability import digest
+    from .semantic_grade import RETRY_GUIDANCE, judge_prompt
+    from .workflow_runner import judge_options
+    prompt = judge_prompt(turn.prompt,surface['answer'],turn.claims,**judge_options(turn,surface))
+    records = []
+    for member in sorted(folder.glob('attempt-*.json')):
+        record = {'file':member.name, 'provenance':'unverified', 'request_id':None}
+        if member != member.resolve():
+            raise ValueError('judge attempt outside original run')
+        attempt = read_json(member)
+        if (attempt.get('checkpoint') == turn.id and attempt.get('answer') == surface['answer']
+                and attempt.get('prompt') in (prompt,prompt+RETRY_GUIDANCE)):
+            record.update(prompt=attempt['prompt'], response=attempt.get('response'))
+            model = attempt.get('model_call')
+            if isinstance(model,str):
+                call_path = directory/'model-calls'/Path(model).name
+                if call_path == Path(model) == call_path.resolve() and call_path.is_file():
+                    call = read_json(call_path)
+                    receipt = call.get('judge_transport') or {}
+                    if (digest(call) == attempt.get('model_call_hash') and call.get('text') == record['response']
+                            and receipt.get('request',{}).get('messages') == [{'role':'user','content':record['prompt']}]
+                            and receipt.get('request_sha256') == digest(receipt['request'])):
+                        record.update(provenance='retained-return', model_call_hash=digest(call),
+                                      request_id=receipt.get('id'), model=call.get('model'), endpoint=receipt.get('endpoint'))
+        records.append(record)
+    return records
+
+
 def comparison_row(directory, turn, surface, activity, checkpoint, *, audit_path=None):
     path = audit_path or directory/'judgments'/turn.id/'judgment.json'
     attempts = []
@@ -87,6 +116,8 @@ def comparison_row(directory, turn, surface, activity, checkpoint, *, audit_path
                                  model_call_hash=attempt['model_call_hash'], request_id=receipt['id'],
                                  request_sha256=receipt['request_sha256'], model=call['model'],
                                  endpoint=receipt['endpoint'], judge_protocol=attempt['judge_protocol']))
+    elif checkpoint and checkpoint['grade_state'] != 'graded' and turn.claims:
+        attempts = ungraded_attempts(directory,turn,surface,path.parent/'judgment-attempts')
     if checkpoint and checkpoint['grade_state'] == 'graded' and checkpoint['criteria'] != criteria:
         raise ValueError('checkpoint grade differs from its audited judgment')
     return dict(grade_failure=(checkpoint or {}).get('failure'), turn=asdict(turn), answer=surface['answer'], conversation=surface['history'],
@@ -122,15 +153,27 @@ def financial_evidence(directory):
     root = directory.parent
     journal = root/'receipts.jsonl'
     attempts = {}
+    status = {'state':'absent'}
+    def lines(stream):
+        while True:
+            position = stream.tell()
+            raw = stream.readline()
+            if not raw:
+                return
+            if not raw.endswith(b'\n'):
+                status.update(state='incomplete-tail',offset=position,bytes=len(raw))
+                return
+            yield raw
     if journal.is_file():
+        status['state'] = 'read'
         if journal != journal.resolve():
             raise ValueError('foreign receipt journal')
         with journal.open('rb') as stream:
             fcntl.flock(stream, fcntl.LOCK_SH)
-            rows = replay_attempts(stream)
+            rows = replay_attempts(lines(stream))
         scope = read_json(root/'workflow-scope.json')
         receipt_summary(root, list(rows.values()), scope['run_id'], attempts=attempts)
-    return attempts
+    return attempts, status
 
 
 def export(directory, destination):
@@ -138,7 +181,11 @@ def export(directory, destination):
     if destination.is_relative_to(directory) or destination.parent != destination.parent.resolve():
         raise ValueError('select a new private output outside the run')
     counts = dict(verified_answers=0, audited_judgments=0, graded_criteria=0, correct=0)
-    financial = financial_evidence(directory)
+    financial, journal_state = financial_evidence(directory)
+    by_question = {}
+    for ident, receipt in financial.items():
+        if receipt.get('role') == 'judge' and receipt.get('question_id'):
+            by_question.setdefault(receipt['question_id'], {})[ident] = receipt
     with tempfile.TemporaryDirectory(dir=destination.parent) as tmp:
         root = Path(tmp)
         def write(rows):
@@ -147,6 +194,8 @@ def export(directory, destination):
                 for row in rows:
                     for attempt in [*row['driver_inputs'], *row['judge_attempts']]:
                         attempt['receipt'] = financial.get(attempt['request_id'], {'actual_usd':None})
+                    row['financial_journal'] = journal_state
+                    row['judge_receipts'] = by_question.get(row['turn']['id'], {})
                     row['attempt_receipts'] = {a['id']:financial.get(a['id'], {'actual_usd':None})
                                                for a in row['attempt_lineage'] if isinstance(a,dict) and a.get('id')}
                     out.write(json.dumps(row, ensure_ascii=False) + '\n')

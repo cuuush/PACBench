@@ -21,7 +21,7 @@ def save(path, value):
 @pytest.fixture
 def trace(tmp_path):
     message = {'source_id': 'chat/0', 'channel': 'imessage', 'thread': 'devon',
-        'sender': 'Devon', 'from_owner': False, 'structured': None,
+        'sender': 'Devon', 'from_owner': False, 'structured': {'participants':['Me','Devon']},
         'text': 'Dinner at seven.', 'written_at': '2026-09-07T18:00:00-04:00',
         'collected_at': '2026-09-08T18:00:00-04:00'}
     digest = hashlib.sha256(json.dumps([message], sort_keys=True, ensure_ascii=False).encode()).hexdigest()

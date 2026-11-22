@@ -14,7 +14,8 @@ from pacbench.imessage_fixture import append_messages,apple_ns
 
 def message(id,sender='Devon',owner=False,thread='one',stamp='2026-09-10T18:00:00-04:00'):
     return {'source_id':id,'sender':sender,'from_owner':owner,'thread':thread,'channel':'imessage',
-            'written_at':stamp,'collected_at':'2026-09-10T23:00:00-04:00','text':'Friday dinner at seven.','structured':None}
+            'written_at':stamp,'collected_at':'2026-09-10T23:00:00-04:00','text':'Friday dinner at seven.',
+            'structured':{'participants':['Me',sender if sender != 'Me' else 'Devon']}}
 
 
 @pytest.mark.parametrize('mode',['success','missing_outcome','incomplete','source_failure','count_mismatch'])

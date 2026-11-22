@@ -9,7 +9,13 @@ from types import SimpleNamespace
 import pytest
 from pacbench.harness import TurnResult, enforce_provider_tools
 
-TREE = Path(__file__).resolve().parents[1] / 'vendor/hermes-isolated'
+TREE = Path(os.environ.get('PACBENCH_TEST_HERMES_TREE', Path(__file__).resolve().parents[1] / 'vendor/hermes-isolated'))
+
+
+def checkout_file(relative):
+    if not TREE.is_dir() and 'PACBENCH_TEST_HERMES_TREE' not in os.environ:
+        pytest.skip('requires the provisioned patched Hermes source checkout')
+    return TREE / relative
 
 
 def native_source_guard():
@@ -23,11 +29,13 @@ def native_source_guard():
 
 @pytest.fixture(autouse=True)
 def native_policy_import(monkeypatch):
-    monkeypatch.setitem(sys.modules,'hermes_time',SimpleNamespace(source_read_blocked=native_source_guard()))
+    from pacbench.source_policy import source_read_blocked
+    guard = native_source_guard() if TREE.is_dir() else source_read_blocked
+    monkeypatch.setitem(sys.modules,'hermes_time',SimpleNamespace(source_read_blocked=guard))
 
 
 def guard(relative, name, stop):
-    tree = ast.parse((TREE / relative).read_text())
+    tree = ast.parse(checkout_file(relative).read_text())
     fn = next(n for n in tree.body if isinstance(n, ast.FunctionDef) and n.name == name)
     # Keep the real guard; replace the remaining dispatch with an observable sentinel.
     index = next(i for i, n in enumerate(fn.body) if stop(n))
@@ -90,7 +98,7 @@ def test_actual_schema_filter_keeps_only_native_provider_tools(monkeypatch, tmp_
     monkeypatch.setenv('PACBENCH_PROVIDER_ONLY', '1')
     monkeypatch.setenv('PACBENCH_TOOL_ALLOWLIST', allowlist)
     monkeypatch.setenv('PACBENCH_CONTEXT_TRACE', str(tmp_path / 'context.jsonl'))
-    tree = ast.parse((TREE / 'agent/turn_context.py').read_text())
+    tree = ast.parse(checkout_file('agent/turn_context.py').read_text())
     fn = next(n for n in tree.body if isinstance(n, ast.FunctionDef) and n.name == 'build_turn_context')
     policy = next(n for n in fn.body if isinstance(n, ast.If) and 'PACBENCH_PROVIDER_ONLY' in ast.unparse(n.test))
     agent = SimpleNamespace(tools=[{'function': {'name': n}} for n in
@@ -105,7 +113,7 @@ def test_actual_schema_filter_keeps_only_native_provider_tools(monkeypatch, tmp_
 def test_registry_guard_blocks_before_registry_or_hooks(monkeypatch):
     monkeypatch.setenv('PACBENCH_PROVIDER_ONLY', '1')
     monkeypatch.setenv('PACBENCH_TOOL_ALLOWLIST', 'hindsight_recall')
-    tree = ast.parse((TREE / 'model_tools.py').read_text())
+    tree = ast.parse(checkout_file('model_tools.py').read_text())
     fn = next(n for n in tree.body if isinstance(n, ast.FunctionDef) and n.name == 'handle_function_call')
     start = next(i for i, n in enumerate(fn.body) if isinstance(n, ast.Assign)
                  and any(isinstance(t, ast.Name) and t.id == '_pacbench_allowlist' for t in n.targets))
@@ -164,7 +172,7 @@ def test_native_source_access_is_permitted_and_penalized_without_exposing_os_too
     monkeypatch.setenv('PACBENCH_TOOL_ALLOWLIST',','.join(grant['allowed_tools']))
     monkeypatch.setenv('PACBENCH_SOURCE_ARGUMENT_RULES',json.dumps(grant['source_argument_rules']))
     monkeypatch.setenv('PACBENCH_CONTEXT_TRACE',str(tmp_path/'context.jsonl'))
-    tree=ast.parse((TREE/'agent/turn_context.py').read_text())
+    tree=ast.parse(checkout_file('agent/turn_context.py').read_text())
     fn=next(n for n in tree.body if isinstance(n,ast.FunctionDef) and n.name=='build_turn_context')
     policy=next(n for n in fn.body if isinstance(n,ast.If) and 'PACBENCH_PROVIDER_ONLY' in ast.unparse(n.test))
     agent=SimpleNamespace(tools=[{'function':{'name':n}} for n in [*native,'terminal','read_file','session_search']])
@@ -207,7 +215,7 @@ def test_real_hermes_schema_filter_hides_document_readers_keeps_event_open(monke
     monkeypatch.setenv('PACBENCH_PROVIDER_ONLY','1')
     monkeypatch.setenv('PACBENCH_TOOL_ALLOWLIST',','.join(grant['allowed_tools']))
     monkeypatch.setenv('PACBENCH_CONTEXT_TRACE',str(tmp_path/'context.jsonl'))
-    tree=ast.parse((TREE/'agent/turn_context.py').read_text())
+    tree=ast.parse(checkout_file('agent/turn_context.py').read_text())
     fn=next(n for n in tree.body if isinstance(n,ast.FunctionDef) and n.name=='build_turn_context')
     policy=next(n for n in fn.body if isinstance(n,ast.If) and 'PACBENCH_PROVIDER_ONLY' in ast.unparse(n.test))
     agent=SimpleNamespace(tools=[{'function':{'name':n}} for n in [*native,'terminal','read_file','memory']])

@@ -141,7 +141,7 @@ def test_execution_failure_skips_dependent_session_and_continues_independent(tmp
     report=run_checks(checks,'shared',root,judge,'',{},question_dir=tmp_path/'q',run_turn=run,budget_snapshot=lambda:{'projects':[]})
     assert called==[None,None]
     assert [r['state'] for r in report['checks']]==['ungraded','skipped','diagnostic']
-    assert report['state']=='partial' and report['counts']=={'pass':1,'fail':0,'ungraded':2}
+    assert report['state']=='partial' and report['counts']=={'pass':1,'fail':0,'ungraded':2,'strict_ungraded':0}
     assert audit_checks(checks,'shared',root)==[]
 
 
@@ -167,7 +167,7 @@ def test_recovery_authoring_error_preserves_initial_grade_and_disjoint_counts(tm
         question_dir=tmp_path/'questions',run_turn=lambda prompt,**kw:runner_result(prompt,kw),budget_snapshot=lambda:{'projects':[]})
     assert report['state']=='partial'
     assert [x['state'] for x in report['checks']]==['diagnostic','diagnostic']
-    assert report['counts']=={'pass':1,'fail':1,'ungraded':0,'recovery_ungraded':1}
+    assert report['counts']=={'pass':1,'fail':1,'ungraded':0,'recovery_ungraded':1,'strict_ungraded':0}
 
 
 @pytest.mark.parametrize('clarifies',[True,False])
@@ -477,7 +477,7 @@ def test_weekday_inline_recall_facts_are_frozen_as_authored(tmp_path):
 
 
 @pytest.mark.parametrize('changes',[
-    {'expect':'An answer.','facts':['A fact.']}, {'facts':[]}, {'facts':['']},
+    {'expect':'','facts':['A fact.']}, {'facts':[]}, {'facts':['']},
     {'facts':[{'id':'fact-1','statement':'A fact.'}]}, {'criteria':['A fact.']},
     {'kind':'behavior','facts':['A fact.']},
 ])

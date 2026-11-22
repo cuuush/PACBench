@@ -106,6 +106,19 @@ def prepare_prefix(prior,provider,checks,plan,schedule,destination,evidence):
 
 
 def run(root,env,*,settings,budget=None,offline_slice=None,resume_from=None,offline_provider=None,offline_stop_after=None):
+ """Restore process-local admission state when an embedded offline or native run exits."""
+ names = ('PACBENCH_STOP_FILE','PACBENCH_DIRECT_STOP_ON_429','PACBENCH_IMESSAGE_MEMBERSHIP_CONDITION',cap.ENV)
+ previous = {key:os.environ.get(key) for key in names}
+ try:
+  return _run(root,env,settings=settings,budget=budget,offline_slice=offline_slice,resume_from=resume_from,
+              offline_provider=offline_provider,offline_stop_after=offline_stop_after)
+ finally:
+  for key,value in previous.items():
+   if value is None:os.environ.pop(key,None)
+   else:os.environ[key]=value
+
+
+def _run(root,env,*,settings,budget=None,offline_slice=None,resume_from=None,offline_provider=None,offline_stop_after=None):
  from . import harness
  from .document_ingestion import prepare_sources
  from .native_checkpoint_sources import Mem0SourceCheckpoints,MemcalSourceCheckpoints,ReMeSourceCheckpoints

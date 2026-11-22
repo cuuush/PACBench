@@ -24,8 +24,8 @@ class CogneeAccount(NativeAccount):
     def submit(self, doc):
         return self.witness.submit(doc)
 
-    def ask(self, prompt, *, at, session_id):
-        surface = super().ask(prompt,at=at,session_id=session_id)
+    def ask(self, prompt, *, at, session_id, on_return=None, on_trace=None):
+        surface = super().ask(prompt,at=at,session_id=session_id,on_return=on_return,on_trace=on_trace)
         self.witness.observe_explicit_captures(surface)
         return surface
 
@@ -163,14 +163,18 @@ class CogneeWitness:
         source = qualify_incremental_document(self.backend,service_url=self.endpoint,dataset=self.dataset,
             text=doc.text,prior=list(self.sources.values()),processing_status=status,timeout=1800,
             native_captures=self.prior_native_captures())
-        deadline = time.monotonic()+1800
+        started = time.monotonic()
+        deadline = started + 1800
         while True:
             operations = pipeline_rows(self.root)
             if completed(operations,before):
                 break
-            if time.monotonic()>=deadline:
+            now = time.monotonic()
+            if now >= deadline:
                 raise TimeoutError('Cognee native automatic improve did not finish')
-            time.sleep(1)
+            # After per-item qualification, catch an imminent local terminal row
+            # without increasing the sustained query rate on a long-running improve.
+            time.sleep(.2 if now - started < 1 else 1)
         self.pending[doc.filename] = {**source,'native_operation_completion':[r for r in operations if r['id'] not in before]}
         return dict(native_id=doc.filename,accepted=True,at=doc.cutoff,
                     request={'interface':'stock remember_permanent','dataset':self.dataset,'data_id':source['data_id']})
@@ -253,8 +257,8 @@ class CogneeWitness:
                 or not all(r['shutdown_returned'] and r['clean'] for r in managers)):
             raise RuntimeError('Cognee selected chat did not close through the native provider')
         outcome = verify_turn({'native_root':str(self.root),'endpoint':self.endpoint,'dataset':self.dataset,
-            'prior_pipeline_ids':self.prior_close[sid],'source_documents':{rec['data_id']:rec['source_sha256'] for rec in self.sources.values()}},
-            SimpleNamespace(session_id=sid,prompt=self.turns[sid][-1]['prompt']),sample)
+            'verified_qa_history':self.turns[sid],'prior_pipeline_ids':self.prior_close[sid],'source_documents':{rec['data_id']:rec['source_sha256'] for rec in self.sources.values()}},
+            SimpleNamespace(session_id=sid, **self.turns[sid][-1]),sample)
         return dict(session_id=sid,pending_writes=0,readback=outcome)
 
     tool_boundaries = staticmethod(lambda _: {})

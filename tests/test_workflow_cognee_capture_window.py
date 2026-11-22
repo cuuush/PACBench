@@ -72,3 +72,80 @@ def test_explicit_cognee_write_requires_matching_native_tool_and_store(tmp_path)
     documents[identifier] = ('another-sha',{})
     with pytest.raises(ValueError,match='without attributable native capture'):
         witness.prior_native_captures()
+
+
+def test_checkpoint_reads_each_original_once_and_rechecks_seal_next_observation(monkeypatch):
+    from unittest.mock import Mock
+    from provider_adapters import cognee_checkpoint as checkpoint
+
+    prompt = 'test prompt'
+    bodies = {'source':prompt, **{f'old-{i}':'old question' for i in range(99)},
+              'stale':f'Session ID: native\n\nQuestion: {prompt}\n\nAnswer: old\n\n',
+              'foreign':f'Session ID: other\n\nQuestion: {prompt}\n\nAnswer: saved\n\n',
+              'substring':'Source containing '+prompt,
+              'promotion':f'Session ID: native\n\nQuestion: {prompt}\n\nAnswer: saved\n\n'}
+    backend = Mock()
+    backend.list_dataset_data.side_effect = lambda offset,limit,**_: [{'id':key} for key in list(bodies)[offset:offset+limit]]
+    backend.read_raw_data.side_effect = lambda data_id, **_: bodies[data_id]
+    monkeypatch.setattr(checkpoint, 'native', lambda *_:(backend, 'dataset-id'))
+    monkeypatch.setattr(checkpoint, 'pipeline_rows', lambda _:[])
+    session = {'name':'cognee','endpoint':'local','dataset':'ours','native_session':'native','close_requested_improve':False}
+    drain = {'sessions':[{'session_id':'sid','providers':[session],
+                          'sync_dispatches':[{'prompt_sha256':sha256(prompt.encode()).hexdigest()}]}]}
+    observation = dict(endpoint='local', dataset='ours', native_root='.', prior_pipeline_ids=[],
+                       source_documents={'source':sha256(prompt.encode()).hexdigest()})
+    turn = SimpleNamespace(prompt=prompt, answer='saved', session_id='sid')
+    result = checkpoint.verify_turn(observation, turn, drain)
+    assert result == {'native_promoted_documents':['promotion'], 'source_readback':'unchanged'}
+    assert [call.kwargs['data_id'] for call in backend.read_raw_data.call_args_list] == list(bodies)
+    del bodies['promotion']
+    backend.get_session.return_value = {'qas':[{'qa_id':'earlier','question':prompt,'answer':'old'}]}
+    with pytest.raises(checkpoint.GatewayLifecycleError, match='not readable'):
+        checkpoint.verify_turn(observation, turn, drain)
+    bodies['source'] += 'changed after close'
+    with pytest.raises(checkpoint.GatewayLifecycleError, match='sealed source'):
+        checkpoint.verify_turn(observation, turn, drain)
+    session['dataset'] = 'foreign'
+    with pytest.raises(checkpoint.GatewayLifecycleError, match='endpoint or dataset'):
+        checkpoint.verify_turn(observation, turn, drain)
+    assert backend.close.call_count == 3
+
+
+@pytest.mark.parametrize(('outcome','ready_at','expected_sleeps'), [
+    ('succeeded', .35, [.2, .2]), ('failed', .35, [.2, .2]),
+    ('succeeded', 2.35, [.2] * 5 + [1, 1]),
+])
+def test_final_improve_poll_waits_for_current_terminal_row(monkeypatch, outcome, ready_at, expected_sleeps):
+    from unittest.mock import Mock
+    from pacbench import workflow_cognee as workflow
+
+    doc = SimpleNamespace(cutoff='tonight', filename='file.txt', text='released')
+    witness = workflow.CogneeWitness(None, None, None, 'local', 'ours', None, [doc], [], None)
+    witness.cutoff = doc.cutoff
+    witness.prior_native_captures = lambda: []
+    old = dict(id='old', pipeline_run_id='old-run', operation_name='improve', ended_at='then', outcome='succeeded')
+    new = dict(id='new', pipeline_run_id='new-run', operation_name='improve', ended_at=None, outcome=None)
+    end = {**new, 'id':'done','ended_at':'now','outcome':outcome}
+    now = [0.]
+    def rows(_):
+        if now[0] == 0:
+            return [old]
+        return [old, new] if now[0] < ready_at else [old, new, end]
+
+    def advance(seconds):
+        now[0] += seconds
+
+    qualify = Mock(return_value={'data_id':'doc-id'})
+    sleeps = Mock(side_effect=advance)
+    monkeypatch.setattr(workflow, 'pipeline_rows', rows)
+    monkeypatch.setattr(workflow, 'qualify_incremental_document', qualify)
+    monkeypatch.setattr(workflow, 'time', SimpleNamespace(monotonic=lambda:now[0], sleep=sleeps))
+    if outcome == 'succeeded':
+        assert witness.submit(doc)['request']['data_id'] == 'doc-id'
+        assert witness.pending[doc.filename]['native_operation_completion'] == [new, end]
+    else:
+        with pytest.raises(workflow.QualificationError, match='failed'):
+            witness.submit(doc)
+        assert not witness.pending
+    assert [c.args[0] for c in sleeps.call_args_list] == expected_sleeps
+    qualify.assert_called_once()

@@ -4,19 +4,33 @@ from pathlib import Path
 from types import SimpleNamespace
 
 import pytest
-from ruamel.yaml import YAML
+import yaml
 
 from pacbench import catalog_plugins as catalog
 from pacbench import harness
 
 
+@pytest.fixture
+def catalog_checkout(tmp_path):
+    if harness.ISOLATED_TREE.exists():
+        return harness.ISOLATED_TREE
+    # Exercise the offline installer and its dependency probe even in a
+    # source-only checkout. A provisioned checkout exercises its real catalog.
+    tree = tmp_path/'hermes'
+    manifests = tree/'plugin-catalog'
+    manifests.mkdir(parents=True)
+    for name, (repo, revision) in catalog.HERMES_CATALOG.items():
+        (manifests/(name+'.yaml')).write_text(yaml.safe_dump(dict(name=name,repo='https://github.com/'+'/'.join(repo.split('/')[:2]),
+                                                               subdir='/'.join(repo.split('/')[2:]),sha=revision)))
+    return tree
+
+
 @pytest.mark.parametrize('name', sorted(catalog.CATALOG))
-def test_exact_ref_install_and_dependency_probe(name, tmp_path, monkeypatch):
+def test_exact_ref_install_and_dependency_probe(name, tmp_path, monkeypatch, catalog_checkout):
     home, fallback = tmp_path/'home', tmp_path/'fallback'
     (home/'plugins').mkdir(parents=True)
     fallback.mkdir()
     source, sha = catalog.CATALOG[name]
-    entry = YAML(typ='safe').load((harness.ISOLATED_TREE/'plugin-catalog'/f'{name}.yaml').read_text())
     calls = []
     def run(command, **kwargs):
         calls.append(command)
@@ -30,13 +44,13 @@ def test_exact_ref_install_and_dependency_probe(name, tmp_path, monkeypatch):
         return SimpleNamespace(returncode=0, stdout=json.dumps({'provider': name,
             'plugin_version': str(catalog.SOURCE_VERSIONS[name]), 'dependencies': ['example>=1']}), stderr='')
     monkeypatch.setattr(catalog.subprocess, 'run', run)
-    receipt = catalog.install_catalog_provider(name, home, fallback, Path('/fake/bin/hermes'), harness.ISOLATED_TREE)
+    receipt = catalog.install_catalog_provider(name, home, fallback, Path('/fake/bin/hermes'), catalog_checkout)
     assert calls[0][1:] == ['plugins', 'install', source, '--ref', sha, '--no-deps', '--no-enable']
     assert calls[1][0] == '/fake/bin/python'
     assert receipt['revision'] == sha and receipt['dependencies'] == ['example>=1']
 
 
-def test_wrong_installed_revision_fails_before_probe(tmp_path, monkeypatch):
+def test_wrong_installed_revision_fails_before_probe(tmp_path, monkeypatch, catalog_checkout):
     home, fallback = tmp_path/'home', tmp_path/'fallback'
     plugin = home/'plugins'/'mem0'
     plugin.mkdir(parents=True)
@@ -47,11 +61,11 @@ def test_wrong_installed_revision_fails_before_probe(tmp_path, monkeypatch):
     calls = []
     monkeypatch.setattr(catalog.subprocess, 'run', lambda *a, **k: calls.append(a) or SimpleNamespace(returncode=0))
     with pytest.raises(RuntimeError, match='source or manifest'):
-        catalog.install_catalog_provider('mem0', home, fallback, Path('/fake/bin/hermes'), harness.ISOLATED_TREE)
+        catalog.install_catalog_provider('mem0', home, fallback, Path('/fake/bin/hermes'), catalog_checkout)
     assert len(calls) == 1
 
 
-def test_declared_dependency_failure_is_not_accepted(tmp_path, monkeypatch):
+def test_declared_dependency_failure_is_not_accepted(tmp_path, monkeypatch, catalog_checkout):
     home, fallback = tmp_path/'home', tmp_path/'fallback'
     plugin = home/'plugins'/'mem0'
     plugin.mkdir(parents=True)
@@ -63,7 +77,7 @@ def test_declared_dependency_failure_is_not_accepted(tmp_path, monkeypatch):
     results = iter([SimpleNamespace(returncode=0), SimpleNamespace(returncode=1)])
     monkeypatch.setattr(catalog.subprocess, 'run', lambda *a, **k: next(results))
     with pytest.raises(RuntimeError, match='dependency or API probe'):
-        catalog.install_catalog_provider('mem0', home, fallback, Path('/fake/bin/hermes'), harness.ISOLATED_TREE)
+        catalog.install_catalog_provider('mem0', home, fallback, Path('/fake/bin/hermes'), catalog_checkout)
 
 
 def test_failed_preflight_leaves_provider_inactive_before_native_setup(tmp_path, monkeypatch):
@@ -76,11 +90,11 @@ def test_failed_preflight_leaves_provider_inactive_before_native_setup(tmp_path,
         (home/'config.yaml').write_text('memory:\n  provider: ""\n')
     monkeypatch.setattr(native_pilot.harness, 'provision_home', home_setup)
     def failed_install(name, home, *args):
-        assert YAML(typ='safe').load((home/'config.yaml').read_text())['memory']['provider'] == ''
+        assert yaml.safe_load((home/'config.yaml').read_text())['memory']['provider'] == ''
         raise RuntimeError('dependency missing')
     monkeypatch.setattr(catalog, 'install_catalog_provider', failed_install)
     with pytest.raises(RuntimeError, match='dependency missing'):
         native_pilot.provision(tmp_path/'arm', 'mem0')
-    config = YAML(typ='safe').load((tmp_path/'arm/hermes-home/config.yaml').read_text())
+    config = yaml.safe_load((tmp_path/'arm/hermes-home/config.yaml').read_text())
     assert config['memory']['provider'] == ''
     assert not (tmp_path/'arm/catalog-plugin.json').exists()

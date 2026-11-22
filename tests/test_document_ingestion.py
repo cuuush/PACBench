@@ -14,7 +14,8 @@ from pacbench.imessage_fixture import append_messages,apple_ns
 
 def message(id,sender='Devon',owner=False,thread='one',stamp='2026-09-10T18:00:00-04:00'):
     return {'source_id':id,'sender':sender,'from_owner':owner,'thread':thread,'channel':'imessage',
-            'written_at':stamp,'collected_at':'2026-09-10T23:00:00-04:00','text':'Friday dinner at seven.','structured':None}
+            'written_at':stamp,'collected_at':'2026-09-10T23:00:00-04:00','text':'Friday dinner at seven.',
+            'structured':{'participants':['Me',sender if sender != 'Me' else 'Devon']}}
 
 
 @pytest.mark.parametrize('mode',['success','missing_outcome','incomplete','source_failure','count_mismatch'])
@@ -240,6 +241,8 @@ def test_apple_fixture_has_real_address_identity_and_preserves_source(tmp_path):
 
 def test_group_membership_and_outgoing_handle_are_not_fake_senders(tmp_path):
     rows=[message('a','Me',True),message('b','Devon'),message('c','Maya')]
+    for row in rows:
+        row['structured'] = {'participants':['Me','Devon','Maya']}
     path=tmp_path/'chat.db';append_messages(path,rows)
     with sqlite3.connect(path) as db:
         assert db.execute('SELECT count(*) FROM chat_handle_join').fetchone()[0]==2
@@ -300,7 +303,7 @@ def test_clock_offsets_and_collection_day_not_string_prefix():
 
 def test_unavailable_recipient_is_not_invented(tmp_path):
     with pytest.raises(ValueError,match='recipient'):
-        append_messages(tmp_path/'chat.db',[message('sent','Me',True)])
+        append_messages(tmp_path/'chat.db',[{**message('sent','Me',True),'structured':None}])
 
 
 def test_evaluation_cannot_use_future_source_or_nightly_processing():

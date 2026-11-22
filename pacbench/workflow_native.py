@@ -105,7 +105,7 @@ class WarmHermes:
         with closing(sqlite3.connect(path.as_uri() + '?mode=ro', uri=True)) as db:
             db.row_factory = sqlite3.Row
             return [dict(r) for r in db.execute(
-                'SELECT role,content,api_content,tool_name,tool_call_id,tool_calls FROM messages '
+                'SELECT id,role,content,api_content,tool_name,tool_call_id,tool_calls FROM messages '
                 'WHERE session_id=? ORDER BY id', (sid,))]
 
     def ask(self, prompt, *, at, session_id, on_return=None):
@@ -174,7 +174,10 @@ class WarmHermes:
         except (OSError, ValueError, UnicodeError):
             pass  # The wire records remain authoritative; unavailable hook provenance stays unknown.
         capture_prefetch_provenance(turn, env)
-        delivery = memory_delivery(owner.home,sid,prompt,turn.prefetch_context)
+        sent_users = [msg for msg in requests[0]['messages'] if msg['role'] == 'user']
+        delivery = memory_delivery(owner.home, sid, prompt, turn.prefetch_context,
+                                   native_row_id=users[-1]['id'],
+                                   delivered_text=sent_users[-1].get('content') if sent_users else None)
         delta = records[max(i for i,r in enumerate(records) if r['role']=='user')+1:]
         native_results = [r for r in delta if r['role']=='tool']
         if len(native_results) != len(turn.tool_results):
@@ -305,16 +308,21 @@ class NativeAccount:
             return self.frontend.ask(prompt, at=at, session_id=session_id)
         return self.frontend.ask(prompt, at=at, session_id=session_id, on_return=on_return)
 
+    def _post_answer_inventory(self, barrier):
+        return self.source_inventory()
+
     def observe_answer(self, trace):
         started = time.monotonic()
         barrier = self.witness.native_write_barrier(trace['session_id'],trace['answer'])
         timing = {**trace.get('timing', {}), 'native_write_barrier_s':time.monotonic()-started}
-        return {**trace,'timing':timing,'account':self.identity,'source_files':self.source_inventory(),'write_barrier':barrier,
+        return {**trace,'timing':timing,'account':self.identity,'source_files':self._post_answer_inventory(barrier),'write_barrier':barrier,
                 'tool_boundaries':self.witness.tool_boundaries(trace['tool_results']),
                 'attempts':self.witness.request_lineage(trace['model_requests'])}
 
-    def ask(self, prompt, *, at, session_id):
-        trace = self.capture_answer(prompt, at=at, session_id=session_id)
+    def ask(self, prompt, *, at, session_id, on_return=None, on_trace=None):
+        trace = self.capture_answer(prompt, at=at, session_id=session_id, on_return=on_return)
+        if on_trace is not None:
+            on_trace(trace)
         return self.observe_answer(trace)
 
     def verify_resume(self, progress, plan):

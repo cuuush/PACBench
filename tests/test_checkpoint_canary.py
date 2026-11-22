@@ -16,6 +16,7 @@ def capability(tmp_path):
  return b,c,s
 
 
+@pytest.mark.usefixtures('historical_checkpoint_archive')
 def test_exact_frozen_slice_and_contract_tampering(tmp_path,monkeypatch):
  b,c,s=capability(tmp_path)
  assert [len(b['source_ids']) for b in c['specification']['schedule']]==[39,23]
@@ -33,6 +34,7 @@ def test_exact_frozen_slice_and_contract_tampering(tmp_path,monkeypatch):
   with pytest.raises(GatewayLifecycleError):cap.admission(c['projects']['mem0']['memory'],'luna-bedrock-global')
 
 
+@pytest.mark.usefixtures('historical_checkpoint_archive')
 def test_serial_requires_unique_settled_authoritative_receipts_and_ingest_prefix(tmp_path,monkeypatch):
  b,c,s=capability(tmp_path);monkeypatch.setattr('pacbench.openrouter_task.STATE',tmp_path)
  receipt=tmp_path/'receipt.json';atomic(receipt,{'usage':{'cost':'.001'}})
@@ -51,6 +53,7 @@ def test_serial_requires_unique_settled_authoritative_receipts_and_ingest_prefix
  with pytest.raises(GatewayLifecycleError):cap.serial([row],permit)
 
 
+@pytest.mark.usefixtures('historical_checkpoint_archive')
 def test_question_rejects_wrong_clock_session_prompt_observation_before_proof(tmp_path):
  b,c,s=capability(tmp_path);q=c['specification']['groups'][0]['questions'][0]
  s.pop('batch_id');s.update(kind='answer',question_id=q['id'],home=str(tmp_path/'home'),checkpoint='ck',observation={'workspace':'one'},proof={},ingest_receipt_ids=[])
@@ -60,6 +63,7 @@ def test_question_rejects_wrong_clock_session_prompt_observation_before_proof(tm
   with pytest.raises(GatewayLifecycleError):cap.question(b,owner,prompt,at,observation,session)
 
 
+@pytest.mark.usefixtures('historical_checkpoint_archive')
 def test_native_production_canary_all_three_offline(tmp_path,monkeypatch):
  from tests.offline_native_wire import NativeWire
  from tests.test_memcal_native_diagnostic import empty_review
@@ -149,6 +153,7 @@ def test_native_canary_preserves_named_guard_and_unknown_exposure(owner,monkeypa
  assert b.snapshot()==original
 
 
+@pytest.mark.usefixtures('historical_checkpoint_archive')
 def test_cross_scope_and_unavailable_embedding_endpoint_fail_closed(tmp_path,monkeypatch):
  import socket
  from provider_adapters.embedding_health import check
@@ -165,6 +170,7 @@ def test_exact_memcal_condition_pin_cleanliness_and_copied_plugin(tmp_path,monke
  import shutil,subprocess
  from pacbench.observation_adapters import native_source
  from pacbench.checkpoint_canary import MEMCAL,PYTHON,ROOT
+ if not MEMCAL.exists():pytest.skip('requires historical MemCal c19d216 source checkout')
  home=tmp_path/'hermes-home';(home/'plugins').mkdir(parents=True)
  shutil.copytree(MEMCAL/'integrations/hermes/memcal',home/'plugins/memcal')
  env={'MEMCAL_SRC':str(MEMCAL),'PACBENCH_MEMCAL_REUSE_REVISION':cap.specification()['memcal'],
@@ -202,6 +208,7 @@ def test_outgoing_driver_tools_cannot_be_empty_invented_or_source_filtered():
   with pytest.raises(GatewayLifecycleError):cap.check_tools(provider,{'tools':request['tools']+[{'function':{'name':'file_read'}}]})
 
 
+@pytest.mark.usefixtures('historical_checkpoint_archive')
 def test_only_reme_preclose_recovery_uses_actual_production_path(tmp_path,monkeypatch):
  from tests.offline_native_wire import NativeWire
  from tests.test_reme_native_checkpoints import write_response

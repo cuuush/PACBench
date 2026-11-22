@@ -68,7 +68,7 @@ def test_terminal_first_arm_does_not_start_independent_arm(tmp_path, monkeypatch
     monkeypatch.setattr(native_pilot, 'stop_arm_model_work', lambda *_: None)
     started = []
     monkeypatch.setattr(native_pilot, 'provision', lambda root, provider, *_a, **_kw: started.append(provider) or {'PACBENCH_USAGE_ROLES':'{}'})
-    monkeypatch.setattr(document_ingestion, 'prepare_sources', lambda *_: [{'id':'one','at':'a','file':'ingestion/one.json'}, {'id':'two','at':'b','file':'ingestion/two.json'}])
+    monkeypatch.setattr(document_ingestion, 'prepare_sources', lambda *_, **_kw: [{'id':'one','at':'a','file':'ingestion/one.json'}, {'id':'two','at':'b','file':'ingestion/two.json'}])
     monkeypatch.setattr(document_ingestion, 'validate_evaluation_clocks', lambda *_a, **_kw: None)
     monkeypatch.setattr(document_ingestion, 'ready_sources', lambda schedule, *_: schedule)
     def ingest(*_):

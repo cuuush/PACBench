@@ -48,6 +48,8 @@ def test_reconciliation_retains_failed_reply_and_records_canonical_alias_provena
     assert receipt['sse_model']==MODEL and receipt['generation_model']=='canonical-model-name'
     assert path.read_bytes()==original and json.loads(path.read_text())['status']=='failed'
     assert row['reconciliations'][0]['generation_id']=='gen-offline'
+    from pacbench.receipt_costs import request_record
+    assert request_record(row)['actual_usd'] == '0.00001'
     with pytest.raises(ValueError,match='identity differs'):
         reconcile_cancelled(path,tmp_path/'again','inert',budget=budget)
 

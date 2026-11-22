@@ -706,13 +706,19 @@ def test_native_grade_requires_matching_transport_receipt(tmp_path, week, receip
 def test_terminal_judge_failure_stops_at_first_dispatch(tmp_path, monkeypatch, week):
     from pacbench import workflow_runner as runner
     from pacbench.gateway_client import SpendingBlocked
-    turns = week[2][:2]
     c = condition()
     account = RecordingAccount(c)
     account.evidence_kind = 'native'
-    monkeypatch.setattr(runner, 'run_workflow', lambda *a, **kw: [
-        (t, {'history':[{'role':'user','content':t.prompt},{'role':'assistant','content':'test'}],
-             'conversation_times':[t.at], 'answer':'test'}) for t in turns])
+    def capture(*args, progress, **kwargs):
+        # Account work is simulated. Populate the same durable queue a native
+        # arm fills so terminal judge refusal exercises normal admission order.
+        for t in week[2]:
+            surface = {'history':[{'role':'user','content':t.prompt},{'role':'assistant','content':'test'}],
+                       'session_id':t.session, 'gateway_identity':'offline', 'model_requests':[],
+                       'conversation_times':[t.at], 'answer':'test'}
+            progress.verified_turn(t,surface,{})
+            progress.mark_turn_done(t.id)
+    monkeypatch.setattr(runner, 'run_workflow', capture)
     calls = []
     def refused(prompt):
         calls.append(prompt)

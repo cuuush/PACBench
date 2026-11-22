@@ -59,3 +59,70 @@ def test_native_cli_return_survives_failed_hindsight_bank_barrier(tmp_path):
     with pytest.raises(TimeoutError, match='still processing'):
         account.ask('offline query',at='2026-10-05T10:00:00-04:00',session_id=None)
     assert len(list((tmp_path/'native-cli-returns').glob('*.json')))==1
+
+
+def test_readiness_timings_cover_native_operation_drain_and_exact_file(monkeypatch):
+    from pacbench import workflow_hindsight_documents as module
+
+    now = [0.0]
+    def advance(seconds):
+        now[0] += seconds
+
+    monkeypatch.setattr(module, 'time', SimpleNamespace(monotonic=lambda:now[0], sleep=advance))
+    _, documents, _, _ = compile_week('continuing-account')
+    first = documents[0]
+    states = iter(['pending', 'completed'])
+
+    def status(bank, operation, **kw):
+        assert (bank, operation) == ('bank', 'op')
+        advance(.125)
+        return SimpleNamespace(status=next(states))
+
+    def list_operations(bank, **kw):
+        advance(.25)
+        return SimpleNamespace(total=0)
+
+    def document(bank, identifier, **kw):
+        advance(.375)
+        return SimpleNamespace(bank_id=bank, id=identifier, original_text=first.text,
+                               content_hash='hash', memory_unit_count=1)
+
+    client = SimpleNamespace(operations=SimpleNamespace(get_operation_status=status, list_operations=list_operations),
+                             documents=SimpleNamespace(get_document=document))
+    reader = HindsightDocumentReadback(client, 'bank', documents)
+    result = reader.document(first, ['op'])
+    assert result['timing'] == {'file_operations_s':.75, 'bank_drain_s':1., 'document_readback_s':.375}
+    assert result['bank_jobs'] == dict(pending=0, processing=0, failed=0, cancelled=0)
+
+
+def test_observer_spans_include_each_drain_and_receipt_check(tmp_path, monkeypatch):
+    from pacbench import workflow_hindsight as module
+    from unittest.mock import Mock
+
+    now = [1_000_000_000]
+    def advance(seconds):
+        now[0] += round(seconds * 1e9)
+
+    monkeypatch.setattr(module, 'time', SimpleNamespace(
+        monotonic_ns=lambda:now[0], monotonic=lambda:now[0]/1e9, sleep=advance))
+    owner = SimpleNamespace(witness={'pid':1,'start_time':2}, home=tmp_path,
+                            pins={'reuse_observer_sha256':'fixture'})
+    sample = dict(**owner.witness, protocol=module.PROTOCOL, native_failures=[], native_release_threads=0,
+                  observed_monotonic_ns=now[0], sessions=[], observer_sha256='fixture')
+    (tmp_path/'reuse-observer.json').write_text(json.dumps(sample))
+    active = iter([True, False])
+
+    def receipts():
+        advance(.25)
+        return [{'accounting_role':'memory_provider', 'finished':not next(active)}]
+
+    def drain(*, deadline):
+        advance(.5)
+        return dict(pending=0, processing=0, failed=0, cancelled=0)
+
+    reader = SimpleNamespace(documents=[], drain=Mock(side_effect=drain))
+    witness = module.HindsightWitness(tmp_path, owner, 'local', 'bank', None, reader,
+                                      SimpleNamespace(snapshot=receipts))
+    proof = witness.idle()['readback']
+    assert proof['timing'] == {'gateway_observer_wait_s':.1, 'bank_drain_s':1., 'receipt_check_s':.5}
+    assert reader.drain.call_count == 2

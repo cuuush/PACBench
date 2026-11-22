@@ -3,6 +3,7 @@ import imaplib
 import json
 import os
 import shutil
+import socket
 import ssl
 import subprocess
 from email import message_from_bytes
@@ -26,7 +27,16 @@ def exchange():
             email('reply','Me','Saturday works, same time.', '2026-10-06T07:10:00-04:00')]
 
 
-def test_mailbox_tls_headers_references_folders_and_replay(tmp_path):
+def test_mailbox_tls_headers_references_folders_and_replay(tmp_path, monkeypatch):
+    from pacbench.email_fixture import _Handler
+    handle = _Handler.handle
+    options = []
+
+    def observe_socket(handler):
+        options.append(handler.request.getsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY))
+        handle(handler)
+
+    monkeypatch.setattr(_Handler, 'handle', observe_socket)
     rows=exchange();path=tmp_path/'mailbox.json'
     append_emails(path,rows)
     before=path.read_bytes();append_emails(path,rows)
@@ -40,15 +50,24 @@ def test_mailbox_tls_headers_references_folders_and_replay(tmp_path):
             assert client.select('INBOX',readonly=True)==('OK',[b'1'])
             assert client.uid('SEARCH',None,'UID 1:*')[1]==[b'1']
             assert client.uid('SEARCH',None,'UID 2:*')[1]==[b'']
-            first=message_from_bytes(client.uid('FETCH','1','(BODY.PEEK[])')[1][0][1])
+            assert client.response('UIDVALIDITY')[1] == [b'1']
+            assert client.uid('FETCH','1','(INTERNALDATE)')[1] == [b'1 (UID 1 INTERNALDATE "06-Oct-2026 07:00:00 -0400")']
+            wire = client.uid('FETCH','1','(BODY.PEEK[])')[1][0][1]
+            assert wire == server.messages[0]['rfc822'].encode()
+            first=message_from_bytes(wire)
             assert first['From'].endswith('<'+mail_address('Ben')+'>')
             assert first.get_payload(decode=True).decode().strip()==rows[0]['text']
             assert client.select('Sent',readonly=True)[0]=='OK'
-            reply=message_from_bytes(client.uid('FETCH','1','(BODY.PEEK[])')[1][0][1])
+            assert client.response('UIDVALIDITY')[1] == [b'1']
+            assert client.uid('FETCH','1','(INTERNALDATE)')[1] == [b'1 (UID 1 INTERNALDATE "06-Oct-2026 07:10:00 -0400")']
+            wire = client.uid('FETCH','1','(BODY.PEEK[])')[1][0][1]
+            assert wire == server.messages[1]['rfc822'].encode()
+            reply=message_from_bytes(wire)
             assert reply['In-Reply-To']==first['Message-ID']
             assert reply['References']==first['Message-ID']
             assert reply['Subject']=='Re: Thursday dinner'
             assert client.status('Sent','(UIDVALIDITY)')[1]==[b'"Sent" (UIDVALIDITY 1)']
+        assert options == [1]
         assert all(c['status']=='OK' for c in server.commands)
 
 

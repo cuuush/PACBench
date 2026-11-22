@@ -11,6 +11,23 @@ from .imessage_fixture import identity
 from .provider_versions import verify_memcal_source,memcal_source
 
 
+def verify_envelope(message, m, observed_headers):
+    if parsedate_to_datetime(message['Date'])!=datetime.fromisoformat(m['written_at']):raise ValueError('Source email time changed')
+    if parseaddr(message['From'])[1]!=mail_address(m['sender']):raise ValueError('Source email author changed')
+    if observed_headers:
+        headers=m['structured'].get('email_headers',{})
+        for header in ('To','Cc','References','In-Reply-To'):
+            if message.get(header)!=headers.get(header):
+                raise ValueError('Native email routing or reply headers differ from the observed source')
+        transport_id=f"<{uuid.uuid5(uuid.NAMESPACE_URL,m['source_id'])}@mail.example.test>"
+        if (str(message['Subject'])!=m['structured']['email_subject'] or
+                message.get('Message-ID')!=headers.get('Message-ID',transport_id)):
+            raise ValueError('Native email subject or identity changed')
+    else:
+        recipients={addr for _,addr in getaddresses(message.get_all('To',[]))};wanted={mail_address(p) for p in m['structured']['participants'] if p!=m['sender']}
+        if recipients!=wanted:raise ValueError('Source email recipients changed')
+
+
 def audit(component):
     repo=Path(__file__).resolve().parents[1];verify_memcal_source(repo)
     from memcal.sources import proton
@@ -45,20 +62,7 @@ def audit(component):
                         raise ValueError('Mailbox source metadata differs from the daily frozen input')
                     message=bridge.message(row['uid']);raw=proton.extract_text(message)
                     if raw.replace('\r\n','\n').strip()!=m['text'].strip():raise ValueError('Native reader did not receive complete email body')
-                    if parsedate_to_datetime(message['Date'])!=datetime.fromisoformat(m['written_at']):raise ValueError('Source email time changed')
-                    if parseaddr(message['From'])[1]!=mail_address(m['sender']):raise ValueError('Source email author changed')
-                    if observed_headers:
-                        headers=m['structured'].get('email_headers',{})
-                        for header in ('To','Cc','References','In-Reply-To'):
-                            if message.get(header)!=headers.get(header):
-                                raise ValueError('Native email routing or reply headers differ from the observed source')
-                        transport_id=f"<{uuid.uuid5(uuid.NAMESPACE_URL,m['source_id'])}@mail.example.test>"
-                        if (str(message['Subject'])!=m['structured']['email_subject'] or
-                                message.get('Message-ID')!=headers.get('Message-ID',transport_id)):
-                            raise ValueError('Native email subject or identity changed')
-                    else:
-                        recipients={addr for _,addr in getaddresses(message.get_all('To',[]))};wanted={mail_address(p) for p in m['structured']['participants'] if p!=m['sender']}
-                        if recipients!=wanted:raise ValueError('Source email recipients changed')
+                    verify_envelope(message, m, observed_headers)
                     key=('email',row['message_id'].strip('<>'));a=native[key];shaped,meta=proton._shape_body(raw,str(message['Subject']))
                     if shaped!=a['text'] or bool(a['from_me'])!=m['from_owner'] or datetime.fromisoformat(a['ts'])!=datetime.fromisoformat(m['written_at']):raise ValueError('Stored native email differs from stock reader output')
                     quotes=textclean.strip_quotes(raw)!=raw

@@ -147,14 +147,39 @@ def ingest_pending(needed, ingested, failed_batches, output, root, provider, env
 
 
 def stop_arm_model_work(root):
-    """Use the native run-owned shutdown hook when a cost barrier trips."""
+    """Keep independent native shutdown and fallback cleanup observations."""
+    import sys
+    from .process_cleanup import cleanup_run_processes
+
     stop = _ARM_SHUTDOWNS.pop(root.resolve(), None)
+    prior = sys.exc_info()[1]
+    receipt = root/'shutdown-observation.json'
+    record = {'native_hook':'absent', 'original_error_type':type(prior).__name__ if prior else None}
+    if stop is None and receipt.exists():
+        record = json.loads(receipt.read_text())
+        record.setdefault('earlier_cleanup', []).append(record['fallback_cleanup'])
     try:
         if stop is not None:
-            stop()
-    finally:
-        from .process_cleanup import cleanup_run_processes
-        cleanup_run_processes(root)
+            proof = stop()
+            record['native_hook'] = 'returned'
+            if isinstance(proof, dict):
+                record['native_outcome'] = {key:proof[key] for key in (
+                    'state', 'native_shutdown_complete', 'forced_kill', 'returncode') if key in proof}
+    except Exception as exc:
+        record.update(native_hook='failed', native_error_type=type(exc).__name__)
+    try:
+        cleaned = cleanup_run_processes(root)
+        record['fallback_cleanup'] = {'state':'returned', 'processes_signalled':len(cleaned)}
+    except Exception as exc:
+        record['fallback_cleanup'] = {'state':'failed', 'error_type':type(exc).__name__}
+    outcome = record.get('native_outcome', {})
+    incomplete = (record['native_hook'] == 'failed' or record['fallback_cleanup']['state'] == 'failed'
+                  or outcome.get('native_shutdown_complete') is False or outcome.get('forced_kill') is True
+                  or outcome.get('state') == 'cleanup-unverified')
+    save(receipt, record)
+    if incomplete and prior is None:
+        raise RuntimeError('Run-owned native shutdown incomplete; inspect shutdown-observation.json')
+    return record
 
 PROBE = '''
 import json, sys, inspect, hashlib

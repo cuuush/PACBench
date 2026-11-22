@@ -108,7 +108,13 @@ def test_day_receipt_summary_reconciles_a_settled_attempt(tmp_path):
            'billing_receipt': {'relative_path': 'billing-receipts/attempt.json', 'sha256': sha(receipt)}}
     row['dispatch_context'] = {'run_id': 'day', 'attempt_id': 'attempt', 'arm_id': 'honcho',
                                'phase': 'judging', 'operation_id': operation_id(row)}
-    assert receipt_summary(root, [row], 'day')['complete_cost_usd'] == '0.0001'
+    attempts = {}
+    unknown = {**row, 'id':'retry', 'retry_of':'attempt','state':'pending'}
+    unknown['dispatch_context'] = {**row['dispatch_context'], 'attempt_id':'retry'}
+    summary = receipt_summary(root, [row, unknown], 'day', attempts=attempts)
+    assert summary['receipted_usd'] == attempts['attempt']['actual_usd'] == '0.0001'
+    assert summary['complete_cost_usd'] is None and attempts['retry']['actual_usd'] is None
+    assert attempts['retry']['retry_of'] == 'attempt' and summary['retried_attempts'] == 1
 
 
 def test_control_admits_only_exact_wrong_answer_judge_request(monkeypatch):

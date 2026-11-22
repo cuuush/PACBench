@@ -7,7 +7,6 @@ from pathlib import Path
 import shutil
 import time
 
-from provider_adapters.memos_oss_hermes import ScopedCube
 from provider_adapters.memos_oss_service import backend
 
 from .checkpoint_clock import CheckpointClock
@@ -329,6 +328,7 @@ def open_account(root, scope, ledger, source, qualification):
                 MODEL,ENDPOINT,'Stock MemoryOS OSS local REST graph; PACBench Hermes lifecycle binding',
                 MEMOS_OSS_VERSION,owner.pins['hermes_isolation_sha256'],
                 'Physical MemOS and scheduler; authored Hermes observation clock',MEMOS_OSS_TOOLS)
+            from provider_adapters.memos_oss_hermes import ScopedCube
             client=ScopedCube(service)
             witness=MemosWitness(root,owner,client,service,publish,pulls,docs,ledger)
             yield condition,MemosAccount(str(root),'memos',client.user,client,WarmHermes(owner,clock,witness.idle),witness)

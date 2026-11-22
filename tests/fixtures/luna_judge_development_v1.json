@@ -1,0 +1,126 @@
+{
+  "protocol": "luna-judge-development-v1",
+  "synthetic": true,
+  "cases": [
+    {
+      "id": "diet_no_meat_0",
+      "scenario": "diet_no_meat",
+      "question": "What should we order for Ari?",
+      "answer": "Ari is vegetarian; choose the meat-free pizza.",
+      "criterion": "Ari eats no meat.",
+      "question_at": "2026-10-12T10:00:00-04:00",
+      "conversation": [],
+      "explicit_rule_id": "diet-v1",
+      "explicit_rule": "Judge the named person, prohibited item and polarity independently. A restriction for another person, or approval of the prohibited item, does not satisfy this claim.",
+      "gold": "correct"
+    },
+    {
+      "id": "diet_no_meat_1",
+      "scenario": "diet_no_meat",
+      "question": "What should we order for Ari?",
+      "answer": "Ari eats meat.",
+      "criterion": "Ari eats no meat.",
+      "question_at": "2026-10-12T10:00:00-04:00",
+      "conversation": [],
+      "explicit_rule_id": "diet-v1",
+      "explicit_rule": "Judge the named person, prohibited item and polarity independently. A restriction for another person, or approval of the prohibited item, does not satisfy this claim.",
+      "gold": "misrepresented"
+    },
+    {
+      "id": "outing_cancel_0",
+      "scenario": "outing_cancel",
+      "question": "What happened to Friday dinner?",
+      "answer": "The whole Friday dinner is off.",
+      "criterion": "Friday dinner was cancelled for everyone.",
+      "question_at": "2026-10-12T10:00:00-04:00",
+      "conversation": [],
+      "explicit_rule_id": "rsvp-v1",
+      "explicit_rule": "Keep three claims distinct: nonattendance, communicating a decline to a named recipient, and cancellation of the whole event. Cannot make it supports nonattendance; it alone does not establish communication or global cancellation.",
+      "gold": "correct"
+    },
+    {
+      "id": "outing_cancel_1",
+      "scenario": "outing_cancel",
+      "question": "What happened to Friday dinner?",
+      "answer": "I declined, but everyone else is still going Friday.",
+      "criterion": "Friday dinner was cancelled for everyone.",
+      "question_at": "2026-10-12T10:00:00-04:00",
+      "conversation": [],
+      "explicit_rule_id": "rsvp-v1",
+      "explicit_rule": "Keep three claims distinct: nonattendance, communicating a decline to a named recipient, and cancellation of the whole event. Cannot make it supports nonattendance; it alone does not establish communication or global cancellation.",
+      "gold": "misrepresented"
+    },
+    {
+      "id": "personal_decline_0",
+      "scenario": "personal_decline",
+      "question": "What is my RSVP now?",
+      "answer": "I can’t make it; count me out.",
+      "criterion": "The user has declined the invitation.",
+      "question_at": "2026-10-12T10:00:00-04:00",
+      "conversation": [],
+      "explicit_rule_id": "rsvp-v1",
+      "explicit_rule": "Keep three claims distinct: nonattendance, communicating a decline to a named recipient, and cancellation of the whole event. Cannot make it supports nonattendance; it alone does not establish communication or global cancellation.",
+      "gold": "correct"
+    },
+    {
+      "id": "personal_decline_1",
+      "scenario": "personal_decline",
+      "question": "What is my RSVP now?",
+      "answer": "I am attending.",
+      "criterion": "The user has declined the invitation.",
+      "question_at": "2026-10-12T10:00:00-04:00",
+      "conversation": [],
+      "explicit_rule_id": "rsvp-v1",
+      "explicit_rule": "Keep three claims distinct: nonattendance, communicating a decline to a named recipient, and cancellation of the whole event. Cannot make it supports nonattendance; it alone does not establish communication or global cancellation.",
+      "gold": "misrepresented"
+    },
+    {
+      "id": "paired_workshop_roster_0",
+      "scenario": "paired_workshop_roster",
+      "question": "Who is confirmed for the Saturday pottery workshop?",
+      "answer": "Only Dana and I are confirmed for the Saturday pottery workshop.",
+      "criterion": "Exactly the user and Dana are confirmed for the Saturday pottery workshop.",
+      "question_at": "2026-10-12T10:00:00-04:00",
+      "conversation": [],
+      "explicit_rule_id": "workshop_roster-v1",
+      "explicit_rule": "For this exact confirmed-set criterion, include only confirmed members. A tentative person is not confirmed. Open-ended including does not establish a complete set; a closed confirmed roster need not use the literal word only.",
+      "gold": "correct"
+    },
+    {
+      "id": "paired_workshop_roster_1",
+      "scenario": "paired_workshop_roster",
+      "question": "Who is confirmed for the Saturday pottery workshop?",
+      "answer": "Dana, Lee and I are confirmed for the Saturday pottery workshop.",
+      "criterion": "Exactly the user and Dana are confirmed for the Saturday pottery workshop.",
+      "question_at": "2026-10-12T10:00:00-04:00",
+      "conversation": [],
+      "explicit_rule_id": "workshop_roster-v1",
+      "explicit_rule": "For this exact confirmed-set criterion, include only confirmed members. A tentative person is not confirmed. Open-ended including does not establish a complete set; a closed confirmed roster need not use the literal word only.",
+      "gold": "misrepresented"
+    },
+    {
+      "id": "paired_choir_schedule_0",
+      "scenario": "paired_choir_schedule",
+      "question": "When is choir practice after the one-week Thursday 7 pm exception?",
+      "answer": "Thursday at 7 was a one-off; the next choir practice is back to Tuesday at 6 pm.",
+      "criterion": "Choir practice returns to Tuesday at 6 pm after the one-week exception.",
+      "question_at": "2026-10-12T10:00:00-04:00",
+      "conversation": [],
+      "explicit_rule_id": "choir_schedule-v1",
+      "explicit_rule": "Identify the occurrence after the exception. Preserve a one-off move without rewriting the repeating schedule. An unresolved old/new alternative does not convey the current time.",
+      "gold": "correct"
+    },
+    {
+      "id": "paired_choir_schedule_1",
+      "scenario": "paired_choir_schedule",
+      "question": "When is choir practice after the one-week Thursday 7 pm exception?",
+      "answer": "Thursday at 7 is the new permanent choir slot, including next week.",
+      "criterion": "Choir practice returns to Tuesday at 6 pm after the one-week exception.",
+      "question_at": "2026-10-12T10:00:00-04:00",
+      "conversation": [],
+      "explicit_rule_id": "choir_schedule-v1",
+      "explicit_rule": "Identify the occurrence after the exception. Preserve a one-off move without rewriting the repeating schedule. An unresolved old/new alternative does not convey the current time.",
+      "gold": "misrepresented"
+    }
+  ]
+}

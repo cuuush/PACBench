@@ -147,14 +147,29 @@ def ingest_pending(needed, ingested, failed_batches, output, root, provider, env
 
 
 def stop_arm_model_work(root):
-    """Use the native run-owned shutdown hook when a cost barrier trips."""
+    """Keep independent native shutdown and fallback cleanup observations."""
+    import sys
+    from .process_cleanup import cleanup_run_processes
+
     stop = _ARM_SHUTDOWNS.pop(root.resolve(), None)
+    prior = sys.exc_info()[1]
+    record = {'native_hook':'absent', 'original_error_type':type(prior).__name__ if prior else None}
     try:
         if stop is not None:
-            stop()
-    finally:
-        from .process_cleanup import cleanup_run_processes
-        cleanup_run_processes(root)
+            proof = stop()
+            record['native_hook'] = 'returned'
+            if isinstance(proof, dict):
+                record['native_outcome'] = {key:proof[key] for key in (
+                    'state', 'native_shutdown_complete', 'forced_kill', 'returncode') if key in proof}
+    except Exception as exc:
+        record.update(native_hook='failed', native_error_type=type(exc).__name__)
+    try:
+        cleaned = cleanup_run_processes(root)
+        record['fallback_cleanup'] = {'state':'returned', 'processes_signalled':len(cleaned)}
+    except Exception as exc:
+        record['fallback_cleanup'] = {'state':'failed', 'error_type':type(exc).__name__}
+    save(root/'shutdown-observation.json', record)
+    return record
 
 PROBE = '''
 import json, sys, inspect, hashlib

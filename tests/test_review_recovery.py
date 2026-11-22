@@ -123,3 +123,21 @@ def test_legacy_checkpoint_reads_wal_and_rejects_changed_imessage(tmp_path):
             db.commit()
     finally:
         db.close()
+
+
+def test_shutdown_observation_preserves_primary_failure_and_both_cleanup_errors(monkeypatch, tmp_path):
+    from pacbench import native_pilot, process_cleanup
+    def failed():
+        raise TimeoutError('secret detail')
+    def cleanup(root):
+        raise OSError()
+    monkeypatch.setitem(native_pilot._ARM_SHUTDOWNS, tmp_path.resolve(), failed)
+    monkeypatch.setattr(process_cleanup, 'cleanup_run_processes', cleanup)
+    with pytest.raises(ValueError, match='original'):
+        try:
+            raise ValueError('original')
+        finally:
+            native_pilot.stop_arm_model_work(tmp_path)
+    assert json.loads((tmp_path/'shutdown-observation.json').read_text()) == {
+        'original_error_type':'ValueError','native_hook':'failed','native_error_type':'TimeoutError',
+        'fallback_cleanup':{'state':'failed','error_type':'OSError'}}

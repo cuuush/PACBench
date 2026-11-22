@@ -89,7 +89,7 @@ def start(root,env,model,base,key,*,resume=False):
         nonlocal stopped
         if stopped:return
         stopped=True
-        stop_native(root,process)
+        return stop_native(root,process)
     atexit.register(stop)
     deadline=time.monotonic()+90;health=None
     while time.monotonic()<deadline and process.poll() is None:

@@ -75,9 +75,9 @@ def _check(progress, directory, limit):
     return directory
 
 
-def retained_grade(turn, surface, directory):
+def retained_grade(turn, surface, directory, *, audit_path=None):
     """Verify the actual frozen rubric, answer, timing, request/response and Luna route offline."""
-    path = directory/'judgments'/turn.id/'judgment.json'
+    path = audit_path or directory/'judgments'/turn.id/'judgment.json'
     if path != path.resolve():
         raise UnverifiedJudgment('judgment is outside its run directory')
     options = judge_options(turn, surface)
@@ -139,6 +139,10 @@ def _saved_response(progress, turn, surface, directory):
                                         **opts)
         except (OSError, RuntimeError, ValueError, KeyError, TypeError) as exc:
             raise UnverifiedJudgment('returned response or transport is unverified') from exc
+        # Save the bound attempts before changing the claim to graded. A later
+        # exporter can replay the audit even if the final file never appeared.
+        attempts = [read_json(p) for p in sorted((output.parent/'judgment-attempts').glob('attempt-*.json'))]
+        progress.bind('recovered-judge-attempts/'+turn.id, attempts)
     return grade
 
 

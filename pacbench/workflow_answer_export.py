@@ -54,12 +54,12 @@ def legacy_rows(directory):
             pending = None
 
 
-def comparison_row(directory, turn, surface, activity, checkpoint):
-    path = directory/'judgments'/turn.id/'judgment.json'
+def comparison_row(directory, turn, surface, activity, checkpoint, *, audit_path=None):
+    path = audit_path or directory/'judgments'/turn.id/'judgment.json'
     attempts = []
     criteria = None
-    if path.exists():
-        grade = retained_grade(turn, surface, directory)
+    if path.exists() and (not checkpoint or checkpoint['grade_state'] == 'graded'):
+        grade = retained_grade(turn, surface, directory, audit_path=path)
         criteria = [vars(slot) for slot in grade.slots]
         for member in sorted((path.parent/'judgment-attempts').glob('attempt-*.json')):
             attempt = read_json(member)
@@ -71,7 +71,7 @@ def comparison_row(directory, turn, surface, activity, checkpoint):
                                  endpoint=receipt['endpoint'], judge_protocol=attempt['judge_protocol']))
     if checkpoint and checkpoint['grade_state'] == 'graded' and checkpoint['criteria'] != criteria:
         raise ValueError('checkpoint grade differs from its audited judgment')
-    return dict(turn=asdict(turn), answer=surface['answer'], conversation=surface['history'],
+    return dict(grade_failure=(checkpoint or {}).get('failure'), turn=asdict(turn), answer=surface['answer'], conversation=surface['history'],
                 conversation_times=surface['conversation_times'], native_session=surface['session_id'],
                 prefetch=surface.get('prefetch'), delivery=surface.get('memory_delivery'),
                 tool_calls=surface['tool_calls'], tool_results=surface['tool_results'],
@@ -80,6 +80,21 @@ def comparison_row(directory, turn, surface, activity, checkpoint):
                 driver_coverage=activity.get('driver_receipts'), criteria=criteria,
                 checkpoint_grade_state=checkpoint['grade_state'] if checkpoint else None,
                 judge_attempts=attempts)
+
+
+def checkpoint_rows(progress, directory, temporary):
+    for turn, surface, activity in progress.iter_verified():
+        checkpoint = progress.grade_record(turn.id)
+        recovered = progress.binding('recovered-judge-attempts/'+turn.id)
+        audit_path = None
+        if recovered and not (directory/'judgments'/turn.id/'judgment.json').exists():
+            folder = temporary/turn.id/'judgment-attempts'
+            folder.mkdir(parents=True)
+            for i, attempt in enumerate(recovered, 1):
+                (folder/f'attempt-{i}.json').write_text(json.dumps(attempt))
+            audit_path = folder.parent/'judgment.json'
+            audit_path.write_text(json.dumps(recovered[-1]))
+        yield comparison_row(directory, turn, surface, activity, checkpoint, audit_path=audit_path)
 
 
 def export(directory, destination):
@@ -92,8 +107,7 @@ def export(directory, destination):
         def write(rows):
             with (root/'answers.private.jsonl').open('x', encoding='utf-8') as out:
                 os.fchmod(out.fileno(), 0o600)
-                for turn, surface, activity, checkpoint in rows:
-                    row = comparison_row(directory, turn, surface, activity, checkpoint)
+                for row in rows:
                     out.write(json.dumps(row, ensure_ascii=False) + '\n')
                     counts['verified_answers'] += 1
                     if row['criteria'] is not None:
@@ -108,9 +122,9 @@ def export(directory, destination):
                 progress.db.execute('BEGIN')
                 if progress.binding('identity') != metadata['identity']:
                     raise ValueError('checkpoint identity mismatch')
-                write((*item, progress.grade_record(item[0].id)) for item in progress.iter_verified())
+                write(checkpoint_rows(progress, directory, root/'recovered'))
         else:
-            write(legacy_rows(directory))
+            write(comparison_row(directory, *item) for item in legacy_rows(directory))
         (root/'summary.public.json').write_text(json.dumps(counts, indent=2)+'\n')
         destination.mkdir(mode=0o700, exist_ok=False)
         # The public summary appears only after the complete private export exists.

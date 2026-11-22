@@ -99,6 +99,11 @@ def test_reconcile_claim_does_not_request_a_second_judgment(tmp_path, monkeypatc
         assert report['uncertain']==([] if recovered else [turns[0].id])
         assert grading.grade_verified(p, local_judge(tmp_path,calls), tmp_path, journal, limit=1)==0
         assert len(calls)==1
+        if artifact == 'only-response':
+            from pacbench.workflow_answer_export import checkpoint_rows
+            row, = checkpoint_rows(p, tmp_path, tmp_path/'offline-audit')
+            assert row['answer'] == 'fixture' and row['criteria'] == p.grade_record(turns[0].id)['criteria']
+            assert row['judge_attempts'][0]['request_id'] == 'offline-attempt-1'
 
 
 def test_unknown_dispatch_remains_claimed_and_missing_receipt_stays_ungraded(tmp_path):

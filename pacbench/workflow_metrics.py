@@ -143,9 +143,16 @@ def summarize(path):
     turns = {}
     starts, durations = {}, Counter()
     pending_sources, last = 0, {}
-    with path.open() as stream:
+    incomplete_tail = None
+    with path.open('rb') as stream:
         for line in stream:
-            event = json.loads(line)
+            try:
+                event = json.loads(line)
+            except (UnicodeDecodeError, json.JSONDecodeError):
+                if line.endswith(b'\n'):
+                    raise
+                incomplete_tail = {'offset': stream.tell() - len(line), 'bytes': len(line)}
+                break
             phase, elapsed = event['phase'], event['elapsed_s']
             if phase == 'spec':
                 spec = event
@@ -197,7 +204,8 @@ def summarize(path):
                 row['graded_criteria'] += len(criteria)
                 row['correct'] = (row['correct'] or 0)+sum(c['verdict']=='correct' for c in criteria)
     counts = [t['explicit_tool_attempts'] for t in turns]
-    return {'status':last.get('phase','empty'), 'verified_turns':len(turns), 'unverified_answers':answers-len(turns),
+    return {'terminal_event':last if last.get('phase') == 'stopped' else None,
+            'incomplete_tail':incomplete_tail, 'status':last.get('phase','empty'), 'verified_turns':len(turns), 'unverified_answers':answers-len(turns),
             'coverage':coverage(by_measure, complete=last.get('phase')=='completion' and not spec.get('canary'))
                        if by_measure is not None else None,
             'turns':turns, 'workflow_elapsed_s':last.get('elapsed_s'),

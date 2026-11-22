@@ -520,13 +520,13 @@ def run_current_week(condition, account, directory, *, judge=None, canary=False,
         return run_account_stream(condition, account, docs, turns, directory, spec_digest=fingerprint,
                                   source_basis=source_basis, all_source_documents=all_source_documents,
                                   judge=judge, canary=canary, resume=resume)
-    if resume:
-        raise ValueError('This account route has no verified incremental resume')
     from . import workflow_document_progress
     if (condition.track == 'nightly-document' and condition.state == 'continuing-account'
             and condition.provider in workflow_document_progress.PROVIDERS and turns):
         return workflow_document_progress.run(condition, account, docs, turns, directory, spec,
-                                              fingerprint, source_basis, all_source_documents, judge, canary)
+                                              fingerprint, source_basis, all_source_documents, judge, canary, resume=resume)
+    if resume:
+        raise ValueError('This account route has no verified incremental resume')
     summary = {}
     for t in turns:
         row = summary.setdefault(t.measure, {'planned_turns':0,'planned_criteria':0,

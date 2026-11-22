@@ -11,7 +11,7 @@ PROTOCOL = 'pizza-week-native-document-progress-v1'
 PROVIDERS = frozenset(('mem0', 'hindsight', 'openviking', 'reme', 'cognee', 'memos'))
 
 
-def run(condition, account, docs, turns, directory, spec, spec_digest, basis, all_docs, judge, canary):
+def run(condition, account, docs, turns, directory, spec, spec_digest, basis, all_docs, judge, canary, *, resume=False):
     from .gateway_reuse import atomic
     from .workflow_grading import grade_verified
     from .workflow_runner import Journal, run_workflow
@@ -21,6 +21,21 @@ def run(condition, account, docs, turns, directory, spec, spec_digest, basis, al
                     source_basis=basis, spec_sha256=spec_digest, evidence_kind=account.evidence_kind,
                     canary=canary, schedule_sha256=fingerprint([asdict(t) for t in turns]))
     key = fingerprint(identity)
+    if resume:
+        from uuid import uuid4
+        metadata = json.loads((directory/'run.json').read_text())
+        if metadata.get('identity') != json.loads(json.dumps(identity)) or metadata.get('run_key') != key:
+            raise ValueError('resume differs from the original document account or schedule')
+        with WorkflowProgress(directory,key) as progress:
+            if (progress.binding('identity') != metadata['identity'] or not progress.binding('plan_registered')):
+                raise ValueError('resume differs from registered document checkpoints')
+            if judge is not None:
+                with Journal(directory/'judge-recovery'/uuid4().hex) as journal:
+                    grade_verified(progress, judge, directory, journal, limit=len(turns))
+            if not progress.execution_sealed:
+                raise ValueError('native document resume needs an account recovery witness before further work; '
+                                 'verified answers and independently claimed grades remain available')
+            return progress.summary()
     with Journal(directory) as journal, WorkflowProgress(directory, key, create=True) as progress:
         with progress.account_owner():
             atomic(directory/'run.json', dict(identity=identity, run_key=key, evidence_kind=account.evidence_kind))

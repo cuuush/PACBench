@@ -190,7 +190,10 @@ def test_full_document_schedule_captures_all_turns_and_only_planned_grades(tmp_p
     route = condition(p='reme')
     _, docs, turns, _ = compile_week(route.state)
     dest = tmp_path/'full'
-    run_current_week(route, RecordingAccount(route,docs), dest)
+    account = RecordingAccount(route,docs)
+    summary = run_current_week(route, account, dest)
+    account.ask = lambda *a,**kw: pytest.fail('sealed document resume dispatched a user turn')
+    assert run_current_week(route, account, dest, resume=True) == summary
     key = json.loads((dest/'run.json').read_text())['run_key']
     with WorkflowProgress(dest,key) as progress:
         assert progress.execution_sealed and len(list(progress.iter_verified())) == 49

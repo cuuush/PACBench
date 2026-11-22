@@ -141,7 +141,7 @@ def export(directory, destination):
             metadata = read_json(directory/'run.json')
             if fingerprint(metadata['identity']) != metadata['run_key']:
                 raise ValueError('run identity mismatch')
-            with WorkflowProgress(directory, metadata['run_key']) as progress:
+            with WorkflowProgress(directory, metadata['run_key'], read_only=True) as progress:
                 progress.db.execute('BEGIN')
                 if progress.binding('identity') != metadata['identity']:
                     raise ValueError('checkpoint identity mismatch')

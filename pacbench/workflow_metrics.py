@@ -216,7 +216,7 @@ def summarize(path):
         if fingerprint(identity) != metadata['run_key']:
             raise ValueError('invalid progress identity')
         if identity.get('protocol') == PROTOCOL:
-            with WorkflowProgress(path.parent, metadata['run_key']) as progress:
+            with WorkflowProgress(path.parent, metadata['run_key'], read_only=True) as progress:
                 progress.db.execute('BEGIN')
                 if progress.binding('identity') != identity:
                     raise ValueError('progress metadata mismatch')

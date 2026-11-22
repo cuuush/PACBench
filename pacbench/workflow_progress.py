@@ -66,11 +66,14 @@ CREATE TABLE IF NOT EXISTS requests (
 
 
 class WorkflowProgress:
-    def __init__(self, directory, run_key, *, create=False):
+    def __init__(self, directory, run_key, *, create=False, read_only=False):
         if not isinstance(run_key, str) or not run_key.strip():
             raise ValueError('a run binding is required')
         self.directory = Path(directory).resolve()
         self.run_key = run_key
+        if read_only and create:
+            raise ValueError('a read-only progress reader cannot initialize a run')
+        self.read_only = read_only
         self.create = create
 
     def __enter__(self):
@@ -80,7 +83,8 @@ class WorkflowProgress:
             # Keep private content protected even when the parent directory already exists.
             fd = os.open(path, os.O_CREAT | os.O_RDWR, 0o600)
             os.close(fd)
-        self.db = sqlite3.connect(path.as_uri() + '?mode=rw', uri=True, isolation_level=None, timeout=30)
+        mode = 'ro' if self.read_only else 'rw'
+        self.db = sqlite3.connect(path.as_uri() + '?mode='+mode, uri=True, isolation_level=None, timeout=30)
         self.db.row_factory = sqlite3.Row
         try:
             self.db.execute('PRAGMA foreign_keys=ON')

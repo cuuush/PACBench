@@ -274,6 +274,12 @@ def test_claimed_grade_exports_returned_attempt_without_awarding_criteria(tmp_pa
         assert row['checkpoint_grade_state'] == 'claimed' and row['criteria'] is None
         assert row['judge_attempts'][0]['provenance'] == 'retained-return'
         assert row['judge_attempts'][0]['request_id'] == 'offline-attempt-1'
+        broken = tmp_path/'judgments'/turns[0].id/'judgment-attempts'/'attempt-1.json'
+        broken.write_bytes(b'{"answer":')
+        row, = checkpoint_rows(progress,tmp_path,tmp_path/'audit')
+        assert row['answer'] == 'fixture' and row['criteria'] is None
+        assert row['judge_attempts'][0]['evidence_error'] == 'JSONDecodeError'
+        assert row['judge_attempts'][0]['provenance'] == 'unverified'
 
 
 def test_financial_torn_tail_does_not_discard_known_answers(tmp_path):

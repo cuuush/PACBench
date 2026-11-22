@@ -2,6 +2,7 @@
 import argparse
 from dataclasses import asdict
 import fcntl
+import hashlib
 import json
 import os
 from pathlib import Path
@@ -82,7 +83,16 @@ def ungraded_attempts(directory, turn, surface, folder):
         record = {'file':member.name, 'provenance':'unverified', 'request_id':None}
         if member != member.resolve():
             raise ValueError('judge attempt outside original run')
-        attempt = read_json(member)
+        try:
+            raw = member.read_bytes()
+            record.update(attempt_sha256=hashlib.sha256(raw).hexdigest(), attempt_bytes=len(raw))
+            attempt = json.loads(raw)
+            if not isinstance(attempt, dict):
+                raise ValueError('invalid attempt record')
+        except (OSError, ValueError, UnicodeError) as exc:
+            record['evidence_error'] = type(exc).__name__
+            records.append(record)
+            continue
         if (attempt.get('checkpoint') == turn.id and attempt.get('answer') == surface['answer']
                 and attempt.get('prompt') in (prompt,prompt+RETRY_GUIDANCE)):
             record.update(prompt=attempt['prompt'], response=attempt.get('response'))
@@ -90,7 +100,14 @@ def ungraded_attempts(directory, turn, surface, folder):
             if isinstance(model,str):
                 call_path = directory/'model-calls'/Path(model).name
                 if call_path == Path(model) == call_path.resolve() and call_path.is_file():
-                    call = read_json(call_path)
+                    try:
+                        call = read_json(call_path)
+                        if not isinstance(call,dict):
+                            raise ValueError('invalid call record')
+                    except (OSError, ValueError, UnicodeError) as exc:
+                        record['evidence_error'] = type(exc).__name__
+                        records.append(record)
+                        continue
                     receipt = call.get('judge_transport') or {}
                     if (digest(call) == attempt.get('model_call_hash') and call.get('text') == record['response']
                             and receipt.get('request',{}).get('messages') == [{'role':'user','content':record['prompt']}]

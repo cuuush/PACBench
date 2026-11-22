@@ -5,15 +5,18 @@ if (process.env.PACBENCH_DIRECT === '1' && !globalThis.__pacbenchDirectFetch) {
   const {execFileSync} = require('node:child_process');
   const fs = require('node:fs');
   const original = globalThis.fetch;
+  const stockSourceEffect = process.env.PACBENCH_SUPERMEMORY_STOCK_SOURCE === '1'
+    ? require('./supermemory_source_effect.cjs') : null;
   const sender = () => {
     const fields = fs.readFileSync('/proc/self/stat', 'utf8').split(/\) /).pop().trim().split(/\s+/);
     return {pid: process.pid, start_ticks: Number(fields[19]),
       boot_id: fs.readFileSync('/proc/sys/kernel/random/boot_id', 'utf8').trim(), uid: process.getuid()};
   };
-  const helper = (op, value) => JSON.parse(execFileSync(process.env.PACBENCH_DIRECT_PYTHON,
+  const helper = (op, value, witness) => JSON.parse(execFileSync(process.env.PACBENCH_DIRECT_PYTHON,
     ['-m', 'pacbench.direct_accounting', op], {
       input: JSON.stringify({...value, ...(process.env.PACBENCH_DISPATCH_TRACKING ? {sender: sender()} : {})}), encoding: 'utf8', maxBuffer: 32 * 1024 * 1024,
-      env: {...process.env, PYTHONPATH: process.env.PACBENCH_DIRECT_REPO},
+      env: {...process.env, PYTHONPATH: process.env.PACBENCH_DIRECT_REPO,
+        ...(stockSourceEffect ? {PACBENCH_SUPERMEMORY_EFFECT_WITNESS: JSON.stringify(witness)} : {})},
       stdio: ['pipe', 'pipe', 'pipe'],
     }));
   globalThis.fetch = async function(input, init) {
@@ -32,19 +35,25 @@ if (process.env.PACBENCH_DIRECT === '1' && !globalThis.__pacbenchDirectFetch) {
     if (req.method !== 'POST' || url.pathname !== '/api/v1/chat/completions')
       throw new Error('Unsupported direct model endpoint');
     const project = marker.slice('Bearer pbdirect-'.length);
-    const receipt = helper('reserve', {project, request: JSON.parse(await req.text())});
+    let witness = null;
+    if (stockSourceEffect) {
+      try { witness = stockSourceEffect(); }
+      catch { /* The scoped helper records and rejects the missing witness. */ }
+    }
+    const track = (op, value) => helper(op, value, witness);
+    const receipt = track('reserve', {project, request: JSON.parse(await req.text())});
     headers.delete('content-length');
-    if (process.env.PACBENCH_DISPATCH_TRACKING) helper('dispatch', {id: receipt.id});
+    if (process.env.PACBENCH_DISPATCH_TRACKING) track('dispatch', {id: receipt.id});
     let response;
     try { response = await original(new Request(req.url, {
       method: 'POST', headers, body: JSON.stringify(receipt.request), signal: req.signal,
       redirect: 'error',
     })); }
-    catch (error) { helper('settle', {id: receipt.id, status: 0}); throw error; }
+    catch (error) { track('settle', {id: receipt.id, status: 0}); throw error; }
     let chunks = [], size = 0, settled = false;
     const diagnosticHeaders = Object.fromEntries([...response.headers].filter(([name]) => /^(x-request-id|x-generation-id|x-openrouter-request-id)$/i.test(name)));
     if (Object.keys(diagnosticHeaders).length)
-      helper('observe', {id: receipt.id, status: response.status, headers: diagnosticHeaders});
+      track('observe', {id: receipt.id, status: response.status, headers: diagnosticHeaders});
     const decoder = new TextDecoder();
     let pending = '', frame = [], lastObservation = '';
     const observeFrame = () => {
@@ -59,7 +68,7 @@ if (process.env.PACBENCH_DIRECT === '1' && !globalThis.__pacbenchDirectFetch) {
       if (signature === lastObservation) return;
       // Python parses the untouched numeric lexemes and persists only a
       // sanitized metadata observation. No per-token ledger mutation.
-      helper('observe', {id: receipt.id, status: response.status, event_json: text});
+      track('observe', {id: receipt.id, status: response.status, event_json: text});
       lastObservation = signature;
     };
     const observeBytes = value => {
@@ -78,7 +87,7 @@ if (process.env.PACBENCH_DIRECT === '1' && !globalThis.__pacbenchDirectFetch) {
     };
     const finish = (complete = false) => {
       if (!settled) {
-        helper('settle', {id: receipt.id, status: response.status,
+        track('settle', {id: receipt.id, status: response.status,
           body_complete: complete,
           headers: Object.fromEntries([...response.headers].filter(([name]) => /^(retry-after|x-request-id|x-generation-id|x-openrouter-request-id|x-ratelimit-)/i.test(name))),
           data: Buffer.concat(chunks).toString('utf8')});

@@ -34,6 +34,14 @@ def start(root, env, model, base, key, *, resume=False):
     runtime=Path(__file__).resolve().parents[1]/'vendor/supermemory-local'
     binary=runtime/'supermemory-server-linux-x64'
     if not binary.exists():raise RuntimeError('Install verified Supermemory local server first')
+    stock_source = os.environ.get('PACBENCH_SUPERMEMORY_STOCK_SOURCE') == '1'
+    if stock_source:
+        from pacbench.canary_capability import sha
+        from pacbench.supermemory_source_admission import BINARY_SHA, SCOPE
+        from pacbench.workflow_capability import load
+        scope = load()
+        if scope['admission'] != SCOPE or Path(scope['root']) != root or resume or sha(binary) != BINARY_SHA:
+            raise ValueError('Expected the pinned stock binary and a fresh source qualification scope')
     with socket.socket() as s:
         s.bind(('127.0.0.1',0));port=s.getsockname()[1]
     directory=root/'supermemory-data'
@@ -59,6 +67,8 @@ def start(root, env, model, base, key, *, resume=False):
     process=subprocess.Popen([str(binary)],cwd=root,env=child,stdin=subprocess.DEVNULL,
                              stdout=log,stderr=log);log.close()
     def stop():
+        if stock_source:
+            atexit.unregister(stop)
         owned,_=scan(root,'supermemory-native-stop')
         if process.poll() is None:
             process.terminate()
@@ -93,12 +103,19 @@ def start(root, env, model, base, key, *, resume=False):
         'readiness':'Authenticated native document inventory; TCP listening alone is insufficient',
         'embedding':'local Ollama nomic-embed-text','starter_facts':False,'resumed_store':resume,
         'network':'Run-owned endpoint in the private execution environment; no public port published'}
+    if stock_source:
+        from pacbench.live_dispatch import process_identity
+        from pacbench.supermemory_source_effect import BOUNDARY
+        receipt.update(dispatch_operation_boundary=BOUNDARY, process_identity=process_identity(process.pid))
     save(root/'native-server-setup.json',receipt)
-    save(root/'document-ingestion-config.json',{
+    save(root/'document-ingestion-config.json',({
+        'dreaming':'native default', 'route':'Native SDK add without processing overrides',
+        'native_default':'dynamic', 'model_processing_overrides':False,
+    } if stock_source else {
         'dreaming':'instant',
         'route':'Native SDK documents.add documented per-document processing mode',
         'reason':'Each document already contains a complete nightly batch; do not defer it for dynamic cross-document grouping',
-        'native_default':'dynamic','model_processing_overrides':False})
+        'native_default':'dynamic','model_processing_overrides':False}))
     if not native_key:
         stop();raise RuntimeError('Supermemory startup did not produce its native API key; inspect private log')
     # README manual endpoint first, then the key emitted by real first boot.

@@ -42,7 +42,8 @@ def verify_release_inventory(client, namespace, expected_ids, *, deadline):
         seen.update(ids)
 
 
-def wait_for_batch_processing(client, namespace, documents, acknowledgements, *, deadline, previous_ids=()):
+def wait_for_batch_processing(client, namespace, documents, acknowledgements, *, deadline,
+                              previous_ids=(), before_read=None):
     """Verify one release in an exclusively owned namespace using ordered add responses."""
     expected = {doc.filename: doc for doc in documents}
     if (not namespace or not expected or len(expected) != len(documents)
@@ -58,6 +59,8 @@ def wait_for_batch_processing(client, namespace, documents, acknowledgements, *,
         for ident, doc in expected.items():
             if ident in observed:
                 continue
+            if before_read is not None:
+                before_read()
             row = _wire(client.documents.get(namespace, ident, request_options=_options(deadline)))
             _options(deadline)
             if row['id'] != ident:
@@ -84,6 +87,8 @@ def wait_for_batch_processing(client, namespace, documents, acknowledgements, *,
                                    dreaming_status=system.get('dreamingStatus'))
         if len(observed) < len(expected):
             time.sleep(min(0.5, _options(deadline)['timeout']))
+    if before_read is not None:
+        before_read()
     verify_release_inventory(client, namespace, (*previous_ids, *expected), deadline=deadline)
     return dict(condition='stock-document-processing-v1', namespace=namespace,
                 cutoff=documents[0].cutoff, documents=observed)

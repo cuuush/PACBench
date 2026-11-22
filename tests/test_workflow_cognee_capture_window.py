@@ -79,28 +79,36 @@ def test_checkpoint_reads_each_original_once_and_rechecks_seal_next_observation(
     from provider_adapters import cognee_checkpoint as checkpoint
 
     prompt = 'test prompt'
-    bodies = {'source':prompt, 'earlier':'old question', 'promotion':prompt}
+    bodies = {'source':prompt, **{f'old-{i}':'old question' for i in range(99)},
+              'stale':f'Session ID: native\n\nQuestion: {prompt}\n\nAnswer: old\n\n',
+              'foreign':f'Session ID: other\n\nQuestion: {prompt}\n\nAnswer: saved\n\n',
+              'substring':'Source containing '+prompt,
+              'promotion':f'Session ID: native\n\nQuestion: {prompt}\n\nAnswer: saved\n\n'}
     backend = Mock()
-    backend.list_dataset_data.side_effect = lambda **_: [{'id':key} for key in bodies]
+    backend.list_dataset_data.side_effect = lambda offset,limit,**_: [{'id':key} for key in list(bodies)[offset:offset+limit]]
     backend.read_raw_data.side_effect = lambda data_id, **_: bodies[data_id]
     monkeypatch.setattr(checkpoint, 'native', lambda *_:(backend, 'dataset-id'))
     monkeypatch.setattr(checkpoint, 'pipeline_rows', lambda _:[])
-    session = {'name':'cognee','endpoint':'local','dataset':'ours','close_requested_improve':False}
+    session = {'name':'cognee','endpoint':'local','dataset':'ours','native_session':'native','close_requested_improve':False}
     drain = {'sessions':[{'session_id':'sid','providers':[session],
                           'sync_dispatches':[{'prompt_sha256':sha256(prompt.encode()).hexdigest()}]}]}
     observation = dict(endpoint='local', dataset='ours', native_root='.', prior_pipeline_ids=[],
                        source_documents={'source':sha256(prompt.encode()).hexdigest()})
-    turn = SimpleNamespace(prompt=prompt, session_id='sid')
+    turn = SimpleNamespace(prompt=prompt, answer='saved', session_id='sid')
     result = checkpoint.verify_turn(observation, turn, drain)
     assert result == {'native_promoted_documents':['promotion'], 'source_readback':'unchanged'}
     assert [call.kwargs['data_id'] for call in backend.read_raw_data.call_args_list] == list(bodies)
+    del bodies['promotion']
+    backend.get_session.return_value = {'qas':[{'qa_id':'earlier','question':prompt,'answer':'old'}]}
+    with pytest.raises(checkpoint.GatewayLifecycleError, match='not readable'):
+        checkpoint.verify_turn(observation, turn, drain)
     bodies['source'] += 'changed after close'
     with pytest.raises(checkpoint.GatewayLifecycleError, match='sealed source'):
         checkpoint.verify_turn(observation, turn, drain)
     session['dataset'] = 'foreign'
     with pytest.raises(checkpoint.GatewayLifecycleError, match='endpoint or dataset'):
         checkpoint.verify_turn(observation, turn, drain)
-    assert backend.close.call_count == 2
+    assert backend.close.call_count == 3
 
 
 @pytest.mark.parametrize(('outcome','ready_at','expected_sleeps'), [

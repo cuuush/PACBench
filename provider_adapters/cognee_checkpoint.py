@@ -22,23 +22,37 @@ def native(endpoint, dataset, home):
     return backend, options[0]['id']
 
 
-def verified_promotions(backend, dataset_id, sealed, prompt):
-    inventory = backend.list_dataset_data(dataset_id=dataset_id, timeout=75, limit=100, offset=0)
-    if len(inventory) >= 100:
-        raise GatewayLifecycleError('Cognee checkpoint inventory exceeds native page')
-    ids = [row['id'] for row in inventory]
-    listed = set(ids)
-    if len(listed) != len(ids) or not listed.issuperset(sealed):
-        raise GatewayLifecycleError('Cognee checkpoint inventory contains duplicate IDs or lacks a sealed source')
-    prompt_bytes = prompt.encode()
+def verified_promotions(backend, dataset_id, sealed, native_session, history):
+    # Stock promotions consist of a contiguous QA window. Only suffixes ending
+    # in this exact turn are evidence of its promotion at close.
+    header = f'Session ID: {native_session}\n\n'
+    entries = [f"Question: {q['prompt']}\n\nAnswer: {q['answer']}\n\n" for q in history]
+    hashes = {hashlib.sha256((header + ''.join(entries[start:])).encode()).hexdigest()
+              for start in range(len(entries))}
+    listed = set()
     captured = []
-    for identifier in ids:
-        raw = backend.read_raw_data(dataset_id=dataset_id, data_id=identifier, timeout=75).encode()
-        if identifier in sealed:
-            if hashlib.sha256(raw).hexdigest() != sealed[identifier]:
-                raise GatewayLifecycleError('Cognee observation write changed a sealed source document')
-        elif prompt_bytes in raw:
-            captured.append(identifier)
+    for offset in range(0, 100001, 100):
+        page = backend.list_dataset_data(dataset_id=dataset_id, timeout=75, limit=100, offset=offset)
+        if not isinstance(page, list) or len(page) > 100:
+            raise GatewayLifecycleError('Invalid native document page')
+        for row in page:
+            identifier = row.get('id')
+            if not isinstance(identifier, str) or not identifier or identifier in listed:
+                raise GatewayLifecycleError('Duplicate or invalid Cognee document ID')
+            listed.add(identifier)
+            raw = backend.read_raw_data(dataset_id=dataset_id, data_id=identifier, timeout=75)
+            digest = hashlib.sha256(raw.encode()).hexdigest()
+            if identifier in sealed:
+                if digest != sealed[identifier]:
+                    raise GatewayLifecycleError('Cognee observation write changed a sealed source document')
+            elif digest in hashes:
+                captured.append(identifier)
+        if len(page) < 100:
+            break
+    else:
+        raise GatewayLifecycleError('Cognee checkpoint inventory exceeds bound')
+    if not listed.issuperset(sealed) or len(captured) > 1:
+        raise GatewayLifecycleError('Cognee checkpoint missing a sealed source or promotion is ambiguous')
     return captured
 
 
@@ -81,14 +95,31 @@ def verify_turn(observation, turn, drain):
         raise GatewayLifecycleError('Cognee submitted native work did not succeed')
     backend, dataset_id = native(observation['endpoint'], observation['dataset'], root / 'hermes-home')
     try:
-        captured = verified_promotions(backend, dataset_id, observation['source_documents'], turn.prompt)
+        native_session = session.get('native_session')
+        if not native_session or not turn.answer:
+            raise GatewayLifecycleError('Missing Cognee native session or exact answer')
+        history = observation.get('verified_qa_history') or [
+            {'prompt':turn.prompt, 'answer':turn.answer, 'native_session':native_session}]
+        if (any(row['native_session'] != native_session for row in history)
+                or history[-1]['prompt'] != turn.prompt or history[-1]['answer'] != turn.answer):
+            raise GatewayLifecycleError('Cognee history differs from the selected native turn')
+        if sum(row['prompt'] == turn.prompt for row in history) > 1 and not history[-1].get('qa_id'):
+            raise GatewayLifecycleError('Repeated Cognee prompt needs a native QA identity')
+        dispatches = [dispatch for row in drain['sessions'] if row['session_id'] == turn.session_id
+                      for dispatch in row.get('sync_dispatches', [])
+                      if dispatch['prompt_sha256'] == prompt_sha256]
+        if len(dispatches) != 1 and not history[-1].get('qa_id'):
+            raise GatewayLifecycleError('Ambiguous Cognee dispatch for this prompt')
+        captured = verified_promotions(backend, dataset_id, observation['source_documents'], native_session, history)
         if captured:
             return {'native_promoted_documents': captured, 'source_readback': 'unchanged'}
         if wants_improve is not False or not session.get('native_session'):
             raise GatewayLifecycleError('Cognee native promoted user question was not readable')
         cache = backend.get_session(session_id=session['native_session'], timeout=20) or {}
-        entries = [q['qa_id'] for q in cache.get('qas', []) if q.get('question') == turn.prompt and q.get('answer')]
-        if not entries:
+        entries = [q['qa_id'] for q in cache.get('qas', []) if q.get('question') == turn.prompt
+                   and q.get('answer') == turn.answer and q.get('qa_id')
+                   and q['qa_id'] == history[-1].get('qa_id', q['qa_id'])]
+        if len(entries) != 1:
             raise GatewayLifecycleError('Cognee close skipped promotion and its native Q&A write was not readable')
         return {'native_session_qa_ids': entries, 'source_readback': 'unchanged',
                 'promotion': 'stock close did not request improve'}

@@ -257,8 +257,8 @@ class CogneeWitness:
                 or not all(r['shutdown_returned'] and r['clean'] for r in managers)):
             raise RuntimeError('Cognee selected chat did not close through the native provider')
         outcome = verify_turn({'native_root':str(self.root),'endpoint':self.endpoint,'dataset':self.dataset,
-            'prior_pipeline_ids':self.prior_close[sid],'source_documents':{rec['data_id']:rec['source_sha256'] for rec in self.sources.values()}},
-            SimpleNamespace(session_id=sid,prompt=self.turns[sid][-1]['prompt']),sample)
+            'verified_qa_history':self.turns[sid],'prior_pipeline_ids':self.prior_close[sid],'source_documents':{rec['data_id']:rec['source_sha256'] for rec in self.sources.values()}},
+            SimpleNamespace(session_id=sid, **self.turns[sid][-1]),sample)
         return dict(session_id=sid,pending_writes=0,readback=outcome)
 
     tool_boundaries = staticmethod(lambda _: {})

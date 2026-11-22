@@ -66,7 +66,7 @@ def project_name(root):
     return f'pacbench-{sha256(str(root).encode()).hexdigest()[:12]}-supermemory-memory'
 
 
-def effect_for(scope):
+def physical_effect(scope):
     root = Path(scope['root'])
     stop = root/'STOP'
     if stop.exists() or (root.parent.parent/'ACCOUNT_STOP').exists():
@@ -88,6 +88,13 @@ def effect_for(scope):
     ident = update.get('documentId', '')
     if not isinstance(ident, str) or not NATIVE_ID.fullmatch(ident):
         raise OwnershipConflict('Invalid stock Supermemory document identity')
+    return SourceEffect.from_native(update, {ident})
+
+
+def effect_for(scope):
+    effect = physical_effect(scope)
+    root = Path(scope['root'])
+    ident = effect.document_id
     path = root/'source-membership'/f'{ident}.json'
     if path != path.resolve() or not path.is_file():
         raise OwnershipConflict('No native document binding to the admitted first release')
@@ -97,7 +104,7 @@ def effect_for(scope):
     if (doc is None or entry != dict(native_id=ident, public_id=doc.filename, submitted_sha256=doc.sha256,
                                      cutoff=scope['cutoff'], namespace=scope['namespace'])):
         raise OwnershipConflict('Supermemory worker document binding differs from frozen source')
-    return SourceEffect.from_native(update, {ident})
+    return effect
 
 
 def admit(scope, project, body):

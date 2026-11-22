@@ -339,7 +339,11 @@ def run_workflow(condition, account: BoundAccount, documents, turns, journal, *,
     if not account.identity or not spec_digest:
         raise ValueError('missing account or spec identity')
     turns, documents = list(turns), list(documents)
-    if {d.channel for d in documents} != set(condition.channels):
+    from .workflow_daily_documents import DAILY_CHANNEL
+    channels = {d.channel for d in documents}
+    if channels == {DAILY_CHANNEL} and condition.track == 'nightly-document':
+        channels = {'imessage', 'email'}
+    if channels != set(condition.channels):
         raise ValueError('source corpus does not match declared channel scope')
     if set(condition.channels) != {'email','imessage'} and turns:
         raise ValueError('partial connector coverage cannot answer mixed-channel Pizza Week questions')

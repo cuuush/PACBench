@@ -40,15 +40,15 @@ def start(root, env, model, base, key, *, resume=False):
         from pacbench.canary_capability import sha
         from pacbench.supermemory_source_admission import BINARY_SHA, SCOPE
         from pacbench.supermemory_question_admission import SCOPE as QUESTION_SCOPE, verify_restored_snapshot
-        from pacbench.workflow_capability import load
+        from pacbench.workflow_capability import SM_WEEK_ADMISSION, load
         scope = load()
         if Path(scope['root']) != root or sha(binary) != BINARY_SHA:
             raise ValueError('Expected the pinned stock binary and the owned workflow root')
         if resume and scope['admission'] == QUESTION_SCOPE:
             verify_restored_snapshot(scope)
             namespace = scope['namespace']
-        elif resume or scope['admission'] != SCOPE:
-            raise ValueError('Expected fresh source scope or exact first-question snapshot')
+        elif resume or scope['admission'] not in (SCOPE, SM_WEEK_ADMISSION):
+            raise ValueError('Expected a fresh stock scope or the exact first-question snapshot')
     with socket.socket() as s:
         s.bind(('127.0.0.1',0));port=s.getsockname()[1]
     directory=root/'supermemory-data'

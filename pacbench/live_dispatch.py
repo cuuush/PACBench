@@ -138,7 +138,11 @@ def mark_possible(row, at, sender=None):
     elif slot.get('supermemory_first_question'):
         from .supermemory_question_admission import confirm_sender
         from .workflow_capability import load
-        confirm_sender(row, load())
+        if slot.get('supermemory_week_claim'):
+            from .supermemory_week_admission import answer_slot
+            confirm_sender(row, load(), slot_factory=answer_slot)
+        else:
+            confirm_sender(row, load())
     if row['dispatch_execution'] != 'prepared':
         raise OwnershipConflict('Dispatch already possible; no automatic send replay')
     row['dispatch_events'].append({'kind': 'dispatch_possible', 'at': at})

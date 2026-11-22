@@ -154,7 +154,7 @@ def compare_source(original, observed):
         raise ValueError('Supermemory reopened source content, version or processing differs')
 
 
-def driver_owner(scope, turn):
+def driver_owner(scope, turn, prior=None):
     from .checkpoint_clock import ENV, audit_question, descriptor
     from .hermes_gateway import _identity
 
@@ -168,11 +168,16 @@ def driver_owner(scope, turn):
         raise OwnershipConflict('Supermemory request is not from the bound Hermes process')
     _identity(home, sender['pid'])
     d = descriptor()
-    if (d['kind'] != 'fresh' or d['home'] != str(home) or d['checkpoint'] != scope['spec_sha256']
-            or d['at'] != turn.at or d['question_sha256'] != sha256(turn.prompt.encode()).hexdigest()):
-        raise OwnershipConflict('Supermemory request is outside the scheduled fresh question')
+    if (d['kind'] != ('continuation' if prior else 'fresh') or d['home'] != str(home)
+            or d['checkpoint'] != scope['spec_sha256'] or d['at'] != turn.at
+            or d['question_sha256'] != sha256(turn.prompt.encode()).hexdigest()):
+        raise OwnershipConflict('Supermemory request is outside the scheduled question')
     native = read(binding(clock / 'bindings' / (d['nonce'] + '.json')))
     sid = native['session_id']
+    if prior and (sid != prior['session_id'] or d.get('continued_session_id') != sid
+                  or d.get('initial_at') != prior['conversation_times'][0]
+                  or prior['gateway_identity'] != [sender['pid'], sender['start_ticks']]):
+        raise OwnershipConflict('Supermemory continuation is outside its original native session')
     evidence = audit_question(clock, d, {'prompt': turn.prompt, 'session_id': sid}, owner['witness'])
     if (not evidence['native_admission'][-1].get('in_window') or native['nonce'] != d['nonce']
             or native['question_sha256'] != d['question_sha256']):
@@ -221,15 +226,16 @@ def tool_rounds(wire, saved):
     return groups
 
 
-def driver_slot(scope, body, turn):
+def driver_slot(scope, body, turn, *, prior=None, cursor=Ellipsis, prefix=None, public_prompts=(), documents=None):
     from agent.memory_context import build_memory_context_block
     from agent.portal_tags import get_conversation_context
     from providers import get_provider_profile
-    from .workflow_runner import inspect_source_cutoff
+    from .workflow_native import appended_rows
+    from .workflow_runner import _tool_call_contract, _wire_tool_text, inspect_source_cutoff
 
     validate_request(body, profile=PROFILE)
     root = Path(scope['root'])
-    sid, nonce, native_id = driver_owner(scope, turn)
+    sid, nonce, native_id = driver_owner(scope, turn) if prior is None else driver_owner(scope, turn, prior)
     affinity = get_provider_profile('openrouter').build_extra_body(session_id=sid)['session_id']
     if get_conversation_context() != sid or body.get('session_id') != affinity:
         raise OwnershipConflict('Supermemory request lacks stock routing affinity for the active Hermes chat')
@@ -240,23 +246,42 @@ def driver_slot(scope, body, turn):
             or body.keys() - {'model', 'provider', 'messages', 'tools', 'reasoning', 'session_id',
                               'stream', 'stream_options', 'max_completion_tokens'}):
         raise ValueError('Supermemory driver tool schemas or streaming condition differ')
-    hook = [row for row in jsonl(root / 'reuse-context.jsonl') if row['session_id'] == sid and row['query'] == turn.prompt]
+    context = root / 'reuse-context.jsonl'
+    observations = jsonl(context) if cursor is Ellipsis else appended_rows(context, cursor)
+    hook = [row for row in observations if row['session_id'] == sid and row['query'] == turn.prompt]
     if len(hook) != 1 or not isinstance(hook[0]['prefetch'], str):
         raise ValueError('Supermemory opening request lacks the actual stock prefetch observation')
     native_block = build_memory_context_block(hook[0]['prefetch'])
     user = turn.prompt + ('\n\n' + native_block if native_block else '')
     messages = body['messages']
-    if (len(messages) < 2 or messages[0]['role'] != 'system' or not isinstance(messages[0]['content'], str)
-            or '# Project Context' in messages[0]['content'] or messages[1] != {'role': 'user', 'content': user}):
+    previous = prior['history'] if prior else []
+    boundary = len(previous) + 1
+    if (len(messages) <= boundary or messages[0]['role'] != 'system' or not isinstance(messages[0]['content'], str)
+            or '# Project Context' in messages[0]['content'] or messages[boundary] != {'role': 'user', 'content': user}):
         raise ValueError('Supermemory driver question or model-visible context differs')
     history = native_history(root / 'hermes-home', sid)
-    if history and (history[0]['role'] != 'user' or history[0]['content'] != turn.prompt
-                    or (history[0]['api_content'] or turn.prompt) != user):
-        raise ValueError('Supermemory wire question differs from the fresh native user row')
-    groups = tool_rounds(messages[2:], history[1:])
+    if len(history) < len(previous):
+        raise ValueError('Supermemory native continuation lost prior history')
+    for saved, live, sent in zip(previous, history[:len(previous)], messages[1:boundary], strict=True):
+        role, content = saved['role'], saved.get('api_content') or saved.get('content') or ''
+        delivered = sent.get('content') or ''
+        stored_calls = json.loads(saved.get('tool_calls') or '[]')
+        if (any(saved.get(k) != v for k, v in live.items()) or sent.get('role') != role
+                or (delivered != content and not (role == 'user' and delivered == saved['content'])
+                    and not (role == 'tool' and _wire_tool_text(content, delivered)))
+                or (role == 'tool' and sent.get('tool_call_id') != saved['tool_call_id'])
+                or [_tool_call_contract(c, stored=True) for c in stored_calls]
+                    != [_tool_call_contract(c) for c in sent.get('tool_calls') or []]):
+            raise ValueError('Supermemory continued request differs from verified prior native history')
+    current = history[len(previous):]
+    if current and (current[0]['role'] != 'user' or current[0]['content'] != turn.prompt
+                    or (current[0]['api_content'] or turn.prompt) != user):
+        raise ValueError('Supermemory wire question differs from the native user row')
+    groups = tool_rounds(messages[boundary+1:], current[1:])
     first, all_docs, _ = source_release()
-    inspect_source_cutoff({'model_requests': [body], 'prefetch': hook[0]['prefetch']}, all_docs,
-                          [doc.filename for doc in first], [turn.prompt])
+    inspect_source_cutoff({'model_requests': [body], 'prefetch': hook[0]['prefetch']}, all_docs if documents is None else documents,
+                          [doc.filename for doc in first] if prefix is None else prefix,
+                          [*public_prompts, turn.prompt])
     return dict(provider=PROVIDER, kind='answer', question_id=turn.id, supermemory_first_question=dict(
         session_id=sid, turn_nonce=nonce, native_request_id=native_id, tool_rounds=groups))
 
@@ -280,7 +305,7 @@ def admit(scope, project, body):
                 slot=slot, projects=[project])
 
 
-def confirm_sender(row, scope):
+def confirm_sender(row, scope, *, slot_factory=None):
     from .api_input_trace import rows
     from .supermemory_source_qualify import check_stops
 
@@ -296,8 +321,12 @@ def confirm_sender(row, scope):
             or (sent['pid'], sent['process_start_ticks']) != (owner['pid'], owner['start_ticks'])
             or sent['turn_nonce'] != slot['supermemory_first_question']['turn_nonce']
             or sent['canonical_request_sha256'] != row['request_sha256']
-            or digest(sent['request']) != row['request_sha256'] or driver_slot(scope, sent['request'], ready(scope)) != slot):
+            or digest(sent['request']) != row['request_sha256']):
         raise OwnershipConflict('Supermemory prepared request changed before dispatch')
+    current = (driver_slot(scope, sent['request'], ready(scope)) if slot_factory is None
+               else slot_factory(scope, sent['request']))
+    if current != slot:
+        raise OwnershipConflict('Supermemory native operation changed before dispatch')
 
 
 def terminal_response(row):
@@ -307,6 +336,19 @@ def terminal_response(row):
                  or (row['dispatch_execution'] == 'ambiguous' and validation.get('sse_done_observed') is True
                      and row['state'] == 'settled'
                      and bool(row.get('upstream_request_id')) and bool(validation['finish_reasons']))))
+
+
+def check_driver_rounds(drivers, slot):
+    current = slot['supermemory_first_question']
+    sequence = current['tool_rounds']
+    if len(drivers) != len(sequence):
+        raise OwnershipConflict('Supermemory opening or tool round already prepared, or round skipped')
+    if drivers:
+        prior = drivers[-1]
+        previous = prior['workflow_slot']['supermemory_first_question']
+        if (not prior.get('finished') or previous != {**current, 'tool_rounds': sequence[:-1]}
+                or 'tool_calls' not in prior['response_validation']['finish_reasons']):
+            raise OwnershipConflict('Supermemory continuation lacks an unambiguous preceding tool response')
 
 
 class QuestionJournal(SourceJournal):
@@ -322,16 +364,7 @@ class QuestionJournal(SourceJournal):
                 check_update_history((r for r in rows.values() if r['accounting_role'] == 'memory_provider'),
                                      SourceEffect(**slot['stock_source_effect']))
             else:
-                current = slot['supermemory_first_question']
-                sequence = current['tool_rounds']
-                if len(drivers) != len(sequence):
-                    raise OwnershipConflict('Supermemory opening or tool round already prepared, or round skipped')
-                if drivers:
-                    prior = drivers[-1]
-                    previous = prior['workflow_slot']['supermemory_first_question']
-                    if (not prior.get('finished') or previous != {**current, 'tool_rounds': sequence[:-1]}
-                            or 'tool_calls' not in prior['response_validation']['finish_reasons']):
-                        raise OwnershipConflict('Supermemory continuation lacks an unambiguous preceding tool response')
+                check_driver_rounds(drivers, slot)
         except OwnershipConflict:
             stop_measured_admission('supermemory_first_question_receipt_or_replay_refused')
             raise

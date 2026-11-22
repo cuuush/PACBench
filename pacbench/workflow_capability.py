@@ -20,6 +20,7 @@ ENV = 'PACBENCH_WORKFLOW_SCOPE'
 PROFILE = 'luna-bedrock-global'
 MEMOS_OSS_ADMISSION = 'memos-oss-native-file-document-week-v1'
 SM_QUESTION_ADMISSION = 'supermemory-stock-first-question-v1'
+SM_WEEK_ADMISSION = 'supermemory-stock-document-week-v1'
 
 
 @lru_cache(maxsize=2)
@@ -114,6 +115,10 @@ def load():
         return c
     if c.get('admission') == SM_QUESTION_ADMISSION:
         from .supermemory_question_admission import validate
+        validate(c, bound)
+        return c
+    if c.get('admission') == SM_WEEK_ADMISSION:
+        from .supermemory_week_admission import validate
         validate(c, bound)
         return c
     if c.get('admission') == 'pizza-day-native-document-v1':
@@ -211,6 +216,9 @@ def budget(*, project=None, profile=None):
     if c.get('admission') == SM_QUESTION_ADMISSION:
         from .supermemory_question_admission import QuestionJournal
         return QuestionJournal(path)
+    if c.get('admission') == SM_WEEK_ADMISSION:
+        from .supermemory_week_admission import WeekJournal
+        return WeekJournal(path)
     if c['provider'] == 'memcal':
         from .observational_receipts import IndexedRunReceiptJournal
         return IndexedRunReceiptJournal(path)
@@ -246,14 +254,15 @@ def owner(env, home, checkpoint, provider, clock):
             or env.get('PACBENCH_ROLE_ROUTES') != 'luna-all-roles-v1'
             or env.get('PACBENCH_OFFLINE_CONFORMANCE') or process_identity() != c['controller']):
         raise ValueError('Document gateway lacks the bound owner, Luna route or exclusive native tool set')
-    if c.get('admission') == SM_QUESTION_ADMISSION:
-        from .supermemory_question_admission import ready
+    if c.get('admission') in (SM_QUESTION_ADMISSION, SM_WEEK_ADMISSION):
         if (env.get('PACBENCH_TOOL_ALLOWLIST') != ','.join(tools)
                 or env.get('PACBENCH_OPENROUTER_PROFILE') != PROFILE
                 or env.get('PACBENCH_ROLE_ROUTES') != 'luna-all-roles-v1'
                 or env.get('PACBENCH_OFFLINE_CONFORMANCE') or process_identity() != c['controller']):
             raise ValueError('Supermemory gateway lacks its exact owner, route or stock tools')
-        ready(c)
+        if c['admission'] == SM_QUESTION_ADMISSION:
+            from .supermemory_question_admission import ready
+            ready(c)
     if provider == 'memos' and env.get('PACBENCH_MEMOS_OSS_CONFIG') != str(home/'memos-oss.json'):
         raise ValueError('MemOS OSS gateway does not bind its run-owned configuration')
     if provider == 'openviking' and env.get('PACBENCH_SOURCE_ARGUMENT_RULES') != '{}':
@@ -276,6 +285,9 @@ def admission(project, profile, body):
         return admit(c, project, body)
     if c.get('admission') == SM_QUESTION_ADMISSION:
         from .supermemory_question_admission import admit
+        return admit(c, project, body)
+    if c.get('admission') == SM_WEEK_ADMISSION:
+        from .supermemory_week_admission import admit
         return admit(c, project, body)
     if c.get('admission') == 'pizza-day-native-document-v1':
         from .pizza_day_lineup import admit

@@ -42,6 +42,7 @@ def test_document_close_crash_preserves_grade_queue_and_denominator(tmp_path):
         assert progress.claim_grade() == (turn, surface)
         assert sum(row['planned_criteria'] for row in progress.summary().values()) == 192
         assert not progress.complete
+    assert summarize(dest/'workflow.jsonl')['coverage']['verified_turns'] == 2
     with pytest.raises(ValueError, match='resume'):
         run_current_week(route, Interrupted(route, docs), dest, resume=True)
 
@@ -179,3 +180,57 @@ def test_benchmark_rerun_keeps_published_judge_and_denominator():
                                      'conversation_times':[turns[0].at]})
     assert spec['judge'] == options['judge_protocol'] == 'semantic-judge-context-v4'
     assert len(turns) == 49 and sum(len(t.claims) for t in turns) == 192
+
+def test_full_document_schedule_captures_all_turns_and_only_planned_grades(tmp_path):
+    from tests.test_workflow_realism import condition
+    from pacbench.workflow_conformance import RecordingAccount
+    from pacbench.workflow_runner import run_current_week
+    from pacbench.workflow_progress import WorkflowProgress
+    from pacbench.workflow_spec import compile_week
+    route = condition(p='reme')
+    _, docs, turns, _ = compile_week(route.state)
+    dest = tmp_path/'full'
+    run_current_week(route, RecordingAccount(route,docs), dest)
+    key = json.loads((dest/'run.json').read_text())['run_key']
+    with WorkflowProgress(dest,key) as progress:
+        assert progress.execution_sealed and len(list(progress.iter_verified())) == 49
+        ids = []
+        while (item := progress.claim_grade()) is not None:
+            turn, _ = item
+            ids.append(turn.id)
+            progress.finish_grade(turn.id, [dict(id=c.id,verdict='missed',reason='offline fixture') for c in turn.claims])
+        assert ids == [turn.id for turn in turns if turn.claims]
+        assert len(ids) == 47 and progress.claim_grade() is None
+    report = summarize(dest/'workflow.jsonl')
+    assert report['coverage']['graded_criteria'] == 192 and report['coverage']['full_accuracy'] is None
+
+def test_document_judge_can_consume_verified_answer_with_original_controller_alive(tmp_path):
+    import subprocess
+    import sys
+    from pacbench.canary_capability import binding
+    from pacbench.live_dispatch import process_identity
+    from pacbench.workflow_document_progress import PROTOCOL
+    from pacbench.workflow_grading import judge_only_owner, claimed_request, grade_verified
+    from tests.test_workflow_grading import checkpoints, Recorder, local_judge
+    root = tmp_path/'reme'
+    directory = root/'workflow'
+    child = subprocess.Popen([sys.executable,'-c','import time; time.sleep(30)'])
+    try:
+        with checkpoints(directory,verified=1) as (p, turns):
+            scope = dict(root=str(root), provider='reme', controller=process_identity(child.pid),
+                         spec_sha256='offline', projects={'reme':{'judge':'test-judge'}})
+            bound = root/'workflow-scope.json'
+            bound.write_text(json.dumps(scope))
+            p.bind('workflow_scope',binding(bound))
+            p.bind('identity',dict(protocol=PROTOCOL,condition={'provider':'reme'},account=str(root),spec_sha256='offline'))
+            calls = []
+            def judge(prompt):
+                claim = claimed_request(scope,'test-judge',{'messages':[{'role':'user','content':prompt}]})
+                assert claim['question_id'] == turns[0].id
+                return local_judge(directory,calls)(prompt)
+            with judge_only_owner(p,scope):
+                assert grade_verified(p,judge,directory,Recorder(),limit=1) == 1
+            assert grade_verified(p,judge,directory,Recorder(),limit=1) == 0 and len(calls) == 1
+    finally:
+        child.terminate()
+        child.wait()

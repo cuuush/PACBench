@@ -27,7 +27,7 @@ _recovery = ContextVar('verified_judge_recovery', default=None)
 
 @contextmanager
 def judge_only_owner(progress, scope):
-    """Permit this process to judge after the original controller has exited."""
+    """Bind a judge-only worker to this run; document turns can be consumed as they verify."""
     from .canary_capability import binding
     from .live_dispatch import process_identity
 
@@ -53,7 +53,7 @@ def judge_only_owner(progress, scope):
         owner = process_identity(original['pid'])
     except FileNotFoundError:
         owner = None
-    if owner == original:
+    if owner == original and (not document or owner == current):
         raise ValueError('original workflow controller is still running')
     path = progress.directory/'judge-recovery.lock'
     with os.fdopen(os.open(path, os.O_CREAT | os.O_RDWR | os.O_NOFOLLOW, 0o600), 'r+') as lock:

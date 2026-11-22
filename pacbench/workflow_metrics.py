@@ -203,10 +203,32 @@ def summarize(path):
             if criteria is not None:
                 row['graded_criteria'] += len(criteria)
                 row['correct'] = (row['correct'] or 0)+sum(c['verdict']=='correct' for c in criteria)
+    complete = last.get('phase')=='completion' and not spec.get('canary')
+    # External judge workers have their own journals. Rebuild current grade
+    # coverage from one consistent database snapshot, retaining the native
+    # journal's original shutdown status and observed phase timings.
+    if (path.parent/'workflow.sqlite3').exists():
+        from .workflow_progress import WorkflowProgress
+        from .workflow_document_progress import PROTOCOL
+        from .workflow_stream import fingerprint
+        metadata = json.loads((path.parent/'run.json').read_text())
+        identity = metadata['identity']
+        if fingerprint(identity) != metadata['run_key']:
+            raise ValueError('invalid progress identity')
+        if identity.get('protocol') == PROTOCOL:
+            with WorkflowProgress(path.parent, metadata['run_key']) as progress:
+                progress.db.execute('BEGIN')
+                if progress.binding('identity') != identity:
+                    raise ValueError('progress metadata mismatch')
+                by_measure = progress.summary()
+                turns = [_verified_metrics(t.id,t.measure,_answer_metrics(surface),activity,
+                                           progress.grade_record(t.id)['criteria'])
+                         for t,surface,activity in progress.iter_verified()]
+                complete = progress.complete
     counts = [t['explicit_tool_attempts'] for t in turns]
     return {'terminal_event':last if last.get('phase') == 'stopped' else None,
-            'incomplete_tail':incomplete_tail, 'status':last.get('phase','empty'), 'verified_turns':len(turns), 'unverified_answers':answers-len(turns),
-            'coverage':coverage(by_measure, complete=last.get('phase')=='completion' and not spec.get('canary'))
+            'incomplete_tail':incomplete_tail, 'status':last.get('phase','empty'), 'verified_turns':len(turns), 'unverified_answers':max(0,answers-len(turns)),
+            'coverage':coverage(by_measure, complete=complete)
                        if by_measure is not None else None,
             'turns':turns, 'workflow_elapsed_s':last.get('elapsed_s'),
             'completed_phase_wall_s':dict(durations), 'open_phases':[phase for phase, _ in starts],

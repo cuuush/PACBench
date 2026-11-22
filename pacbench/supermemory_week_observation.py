@@ -1,7 +1,9 @@
 """Read-only ordinary document processing on the stock Supermemory v5 API."""
+from hashlib import sha256
 from math import ceil, isfinite
 import time
 
+from .document_audit import same_submitted_text
 from .workflow_spec import instant
 
 PENDING = {'queued', 'extracting', 'processing', 'chunking', 'embedding', 'indexing'}
@@ -66,13 +68,19 @@ def wait_for_batch_processing(client, namespace, documents, acknowledgements, *,
                 continue
             if status != 'done':
                 raise ValueError(f'Supermemory document {ident} processing unsuccessful: {status!r}')
-            if row.get('content') != doc.text or row.get('metadata') != {}:
-                raise ValueError(f'Supermemory canonical readback differs from the submitted export for {ident}')
+            content = row.get('content')
+            returned_sha = sha256(content.encode('utf-8')).hexdigest() if isinstance(content, str) else None
+            if not same_submitted_text(content, doc.text) or row.get('metadata') != {}:
+                raise ValueError(f'Supermemory v5 source mismatch for {ident} at {status}: '
+                                 f'expected_sha256={doc.sha256}, returned_sha256={returned_sha}, '
+                                 f'metadata_matches={row.get("metadata") == {}}')
             version = system.get('updatedAt')
             if not isinstance(version, str):
                 raise ValueError(f'Supermemory document {ident} lacks a version timestamp')
             instant(version)
             observed[ident] = dict(status=status, sha256=doc.sha256, updated_at=version,
+                                   returned_sha256=returned_sha,
+                                   source_projection=('exact' if content == doc.text else 'single-final-lf-omitted'),
                                    dreaming_status=system.get('dreamingStatus'))
         if len(observed) < len(expected):
             time.sleep(min(0.5, _options(deadline)['timeout']))

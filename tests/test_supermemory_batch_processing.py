@@ -1,4 +1,5 @@
 """Exercise the first canonical Week release through the stock SDK offline."""
+from hashlib import sha256
 import json
 from types import SimpleNamespace
 
@@ -11,7 +12,8 @@ from pacbench.workflow_spec import compile_week
 
 
 @pytest.mark.parametrize(('fault', 'error'), [
-    (None, None), ('ack', ValueError), ('identity', ValueError), ('content', ValueError),
+    (None, None), ('framing-lf', None), ('ack', ValueError), ('identity', ValueError),
+    ('content', ValueError), ('interior-whitespace', ValueError), ('metadata', ValueError),
     ('version', ValueError), ('failed', ValueError), ('inventory', ValueError), ('pending', TimeoutError),
 ])
 def test_stock_sdk_first_evening(monkeypatch, fault, error):
@@ -54,8 +56,14 @@ def test_stock_sdk_first_evening(monkeypatch, fault, error):
                 row['system']['status'] = 'embedding'
             elif fault == 'identity':
                 row['id'] = 'other'
+            elif fault == 'framing-lf':
+                row['content'] = row['content'][:-1]
             elif fault == 'content':
-                row['content'] = row['content'].rstrip('\n')
+                row['content'] = batch[0].text
+            elif fault == 'interior-whitespace':
+                row['content'] = row['content'].replace('\n', '\r\n', 1)
+            elif fault == 'metadata':
+                row['metadata'] = {'foreign': True}
             elif fault == 'version':
                 del row['system']['updatedAt']
             elif fault == 'failed':
@@ -80,4 +88,7 @@ def test_stock_sdk_first_evening(monkeypatch, fault, error):
     for doc in batch:
         assert result['documents'][doc.filename] == dict(
             status='done', sha256=doc.sha256, updated_at=doc.cutoff,
+            returned_sha256=(sha256(doc.text[:-1].encode()).hexdigest()
+                             if fault == 'framing-lf' and doc.filename == last else doc.sha256),
+            source_projection=('single-final-lf-omitted' if fault == 'framing-lf' and doc.filename == last else 'exact'),
             dreaming_status='dreaming' if doc.filename == last else None)

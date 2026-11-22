@@ -14,6 +14,7 @@ from pacbench.workflow_spec import compile_week
 @pytest.mark.parametrize(('fault', 'error'), [
     (None, None), ('framing-lf', None), ('ack', ValueError), ('identity', ValueError),
     ('content', ValueError), ('interior-whitespace', ValueError), ('metadata', ValueError),
+    ('metadata-omitted', ValueError), ('metadata-null', ValueError),
     ('version', ValueError), ('failed', ValueError), ('inventory', ValueError), ('pending', TimeoutError),
 ])
 def test_stock_sdk_first_evening(monkeypatch, fault, error):
@@ -64,6 +65,10 @@ def test_stock_sdk_first_evening(monkeypatch, fault, error):
                 row['content'] = row['content'].replace('\n', '\r\n', 1)
             elif fault == 'metadata':
                 row['metadata'] = {'foreign': True}
+            elif fault == 'metadata-omitted':
+                del row['metadata']
+            elif fault == 'metadata-null':
+                row['metadata'] = None
             elif fault == 'version':
                 del row['system']['updatedAt']
             elif fault == 'failed':
@@ -78,8 +83,13 @@ def test_stock_sdk_first_evening(monkeypatch, fault, error):
         for doc in batch:
             acks[doc.filename] = submit_document('supermemory', client, 'smoke', doc)
         if error:
-            with pytest.raises(error):
+            with pytest.raises(error) as err:
                 observation.wait_for_batch_processing(client, 'smoke', batch, acks, deadline=2.)
+            metadata_states = {'metadata':'mapping-with-1-fields', 'metadata-null':'null',
+                               'metadata-omitted':'omitted'}
+            if fault in metadata_states:
+                assert 'metadata_state='+metadata_states[fault] in str(err.value)
+                assert last in str(err.value) and 'foreign' not in str(err.value)
             return
         result = observation.wait_for_batch_processing(client, 'smoke', batch, acks, deadline=2.)
 

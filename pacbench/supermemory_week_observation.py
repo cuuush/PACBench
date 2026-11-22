@@ -73,10 +73,14 @@ def wait_for_batch_processing(client, namespace, documents, acknowledgements, *,
                 raise ValueError(f'Supermemory document {ident} processing unsuccessful: {status!r}')
             content = row.get('content')
             returned_sha = sha256(content.encode('utf-8')).hexdigest() if isinstance(content, str) else None
-            if not same_submitted_text(content, doc.text) or row.get('metadata') != {}:
+            metadata = row.get('metadata')
+            if not same_submitted_text(content, doc.text) or metadata != {}:
+                metadata_state = ('omitted' if 'metadata' not in row else 'null' if metadata is None
+                                  else f'mapping-with-{len(metadata)}-fields' if isinstance(metadata, dict)
+                                  else 'unexpected-type')
                 raise ValueError(f'Supermemory v5 source mismatch for {ident} at {status}: '
                                  f'expected_sha256={doc.sha256}, returned_sha256={returned_sha}, '
-                                 f'metadata_matches={row.get("metadata") == {}}')
+                                 f'metadata_state={metadata_state}')
             version = system.get('updatedAt')
             if not isinstance(version, str):
                 raise ValueError(f'Supermemory document {ident} lacks a version timestamp')

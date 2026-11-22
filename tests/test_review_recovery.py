@@ -86,10 +86,10 @@ def test_blind_packet_and_saved_verdict_comparison():
     packets = [evaluate(cases, p) for p in (CONTEXT_JUDGE_PROTOCOL, DATE_SCOPED_JUDGE_PROTOCOL)]
     assert packets[0]['A'] != packets[1]['A']
     assert all(c['answer'] in packet[c['id']] for c in cases for packet in packets)
-    answers = {c['id']:json.dumps({'verdicts':[{'id':c['claims'][0][0],
-               'verdict':'missed','reason':'offline replay fixture'}]}) for c in cases}
+    answers = {c['id']:json.dumps({'verdicts':[{'id':claim[0],
+               'verdict':'missed','reason':'offline replay fixture'} for claim in c['claims']]}) for c in cases}
     compared = evaluate(cases, CONTEXT_JUDGE_PROTOCOL, answers, key)
-    assert [k for k,v in compared.items() if v['agrees']] == ['B','F']
+    assert [k for k,v in compared.items() if v['agrees']] == ['B','F','H','I','J']
 
 
 def test_legacy_checkpoint_reads_wal_and_rejects_changed_imessage(tmp_path):
@@ -170,3 +170,12 @@ def test_document_return_and_trace_survive_failed_native_write_barrier(tmp_path)
         assert p.observation('answer',turns[0].id,'trace')['session_id'] == 'fixture'
         assert list(p.iter_verified()) == [] and p.claim_grade() is None
     assert calls == [turns[0].prompt]
+
+def test_benchmark_rerun_keeps_published_judge_and_denominator():
+    from pacbench.workflow_runner import judge_options
+    from pacbench.workflow_spec import compile_week
+    spec, _, turns, _ = compile_week('continuing-account')
+    options = judge_options(turns[0], {'history':[{'role':'user','content':turns[0].prompt}],
+                                     'conversation_times':[turns[0].at]})
+    assert spec['judge'] == options['judge_protocol'] == 'semantic-judge-context-v4'
+    assert len(turns) == 49 and sum(len(t.claims) for t in turns) == 192

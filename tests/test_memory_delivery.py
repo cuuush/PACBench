@@ -36,3 +36,4 @@ def test_repeated_prompt_binds_each_delivered_message(tmp_path):
         wire = f'Again?\n\n<memory-context>{value}</memory-context>'
         assert memory_delivery(tmp_path,'s','Again?',value,native_row_id=i,delivered_text=wire)['state']=='confirmed'
         assert memory_delivery(tmp_path,'s','Again?',value,native_row_id=3-i,delivered_text=wire)['state']=='unknown'
+        assert memory_delivery(tmp_path,'s','Again?',value,native_row_id=i,delivered_text=None)['state']=='unknown'

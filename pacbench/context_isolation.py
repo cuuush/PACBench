@@ -155,7 +155,10 @@ def actual_context(home: Path, session_id: str | None, workspace: Path,
     if '# Project Context' in prompt:
         return {**record, 'reason': 'Hermes loaded project context into recall'}
     return {**record, 'state': 'pass', 'reason': 'No project context in native saved system prompt'}
-def memory_delivery(home,session_id,prompt,prefetch, *, native_row_id=None, delivered_text=None):
+_WIRE_UNAVAILABLE = object()
+
+
+def memory_delivery(home,session_id,prompt,prefetch, *, native_row_id=None, delivered_text=_WIRE_UNAVAILABLE):
     """Read native API-bound input evidence without invoking a provider.
 
     Hermes keeps display content separate from its API-bound memory injection.
@@ -179,8 +182,8 @@ def memory_delivery(home,session_id,prompt,prefetch, *, native_row_id=None, deli
     record.update(native_user_row_id=row_id,prefetch_chars=len(prefetch),
         prefetch_sha256=hashlib.sha256(prefetch.encode()).hexdigest(),
         api_content_sha256=hashlib.sha256(api_content.encode()).hexdigest() if isinstance(api_content,str) else None)
-    if delivered_text is not None:
-        if delivered_text != (api_content or prompt):
+    if delivered_text is not _WIRE_UNAVAILABLE:
+        if not isinstance(delivered_text, str) or delivered_text != (api_content or prompt):
             return {**record,'reason':'Wire input differs from native message'}
         api_content = delivered_text
     if not isinstance(api_content, str) or not api_content.startswith(prompt):

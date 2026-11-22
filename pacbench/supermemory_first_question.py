@@ -27,7 +27,7 @@ from .openrouter_run import fetch_catalog
 from .provider_loader import provider_module
 from .supermemory_question_admission import (
     PROFILE, PROTOCOL, PROVIDER, QUESTION_RUN, SCOPE, SOURCE_RUN, compare_source, original_source, projects,
-    snapshot_identity,
+    snapshot_identity, terminal_response,
 )
 from .supermemory_source_admission import source_release
 from .supermemory_source_effect import BOUNDARY
@@ -223,14 +223,20 @@ def run(campaign, checkpoint, approved_plugin_home):
                 rows = ledger.snapshot()
                 result['elapsed_seconds'] = time.monotonic() - start_time
                 result['billing'] = receipt_summary(root, rows, QUESTION_RUN)
+                result['transport'] = dict(
+                    http_body_complete=sum(row.get('response_body_complete') is True for row in rows),
+                    sse_done_observed=sum((row.get('response_validation') or {}).get('sse_done_observed') is True for row in rows),
+                    terminal_verified=sum(terminal_response(row) for row in rows if row.get('finished')),
+                )
                 shutdown = root / 'native-service-stop.json'
                 if shutdown.is_file():
                     result['cleanup'] = json.loads(shutdown.read_text())['state']
                 billing = result['billing']
                 if (result.get('qualified_capture') and 'failure_type' not in result and result['cleanup'] == 'verified-inventory-stopped'
                         and billing['attempts'] == billing['generations'] and billing['complete_cost_usd'] is not None
+                        and result['transport']['terminal_verified'] == billing['attempts']
                         and all(row['served_model'] == MODEL and row['served_provider'] == 'Amazon Bedrock'
-                                and row['dispatch_execution'] == 'response_ended' and row['http_status'] == 200 for row in rows)):
+                                for row in rows)):
                     result['state'] = 'stock-first-question-qualified'
                 atomic(root / 'result.json', result)
     return result

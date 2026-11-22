@@ -8,7 +8,7 @@ from pathlib import Path
 from contextlib import contextmanager
 from decimal import Decimal
 from .openrouter_route import with_route, PROFILES
-from .response_receipts import parse,sanitized,receipt
+from .response_receipts import read_frames,sanitized,receipt
 from .receipt_projection import IndexedAttempts, Projection, account_refused
 from .live_dispatch import sender_identity,operation_id,CONDITION,OwnershipConflict
 
@@ -198,9 +198,10 @@ class ObservedBudget:
  def settle(self,ident,status,data=b'',*,headers=None,body_complete=False,sender=None):
   from .live_dispatch import record_end
   from .direct_accounting import now,response_validation,stop_measured_admission
-  raw=data.encode() if isinstance(data,str) else data;events,errors=parse(raw)
+  raw=data.encode() if isinstance(data,str) else data;frames=read_frames(raw);events=frames.events
   validation=response_validation(events,body_complete)
-  validation['wire_parse_errors']=errors
+  validation['wire_parse_errors']=frames.errors
+  validation['sse_done_observed']=frames.sse_done_observed
   validation['envelope_errors']=[{'code': error.get('code')} for error in validation['envelope_errors']]
   previous=None
   for event in events:

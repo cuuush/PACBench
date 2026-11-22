@@ -106,15 +106,18 @@ def record_prepared(root, project, prepared):
     trace.write_text(''.join(json.dumps(row) + '\n' for row in rows))
 
 
-def send(root, budget, project, request, *, generation='gen-opening', finish='stop', complete=True):
+def send(root, budget, project, request, *, generation='gen-opening', finish='stop', complete=True, sse_tail=None):
     prepared = budget.reserve(project, request)
     record_prepared(root, project, prepared)
     budget.mark_dispatch_possible(prepared['id'])
-    budget.settle(prepared['id'], 200, json.dumps({
+    response = json.dumps({
         'id': generation, 'model': budget.model, 'provider': 'Amazon Bedrock',
         'choices': [{'message': {'content': 'Synthetic response'}, 'finish_reason': finish}],
         'usage': {'prompt_tokens': 8, 'completion_tokens': 4, 'cost': '0.0005'},
-    }), body_complete=complete)
+    })
+    if sse_tail is not None:
+        response = 'data: ' + response + '\r\n\r\n' + sse_tail
+    budget.settle(prepared['id'], 200, response, body_complete=complete)
 
 
 def test_original_opening_and_real_tool_round_require_distinct_receipts(opening):
@@ -189,6 +192,32 @@ def test_wire_body_mutation_is_rejected_after_prepare(opening):
     with pytest.raises(OwnershipConflict, match='changed before dispatch'):
         budget.mark_dispatch_possible(prepared['id'])
     assert budget.snapshot()[0]['dispatch_execution'] == 'prepared'
+
+
+@pytest.mark.parametrize(('sse_tail', 'terminal'), [
+    ('data: [DONE]\r\n\r\n', True),
+    ('data: [DONE]\n', False),
+    ('data: [DONE]\n\ndata: [DONE]\n\n', False),
+    ('data: [DONE]\n\ndata: {}', False),
+    ('', False),
+])
+def test_tool_continuation_requires_terminal_stream_or_http_eof(opening, sse_tail, terminal):
+    root, scope, body = opening
+    project = scope['projects']['supermemory']['driver']
+    budget = live_budget(project=project)
+    send(root, budget, project, body, finish='tool_calls', complete=False, sse_tail=sse_tail)
+    prior, = budget.snapshot()
+    assert prior['state'] == 'settled'
+    assert prior['response_body_complete'] is False
+    assert prior['response_validation']['sse_done_observed'] is terminal
+    next_request = continuation(root, body)
+    if terminal:
+        send(root, budget, project, next_request, generation='gen-tool-followup')
+        assert len(budget.snapshot()) == 2
+    else:
+        with pytest.raises(OwnershipConflict, match='unambiguous response'):
+            budget.reserve(project, next_request)
+        assert len(budget.snapshot()) == 1
 
 
 def test_lock_and_prepaid_proof_are_required(opening, monkeypatch):

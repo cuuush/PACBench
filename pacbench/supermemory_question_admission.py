@@ -300,6 +300,15 @@ def confirm_sender(row, scope):
         raise OwnershipConflict('Supermemory prepared request changed before dispatch')
 
 
+def terminal_response(row):
+    validation = row['response_validation']
+    return (row['http_status'] == 200 and not validation['envelope_errors'] and not validation['wire_parse_errors']
+            and (row['dispatch_execution'] == 'response_ended'
+                 or (row['dispatch_execution'] == 'ambiguous' and validation.get('sse_done_observed') is True
+                     and row['state'] == 'settled'
+                     and bool(row.get('upstream_request_id')) and bool(validation['finish_reasons']))))
+
+
 class QuestionJournal(SourceJournal):
     def check_prepared(self, rows, row):
         from .direct_accounting import stop_measured_admission
@@ -331,10 +340,7 @@ class QuestionJournal(SourceJournal):
     def check_history(rows):
         successful = [row for row in rows if row.get('finished')]
         generations = [row.get('upstream_request_id') for row in successful if row.get('upstream_request_id')]
-        if len(generations) != len(set(generations)) or any(
-                row['dispatch_execution'] != 'response_ended' or row['http_status'] != 200
-                or (row['response_validation']['envelope_errors'] or row['response_validation']['wire_parse_errors'])
-                for row in successful):
+        if len(generations) != len(set(generations)) or any(not terminal_response(row) for row in successful):
             raise OwnershipConflict('Supermemory prior request did not settle an unambiguous response')
 
     def mark_dispatch_possible(self, identifier, *, sender=None):

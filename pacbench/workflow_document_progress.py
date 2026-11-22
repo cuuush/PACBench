@@ -30,7 +30,18 @@ def run(condition, account, docs, turns, directory, spec, spec_digest, basis, al
             if (progress.binding('identity') != metadata['identity'] or not progress.binding('plan_registered')):
                 raise ValueError('resume differs from registered document checkpoints')
             if judge is not None:
-                with Journal(directory/'judge-recovery'/uuid4().hex) as journal:
+                from contextlib import ExitStack
+                from . import workflow_capability
+                from .live_dispatch import process_identity
+                from .workflow_grading import judge_only_owner
+                with ExitStack() as stack:
+                    if progress.binding('workflow_scope') is not None:
+                        if json.loads(os.environ.get(workflow_capability.ENV,'null')) != progress.binding('workflow_scope'):
+                            raise ValueError('resume requires the original bound judge scope before claiming any grade')
+                        scope = workflow_capability.load()
+                        if scope['controller'] != process_identity():
+                            stack.enter_context(judge_only_owner(progress,scope))
+                    journal = stack.enter_context(Journal(directory/'judge-recovery'/uuid4().hex))
                     grade_verified(progress, judge, directory, journal, limit=len(turns))
             if not progress.execution_sealed:
                 raise ValueError('native document resume needs an account recovery witness before further work; '

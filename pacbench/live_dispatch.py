@@ -67,6 +67,11 @@ def owns_fresh_effect(progress, claim):
 
 def operation_id(row):
     slot = row.get('workflow_slot') or row.get('checkpoint_full_run_slot') or row.get('checkpoint_canary_slot') or {}
+    if slot.get('honcho_daily_release'):
+        # Exactly one representation first send for an immutable daily release,
+        # including a reissued request with a changed body or SDK trace.
+        release = (row['workflow_capability']['sha256'], slot['honcho_daily_release']['sha256'])
+        return hashlib.sha256(json.dumps(release).encode()).hexdigest()
     scope = {k:slot[k] for k in ('kind','provider','group_id','batch_id','question_id') if k in slot}
     effect = slot.get('checkpoint_effect')
     if effect is not None and slot.get('provider') == 'memcal' and row.get('workflow_slot'):
@@ -123,7 +128,10 @@ def mark_possible(row, at, sender=None):
     if not check_owner(row, sender):
         return
     slot = row.get('workflow_slot') or {}
-    if slot.get('provider') == 'memcal' and slot.get('checkpoint_effect'):
+    if slot.get('honcho_daily_release'):
+        from .honcho_daily_gate import confirm_sender
+        confirm_sender(row)
+    elif slot.get('provider') == 'memcal' and slot.get('checkpoint_effect'):
         from .workflow_capability import confirm_memcal_sender
         confirm_memcal_sender(row)
     elif slot.get('provider') in ('mem0','hindsight','openviking','reme','cognee','memos') and slot.get('journal_stage_sha256'):

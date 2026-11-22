@@ -119,6 +119,10 @@ def load():
         from .pizza_day_controller import validate_scope
         validate_scope(c, bound)
         return c
+    if c.get('admission') == 'honcho-seven-daily-documents-v1':
+        from .honcho_daily_gate import validate
+        validate(c, bound)
+        return c
     if (root != root.resolve() or root/'workflow-scope.json' != Path(bound['path'])
             or c['run_id'] != root.parent.name or c['provider'] != root.name
             or c['provider'] not in ('reme','memcal','mem0','hindsight','openviking','cognee','memos') or c['protocol'] != 'pizza-week-conversation-v2'
@@ -254,6 +258,9 @@ def admission(project, profile, body):
     if c.get('admission') == 'pizza-day-wrong-answer-judge-v1':
         from .pizza_day_control import admit
         return admit(c, project, body)
+    if c.get('admission') == 'honcho-seven-daily-documents-v1':
+        from .honcho_daily_gate import admission as honcho_admission
+        return honcho_admission(c, project, profile, body)
     if provider == 'memcal':
         return _memcal_admission(c, project, body)
     if provider in ('mem0','hindsight','openviking','reme','cognee','memos'):

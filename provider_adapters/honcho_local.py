@@ -160,8 +160,22 @@ def child_environment(inherited, env, overrides, model):
         child.pop('DERIVER_MODEL_CONFIG__MAX_OUTPUT_TOKENS', None)
     return child
 
-def start(root,env,model,base,key,*,resume=False,simulated_at=None,checkpoint=None):
+def start(root,env,model,base,key,*,resume=False,simulated_at=None,checkpoint=None,daily_documents=False):
     check_operator_condition(root)
+    if daily_documents:
+        from pacbench.direct_accounting import MARKER
+        from pacbench.honcho_daily_gate import controller
+        from pacbench.live_dispatch import ENV as TRACKING, enabled
+        from pacbench.openrouter_direct import active
+        from pacbench.workflow_capability import ENV, PROFILE, budget
+
+        project = controller(root.resolve())['projects']['honcho']['memory']
+        if (resume or checkpoint is not None or not active() or not enabled() or key != MARKER+project
+                or any(env.get(name, os.environ.get(name)) != os.environ.get(name)
+                       for name in (ENV, TRACKING, 'PACBENCH_DIRECT', 'PACBENCH_RECEIPT_JOURNAL',
+                                    'PACBENCH_LUNA_COMPATIBILITY', 'PACBENCH_EFFECTIVE_OUTPUT_TOKENS'))):
+            raise ValueError('Fresh Honcho daily document scope and receipt ownership required')
+        budget(project=project, profile=PROFILE)
     validate_route(base,key)
     source=Path(__file__).resolve().parents[1]/'vendor/honcho-local'
     python=source/'.venv/bin/python'
@@ -279,6 +293,8 @@ print(json.dumps({'native_defaults_verified':deriver_limit is None and deriver_t
     child['PYTHONPATH']=str(source)+os.pathsep+str(Path(__file__).resolve().parents[1])
     from pacbench.openrouter_direct import runtime_environment
     runtime_environment(child)
+    if daily_documents:
+        child['PACBENCH_OPENROUTER_PROFILE']=PROFILE
     child['PACBENCH_EXPECTED_MODEL']=model
     # Use the exact tokenizer already bundled by the installed LiteLLM runtime.
     # Native tiktoken cache loading/hash verification is unchanged; no network
@@ -347,8 +363,10 @@ print(json.dumps({'native_defaults_verified':deriver_limit is None and deriver_t
     if configured.returncode:raise RuntimeError('Honcho native embedding schema configuration failed')
     endpoint=f'http://127.0.0.1:{api_port}'
     native_processes = {}
+    deriver = (['-m','pacbench.honcho_daily_gate','src.deriver',str(source)]
+               if daily_documents else ['-m','src.deriver'])
     for label,args in [('api',['-m','uvicorn','src.main:app','--host','127.0.0.1','--port',str(api_port)]),
-                       ('deriver',['-m','src.deriver'])]:
+                       ('deriver',deriver)]:
         log=(root/f'honcho-{label}.log').open('ab')
         native_env={**child,**({'PACBENCH_PYTHON_CLOCK_ROLE':label} if clock else {})}
         processes.append(subprocess.Popen([str(python),*args],cwd=root,env=native_env,
@@ -397,6 +415,13 @@ print(json.dumps({'native_defaults_verified':deriver_limit is None and deriver_t
         'enabled':True,'aiPeer':'hermes','peerName':'user','workspace':workspace,
         'sessionStrategy':'per-session',
         'observationMode':'directional'}}})  # Current native setup default, not the legacy-file migration mode.
+    if daily_documents:
+        from pacbench.honcho_daily_gate import register
+        try:
+            register(root.resolve(), native_processes['deriver'].pid)
+        except Exception:
+            stop()
+            raise
     env['PACBENCH_HONCHO_TRACE_FILE']=str(root/'honcho-reasoning-traces.jsonl')
     env.update(HONCHO_BASE_URL=endpoint,HONCHO_API_KEY='',HONCHO_WORKSPACE=workspace)
     return stop

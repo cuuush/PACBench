@@ -153,10 +153,19 @@ class ObservedBudget:
    refused=rows.refused() if indexed else any(account_refused(r) for r in rows.values())
    if refused:
     raise RuntimeError('Provider refusal; no further dispatch or retry')
+   honcho_daily=row.get('workflow_slot',{}).get('honcho_daily_release')
+   from .direct_http import _native_http_request
+   original=_native_http_request.get()
+   if honcho_daily:
+    from .honcho_daily_gate import bind_attempt
+    bind_attempt(row)
+   elif original is not None and 'pacbench.honcho.daily-attempt' in original.extensions:
+    raise OwnershipConflict('Native Honcho request outside its dedicated daily release')
    operation=row['dispatch_context']['operation_id']
    previous=(rows.previous(project,operation) if indexed else
              [r for r in rows.values() if r['project']==project and r.get('dispatch_context',{}).get('operation_id')==operation])
    if previous:
+    if honcho_daily:raise OwnershipConflict('No automatic replay of a Honcho daily representation')
     grant=json.loads(os.environ.get('PACBENCH_JUDGE_OUTPUT_RECOVERY','{}'))
     lost_output=(project.endswith('-judge') and len(previous)==1 and grant.get('attempt_id')==previous[0]['id'] and previous[0].get('state')=='settled' and grant.get('reason')=='model_recorder_failed_before_saving_judgment')
     if not lost_output and (len(previous)>=3 or previous[-1].get('provider_rejection') not in ('openrouter_in_flight_budget','in_flight_budget_exhausted','upstream_provider_shared_pool_rate_limit')):raise OwnershipConflict('No automatic replay of a prepared request')
@@ -246,6 +255,7 @@ class ObservedBudget:
  def retry_delay(self,ident):
   with self.journal() as (rows,_):
    row=rows[ident];delay=row.get('retry_after_s');attempt=row.get('dispatch_context',{}).get('attempt_number',1)
+  if row.get('honcho_daily_attempt'):return None
   if row.get('provider_rejection') in ('openrouter_in_flight_budget','in_flight_budget_exhausted','upstream_provider_shared_pool_rate_limit') and attempt<3 and delay is not None and 0<=delay<=30:return delay
   if row.get('provider_rejection')=='upstream_provider_shared_pool_rate_limit':
    from .direct_accounting import stop_measured_admission

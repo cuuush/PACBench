@@ -1,10 +1,14 @@
 """The upgraded Hermes prompt keeps its session start and advances native date."""
+import pytest
 import ast
 import os
 from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import Mock
 
+
+pytestmark = pytest.mark.skipif(not (Path(__file__).resolve().parents[1]/'vendor/hermes-isolated').exists(),
+                                reason='requires provisioned patched Hermes checkout')
 
 def test_native_date_refresh_preserves_other_bytes_and_persists(monkeypatch):
     source = Path(__file__).resolve().parents[1] / 'vendor/hermes-isolated/agent/turn_context.py'

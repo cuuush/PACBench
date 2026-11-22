@@ -12,6 +12,7 @@ def capability(tmp_path):
  binding=cap.create(tmp_path,projects,{p:'config' for p in cap.PROVIDERS});return binding,cap.load(binding)
 
 
+@pytest.mark.usefixtures('historical_checkpoint_archive')
 def test_full_scope_exact_denominators_cross_day_and_no_canary_expansion(tmp_path,monkeypatch):
  from pacbench import canary_capability
  binding,c=capability(tmp_path)
@@ -34,6 +35,7 @@ def test_full_scope_exact_denominators_cross_day_and_no_canary_expansion(tmp_pat
    with pytest.raises(GatewayLifecycleError):cap.load(binding)
 
 
+@pytest.mark.usefixtures('historical_checkpoint_archive')
 def test_full_native_serial_ingest_and_project_boundaries(tmp_path,monkeypatch):
  binding,c=capability(tmp_path);monkeypatch.setenv(cap.ENV,json.dumps(binding))
  group=c['specification']['groups'][-1]
@@ -52,6 +54,7 @@ def test_full_native_serial_ingest_and_project_boundaries(tmp_path,monkeypatch):
  with pytest.raises(GatewayLifecycleError):cap.serial([row,row],permit)
 
 
+@pytest.mark.usefixtures('historical_checkpoint_archive')
 def test_full_r2_production_cross_day_three_native_arms(tmp_path,monkeypatch):
  from tests.offline_native_wire import NativeWire
  from tests.test_memcal_native_diagnostic import empty_review
@@ -113,6 +116,7 @@ def test_funded_full_run_preserves_named_cap_and_settled_receipts(owner,monkeypa
  assert budget.snapshot()==before
 
 
+@pytest.mark.usefixtures('historical_checkpoint_archive')
 def test_live_full_run_cannot_hide_a_shortened_cohort(tmp_path,monkeypatch):
  from pacbench.checkpoint_evaluator import launch
  b,c=capability(tmp_path);monkeypatch.setenv(cap.ENV,json.dumps(b))
@@ -121,6 +125,7 @@ def test_live_full_run_cannot_hide_a_shortened_cohort(tmp_path,monkeypatch):
   launch(checks=checks[:1],plan=plan,schedule=schedule,runtime_factory=lambda g:pytest.fail('ingestion'),root=tmp_path/'evaluation',judge=lambda p:pytest.fail('judge'),env={'PACBENCH_DIRECT':'1',cap.ENV:json.dumps(b)},question_dir=tmp_path/'questions',budget_snapshot=lambda:{})
 
 
+@pytest.mark.usefixtures('historical_checkpoint_archive')
 def test_prefix_cannot_drop_required_cross_day_session(tmp_path):
  from pacbench.checkpoint_full_run import prepare_prefix
  _,schedule,checks,plan=cap.frozen()
@@ -131,6 +136,7 @@ def test_prefix_cannot_drop_required_cross_day_session(tmp_path):
   prepare_prefix(tmp_path/'old','mem0',checks,plan,schedule,tmp_path/'new',lambda r:{})
 
 
+@pytest.mark.usefixtures('historical_checkpoint_archive')
 def test_recovery_ancestry_rechecks_all_bound_roots(tmp_path):
  first=tmp_path/'first';first.mkdir();b,c=capability(first)
  atomic(first/'report.json',{'frozen_inputs':{'sha256':cap.FROZEN}})
@@ -159,6 +165,7 @@ def test_predispatch_release_is_not_a_settled_zero_and_unknowns_still_block(owne
 
 
 @pytest.mark.parametrize('completed',[1,2])
+@pytest.mark.usefixtures('historical_checkpoint_archive')
 def test_full_production_mem0_interrupted_recovery_reuses_only_valid_answer(tmp_path,monkeypatch,completed):
  from tests.offline_native_wire import NativeWire
  from tests.test_memcal_native_diagnostic import empty_review

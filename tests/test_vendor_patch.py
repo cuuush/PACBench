@@ -42,16 +42,19 @@ def _read_pin() -> str:
 
 
 class VendorPatchIntegrity(unittest.TestCase):
+    @unittest.skipUnless(VENDOR.exists(), "requires provisioned patched Hermes checkout")
     def test_tree_is_pinned_commit(self):
         head = _git("rev-parse", "HEAD").strip()
         self.assertEqual(head, _read_pin())
 
+    @unittest.skipUnless(VENDOR.exists(), "requires provisioned patched Hermes checkout")
     def test_tree_diff_equals_tracked_patch(self):
         live = _git("diff", "--abbrev=8", "HEAD")
         self.assertEqual(live, PATCH.read_text(),
                          "vendor tree has hand edits or drift: regenerate "
                          "patches/hermes-isolated.diff deliberately")
 
+    @unittest.skipUnless(VENDOR.exists(), "requires provisioned patched Hermes checkout")
     def test_only_expected_files_patched(self):
         names = _git("diff", "--name-only").split()
         self.assertEqual(sorted(names), [

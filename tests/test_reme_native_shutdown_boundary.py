@@ -13,6 +13,7 @@ from pacbench.checkpoint_clock import CheckpointClock
 from pacbench.hermes_gateway import GatewayLifecycleError,_live
 
 
+@pytest.mark.skipif(not PYTHON.exists() or not (ROOT/'vendor/reme').exists(), reason='requires provisioned Hermes and stock ReMe checkouts')
 def test_stock_native_delayed_write_poisoned_owner_requires_closed_checkpoint_handoff(tmp_path):
  baseline=tmp_path/'baseline';baseline.mkdir();(baseline/'source.txt').write_text('Synthetic retained source.')
  manifest=tree_manifest(baseline);stores=[clone_observation(baseline,tmp_path/name) for name in ['first','delayed','recovered']]
@@ -91,6 +92,7 @@ def test_stock_native_delayed_write_poisoned_owner_requires_closed_checkpoint_ha
   for service in services:service.close()
 
 
+@pytest.mark.skipif(not PYTHON.exists() or not (ROOT/'vendor/reme').exists(), reason='requires provisioned Hermes and stock ReMe checkouts')
 def test_preclose_quiescence_keeps_stock_write_and_gateway_warm(tmp_path):
  from pacbench.gateway.preclose import ENV,CONDITION
  from pacbench.checkpoint_evaluator import audit_transport
@@ -131,6 +133,7 @@ def test_preclose_quiescence_keeps_stock_write_and_gateway_warm(tmp_path):
   first.release.set();thread.join(3);first.close();second.close()
 
 
+@pytest.mark.skipif(not PYTHON.exists() or not (ROOT/'vendor/reme').exists(), reason='requires provisioned Hermes and stock ReMe checkouts')
 def test_preclose_rejects_stale_empty_before_enqueue_and_failed_work():
  import copy
  from pacbench.gateway.preclose import qualified
@@ -155,6 +158,7 @@ def test_preclose_rejects_stale_empty_before_enqueue_and_failed_work():
   assert not check(bad),edit
 
 
+@pytest.mark.skipif(not PYTHON.exists() or not (ROOT/'vendor/reme').exists(), reason='requires provisioned Hermes and stock ReMe checkouts')
 def test_observation_close_requires_native_exit_and_no_live_process(tmp_path,monkeypatch):
  from pacbench.checkpoint_canary import close_observation_services
  monkeypatch.setattr('pacbench.hermes_gateway._live',lambda pid:False)
@@ -166,6 +170,7 @@ def test_observation_close_requires_native_exit_and_no_live_process(tmp_path,mon
  with pytest.raises(GatewayLifecycleError):close_observation_services([(lambda:good,tmp_path)])
 
 
+@pytest.mark.skipif(not PYTHON.exists() or not (ROOT/'vendor/reme').exists(), reason='requires provisioned Hermes and stock ReMe checkouts')
 def test_preclose_selects_current_manager_after_native_session_reopen():
  from pacbench.gateway.preclose import qualified
  from pathlib import Path

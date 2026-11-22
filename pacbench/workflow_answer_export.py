@@ -1,6 +1,7 @@
 """Offline, private comparison export from an existing Week workflow directory."""
 import argparse
 from dataclasses import asdict
+import fcntl
 import json
 import os
 from pathlib import Path
@@ -77,7 +78,7 @@ def comparison_row(directory, turn, surface, activity, checkpoint, *, audit_path
                 tool_calls=surface['tool_calls'], tool_results=surface['tool_results'],
                 driver_inputs=[dict(request_id=r['request_id'], messages=r['messages'])
                                for r in surface['model_requests']],
-                driver_coverage=activity.get('driver_receipts'), criteria=criteria,
+                attempt_lineage=surface.get('attempts', []), driver_coverage=activity.get('driver_receipts'), criteria=criteria,
                 checkpoint_grade_state=checkpoint['grade_state'] if checkpoint else None,
                 judge_attempts=attempts)
 
@@ -97,17 +98,39 @@ def checkpoint_rows(progress, directory, temporary):
         yield comparison_row(directory, turn, surface, activity, checkpoint, audit_path=audit_path)
 
 
+def financial_evidence(directory):
+    from .observational_receipts import replay_attempts
+    from .workflow_receipts import receipt_summary
+    root = directory.parent
+    journal = root/'receipts.jsonl'
+    attempts = {}
+    if journal.is_file():
+        if journal != journal.resolve():
+            raise ValueError('foreign receipt journal')
+        with journal.open('rb') as stream:
+            fcntl.flock(stream, fcntl.LOCK_SH)
+            rows = replay_attempts(stream)
+        scope = read_json(root/'workflow-scope.json')
+        receipt_summary(root, list(rows.values()), scope['run_id'], attempts=attempts)
+    return attempts
+
+
 def export(directory, destination):
     directory, destination = Path(directory).resolve(strict=True), Path(destination).absolute()
     if destination.is_relative_to(directory) or destination.parent != destination.parent.resolve():
         raise ValueError('select a new private output outside the run')
     counts = dict(verified_answers=0, audited_judgments=0, graded_criteria=0, correct=0)
+    financial = financial_evidence(directory)
     with tempfile.TemporaryDirectory(dir=destination.parent) as tmp:
         root = Path(tmp)
         def write(rows):
             with (root/'answers.private.jsonl').open('x', encoding='utf-8') as out:
                 os.fchmod(out.fileno(), 0o600)
                 for row in rows:
+                    for attempt in [*row['driver_inputs'], *row['judge_attempts']]:
+                        attempt['receipt'] = financial.get(attempt['request_id'], {'actual_usd':None})
+                    row['attempt_receipts'] = {a['id']:financial.get(a['id'], {'actual_usd':None})
+                                               for a in row['attempt_lineage'] if isinstance(a,dict) and a.get('id')}
                     out.write(json.dumps(row, ensure_ascii=False) + '\n')
                     counts['verified_answers'] += 1
                     if row['criteria'] is not None:

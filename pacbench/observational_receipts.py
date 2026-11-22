@@ -51,6 +51,19 @@ def shared_pool_429(data):
  except (ValueError,TypeError):return False
  return (meta.get('provider_error_code')=='rate_limit_exceeded' and meta.get('limit_source')=='upstream_provider_shared_pool' and meta.get('provider_name')=='Amazon Bedrock' and meta.get('is_byok') is False)
 
+def replay_attempts(stream):
+ """Reconstruct each run-owned attempt from the append-only receipt journal."""
+ rows={}
+ for line in stream:
+  if not line.strip():continue
+  event=json.loads(line)
+  ident=event['id']
+  if event['kind']=='prepared':
+   if ident in rows or event['row']['id']!=ident:raise ValueError('Duplicate or foreign prepared receipt')
+   rows[ident]=event['row']
+  else:rows[ident].update(event['patch'])
+ return rows
+
 class ObservedBudget:
  def __init__(self,base,path):
   self.base=base;self.original_path=base.path;self.path=Path(path).resolve()
@@ -65,10 +78,7 @@ class ObservedBudget:
    fcntl.flock(f,fcntl.LOCK_EX)
    if os.fstat(f.fileno()).st_mode & 0o777 != 0o600:os.fchmod(f.fileno(),0o600)
    f.seek(0)
-   events=[json.loads(line) for line in f if line.strip()];rows={}
-   for e in events:
-    if e['kind']=='prepared':rows[e['id']]=e['row']
-    else:rows[e['id']].update(e['patch'])
+   rows=replay_attempts(f)
    def append(kind,ident,patch):
     event={'kind':kind,'id':ident,'row':patch} if kind=='prepared' else {'kind':kind,'id':ident,'patch':patch}
     f.seek(0,2);f.write(json.dumps(event,sort_keys=True)+'\n');f.flush();os.fsync(f.fileno())

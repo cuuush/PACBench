@@ -44,3 +44,33 @@ def test_document_close_crash_preserves_grade_queue_and_denominator(tmp_path):
         assert not progress.complete
     with pytest.raises(ValueError, match='resume'):
         run_current_week(route, Interrupted(route, docs), dest, resume=True)
+
+
+def test_private_export_checks_grade_and_returns_only_counts(tmp_path):
+    from pacbench.workflow_answer_export import comparison_row, export
+    from pacbench.workflow_grading import grade_verified
+    from tests.test_workflow_grading import checkpoints, Recorder, local_judge
+    from pacbench.workflow_stream import fingerprint
+    from pacbench.workflow_progress import WorkflowProgress
+    run = tmp_path/'workflow'
+    with checkpoints(run, verified=1) as (p, turns):
+        grade_verified(p, local_judge(run, []), run, Recorder(), limit=1)
+        identity = {'condition':'fixture'}
+        p.bind('identity', identity)
+        p.db.execute('UPDATE run SET run_key=?', (fingerprint(identity),))
+        (run/'run.json').write_text(json.dumps({'identity':identity,'run_key':fingerprint(identity)}))
+    out = tmp_path/'out'
+    summary = export(run, out)
+    row = json.loads((out/'answers.private.jsonl').read_text())
+    assert row['answer'] == 'fixture' and row['judge_attempts'][0]['request_id'] == 'offline-attempt-1'
+    assert row['conversation_times'] == [turns[0].at]
+    assert row['criteria'] and all(type(v) is int for v in summary.values())
+    assert summary == json.loads((out/'summary.public.json').read_text())
+    assert out.stat().st_mode & 0o077 == 0
+    assert (out/'answers.private.jsonl').stat().st_mode & 0o077 == 0
+    with pytest.raises(FileExistsError):
+        export(run,out)
+    (run/'judgments'/turns[0].id/'judgment.json').unlink()
+    with pytest.raises(ValueError, match='checkpoint grade differs'):
+        export(run,tmp_path/'corrupt')
+    assert not (tmp_path/'corrupt').exists()

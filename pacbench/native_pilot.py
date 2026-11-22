@@ -153,6 +153,9 @@ def stop_arm_model_work(root):
 
     stop = _ARM_SHUTDOWNS.pop(root.resolve(), None)
     prior = sys.exc_info()[1]
+    receipt = root/'shutdown-observation.json'
+    if stop is None and receipt.exists():
+        return json.loads(receipt.read_text())
     record = {'native_hook':'absent', 'original_error_type':type(prior).__name__ if prior else None}
     try:
         if stop is not None:
@@ -168,7 +171,13 @@ def stop_arm_model_work(root):
         record['fallback_cleanup'] = {'state':'returned', 'processes_signalled':len(cleaned)}
     except Exception as exc:
         record['fallback_cleanup'] = {'state':'failed', 'error_type':type(exc).__name__}
-    save(root/'shutdown-observation.json', record)
+    outcome = record.get('native_outcome', {})
+    incomplete = (record['native_hook'] == 'failed' or record['fallback_cleanup']['state'] == 'failed'
+                  or outcome.get('native_shutdown_complete') is False or outcome.get('forced_kill') is True
+                  or outcome.get('state') == 'cleanup-unverified')
+    save(receipt, record)
+    if incomplete and prior is None:
+        raise RuntimeError('Run-owned native shutdown incomplete; inspect shutdown-observation.json')
     return record
 
 PROBE = '''

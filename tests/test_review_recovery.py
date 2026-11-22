@@ -288,3 +288,17 @@ def test_financial_torn_tail_does_not_discard_known_answers(tmp_path):
     journal.write_bytes(tail+b'\n')
     with pytest.raises(ValueError):
         financial_evidence(tmp_path/'workflow')
+
+
+@pytest.mark.parametrize('id,finished,error',[(12,None,None),(12,'',None),(12,'done','failed'),(11,'done',None)])
+def test_legacy_dream_reopen_requires_unique_finished_native_run(id,finished,error):
+    import sqlite3
+    from contextlib import closing
+    from pacbench.native_checkpoint_sources import finished_nightly_ids, GatewayLifecycleError
+    with closing(sqlite3.connect(':memory:')) as db:
+        db.execute('CREATE TABLE runs(id,mode,finished_at,error)')
+        db.execute("INSERT INTO runs VALUES(11,'nightly','done',NULL)")
+        assert finished_nightly_ids(db) == [11]
+        db.execute("INSERT INTO runs VALUES(?,'nightly',?,?)",(id,finished,error))
+        with pytest.raises(GatewayLifecycleError):
+            finished_nightly_ids(db)

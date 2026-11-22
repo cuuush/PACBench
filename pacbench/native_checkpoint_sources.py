@@ -127,7 +127,9 @@ class Mem0SourceCheckpoints:
 MEMCAL_REOPEN='''
 import sys,json,sqlite3,hashlib
 from pathlib import Path
+sys.path.insert(0,sys.argv[5])
 sys.path.insert(0,sys.argv[1])
+from pacbench.native_checkpoint_sources import finished_nightly_ids,memcal_archive_readback
 from memcal import config,db
 home=Path(sys.argv[2]);cfg=config.Config(home=home);conn=db.open_db(cfg.db_path)
 try:
@@ -138,14 +140,21 @@ try:
  rows=[dict(r) for r in conn.execute('SELECT channel,external_id,ts,text FROM archive ORDER BY id')]
  result={'provider':'memcal','interface':'native db.open_db + persisted collector/Dream state',
   'sqlite_integrity':'ok','archive_rows':len(rows),'archive_sha256':hashlib.sha256(json.dumps(rows,sort_keys=True).encode()).hexdigest(),
-  'completed_nightly_runs':[r[0] for r in conn.execute("SELECT id FROM runs WHERE mode='nightly' AND finished_at IS NOT NULL AND finished_at!='' AND COALESCE(error,'')='' ORDER BY id")],
+  'completed_nightly_runs':finished_nightly_ids(conn),
   'pending_spool':pending,'failed_runs':failed,'incomplete_collection_sources':incomplete,
   'wiki_pages':len(list(cfg.wiki_dir.rglob('*.md'))),'llm_inference_requested':False,'memory_mutation_requested':False}
 finally:conn.close()
-from pacbench.native_checkpoint_sources import memcal_archive_readback
 result['source_readback']=memcal_archive_readback(Path(sys.argv[3]),json.loads(sys.argv[4]),home)
 print(json.dumps(result))
 '''
+
+
+def finished_nightly_ids(conn):
+    rows = conn.execute("SELECT id,finished_at,error FROM runs WHERE mode='nightly' ORDER BY id").fetchall()
+    ids = [row[0] for row in rows]
+    if (len(ids) != len(set(ids)) or any(type(row[0]) != int or not row[1] or row[2] for row in rows)):
+        raise GatewayLifecycleError('Native nightly Dream run identities are duplicate or unfinished')
+    return ids
 
 
 def memcal_archive_readback(preparation,ids,store):
@@ -252,7 +261,7 @@ class MemcalSourceCheckpoints:
                 self.receipts[batch['id']]={'path':str(path),'sha256':hashlib.sha256(path.read_bytes()).hexdigest()};self.ingested.append(batch['id'])
             clone=clone_observation(self.store,Path(destination));probe=Path(destination).with_name(Path(destination).name+'-reopen-probe')
             clone_observation(Path(destination),probe)
-            proc=subprocess.run([str(self.python),'-c',MEMCAL_REOPEN,self.env['MEMCAL_SRC'],str(probe),str(self.preparation),json.dumps(ids)],env=self.env,capture_output=True,text=True,timeout=30)
+            proc=subprocess.run([str(self.python),'-c',MEMCAL_REOPEN,self.env['MEMCAL_SRC'],str(probe),str(self.preparation),json.dumps(ids),str(Path(__file__).resolve().parents[1])],env=self.env,capture_output=True,text=True,timeout=30)
             atomic(probe.parent/(probe.name+'-result.private.json'),{'returncode':proc.returncode,'stdout':proc.stdout,'stderr':proc.stderr})
             if proc.returncode:raise GatewayLifecycleError('Native repaired MemCal checkpoint could not reopen')
             native=json.loads(proc.stdout.strip().split('\n')[-1]);expected=sum(len(b['source_ids']) for b in self.schedule[:len(ids)])

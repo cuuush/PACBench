@@ -8,7 +8,8 @@ from pacbench import workflow_capability as cap, workflow_memcal
 from pacbench.canary_capability import binding
 from pacbench.live_dispatch import fresh_effect, mark_possible, operation_id, process_identity
 from pacbench.openrouter_route import with_route
-from pacbench.provider_versions import MEMCAL_REVISION
+from pacbench.provider_versions import MEMCAL_REVISION, MEMCAL_WEEK_REVISION, MEMCAL_WEEK_CONDITION
+from pacbench.workflow_memcal_tools import manifest
 from pacbench.workflow_progress import WorkflowProgress
 
 
@@ -34,11 +35,16 @@ def test_missing_mac_and_mail_readers_leave_scope_uncreated(tmp_path, monkeypatc
 
 
 @pytest.fixture
-def scope(tmp_path, monkeypatch):
+def scope(tmp_path, monkeypatch, request):
     # Explicitly replace the unavailable external source only for transport-negative controls.
     campaign, site, kwargs = setup_site(tmp_path)
     access = dict(state='source-access-verified',memcal_revision=MEMCAL_REVISION,imessage_backend='bluebubbles',
                   imap={'security':'SSL', 'folders':{f:{'mode':'readonly','uidvalidity':'4'} for f in ('INBOX','Sent')}})
+    if getattr(request, 'param', MEMCAL_REVISION) == MEMCAL_WEEK_REVISION:
+        monkeypatch.setenv('PACBENCH_MEMCAL_CONDITION', MEMCAL_WEEK_CONDITION)
+        access.update(manifest())
+    else:
+        monkeypatch.setenv('PACBENCH_MEMCAL_CONDITION', 'stable-0.8.11')
     monkeypatch.setattr(workflow_memcal, 'inspect_memcal_site', lambda site: access)
     bound = cap.create_memcal_scope(campaign, site, **kwargs)
     monkeypatch.setenv(cap.ENV,json.dumps(bound))
@@ -95,6 +101,7 @@ def row_for(c, bound, slot, role):
                 project=c['projects']['memcal'][role])
 
 
+@pytest.mark.parametrize('scope', [MEMCAL_REVISION, MEMCAL_WEEK_REVISION], indirect=True)
 def test_live_callback_binds_role_attempt_frozen_release_and_final_dispatch(scope):
     c, bound = scope
     projects = c['projects']['memcal']
@@ -170,6 +177,9 @@ def test_live_callback_binds_role_attempt_frozen_release_and_final_dispatch(scop
             with fresh_effect(progress,'answer',turn.id,claim['attempt_id']):
                 with cap.memcal_operation(progress,'answer',turn.id,inputs):
                     tools = [{'type':'function','function':{'name':n}} for n in cap.HERMES_TOOLS['memcal']]
+                    current = c['access']['memcal_revision'] == MEMCAL_WEEK_REVISION
+                    if current:
+                        tools = json.loads((Path(__file__).parent/'fixtures/memcal-hermes-0.8.12.json').read_bytes())
                     actual = dict(body,messages=[{'role':'user','content':turn.prompt}],tools=tools)
                     assert cap.admission(projects['driver'],cap.PROFILE,actual)['slot']['question_id'] == turn.id
                     wrapped = turn.prompt + '\n\n<memory-context>\nA saved memory.\n</memory-context>'
@@ -183,8 +193,14 @@ def test_live_callback_binds_role_attempt_frozen_release_and_final_dispatch(scop
                     with pytest.raises(ValueError,match='question or native tool'):
                         cap.admission(projects['driver'],cap.PROFILE,dict(actual,messages=[
                             {'role':'user','content':turn.prompt+'\n\nextra user instruction'}]))
-                    with pytest.raises(ValueError,match='question or native tool'):
+                    with pytest.raises(ValueError,match='question or native tool|driver schemas'):
                         cap.admission(projects['driver'],cap.PROFILE,dict(actual,tools=[]))
+                    if current:
+                        changed = {**tools[0], 'function':{**tools[0]['function'], 'description':'changed'}}
+                        for drift in (tools[1:], tools+[tools[0]], tools+[{'type':'function','function':{'name':'memcal_open_page'}}],
+                                      [changed, *tools[1:]]):
+                            with pytest.raises(ValueError, match='driver schemas'):
+                                cap.admission(projects['driver'],cap.PROFILE,dict(actual,tools=drift))
                     with pytest.raises(ValueError,match='question or native tool'):
                         cap.admission(projects['driver'],cap.PROFILE,dict(actual,messages=[{'role':'user','content':'other'}]))
             return {'fixture':True}

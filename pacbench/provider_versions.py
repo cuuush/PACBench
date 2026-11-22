@@ -9,6 +9,10 @@ import tarfile
 
 MEMCAL_REVISION = 'e67b8d912484b5b4317dafcff4d60fc975194d8e'
 MEMCAL_VERSION = '0.8.11'
+MEMCAL_WEEK_CONDITION = 'pizza-week-0.8.12-f9f8b96'
+MEMCAL_WEEK_REVISION = 'f9f8b96c72625febe6677cf73a94702e024d171d'
+MEMCAL_WEEK_TREE = '048234bec3fa206abc0c4b68a92413ad2ec0c521'
+MEMCAL_WEEK_VERSION = '0.8.12'
 MEMCAL_REVIEW_CONDITION = 'wiki-supersession-review-da58057-v1'
 MEMCAL_REVIEW_REVISION = 'da58057eb00f79082dfcf8f59baa264267c83ca1'
 MEMCAL_CONTEXT_CONDITION = 'wiki-context-review-dac7214-v1'
@@ -21,6 +25,8 @@ def memcal_pin():
     condition=os.environ.get('PACBENCH_MEMCAL_CONDITION','stable-0.8.11')
     if condition=='stable-0.8.11':
         return condition,MEMCAL_REVISION,MEMCAL_VERSION
+    if condition==MEMCAL_WEEK_CONDITION:
+        return condition,MEMCAL_WEEK_REVISION,MEMCAL_WEEK_VERSION
     if condition==MEMCAL_REVIEW_CONDITION:
         return condition,MEMCAL_REVIEW_REVISION,'0.8.12'
     if condition==MEMCAL_CONTEXT_CONDITION:
@@ -28,6 +34,13 @@ def memcal_pin():
     if condition==MEMCAL_OPERATIONS_CONDITION:
         return condition,MEMCAL_OPERATIONS_REVISION,'0.8.12'
     raise RuntimeError('Unknown Memcal source condition')
+
+
+def memcal_week_pin():
+    selected = memcal_pin()
+    if selected[1] not in (MEMCAL_REVISION, MEMCAL_WEEK_REVISION):
+        raise ValueError('MemCal Week requires a qualified product revision')
+    return selected
 
 
 def memcal_source(repo: Path) -> Path:
@@ -44,6 +57,10 @@ def verify_memcal_source(repo: Path) -> dict:
         raise RuntimeError('Memcal source differs from the selected stable release')
     if subprocess.check_output(['git', '-C', str(root), 'status', '--porcelain'], text=True).strip():
         raise RuntimeError('Selected Memcal release has working tree changes')
+    if revision == MEMCAL_WEEK_REVISION:
+        tree = subprocess.check_output(['git', '-C', str(root), 'rev-parse', 'HEAD^{tree}'], text=True).strip()
+        if tree != MEMCAL_WEEK_TREE:
+            raise RuntimeError('MemCal Week source tree differs from its reviewed product tree')
     if not (root / 'integrations/hermes/memcal/__init__.py').is_file():
         raise RuntimeError('Selected Memcal native Hermes integration is missing')
     return {'revision': actual, 'version': version, 'source': str(root), 'working_tree_changes': False,

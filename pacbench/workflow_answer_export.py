@@ -9,6 +9,8 @@ from pathlib import Path
 import tempfile
 
 from .evidence_store import read_json
+from .provider_versions import MEMCAL_WEEK_VERSION
+from .workflow_memcal_tools import manifest, verify_captured_driver
 from .workflow_grading import retained_grade
 from .workflow_progress import WorkflowProgress
 from .workflow_spec import compile_week
@@ -150,6 +152,24 @@ def comparison_row(directory, turn, surface, activity, checkpoint, *, audit_path
 
 
 def checkpoint_rows(progress, directory, temporary):
+    identity = progress.binding('identity') or {}
+    # Earlier experimental products also reported 0.8.12. Only the new run
+    # identity carries this independently recorded Week product manifest.
+    qualified = 'product_manifest' in identity
+    if qualified:
+        from .canary_capability import read
+        condition = identity['condition']
+        if ((condition['provider'], condition['version']) != ('memcal', MEMCAL_WEEK_VERSION)
+                or identity['product_manifest'] != manifest()):
+            raise ValueError('unexpected MemCal export product manifest')
+        bound = progress.binding('workflow_scope')
+        if not bound or Path(bound['path']) != directory.parent/'workflow-scope.json':
+            raise ValueError('MemCal export lacks its run-owned product manifest')
+        scope = read(bound)
+        if (scope['provider'] != 'memcal' or scope['root'] != str(directory.parent)
+                or (scope['account'], scope['store']) != (identity['account'], identity['store'])
+                or any(scope['access'].get(k) != v for k, v in manifest().items())):
+            raise ValueError('MemCal export differs from the qualified product manifest')
     for turn, surface, activity in progress.iter_verified():
         checkpoint = progress.grade_record(turn.id)
         recovered = progress.binding('recovered-judge-attempts/'+turn.id)
@@ -161,7 +181,15 @@ def checkpoint_rows(progress, directory, temporary):
                 (folder/f'attempt-{i}.json').write_text(json.dumps(attempt))
             audit_path = folder.parent/'judgment.json'
             audit_path.write_text(json.dumps(recovered[-1]))
-        yield comparison_row(directory, turn, surface, activity, checkpoint, audit_path=audit_path)
+        row = comparison_row(directory, turn, surface, activity, checkpoint, audit_path=audit_path)
+        if qualified:
+            if not surface['model_requests']:
+                raise ValueError('missing MemCal driver evidence')
+            for request, saved in zip(surface['model_requests'], row['driver_inputs'], strict=True):
+                verify_captured_driver(request)
+                saved['canonical_request_sha256'] = request['canonical_request_sha256']
+            row['product_manifest'] = manifest()
+        yield row
 
 
 def financial_evidence(directory):

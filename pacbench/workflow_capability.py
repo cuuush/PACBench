@@ -12,7 +12,9 @@ from pathlib import Path
 from .canary_capability import binding, digest, read, sha
 from .live_dispatch import process_identity
 from .workflow_spec import SPEC, compile_week, instant
-from .workflow_tracks import HERMES_TOOLS, MEMOS_OSS_LUNA_COMPAT, MEMOS_OSS_TOOLS, MEMOS_OSS_VERSION, validate_native_deployment
+from .provider_versions import MEMCAL_REVISION, MEMCAL_WEEK_REVISION, MEMCAL_WEEK_VERSION, memcal_week_pin
+from .workflow_memcal_tools import manifest, verify_driver_schemas
+from .workflow_tracks import memcal_week_tools, HERMES_TOOLS, MEMOS_OSS_LUNA_COMPAT, MEMOS_OSS_TOOLS, MEMOS_OSS_VERSION, validate_native_deployment
 
 ENV = 'PACBENCH_WORKFLOW_SCOPE'
 PROFILE = 'luna-bedrock-global'
@@ -200,6 +202,12 @@ def budget(*, project=None, profile=None):
     return RunReceiptJournal(path)
 
 
+def _memcal_revision(scope):
+    if scope['admission'] == 'pizza-day-synthetic-memcal-v1':
+        return MEMCAL_REVISION
+    return scope['access']['memcal_revision']
+
+
 def owner(env, home, checkpoint, provider, clock):
     c = load()
     if (env.get(ENV) != os.environ[ENV] or provider != c['provider'] or home != Path(c['root'])/'hermes-home'
@@ -207,7 +215,10 @@ def owner(env, home, checkpoint, provider, clock):
             or env.get('PACBENCH_PROVIDER_ONLY') != '1' or env.get('PACBENCH_API_INPUT_TRACE') != str(home.parent/'api-inputs.jsonl')):
         raise ValueError('workflow gateway differs from scoped home, clock or capture')
     if provider == 'memcal':
-        if (env.get('PACBENCH_TOOL_ALLOWLIST') != ','.join(HERMES_TOOLS['memcal'])
+        revision = _memcal_revision(c)
+        label, selected_revision, _ = memcal_week_pin()
+        if (revision != selected_revision or env.get('PACBENCH_MEMCAL_CONDITION') != label
+                or env.get('PACBENCH_TOOL_ALLOWLIST') != ','.join(memcal_week_tools(revision))
                 or env.get('PACBENCH_OPENROUTER_PROFILE') != PROFILE
                 or env.get('PACBENCH_ROLE_ROUTES') != 'luna-all-roles-v1'
                 or env.get('PACBENCH_OFFLINE_CONFORMANCE') or os.environ.get('PACBENCH_JUDGE_OUTPUT_RECOVERY')
@@ -466,10 +477,11 @@ def _memcal_schedule(spec_sha, canary):
 
 
 def _access(access, backend):
-    from .provider_versions import MEMCAL_REVISION
     mail = access.get('imap') or {}
     folders = mail.get('folders') or {}
-    if (access.get('state') != 'source-access-verified' or access.get('memcal_revision') != MEMCAL_REVISION
+    if (access.get('state') != 'source-access-verified' or access.get('memcal_revision') != memcal_week_pin()[1]
+            or (access.get('memcal_revision') == MEMCAL_WEEK_REVISION
+                and any(access.get(k) != v for k, v in manifest().items()))
             or backend not in ('bluebubbles', 'chatdb') or access.get('imessage_backend') != backend
             or str(mail.get('security', '')).upper() not in ('SSL', 'STARTTLS')
             or set(folders) != {'INBOX', 'Sent'} or any(f.get('mode') != 'readonly'
@@ -541,6 +553,8 @@ def activate_memcal(progress, account, condition, deployment, *, resume_plan=Non
             or progress.binding('identity')['condition'] != json.loads(json.dumps(vars(condition)))
             or deployment.get('source_map_sha256') != account.source_witness.bindings_sha256):
         raise ValueError('MemCal process, native mixed reader, source map or deployment differs')
+    if (c['access']['memcal_revision'] == MEMCAL_WEEK_REVISION) != (condition.version == MEMCAL_WEEK_VERSION):
+        raise ValueError('MemCal deployment differs from the product qualified for source access')
     validate_native_deployment(condition, deployment)
     _access(deployment['source_access'], c['imessage_backend'])
     synthetic = account.client.site.synthetic_chatdb
@@ -831,8 +845,11 @@ def _memcal_admission(c, project, body):
                 prompt, at = turn.prompt, turn.at
             users = [m for m in body['messages'] if m['role'] == 'user']
             last = users[-1].get('content') if users else None
+            revision = _memcal_revision(c)
+            if revision == MEMCAL_WEEK_REVISION:
+                verify_driver_schemas(body.get('tools'))
             if (not native_user_question(last, prompt)
-                    or sorted(t['function']['name'] for t in body.get('tools', [])) != list(HERMES_TOOLS['memcal'])):
+                    or sorted(t['function']['name'] for t in body.get('tools', [])) != list(memcal_week_tools(revision))):
                 raise ValueError('MemCal driver question or native tool surface differs')
             from .workflow_progress import WorkflowProgress
             from .workflow_source_plan import SourcePlan

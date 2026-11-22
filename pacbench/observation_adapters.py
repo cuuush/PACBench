@@ -21,13 +21,17 @@ def native_source(provider,home,repo,env,python):
         if plugin.resolve()!=source.resolve()/'integrations/hermes_agent':raise ValueError('Native ReMe plugin path differs')
     elif provider=='memcal':
         from .provider_versions import MEMCAL_OPERATIONS_REVISION,MEMCAL_OPERATIONS_CONDITION,MEMCAL_REVISION
+        from .provider_versions import MEMCAL_WEEK_CONDITION, MEMCAL_WEEK_REVISION
         source=Path(env['MEMCAL_SRC']).resolve()
         workflow = env.get('PACBENCH_WORKFLOW_CAPTURE') == 'pizza-week-conversation-v2'
-        expected = env.get('PACBENCH_MEMCAL_REUSE_REVISION', MEMCAL_REVISION if workflow else 'dac7214006b84ec364ecbcd9472daca7db588a25')
+        label = env.get('PACBENCH_MEMCAL_CONDITION')
+        week_revision = MEMCAL_WEEK_REVISION if label == MEMCAL_WEEK_CONDITION else MEMCAL_REVISION
+        expected = env.get('PACBENCH_MEMCAL_REUSE_REVISION', week_revision if workflow else 'dac7214006b84ec364ecbcd9472daca7db588a25')
         stable = expected == MEMCAL_REVISION and env.get('PACBENCH_MEMCAL_CONDITION') == 'stable-0.8.11' and (workflow or bool(env.get('PACBENCH_R2_LIVE_SCOPE')))
-        if workflow and not stable:
+        current_week = workflow and expected == MEMCAL_WEEK_REVISION and label == MEMCAL_WEEK_CONDITION
+        if workflow and not (stable or current_week):
             raise ValueError('Continuing MemCal workflow requires its reviewed stable condition')
-        if not stable and expected not in {'dac7214006b84ec364ecbcd9472daca7db588a25','da58057eb00f79082dfcf8f59baa264267c83ca1',MEMCAL_OPERATIONS_REVISION}:
+        if not (stable or current_week) and expected not in {'dac7214006b84ec364ecbcd9472daca7db588a25','da58057eb00f79082dfcf8f59baa264267c83ca1',MEMCAL_OPERATIONS_REVISION}:
             raise ValueError('Unknown MemCal review condition')
         if expected==MEMCAL_OPERATIONS_REVISION and env.get('PACBENCH_MEMCAL_CONDITION')!=MEMCAL_OPERATIONS_CONDITION:
             raise ValueError('MemCal observation revision needs its explicit reviewed condition')
@@ -76,7 +80,7 @@ def native_source(provider,home,repo,env,python):
     actual=subprocess.check_output(['git','-C',str(source),'rev-parse','HEAD'],text=True).strip()
     if actual!=expected or subprocess.check_output(['git','-C',str(source),'status','--porcelain'],text=True).strip():
         raise ValueError('Native observation provider source differs')
-    return {provider:actual, **({'memcal_baseline':'stable-0.8.11'} if provider=='memcal' and stable else {})}
+    return {provider:actual, **({'memcal_baseline':label} if provider=='memcal' and (stable or current_week) else {})}
 
 
 def plan(provider,config,workspace,*,endpoint=None):

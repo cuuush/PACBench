@@ -11,12 +11,12 @@ import pytest
 from pacbench import api_input_trace
 from pacbench.checkpoint_clock import CheckpointClock
 from pacbench.gateway_reuse import PersistentGateway
-from pacbench.provider_versions import MEMCAL_REVISION
+from pacbench.provider_versions import memcal_week_pin
 from pacbench.workflow_memcal_chat import MemCalChatWitness, verify_resume
 from pacbench.workflow_native import WarmHermes
 from pacbench.workflow_runner import Condition, captured_turn
 from pacbench.workflow_spec import compile_week
-from pacbench.workflow_tracks import HERMES_TOOLS
+from pacbench.workflow_tracks import memcal_week_tools
 from tests.test_gateway_reuse import LocalNativeFixture, PYTHON, ROOT, native_home
 
 
@@ -24,7 +24,8 @@ def test_stock_memcal_continuing_chat_and_explicit_source_lookup(tmp_path, monke
     source = Path(os.environ.get('PACBENCH_MEMCAL_SRC', ROOT.parent / 'memcal-stable-20261113'))
     if not PYTHON.exists() or not source.is_dir():
         pytest.skip('requires installed pinned Hermes and MemCal stable trees')
-    tools = HERMES_TOOLS['memcal']
+    label, revision, version = memcal_week_pin()
+    tools = memcal_week_tools(revision)
     _, _, turns, _ = compile_week('continuing-account')
     lunch = [t for t in turns if t.id in ('lunch-snapshot','lunch-refreshed')]
     assert [t.id for t in lunch] == ['lunch-snapshot','lunch-refreshed']
@@ -48,7 +49,8 @@ def test_stock_memcal_continuing_chat_and_explicit_source_lookup(tmp_path, monke
         config['security'] = {'allow_lazy_installs':False}
         (home / 'config.yaml').write_text(json.dumps(config))
         store = tmp_path / 'memcal-home'
-        env.update(MEMCAL_HOME=str(store), MEMCAL_SRC=str(source), PACBENCH_MEMCAL_CONDITION='stable-0.8.11',
+        env.update(MEMCAL_HOME=str(store), MEMCAL_SRC=str(source), PACBENCH_MEMCAL_CONDITION=label,
+                   PYTHONPATH=str(source)+os.pathsep+env.get('PYTHONPATH',''),
                    PACBENCH_WORKFLOW_CAPTURE='pizza-week-conversation-v2', TZ='America/New_York',
                    PACBENCH_API_INPUT_TRACE=str(tmp_path/'api-inputs.jsonl'), PACBENCH_TOOL_ALLOWLIST=','.join(tools))
         init = 'import os; from pathlib import Path; from memcal import config, db; c=config.Config(home=Path(os.environ["MEMCAL_HOME"])); c.ensure_dirs(); db.open_db(c.db_path).close()'
@@ -63,11 +65,11 @@ def test_stock_memcal_continuing_chat_and_explicit_source_lookup(tmp_path, monke
         observations = []
         with PersistentGateway(home, PYTHON, env, cwd=cwd, checkpoint=clock.checkpoint,
                                observation_clock=clock, provider='memcal') as owner:
-            assert owner.pins['memcal'] == MEMCAL_REVISION and owner.alias is None
+            assert owner.pins['memcal'] == revision and owner.alias is None
             witness = MemCalChatWitness(owner, lambda: [], timeout=10)
             warm = WarmHermes(owner, clock, witness.idle)
             condition = Condition('memcal','first-party-connector','continuing-account', 'Hermes','offline-model',
-                                  'loopback','diagnostic','0.8.11',owner.pins['hermes_isolation_sha256'],'simulated',tools)
+                                  'loopback','diagnostic',version,owner.pins['hermes_isolation_sha256'],'simulated',tools)
             for turn in lunch:
                 if prior is None:
                     captured = {}

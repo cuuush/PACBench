@@ -8,6 +8,8 @@ from pathlib import Path
 import time
 import uuid
 
+from .provider_versions import MEMCAL_WEEK_VERSION
+from .workflow_memcal_tools import manifest
 from .workflow_runner import (
     Journal, captured_turn, confirm_source_only, qualify_account, read_unit, submit_unit,
 )
@@ -160,7 +162,7 @@ def run_account_stream(condition, account, documents, turns, directory, *, spec_
         raise ValueError('incremental execution requires the continuing mixed MemCal connector')
     if judge is not None and account.evidence_kind != 'native':
         raise ValueError('recording fakes do not receive benchmark grades')
-    route = eligibility(condition.provider, condition.track, condition.channels)
+    route = eligibility(condition.provider, condition.track, condition.channels, version=condition.version)
     if not route['documented_for_scope']:
         raise ValueError('unsupported source route')
     deployment, store = qualify_account(account, condition, account.evidence_kind)
@@ -175,6 +177,8 @@ def run_account_stream(condition, account, documents, turns, directory, *, spec_
         meta = dict(protocol='memcal-incremental-v1', spec_sha256=spec_digest, source_basis=source_basis,
                     plan_sha256=plan.digest, account=account.identity, store=store, condition=asdict(condition),
                     canary=canary, evidence_kind=account.evidence_kind)
+        if condition.provider == 'memcal' and condition.version == MEMCAL_WEEK_VERSION and account.evidence_kind == 'native':
+            meta['product_manifest'] = {k:deployment[k] for k in manifest()}
         key = fingerprint(meta)
         if resume:
             saved = json.loads((directory/'run.json').read_text())

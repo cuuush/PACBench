@@ -14,14 +14,35 @@ from .workflow_spec import compile_week
 from .workflow_stream import fingerprint
 
 
+def saved_events(path):
+    with path.open('rb') as stream:
+        for raw in stream:
+            try:
+                yield json.loads(raw)
+            except (ValueError, UnicodeDecodeError):
+                if raw.endswith(b'\n'):
+                    raise
+                return
+
+
 def legacy_rows(directory):
     """Rebuild verified pairs from the original dated journal without running a judge."""
     seen = set()
     history_times = {}
     pending = None
-    with (directory/'workflow.jsonl').open('rb') as stream:
-        spec = json.loads(next(stream))
-        condition = json.loads(next(stream))['condition']
+    path = directory/'workflow.jsonl'
+    judgments = {}
+    for event in saved_events(path):
+        if event['phase'] in ('grade','ungraded'):
+            q = event['question']
+            if q in judgments:
+                raise ValueError('duplicate journal grade')
+            judgments[q] = dict(grade_state='graded' if event['phase']=='grade' else 'failed',
+                                criteria=event.get('criteria'), failure=event.get('reason'))
+    from contextlib import closing
+    with closing(saved_events(path)) as stream:
+        spec = next(stream)
+        condition = next(stream)['condition']
         _, _, schedule, basis = compile_week(condition['state'])
         if spec.get('canary'):
             schedule = schedule[:4]
@@ -30,13 +51,7 @@ def legacy_rows(directory):
         if (spec['sha256'] != sha(SPEC) or basis != spec['source_basis'] or
                 spec['schedule'] != [dict(id=t.id, at=t.at, chat=t.session, measure=t.measure) for t in schedule]):
             raise ValueError('journal differs from the frozen Week contract')
-        for raw in stream:
-            try:
-                event = json.loads(raw)
-            except (ValueError, UnicodeDecodeError):
-                if raw.endswith(b'\n'):
-                    raise
-                break
+        for event in stream:
             if event['phase'] == 'answer-visible':
                 pending = event
             if event['phase'] != 'verified-turn':
@@ -51,8 +66,10 @@ def legacy_rows(directory):
                 raise ValueError('saved answer differs from native history')
             surface['conversation_times'] = history_times.setdefault(surface['session_id'], []) + [turn.at]
             history_times[surface['session_id']] = surface['conversation_times']
-            yield turn, surface, event['activity'], None
+            yield turn, surface, event['activity'], judgments.pop(turn.id, dict(grade_state='ungraded',criteria=None))
             pending = None
+    if judgments:
+        raise ValueError('grade without a verified answer')
 
 
 def comparison_row(directory, turn, surface, activity, checkpoint, *, audit_path=None):
@@ -74,7 +91,8 @@ def comparison_row(directory, turn, surface, activity, checkpoint, *, audit_path
         raise ValueError('checkpoint grade differs from its audited judgment')
     return dict(grade_failure=(checkpoint or {}).get('failure'), turn=asdict(turn), answer=surface['answer'], conversation=surface['history'],
                 conversation_times=surface['conversation_times'], native_session=surface['session_id'],
-                prefetch=surface.get('prefetch'), delivery=surface.get('memory_delivery'),
+                prefetch=surface.get('prefetch'), prefetch_provenance=surface.get('prefetch_provenance'),
+                delivery=surface.get('memory_delivery'), tool_provenance=surface.get('tool_provenance'),
                 tool_calls=surface['tool_calls'], tool_results=surface['tool_results'],
                 driver_inputs=[dict(request_id=r['request_id'], messages=r['messages'])
                                for r in surface['model_requests']],

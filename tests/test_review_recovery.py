@@ -237,3 +237,24 @@ def test_document_judge_can_consume_verified_answer_with_original_controller_ali
     finally:
         child.terminate()
         child.wait()
+
+
+def test_legacy_partial_exports_verified_prefix_without_inventing_grade(tmp_path):
+    from pacbench.workflow_answer_export import export
+    from pacbench.workflow_conformance import RecordingAccount
+    from pacbench.workflow_runner import run_current_week
+    from pacbench.workflow_spec import compile_week
+    from tests.test_workflow_realism import condition
+    route = condition(p='reme')
+    docs = compile_week(route.state)[1]
+    run = tmp_path/'week'
+    run_current_week(route,RecordingAccount(route,docs),run)
+    archived = tmp_path/'original'
+    archived.mkdir()
+    journal = (run/'workflow.jsonl').read_bytes().splitlines(keepends=True)
+    idx = next(i for i,line in enumerate(journal) if json.loads(line)['phase']=='verified-turn')
+    (archived/'workflow.jsonl').write_bytes(b''.join(journal[:idx+1])+b'{"phase":')
+    summary = export(archived,tmp_path/'private')
+    assert summary == dict(verified_answers=1,audited_judgments=0,graded_criteria=0,correct=0)
+    row = json.loads((tmp_path/'private/answers.private.jsonl').read_bytes())
+    assert row['checkpoint_grade_state'] == 'ungraded' and row['criteria'] is None

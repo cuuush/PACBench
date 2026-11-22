@@ -35,13 +35,20 @@ def start(root, env, model, base, key, *, resume=False):
     binary=runtime/'supermemory-server-linux-x64'
     if not binary.exists():raise RuntimeError('Install verified Supermemory local server first')
     stock_source = os.environ.get('PACBENCH_SUPERMEMORY_STOCK_SOURCE') == '1'
+    namespace = 'supermemory-data-'+root.parent.name+'-'+root.name
     if stock_source:
         from pacbench.canary_capability import sha
         from pacbench.supermemory_source_admission import BINARY_SHA, SCOPE
+        from pacbench.supermemory_question_admission import SCOPE as QUESTION_SCOPE, verify_restored_snapshot
         from pacbench.workflow_capability import load
         scope = load()
-        if scope['admission'] != SCOPE or Path(scope['root']) != root or resume or sha(binary) != BINARY_SHA:
-            raise ValueError('Expected the pinned stock binary and a fresh source qualification scope')
+        if Path(scope['root']) != root or sha(binary) != BINARY_SHA:
+            raise ValueError('Expected the pinned stock binary and the owned workflow root')
+        if resume and scope['admission'] == QUESTION_SCOPE:
+            verify_restored_snapshot(scope)
+            namespace = scope['namespace']
+        elif resume or scope['admission'] != SCOPE:
+            raise ValueError('Expected fresh source scope or exact first-question snapshot')
     with socket.socket() as s:
         s.bind(('127.0.0.1',0));port=s.getsockname()[1]
     directory=root/'supermemory-data'
@@ -119,7 +126,7 @@ def start(root, env, model, base, key, *, resume=False):
     if not native_key:
         stop();raise RuntimeError('Supermemory startup did not produce its native API key; inspect private log')
     # README manual endpoint first, then the key emitted by real first boot.
-    save(root/'hermes-home/supermemory.json',{'base_url':endpoint,'container_tag':directory.name+'-'+root.parent.name+'-'+root.name})
+    save(root/'hermes-home/supermemory.json',{'base_url':endpoint,'container_tag':namespace})
     from pacbench.prefetch_provenance import VERSION
     declaration={'protocol':VERSION,'provider':'supermemory','state':'unverified',
         'reason':'Native v5 default hybrid retrieval can return document chunks; the plugin formatter merges chunk and memory text and omits their type. Independent passage provenance is pending.'}

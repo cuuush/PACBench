@@ -81,14 +81,23 @@ def verify_release_inventory(client, namespace, expected_ids, *, deadline):
 def wait_for_batch_processing(client, namespace, documents, acknowledgements, *, deadline,
                               previous_ids=(), before_read=None, native_readback=None):
     """Verify one release in an exclusively owned namespace using ordered add responses."""
-    expected = {doc.filename: doc for doc in documents}
-    if (not namespace or not expected or len(expected) != len(documents)
-            or len({doc.cutoff for doc in documents}) != 1 or tuple(acknowledgements) != tuple(expected)
-            or len(set(previous_ids)) != len(previous_ids) or set(previous_ids) & expected.keys()):
+    if tuple(acknowledgements) != tuple(doc.filename for doc in documents):
         raise ValueError('expected one newly acknowledged release with distinct IDs')
     for ident, ack in acknowledgements.items():
         if ack.id != ident or ack.status not in PENDING | {'done'}:
             raise ValueError(f'invalid Supermemory add acknowledgement for {ident}')
+    return read_release_processing(client, namespace, documents, deadline=deadline, other_ids=previous_ids,
+                                   before_read=before_read, native_readback=native_readback)
+
+
+def read_release_processing(client, namespace, documents, *, deadline, other_ids=(),
+                            before_read=None, native_readback=None):
+    """Read processing state and content for one exact release without doing an add."""
+    expected = {doc.filename: doc for doc in documents}
+    if (not namespace or not expected or len(expected) != len(documents)
+            or len({doc.cutoff for doc in documents}) != 1
+            or len(set(other_ids)) != len(other_ids) or set(other_ids) & expected.keys()):
+        raise ValueError('expected one Supermemory release with distinct IDs')
 
     observed = {}
     while len(observed) < len(expected):
@@ -135,6 +144,6 @@ def wait_for_batch_processing(client, namespace, documents, acknowledgements, *,
             time.sleep(min(0.5, _options(deadline)['timeout']))
     if before_read is not None:
         before_read()
-    verify_release_inventory(client, namespace, (*previous_ids, *expected), deadline=deadline)
+    verify_release_inventory(client, namespace, (*other_ids, *expected), deadline=deadline)
     return dict(condition='stock-document-processing-v1', namespace=namespace,
                 cutoff=documents[0].cutoff, documents=observed)

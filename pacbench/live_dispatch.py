@@ -135,6 +135,10 @@ def mark_possible(row, at, sender=None):
     elif slot.get('kind') == 'judge' and slot.get('checkpoint_effect'):
         from .workflow_capability import confirm_workflow_judge_sender
         confirm_workflow_judge_sender(row)
+    elif slot.get('supermemory_first_question'):
+        from .supermemory_question_admission import confirm_sender
+        from .workflow_capability import load
+        confirm_sender(row, load())
     if row['dispatch_execution'] != 'prepared':
         raise OwnershipConflict('Dispatch already possible; no automatic send replay')
     row['dispatch_events'].append({'kind': 'dispatch_possible', 'at': at})

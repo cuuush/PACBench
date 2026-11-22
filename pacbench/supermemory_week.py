@@ -35,6 +35,7 @@ from .supermemory_source_effect import BOUNDARY, NATIVE_ID
 from .supermemory_source_qualify import account_lock, check_runtime, check_stops, verify_prepaid
 from .supermemory_week_admission import SCOPE, WEEK_RUN, plan, prepare_driver, verified_final_response
 from .supermemory_worker_rounds import PROTOCOL as WORKER_ROUND_PROTOCOL
+from .supermemory_worker_chunks import PROTOCOL as CHUNK_READ_PROTOCOL, capture_anchor
 from .supermemory_week_observation import PENDING, read_release_processing, verify_native_version, verify_release_inventory
 from .workflow_memcal_live import run_environment
 from .workflow_native import NativeAccount, WarmHermes
@@ -186,7 +187,7 @@ class StockWeekWitness:
             time.sleep(.1)
         raise TimeoutError('Supermemory native work did not drain with the chat open')
 
-    def capture(self, sid, expected):
+    def capture(self, sid, expected, *, anchor_chunks=False):
         from supermemory import NotFoundError
 
         public = self.plugin._capture_doc_id(sid)
@@ -206,12 +207,21 @@ class StockWeekWitness:
                 if (meta.get('session_id'), meta.get('type'), meta.get('docId')) != (sid, 'conversation', public):
                     raise ValueError('Supermemory native capture is outside the authored chat')
                 native_id = self.catalog({*self.ready, *self.captures, public})[public]['id']
-                native = self.read_native('/v3/documents/' + quote(native_id, safe=''))
-                rev = verify_native_version(native, SimpleNamespace(filename=public), native_id=native_id,
-                                            namespace=self.namespace, wire=wire)
+                native_path = '/v3/documents/' + quote(native_id, safe='')
+                native = self.read_native(native_path)
+                document = SimpleNamespace(filename=public)
+                rev = verify_native_version(native, document, native_id=native_id, namespace=self.namespace, wire=wire)
+                anchor = {}
+                if anchor_chunks:
+                    snapshot = self.sdk.documents.get(self.namespace, public, include='chunks',
+                                      request_options={'max_retries': 0, 'timeout': 5}).model_dump(mode='json', by_alias=True)
+                    if snapshot.get('id') != public or snapshot.get('content') != expected:
+                        raise ValueError('Supermemory chunk readback differs from the captured conversation')
+                    anchor['chunk_anchor'] = capture_anchor(native, snapshot, self.read_native(native_path), document,
+                                                             native_id=native_id, namespace=self.namespace)
                 return dict(id=public, native_id=native_id, status=state, revision=rev,
                             capture_sha256=sha256(expected.encode()).hexdigest(),
-                            dreaming_status=wire['system'].get('dreamingStatus'))
+                            dreaming_status=wire['system'].get('dreamingStatus'), **anchor)
             time.sleep(.25)
         raise TimeoutError('Supermemory stock processing did not expose the exact conversation document')
 
@@ -227,7 +237,7 @@ class StockWeekWitness:
     def native_write_barrier(self, sid, answer):
         self.idle()
         expected = self.read_chat(sid, answer)
-        seen = self.capture(sid, expected)
+        seen = self.capture(sid, expected, anchor_chunks=True)
         old = self.captures.get(seen['id'])
         if old and (old['native_id'] != seen['native_id'] or old['revision'] >= seen['revision']):
             raise ValueError('Supermemory continuation did not publish a new revision of the same capture document')
@@ -283,7 +293,12 @@ class StockWeekAccount(NativeAccount):
         surface = super().observe_answer(trace)
         readback = surface['write_barrier']['readback']
         slot = reqs[-1]['workflow_slot']
-        atomic(self.witness.root / 'capture-membership' / (readback['native_id'] + '.json'), dict(
+        history = self.witness.root / 'capture-membership' / readback['native_id']
+        history.mkdir(mode=0o700, exist_ok=True)
+        record = history / (str(readback['revision']) + '.json')
+        if record.exists():
+            raise ValueError('Supermemory captured revision is already bound')
+        atomic(record, dict(
             namespace=self.witness.namespace, native_id=readback['native_id'], revision=readback['revision'],
             question_id=slot['question_id'], session_id=surface['session_id'], readback=readback))
         return surface
@@ -352,7 +367,8 @@ def run(campaign, checkpoint, plugin_home):
             stream.write(credit)
         scope = dict(admission=SCOPE, protocol=PROTOCOL, root=str(root), provider=PROVIDER, run_id=WEEK_RUN, canary=False,
                      namespace=f'supermemory-data-{WEEK_RUN}-{PROVIDER}', contract=contract, frozen_inputs=basis,
-                     native_effect=BOUNDARY, worker_round_protocol=WORKER_ROUND_PROTOCOL, prepaid=prepaid,
+                     native_effect=BOUNDARY, worker_round_protocol=WORKER_ROUND_PROTOCOL,
+                     chunk_read_protocol=CHUNK_READ_PROTOCOL, prepaid=prepaid,
                      auto_recharge_evidence=confirmation, controller=process_identity(),
                      lock_fd=lock, projects=projects(root), spec_sha256=sha(SPEC))
         atomic(root / 'workflow-scope.json', scope)
@@ -361,7 +377,7 @@ def run(campaign, checkpoint, plugin_home):
                     'PACBENCH_DIRECT_STOP_ON_429': str(root / 'STOP'), 'PACBENCH_DISPATCH_TRACKING': CONDITION,
                     'PACBENCH_ROLE_ROUTES': 'luna-all-roles-v1', 'PACBENCH_LUNA_COMPATIBILITY': 'temperature-omitted-default-v1',
                     'PACBENCH_EFFECTIVE_OUTPUT_TOKENS': '32768', 'PACBENCH_SUPERMEMORY_STOCK_SOURCE': '1',
-                    'PACBENCH_SUPERMEMORY_STOCK_ROUNDS': '1'}
+                    'PACBENCH_SUPERMEMORY_STOCK_ROUNDS': '1', 'PACBENCH_SUPERMEMORY_STOCK_CHUNKS': '1'}
         result = dict(state='incomplete', condition=SCOPE, cleanup='unverified', contract=contract)
         with run_environment(settings):
             ledger = cap.budget()

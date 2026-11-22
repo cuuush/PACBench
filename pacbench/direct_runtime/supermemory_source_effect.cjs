@@ -13,6 +13,31 @@ const originalRun = AsyncLocalStorage.prototype.run;
 const originalMap = Array.prototype.map;
 const originalLog = console.log;
 const observeRounds = process.env.PACBENCH_SUPERMEMORY_STOCK_ROUNDS === '1';
+const observeChunks = process.env.PACBENCH_SUPERMEMORY_STOCK_CHUNKS === '1';
+const stockFrame = '/$bunfs/root/supermemory-server:';
+const sha = value => createHash('sha256').update(value).digest('hex');
+
+function chunkRead(rows) {
+  const chunks = originalMap.call(rows, ({id: chunkId, position, content}) => {
+    if (!id.test(chunkId) || !Number.isInteger(position) || position < 0 || typeof content !== 'string')
+      throw new Error('Invalid Supermemory chunk result');
+    return {id: chunkId, position, sha256: sha(content)};
+  });
+  if (chunks.some((chunk, i) => i > 0 && chunk.position <= chunks[i - 1].position))
+    throw new Error('Supermemory chunk positions are ambiguous');
+  return {at_ms: Date.now(), chunks};
+}
+
+function chunkArgs(input) {
+  if (!input || Object.getPrototypeOf(input) !== Object.prototype ||
+      Object.keys(input).some(key => !['positions', 'start', 'count'].includes(key)) ||
+      (input.positions !== undefined && (!Array.isArray(input.positions) || input.positions.length > 20 ||
+        input.positions.some(position => !Number.isSafeInteger(position) || position < 0))) ||
+      (input.start !== undefined && (!Number.isSafeInteger(input.start) || input.start < 0)) ||
+      (input.count !== undefined && (!Number.isInteger(input.count) || input.count < 1 || input.count > 20)))
+    return null;
+  return JSON.parse(JSON.stringify(input));
+}
 
 AsyncLocalStorage.prototype.run = function(value, ...args) {
   if (value && Object.getPrototypeOf(value) === Object.prototype && !Reflect.ownKeys(value).length) {
@@ -25,6 +50,7 @@ AsyncLocalStorage.prototype.run = function(value, ...args) {
         members: null,
         next: 0,
         active: null,
+        initialRead: null,
         ambiguous: false,
       });
     }
@@ -65,7 +91,27 @@ Array.prototype.map = function(callback, ...args) {
       context.members = members;
     }
   }
-  return originalMap.call(this, callback, ...args);
+  const mapped = originalMap.call(this, callback, ...args);
+  if (observeChunks && Array.isArray(this) && (!this.length || Number.isInteger(first?.position))
+      && typeof callback === 'function') {
+    const callbackText = Function.prototype.toString.call(callback);
+    const toolRead = callbackText === '($)=>({id:$.id,position:$.position,content:$.content})';
+    const preview = callbackText.startsWith('(V)=>`<chunk position=');
+    if (toolRead || preview) {
+      try {
+        const stack = String(new Error().stack);
+        const trace = activeContext()?.active?.chunkTrace;
+        if (trace && toolRead && stack.includes(`Fv5 (${stockFrame}2999:`)) {
+          trace.pending.push({...chunkRead(this), result_sha256: sha(JSON.stringify({chunks: mapped}))});
+        } else if (trace && preview && stack.includes(`hv5 (${stockFrame}2993:`)) {
+          const expected = trace.opening?.chunks.slice(0, 8);
+          trace.preview = trace.preview === null && !!expected && this.length === expected.length && this.every((row, n) =>
+            row.position === expected[n].position && sha(row.content) === expected[n].sha256);
+        }
+      } catch { /* The missing independent projection is refused at admission. */ }
+    }
+  }
+  return mapped;
 };
 
 console.log = function(message, ...args) {
@@ -77,7 +123,12 @@ console.log = function(message, ...args) {
       if (context && !context.ambiguous) {
         if (beginning && context.active === null && context.members?.[context.next]?.document === beginning[1]) {
           context.active = {...context.members[context.next],
-            ...(observeRounds ? {visit: randomUUID(), results: new Map()} : {})};
+            ...(observeRounds ? {visit: randomUUID(), results: new Map()} : {}),
+            ...(observeChunks ? {chunkTrace: {
+              opening: context.initialRead, preview: null, prompt: null, pending: [], tools: new Map(),
+              arguments: new Map(),
+            }} : {})};
+          context.initialRead = null;
         } else if (ending && context.active?.document === ending[1]) {
           context.next += 1;
           context.active = null;
@@ -90,6 +141,38 @@ console.log = function(message, ...args) {
   return originalLog.call(this, message, ...args);
 };
 
+if (observeChunks) {
+  const slice = Array.prototype.slice;
+  Array.prototype.slice = function(start, end) {
+    const sliced = slice.apply(this, arguments);
+    if (start === 0 && end === 8 && String(new Error().stack).includes(`(${stockFrame}2999:858)`)) {
+      try {
+        const context = activeContext();
+        if (context?.members?.[context.next] && !context.active) {
+          context.initialRead = context.initialRead === null ? chunkRead(this) : false;
+        }
+      } catch { /* No native chunk snapshot can be asserted. */ }
+    }
+    return sliced;
+  };
+
+  // The final stock Bun template transform returns the exact user prompt,
+  // including its document metadata and the independently matched preview.
+  const replace = String.prototype.replace;
+  const bunEscapes = /\\u(?:\{([\da-fA-F]{1,6})\}|([\da-fA-F]{4}))/g.source;
+  String.prototype.replace = function(pattern, replacement) {
+    const rendered = replace.apply(this, arguments);
+    if (pattern instanceof RegExp && pattern.source === bunEscapes &&
+        String(new Error().stack).includes(`hv5 (${stockFrame}2956:`)) {
+      try {
+        const trace = activeContext()?.active?.chunkTrace;
+        if (trace) trace.prompt = trace.preview && trace.prompt === null ? sha(rendered) : false;
+      } catch { /* The prompt must be observed before send. */ }
+    }
+    return rendered;
+  };
+}
+
 if (observeRounds) {
   // Bundled AI SDK's ei8 collects successful tool outputs into the model
   // transcript before the OpenAI-compatible provider serializes its request.
@@ -97,20 +180,37 @@ if (observeRounds) {
   const originalPush = Array.prototype.push;
   Array.prototype.push = function(...args) {
     const part = args[0];
-    if (args.length === 1 && part?.type === 'tool-result' && part?.output?.type === 'json' &&
+    const toolResult = part?.type === 'tool-result' && part?.output?.type === 'json';
+    const chunkCall = observeChunks && part?.type === 'tool-call' && part.toolName === 'readChunks';
+    if (args.length === 1 && (toolResult || chunkCall) &&
         typeof part.toolCallId === 'string' && typeof part.toolName === 'string' &&
         /\bat ei8 \(\/\$bunfs\/root\/supermemory-server:\d+:\d+\)/.test(String(new Error().stack))) {
       try {
         const context = activeContext();
         if (context?.active && !context.ambiguous) {
+          const trace = context.active.chunkTrace;
+          if (chunkCall && trace) {
+            const input = chunkArgs(part.input);
+            const earlier = trace.arguments.get(part.toolCallId);
+            trace.arguments.set(part.toolCallId,
+              earlier !== undefined && JSON.stringify(earlier) !== JSON.stringify(input) ? null : input);
+            return originalPush.apply(this, args);
+          }
           const rendered = JSON.stringify(part.output.value);
-          const value = {name: part.toolName,
-            content_sha256: createHash('sha256').update(rendered).digest('hex')};
+          const value = {name: part.toolName, content_sha256: sha(rendered)};
           const old = context.active.results.get(part.toolCallId);
           if (old && (old.name !== value.name || old.content_sha256 !== value.content_sha256)) {
             context.ambiguous = true;
           } else {
             context.active.results.set(part.toolCallId, value);
+            if (!old && trace && part.toolName === 'readChunks') {
+              const matching = trace.pending.filter(read => read.result_sha256 === value.content_sha256);
+              const input = trace.arguments.get(part.toolCallId);
+              if (matching.length === 1 && input) {
+                trace.pending.splice(trace.pending.indexOf(matching[0]), 1);
+                trace.tools.set(part.toolCallId, {...matching[0], arguments: input});
+              }
+            }
           }
         }
       } catch { /* Ambiguous or unrenderable evidence cannot authorize the later send. */ }
@@ -136,4 +236,12 @@ module.exports.roundWitness = function roundWitness() {
   if (!effect || !observeRounds) return null;
   const {visit, results} = activeContext().active;
   return {effect, visit, results: Object.fromEntries(results)};
+};
+module.exports.chunkWitness = function chunkWitness() {
+  const effect = currentNativeOperation();
+  const active = effect && activeContext().active;
+  const trace = active?.chunkTrace;
+  if (!trace?.prompt) return null;
+  return {effect, visit: active.visit, opening: trace.opening, prompt_sha256: trace.prompt,
+    tools: Object.fromEntries(trace.tools)};
 };

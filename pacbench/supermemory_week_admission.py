@@ -15,12 +15,13 @@ from .openrouter_route import validate_request
 from .supermemory_question_admission import PROTOCOL, check_driver_rounds, driver_slot, projects, terminal_response
 from .supermemory_source_admission import PROFILE, PROVIDER, check_lock, physical_effect
 from .supermemory_source_effect import BOUNDARY
+from . import supermemory_worker_chunks as chunks
 from . import supermemory_worker_rounds as rounds
 from .workflow_progress import WorkflowProgress
 from .workflow_spec import SPEC, instant
 
 SCOPE = 'supermemory-stock-document-week-v1'
-WEEK_RUN = 'supermemory-stock-week-v3'
+WEEK_RUN = 'supermemory-stock-week-v4'
 
 
 @lru_cache(maxsize=1)
@@ -41,7 +42,9 @@ def validate(scope, bound):
             or scope['contract'] != plan()[3] or scope['canary'] is not False
             or scope['namespace'] != f'supermemory-data-{WEEK_RUN}-{PROVIDER}' or scope['native_effect'] != BOUNDARY
             or scope['worker_round_protocol'] != rounds.PROTOCOL
+            or scope['chunk_read_protocol'] != chunks.PROTOCOL
             or os.environ.get('PACBENCH_SUPERMEMORY_STOCK_ROUNDS') != '1'
+            or os.environ.get('PACBENCH_SUPERMEMORY_STOCK_CHUNKS') != '1'
             or os.environ.get('PACBENCH_STOP_FILE') != str(root / 'STOP')
             or os.environ.get(COHORT_STOP) != str(campaign / 'ACCOUNT_STOP')
             or os.environ.get('PACBENCH_DISPATCH_TRACKING') != CONDITION
@@ -116,13 +119,51 @@ def answer_slot(scope, body):
             'supermemory_week_claim': claim}
 
 
+def capture_slot(scope, effect, root, body, round_evidence):
+    history = root / 'capture-membership' / effect.document_id
+    if not history.is_dir() or history.resolve() != history:
+        raise OwnershipConflict('No verified capture for the native Supermemory update')
+    anchors = []
+    with progress_reader(scope) as progress:
+        for path in history.glob('*.json'):
+            if path.resolve() != path:
+                raise OwnershipConflict('Foreign Supermemory capture revision anchor')
+            entry = json.loads(path.read_text())
+            verified = progress.get_verified(entry['question_id'])
+            if verified is None:
+                continue
+            _, surface, _ = verified
+            anchor = entry['readback']['chunk_anchor']
+            if (entry['native_id'] != effect.document_id or entry['namespace'] != scope['namespace']
+                    or entry['revision'] != anchor['revision'] or path.stem != str(entry['revision'])
+                    or anchor['protocol'] != chunks.PROTOCOL or not entry['session_id']
+                    or surface['session_id'] != entry['session_id']
+                    or surface['write_barrier']['readback'] != entry['readback']):
+                raise OwnershipConflict('Supermemory captured revision differs from its verified turn')
+            anchors.append(entry)
+    if len({entry['session_id'] for entry in anchors}) != 1:
+        raise OwnershipConflict('Supermemory capture has no unique verified session')
+    anchors.sort(key=lambda entry: entry['revision'])
+    witness = chunks.read_witness(effect, round_evidence['visit'])
+    verified = chunks.verify_reads(witness, anchors, round_evidence, body)
+    return dict(kind='background', capture_session_id=anchors[0]['session_id'], chunk_reads=verified)
+
+
 def memory_slot(scope, body=None):
     from .workflow_runner import inspect_source_cutoff
 
     effect = physical_effect(scope)
     root = Path(scope['root'])
-    docs, turns, _, _ = plan()
+    docs, _, _, _ = plan()
     ident = effect.document_id
+    effect_fields = asdict(effect)
+    round_evidence = rounds.witness(effect_fields)
+    description = None
+    if body is not None:
+        validate_request(body, profile=PROFILE)
+        names = {json.loads(f.read_text())['public_id'] for f in (root / 'source-membership').glob('*.json')}
+        inspect_source_cutoff({'model_requests': [body], 'prefetch': None}, docs, names, [])
+        description = rounds.describe_request(body, round_evidence)
     path = root / 'source-membership' / (ident + '.json')
     if path.is_file() and path.resolve() == path:
         entry = json.loads(path.read_text())
@@ -132,29 +173,10 @@ def memory_slot(scope, body=None):
             raise OwnershipConflict('Supermemory update lacks its exact accepted source document')
         slot = dict(kind='ingest', batch_id=doc.cutoff)
     else:
-        path = root / 'capture-membership' / (ident + '.json')
-        if not path.is_file() or path.resolve() != path:
-            raise OwnershipConflict('No accepted source or verified capture for the native Supermemory update')
-        entry = json.loads(path.read_text())
-        if entry['native_id'] != ident or entry['namespace'] != scope['namespace'] or entry['revision'] != 1:
-            raise OwnershipConflict('Supermemory cannot bind this native update to a unique captured revision')
-        with progress_reader(scope) as progress:
-            verified = progress.get_verified(entry['question_id'])
-            turn, surface, _ = verified or (None, {}, None)
-            ordinal = progress.next_ordinal()
-            pending_turn = turns[ordinal] if ordinal is not None else None
-            if (turn is None or surface['session_id'] != entry['session_id']
-                    or surface['write_barrier']['readback'] != entry['readback']
-                    or pending_turn and pending_turn.session == turn.session
-                    and progress.active_effect('answer', pending_turn.id) is not None):
-                raise OwnershipConflict('Supermemory mutable capture lacks an unambiguous native append')
-        slot = dict(kind='background', question_id=entry['question_id'])
-    slot = dict(provider=PROVIDER, stock_source_effect=asdict(effect), **slot)
-    if body is not None:
-        validate_request(body, profile=PROFILE)
-        names = {json.loads(f.read_text())['public_id'] for f in (root / 'source-membership').glob('*.json')}
-        inspect_source_cutoff({'model_requests': [body], 'prefetch': None}, docs, names, [])
-        slot['worker_round'] = rounds.describe_request(body, rounds.witness(slot['stock_source_effect']))
+        slot = capture_slot(scope, effect, root, body, round_evidence)
+    slot = dict(provider=PROVIDER, stock_source_effect=effect_fields, **slot)
+    if description is not None:
+        slot['worker_round'] = description
     return slot
 
 

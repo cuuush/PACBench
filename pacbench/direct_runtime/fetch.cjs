@@ -12,12 +12,13 @@ if (process.env.PACBENCH_DIRECT === '1' && !globalThis.__pacbenchDirectFetch) {
     return {pid: process.pid, start_ticks: Number(fields[19]),
       boot_id: fs.readFileSync('/proc/sys/kernel/random/boot_id', 'utf8').trim(), uid: process.getuid()};
   };
-  const helper = (op, value, witness, round) => JSON.parse(execFileSync(process.env.PACBENCH_DIRECT_PYTHON,
+  const helper = (op, value, witness, round, chunks) => JSON.parse(execFileSync(process.env.PACBENCH_DIRECT_PYTHON,
     ['-m', 'pacbench.direct_accounting', op], {
       input: JSON.stringify({...value, ...(process.env.PACBENCH_DISPATCH_TRACKING ? {sender: sender()} : {})}), encoding: 'utf8', maxBuffer: 32 * 1024 * 1024,
       env: {...process.env, PYTHONPATH: process.env.PACBENCH_DIRECT_REPO,
         ...(stockSourceEffect ? {PACBENCH_SUPERMEMORY_EFFECT_WITNESS: JSON.stringify(witness),
-          PACBENCH_SUPERMEMORY_ROUND_WITNESS: JSON.stringify(round)} : {})},
+          PACBENCH_SUPERMEMORY_ROUND_WITNESS: JSON.stringify(round),
+          PACBENCH_SUPERMEMORY_CHUNK_WITNESS: JSON.stringify(chunks)} : {})},
       stdio: ['pipe', 'pipe', 'pipe'],
     }));
   globalThis.fetch = async function(input, init) {
@@ -42,12 +43,16 @@ if (process.env.PACBENCH_DIRECT === '1' && !globalThis.__pacbenchDirectFetch) {
       catch { /* The scoped helper records and rejects the missing witness. */ }
     }
     const track = (op, value) => {
-      let round = null;
+      let round = null, chunks = null;
       if (stockSourceEffect && (op === 'reserve' || op === 'dispatch')) {
         try { round = stockSourceEffect.roundWitness(); }
         catch { /* Missing or changed tool-round proof is refused by the scoped helper. */ }
+        if (process.env.PACBENCH_SUPERMEMORY_STOCK_CHUNKS === '1') {
+          try { chunks = stockSourceEffect.chunkWitness(); }
+          catch { /* Missing chunk reads cannot authorize a mutable capture. */ }
+        }
       }
-      return helper(op, value, witness, round);
+      return helper(op, value, witness, round, chunks);
     };
     const receipt = track('reserve', {project, request: JSON.parse(await req.text())});
     headers.delete('content-length');

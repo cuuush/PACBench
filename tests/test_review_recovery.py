@@ -90,3 +90,36 @@ def test_blind_packet_and_saved_verdict_comparison():
                'verdict':'missed','reason':'offline replay fixture'}]}) for c in cases}
     compared = evaluate(cases, CONTEXT_JUDGE_PROTOCOL, answers, key)
     assert [k for k,v in compared.items() if v['agrees']] == ['B','F']
+
+
+def test_legacy_checkpoint_reads_wal_and_rejects_changed_imessage(tmp_path):
+    import sqlite3
+    import uuid
+    from pacbench.imessage_fixture import identity
+    from pacbench.native_checkpoint_sources import GatewayLifecycleError, memcal_archive_readback
+    source = tmp_path/'sources/night'
+    source.mkdir(parents=True)
+    guid = str(uuid.uuid5(uuid.NAMESPACE_URL,'pacbench-source-message:one')).upper()
+    message = dict(channel='imessage',source_id='one',sender='Sam',thread='Direct',text='At seven',
+                   from_owner=False,written_at='2026-10-05T12:00:00-04:00')
+    (source/'messages.json').write_text(json.dumps([message]))
+    (source/'chat.fixture.json').write_text(json.dumps({'messages':{'one':{'guid':guid}},
+            'threads':{'Direct':{'participants':['Me','Sam']}}}))
+    handle = identity('Sam')['handle']
+    db = sqlite3.connect(tmp_path/'memcal.db')
+    try:
+        db.execute('pragma journal_mode=wal')
+        db.execute('create table archive(channel,external_id,text,ts,from_me,handle,thread)')
+        db.execute('insert into archive values (?,?,?,?,?,?,?)',('imessage',guid,'At seven',message['written_at'],0,handle,'id:'+handle))
+        db.commit()
+        assert memcal_archive_readback(tmp_path,['night'],tmp_path)['native_text_unchanged']
+        for field in ('text','handle','thread','from_me'):
+            db.execute('savepoint change')
+            db.execute(f'update archive set {field}=?',('different',))
+            db.commit()
+            with pytest.raises(GatewayLifecycleError,match='attribution'):
+                memcal_archive_readback(tmp_path,['night'],tmp_path)
+            db.execute(f'update archive set {field}=?',({'text':'At seven','handle':handle,'thread':'id:'+handle,'from_me':0}[field],))
+            db.commit()
+    finally:
+        db.close()

@@ -138,9 +138,12 @@ try:
  rows=[dict(r) for r in conn.execute('SELECT channel,external_id,ts,text FROM archive ORDER BY id')]
  result={'provider':'memcal','interface':'native db.open_db + persisted collector/Dream state',
   'sqlite_integrity':'ok','archive_rows':len(rows),'archive_sha256':hashlib.sha256(json.dumps(rows,sort_keys=True).encode()).hexdigest(),
+  'completed_nightly_runs':[r[0] for r in conn.execute("SELECT id FROM runs WHERE mode='nightly' AND finished_at IS NOT NULL AND finished_at!='' AND COALESCE(error,'')='' ORDER BY id")],
   'pending_spool':pending,'failed_runs':failed,'incomplete_collection_sources':incomplete,
   'wiki_pages':len(list(cfg.wiki_dir.rglob('*.md'))),'llm_inference_requested':False,'memory_mutation_requested':False}
 finally:conn.close()
+from pacbench.native_checkpoint_sources import memcal_archive_readback
+result['source_readback']=memcal_archive_readback(Path(sys.argv[3]),json.loads(sys.argv[4]),home)
 print(json.dumps(result))
 '''
 
@@ -152,20 +155,49 @@ def memcal_archive_readback(preparation,ids,store):
     differences as product observations, not exact-source or extraction proof.
     """
     import sqlite3,email
-    with sqlite3.connect('file:'+str(Path(store)/'memcal.db')+'?mode=ro&immutable=1',uri=True) as conn:
-        actual={(ch,key):(text,ts) for ch,key,text,ts in conn.execute('SELECT channel,external_id,text,ts FROM archive')}
+    from contextlib import closing
+    from .imessage_fixture import identity
+    uri = (Path(store)/'memcal.db').resolve().as_uri()+'?mode=ro'
+    with closing(sqlite3.connect(uri,uri=True)) as conn:
+        actual = {}
+        for ch,key,text,ts,owner,handle,thread in conn.execute(
+                'SELECT channel,external_id,text,ts,from_me,handle,thread FROM archive'):
+            if (ch,key) in actual:
+                raise GatewayLifecycleError('Duplicate native archive identity')
+            actual[ch,key] = text,ts,owner,handle,thread
     witnesses=[]
     for identifier in ids:
         source=Path(preparation)/'sources'/identifier;fixture=json.loads((source/'chat.fixture.json').read_text())
         mailbox=json.loads((source/'mailbox.json').read_text()) if (source/'mailbox.json').exists() else {'messages':[]}
         for m in json.loads((source/'messages.json').read_text()):
-            if m['channel']=='imessage':key=fixture['messages'][m['source_id']]['guid'];expected=m['text']
+            if m['channel']=='imessage':
+                key = str(uuid.uuid5(uuid.NAMESPACE_URL,'pacbench-source-message:'+m['source_id'])).upper()
+                if key != fixture['messages'][m['source_id']]['guid']:
+                    raise GatewayLifecycleError('Source GUID differs from the frozen record')
+                expected = shaped = m['text']
+                peers = [name for name in fixture['threads'][m['thread']]['participants'] if name != 'Me']
+                group = len(peers)>1
+                target = ('chat'+uuid.uuid5(uuid.NAMESPACE_URL,'pacbench-source-thread:'+m['thread']).hex
+                          if group else identity(peers[0])['handle'])
+                handle = (None if group else target) if m['from_owner'] else identity(m['sender'])['handle']
             else:
+                from memcal.sources import proton
                 row=next(r for r in mailbox['messages'] if r['source']['source_id']==m['source_id'])
-                key=row['message_id'].strip('<>');subject=str(email.message_from_string(row['rfc822'])['Subject'])
-                expected=subject+'\n\n'+m['text']
+                if row['source'] != m:
+                    raise GatewayLifecycleError('Mailbox differs from frozen email')
+                key = row['message_id'].strip('<>')
+                message = email.message_from_string(row['rfc822'])
+                raw = proton.extract_text(message)
+                if raw.replace('\r\n','\n').strip() != m['text'].strip():
+                    raise GatewayLifecycleError('Native reader received different source text')
+                subject = proton.header_str(message, 'Subject')
+                expected = subject+'\n\n'+m['text']
+                shaped = proton._shape_body(raw,subject)[0].strip()
             found=actual.get((m['channel'],key))
-            if found is None or found[1]!=m['written_at']:raise GatewayLifecycleError('Native archive identity/time differs from source')
+            if (found is None or datetime.fromisoformat(found[1]) != datetime.fromisoformat(m['written_at'])
+                    or found[2] != int(m['from_owner']) or found[0] != shaped
+                    or m['channel']=='imessage' and (found[3],found[4]) != (handle,'id:'+target)):
+                raise GatewayLifecycleError('Native archive identity, text or attribution differs from source')
             text=found[0]
             condition=('exact' if text==expected else 'line-ending-only' if text.replace('\r\n','\n')==expected else 'native-text-transformation')
             witnesses.append({'source_id':m['source_id'],'channel':m['channel'],'condition':condition,
@@ -208,13 +240,17 @@ class MemcalSourceCheckpoints:
                 self.receipts[batch['id']]={'path':str(path),'sha256':hashlib.sha256(path.read_bytes()).hexdigest()};self.ingested.append(batch['id'])
             clone=clone_observation(self.store,Path(destination));probe=Path(destination).with_name(Path(destination).name+'-reopen-probe')
             clone_observation(Path(destination),probe)
-            proc=subprocess.run([str(self.python),'-c',MEMCAL_REOPEN,self.env['MEMCAL_SRC'],str(probe)],env=self.env,capture_output=True,text=True,timeout=30)
+            proc=subprocess.run([str(self.python),'-c',MEMCAL_REOPEN,self.env['MEMCAL_SRC'],str(probe),str(self.preparation),json.dumps(ids)],env=self.env,capture_output=True,text=True,timeout=30)
             atomic(probe.parent/(probe.name+'-result.private.json'),{'returncode':proc.returncode,'stdout':proc.stdout,'stderr':proc.stderr})
             if proc.returncode:raise GatewayLifecycleError('Native repaired MemCal checkpoint could not reopen')
             native=json.loads(proc.stdout.strip().split('\n')[-1]);expected=sum(len(b['source_ids']) for b in self.schedule[:len(ids)])
             if native['archive_rows']!=expected or native['pending_spool'] or native['failed_runs'] or native['incomplete_collection_sources']:
                 raise GatewayLifecycleError('Native MemCal archive/processing coverage incomplete')
-            readback=memcal_archive_readback(self.preparation,ids,Path(destination))
+            run_ids = [json.loads(Path(self.receipts[i]['path']).read_text())['result']['processing']['run_id'] for i in ids]
+            if (any(type(r) != int for r in run_ids) or len(set(run_ids)) != len(ids)
+                    or native['completed_nightly_runs'] != run_ids):
+                raise GatewayLifecycleError('Native nightly Dream identities differ from completed releases')
+            readback = native.pop('source_readback')
             if tree_manifest(Path(destination))!=clone['snapshot_manifest']:raise GatewayLifecycleError('Native MemCal snapshot changed during inspection')
             path=Path(destination).parent/(Path(destination).name+'-native-closure.json')
             atomic(path,{'protocol':PROTOCOL,'provider':'memcal','checkpoint_sha256':clone['checkpoint'],'ingested_batch_ids':ids,

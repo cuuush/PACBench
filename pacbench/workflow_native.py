@@ -105,7 +105,7 @@ class WarmHermes:
         with closing(sqlite3.connect(path.as_uri() + '?mode=ro', uri=True)) as db:
             db.row_factory = sqlite3.Row
             return [dict(r) for r in db.execute(
-                'SELECT role,content,api_content,tool_name,tool_call_id,tool_calls FROM messages '
+                'SELECT id,role,content,api_content,tool_name,tool_call_id,tool_calls FROM messages '
                 'WHERE session_id=? ORDER BY id', (sid,))]
 
     def ask(self, prompt, *, at, session_id, on_return=None):
@@ -174,7 +174,10 @@ class WarmHermes:
         except (OSError, ValueError, UnicodeError):
             pass  # The wire records remain authoritative; unavailable hook provenance stays unknown.
         capture_prefetch_provenance(turn, env)
-        delivery = memory_delivery(owner.home,sid,prompt,turn.prefetch_context)
+        sent_users = [msg for msg in requests[0]['messages'] if msg['role'] == 'user']
+        delivery = memory_delivery(owner.home, sid, prompt, turn.prefetch_context,
+                                   native_row_id=users[-1]['id'],
+                                   delivered_text=sent_users[-1].get('content') if sent_users else None)
         delta = records[max(i for i,r in enumerate(records) if r['role']=='user')+1:]
         native_results = [r for r in delta if r['role']=='tool']
         if len(native_results) != len(turn.tool_results):

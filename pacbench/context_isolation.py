@@ -155,7 +155,7 @@ def actual_context(home: Path, session_id: str | None, workspace: Path,
     if '# Project Context' in prompt:
         return {**record, 'reason': 'Hermes loaded project context into recall'}
     return {**record, 'state': 'pass', 'reason': 'No project context in native saved system prompt'}
-def memory_delivery(home,session_id,prompt,prefetch):
+def memory_delivery(home,session_id,prompt,prefetch, *, native_row_id=None, delivered_text=None):
     """Read native API-bound input evidence without invoking a provider.
 
     Hermes keeps display content separate from its API-bound memory injection.
@@ -166,8 +166,12 @@ def memory_delivery(home,session_id,prompt,prefetch):
         return {**record,'reason':'Missing captured prefetch or native session'}
     try:
         with sqlite3.connect(f'file:{Path(home)/"state.db"}?mode=ro',uri=True) as db:
-            rows=db.execute("SELECT id,api_content FROM messages WHERE session_id=? AND role='user' AND content=?",
-                            (session_id,prompt)).fetchall()
+            query = "SELECT id,api_content FROM messages WHERE session_id=? AND role='user' AND content=?"
+            params = (session_id, prompt)
+            if native_row_id is not None:
+                query += ' AND id=?'
+                params += (native_row_id,)
+            rows = db.execute(query, params).fetchall()
     except sqlite3.Error:
         return {**record,'reason':'Native API-bound sidecar unavailable'}
     if len(rows)!=1:return {**record,'reason':'Missing or ambiguous exact native user row'}
@@ -175,6 +179,12 @@ def memory_delivery(home,session_id,prompt,prefetch):
     record.update(native_user_row_id=row_id,prefetch_chars=len(prefetch),
         prefetch_sha256=hashlib.sha256(prefetch.encode()).hexdigest(),
         api_content_sha256=hashlib.sha256(api_content.encode()).hexdigest() if isinstance(api_content,str) else None)
+    if delivered_text is not None:
+        if delivered_text != (api_content or prompt):
+            return {**record,'reason':'Wire input differs from native message'}
+        api_content = delivered_text
+    if not isinstance(api_content, str) or not api_content.startswith(prompt):
+        return {**record,'reason':'Missing or mismatched API-bound input'}
     # A different host injection can coexist with an empty provider hook.
     # Match only the API-bound suffix added to this exact authored question.
     suffix = (api_content or '')[len(prompt):] if isinstance(api_content,str) and api_content.startswith(prompt) else ''

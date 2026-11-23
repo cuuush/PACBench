@@ -1,8 +1,11 @@
 """Bind stock post-turn appends and their paid worker jobs to the Hermes transcript."""
+from contextlib import closing
+from collections import defaultdict
 from hashlib import sha256
 import json
 from pathlib import Path
 import time
+import sqlite3
 
 from . import honcho_daily_gate as gate, honcho_week_state as week
 from .canary_capability import binding, read
@@ -35,11 +38,23 @@ def intents(scope):
     root=Path(scope['root'])
     paths=sorted((root/'chat-writes').glob('*.json'))
     values=[read(binding(path)) for path in paths]
+    turns = week.plan_for(scope)[1]
     if (paths != [root/'chat-writes'/f'{i+1:02d}.json' for i in range(len(values))]
-            or len(values)>len(week.plan()[1]) or len({r['session'] for r in values})>1
-            or len({r['session_id'] for r in values})>1
-            or any(r['index']!=i+1 or r['question']!=week.plan()[1][i].id for i,r in enumerate(values))):
-        raise OwnershipConflict('Honcho native chat writes are out of order or cross sessions')
+            or len(values) > len(turns)
+            or any(r['index'] != i+1 or r['question'] != turns[i].id for i, r in enumerate(values))):
+        raise OwnershipConflict('Honcho native chat writes are out of order')
+    names, sessions, chats = {}, {}, {}
+    authored = scope.get('week_session_layout') == week.AUTHORED_CHATS
+    for i, row in enumerate(values):
+        name = week.capture_session_name(row['session'])
+        sid = row['session_id']
+        logical = turns[i].session if authored else 'single-chat'
+        if (name == scope['session'] or not sid or names.setdefault(name, sid) != sid
+                or sessions.setdefault(sid, name) != name
+                or chats.setdefault(logical, sid) != sid):
+            raise OwnershipConflict('Honcho native capture changed its owned chat mapping')
+    if len(chats) != len(sessions):
+        raise OwnershipConflict('Honcho native capture session was reused across authored chats')
     return values
 
 
@@ -62,7 +77,7 @@ def snapshot(scope):
                 count(*) FILTER (WHERE e.sync_state='synced' AND e.embedding IS NOT NULL),
                 count(*) FILTER (WHERE e.sync_state='failed')) FROM message_embeddings e
                 WHERE e.tenant_id=m.tenant_id AND e.message_id=m.public_id
-                  AND e.workspace_name=m.workspace_name)) ORDER BY m.seq_in_session,m.id),'[]'::json)
+                  AND e.workspace_name=m.workspace_name)) ORDER BY m.session_name,m.seq_in_session,m.id),'[]'::json)
             FROM messages m JOIN sessions s ON s.workspace_name=m.workspace_name AND s.name=m.session_name
              AND s.tenant_id=m.tenant_id WHERE m.workspace_name='{space}' AND m.session_name<>'{source}'
              AND m.deleted_at IS NULL AND s.deleted_at IS NULL AND s.is_active),
@@ -82,19 +97,30 @@ def snapshot(scope):
         """))
 
 
-def inventory(scope,state):
-    saved=intents(scope)
-    expected=[dict(piece,origin=i['question'],native_session=i['session']) for i in saved for piece in i['chunks']]
-    rows=state['messages']
-    for seq,(actual,planned) in enumerate(zip(rows,expected),1):
-        if ((actual['seq'],actual['session'],actual['peer'],actual['sha256']) !=
-                (seq,planned['native_session'],planned['peer'],planned['sha256'])
-                or actual['file'].get('file_id') or actual['meta'] not in ({},None)):
+
+def inventory(scope, state):
+    expected = defaultdict(list)
+    for intent in intents(scope):
+        expected[intent['session']].extend(dict(piece, origin=intent['question']) for piece in intent['chunks'])
+    rows = {}
+    counts, sessions, names = defaultdict(int), {}, {}
+    public_ids = set()
+    for actual in state['messages']:
+        name, sid = actual['session'], actual['session_id']
+        index = counts[name]
+        if (name not in expected or index >= len(expected[name])
+                or actual['seq'] != index + 1 or actual['local_id'] in rows
+                or actual['public_id'] in public_ids or names.setdefault(name, sid) != sid
+                or sessions.setdefault(sid, name) != name
+                or actual['file'].get('file_id') or actual['meta'] not in ({}, None)):
+            raise OwnershipConflict('Honcho backend has extra, out-of-order or foreign chat rows')
+        planned = expected[name][index]
+        if (actual['peer'], actual['sha256']) != (planned['peer'], planned['sha256']):
             raise OwnershipConflict('Honcho backend changed the exact captured chat prefix')
-    if (len(rows)>len(expected) or any(len({row[key] for row in rows})!=len(rows) for key in ('public_id','local_id'))
-            or len({row['session_id'] for row in rows})>1):
-        raise OwnershipConflict('Honcho backend has extra, duplicate or foreign chat rows')
-    return {m['local_id']:{**m,'origin':w['origin']} for m,w in zip(rows,expected)},len(expected)
+        counts[name] += 1
+        public_ids.add(actual['public_id'])
+        rows[actual['local_id']] = {**actual, 'origin': planned['origin']}
+    return rows, sum(map(len, expected.values()))
 
 
 def native_batch(scope,native,telemetry,batch,unit,claim):
@@ -110,6 +136,8 @@ def native_batch(scope,native,telemetry,batch,unit,claim):
                    or q['session_id']!=telemetry.session_id or q['message_id'] not in members for q in tasks)):
         raise OwnershipConflict('Honcho chat derivation differs from the owner, queue and captured inputs')
     trigger=[members[q['message_id']] for q in tasks]
+    if any(row['session_id'] != telemetry.session_id for row in trigger):
+        raise OwnershipConflict('Honcho queue references a chat outside its durable session')
     purpose=telemetry.call_purpose
     expected_type='representation' if purpose=='deriver.representation' else 'summary'
     if any(q['type']!=expected_type for q in tasks):
@@ -129,14 +157,14 @@ def native_batch(scope,native,telemetry,batch,unit,claim):
         observed={m.id:(m.public_id,m.session_name,m.peer_name,instant(m.created_at.isoformat()),
                         sha256(m.content.encode()).hexdigest()) for m in messages if m.workspace_name==host['workspace']}
         expected={key:(row['public_id'],row['session'],row['peer'],instant(row['at']),row['sha256'])
-                  for key,row in members.items() if key in observed}
+                  for key,row in members.items() if key in observed and row['session_id'] == telemetry.session_id}
         if len(messages)!=len(observed) or observed!=expected or not {r['local_id'] for r in trigger}<=set(observed):
             raise OwnershipConflict('Honcho chat representation contains an unknown model input')
     else:
         source = list(telemetry.source_message_ids or ())
         limit = 20 if purpose=='summary.short' else 60
         allowed = [r['public_id'] for r in members.values()
-                   if trigger[0]['seq']-limit < r['seq'] <= trigger[0]['seq']]
+                   if r['session_id'] == telemetry.session_id and trigger[0]['seq']-limit < r['seq'] <= trigger[0]['seq']]
         if (len(tasks)!=1 or trigger[0]['seq']%limit or not source or source!=allowed[-len(source):]
                 or telemetry.custom_instructions):
             raise OwnershipConflict('Honcho summary exceeds its exact bounded native chat window')
@@ -192,3 +220,27 @@ def barrier(scope,owner,ledger,*,captures):
                     inflight_requests=0,native_errors=[],readback=dict(captures=captures,messages=list(rows.values()),
                     deferred_queue_ids=[q['id'] for q in pending],gateway_observer_monotonic_ns=sample['observed_monotonic_ns']))
     raise TimeoutError('Stock Honcho chat capture or eligible native work did not reach the open-session fence')
+
+
+def closed_chat(scope, owner, ledger, session_id, *, captures):
+    """Read back this native chat's closure while other chats stay open."""
+    from .gateway_reuse import PROTOCOL
+
+    deadline = time.monotonic() + 20
+    while time.monotonic() < deadline:
+        durable = barrier(scope, owner, ledger, captures=captures)
+        sample = json.loads((owner.home/'reuse-observer.json').read_bytes())
+        witness = owner.witness
+        if ((sample['protocol'], sample['pid'], sample['start_time'], sample['observer_sha256'])
+                != (PROTOCOL, witness['pid'], witness['start_time'], owner.pins['reuse_observer_sha256'])
+                or sample['native_failures']):
+            raise OwnershipConflict('Honcho close observer identity or health differs')
+        matches = [row for row in sample['sessions'] if row['session_id'] == session_id]
+        with closing(sqlite3.connect((owner.home/'state.db').as_uri() + '?mode=ro', uri=True)) as db:
+            ended = db.execute('SELECT ended_at,end_reason FROM sessions WHERE id=?', (session_id,)).fetchone()
+        if (ended and ended[0] and ended[1] == 'cli_close' and matches
+                and all(row['shutdown_returned'] and row['clean'] for row in matches)):
+            return dict(session_id=session_id, ended_at=ended[0], end_reason=ended[1],
+                        gateway_identity=durable['gateway_identity'], captures=captures)
+        time.sleep(.1)
+    raise TimeoutError('Honcho native chat closure could not be verified')

@@ -164,3 +164,61 @@ def test_daily_ready_binds_the_successful_receipt_at_the_tail_of_the_stock_chain
     assert _source_completion(scope,{**rows,final['id']:final},release,43)==final
     assert _source_completion(scope,{**rows,final['id']:{**final,'retry_of':'different'}},release,43) is None
     assert _source_completion(scope,{**rows,final['id']:{**final,'upstream_request_id':'generation-1'}},release,43) is None
+
+
+def test_authored_layout_keeps_the_same_schedule_and_uses_only_the_chat_predecessor(tmp_path, monkeypatch):
+    from pacbench import honcho_week_state as harness
+
+    _, turns, old = harness.plan()
+    _, authored_turns, new = harness.plan(harness.AUTHORED_CHATS)
+    assert new['turns'] == old['turns']
+    assert turns == authored_turns and new['protocol'] != old['protocol']
+    assert cohort_name('trial', layout=harness.AUTHORED_CHATS) != cohort_name('trial')
+    assert harness.previous_turns({'week_session_layout': harness.AUTHORED_CHATS}, 3) == [(0, turns[0])]
+    root = tmp_path / 'honcho'
+    (root / 'week-turns').mkdir(parents=True)
+    scope = {'root': str(root), 'week_session_layout': harness.AUTHORED_CHATS, 'controller': {'pid': 7}}
+    monkeypatch.setattr(harness, 'process_identity', lambda: scope['controller'])
+    physical, starts, continuations = {}, 0, 0
+    for i, turn in enumerate(turns):
+        prior = harness.prior_surface(scope, i)
+        if turn.session in physical:
+            continuations += 1
+            sid = physical[turn.session]
+            assert prior['session_id'] == sid
+            with pytest.raises(OwnershipConflict, match='substituted'):
+                harness.validate_session(scope, i, 'different-native-session')
+        else:
+            starts += 1
+            assert prior is None
+            for foreign in physical.values():
+                with pytest.raises(OwnershipConflict, match='reused'):
+                    harness.validate_session(scope, i, foreign)
+                break
+            sid = physical[turn.session] = 'chat-' + str(i)
+        path = harness.path_for(root, i, 'intent')
+        path.write_text('{}')
+        harness.publish(scope, i, {'session_id': sid, 'turn': turn.id})
+        with pytest.raises(OwnershipConflict, match='active'):
+            harness.publish(scope, i, {'session_id': sid, 'turn': turn.id})
+    assert (starts, continuations, harness.position(scope)) == (31, 18, 49)
+
+
+def test_honcho_stock_capture_inventory_is_bound_per_durable_session(tmp_path, monkeypatch):
+    from pacbench import honcho_week_capture as capture
+
+    intents = [{'session': 'sid-a', 'question': 'turn-one', 'chunks': [{'peer': 'p', 'sha256': 'a'}]},
+               {'session': 'sid-b', 'question': 'turn-two', 'chunks': [{'peer': 'p', 'sha256': 'b'}]},
+               {'session': 'sid-a', 'question': 'turn-three', 'chunks': [{'peer': 'p', 'sha256': 'c'}]}]
+    monkeypatch.setattr(capture, 'intents', lambda _: intents)
+    rows = [
+        dict(local_id=1, public_id='a1', session='sid-a', session_id=9, seq=1, peer='p', sha256='a', file={}, meta={}),
+        dict(local_id=3, public_id='a2', session='sid-a', session_id=9, seq=2, peer='p', sha256='c', file={}, meta={}),
+        dict(local_id=2, public_id='b1', session='sid-b', session_id=10, seq=1, peer='p', sha256='b', file={}, meta={}),
+    ]
+    bound, expected = capture.inventory({}, {'messages': rows})
+    assert expected == 3
+    assert [bound[i]['origin'] for i in (1, 2, 3)] == ['turn-one', 'turn-two', 'turn-three']
+    rows[-1]['session_id'] = 9
+    with pytest.raises(OwnershipConflict, match='foreign'):
+        capture.inventory({}, {'messages': rows})

@@ -168,7 +168,7 @@ def cleanup_verified(root):
         time.sleep(.25)
 
 
-def run(campaign, checkpoint, plugin_home, *, full_week=False, cohort_suffix=None):
+def run(campaign, checkpoint, plugin_home, *, full_week=False, cohort_suffix=None, week_session_layout=None):
     from provider_adapters.honcho_local import start
 
     check_stops(campaign)
@@ -181,9 +181,9 @@ def run(campaign, checkpoint, plugin_home, *, full_week=False, cohort_suffix=Non
     if full_week:
         from .honcho_week import answers as run_answers, cohort_name
 
-        run_name=cohort_name(cohort_suffix)
+        run_name=cohort_name(cohort_suffix, layout=week_session_layout)
     else:
-        if cohort_suffix is not None:
+        if cohort_suffix is not None or week_session_layout is not None:
             raise ValueError('Only a full Honcho Week supports a fresh cohort suffix')
         run_name,run_answers=RUN,ask
     root = campaign/run_name/'honcho'
@@ -206,7 +206,8 @@ def run(campaign, checkpoint, plugin_home, *, full_week=False, cohort_suffix=Non
         manifest = gate.materialize_canonical_files(root/'frozen-documents')
         bound = gate.create(root,execution_lock=lock,session_id='pizza-week-source',canonical_manifest=manifest['path'],
                             manifest_sha256=manifest['sha256'],prepaid=prepaid,auto_recharge_evidence=confirmation,
-                            layout=gate.CANONICAL_LAYOUT,first_question=not full_week,week=full_week)
+                            layout=gate.CANONICAL_LAYOUT,first_question=not full_week,week=full_week,
+                            week_session_layout=week_session_layout)
         settings = {capability.ENV:json.dumps(bound),JOURNAL:str(root/'receipts.jsonl'),COHORT_STOP:str(campaign/'ACCOUNT_STOP'),
                     'PACBENCH_STOP_FILE':str(root/'STOP'),'PACBENCH_DIRECT_STOP_ON_429':str(root/'STOP'),
                     'PACBENCH_ROLE_ROUTES':'luna-all-roles-v1','PACBENCH_LUNA_COMPATIBILITY':'temperature-omitted-default-v1',

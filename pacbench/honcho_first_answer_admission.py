@@ -55,7 +55,7 @@ def active(scope, *, gateway_process=True):
     if scope.get('week_schedule'):
         from .honcho_week_state import active as week_active, ready_bindings
 
-        turn,owner,names,_ = week_active(scope)
+        turn,owner,names,week_index = week_active(scope)
         ready = ready_bindings(root,len(names))
         expected_session = owner['session_id']
     else:
@@ -96,6 +96,10 @@ def active(scope, *, gateway_process=True):
     if (native['nonce'] != nonce or native['question_sha256'] != prompt_hash or expected_session and sid!=expected_session
             or not observed['native_admission'][-1].get('in_window')):
         raise OwnershipConflict('No active native Honcho submission witness')
+    if scope.get('week_schedule'):
+        from .honcho_week_state import validate_session
+
+        validate_session(scope, week_index, sid)
     return dict(session_id=sid,turn_nonce=nonce,native_request_id=native['request_id'],ready=ready)
 
 

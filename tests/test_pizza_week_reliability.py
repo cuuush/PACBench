@@ -118,3 +118,17 @@ def test_retained_intake_rejects_later_release_submitted_before_question():
     assert future['phase'] == 'submit'
     with pytest.raises(ValueError, match='original cutoff'):
         document_readbacks([*ready, future, dispatch], docs, [TURN], through=TURN.at)
+
+
+def test_parallel_tool_provenance_uses_call_id_instead_of_return_order():
+    from pacbench.workflow_native import tool_provenance
+
+    calls = [{'tool_call_id': 'a', 'name': 'lookup', 'input': {}},
+             {'tool_call_id': 'b', 'name': 'lookup', 'input': {}}]
+    results = [{'tool_call_id': 'b', 'tool': 'lookup', 'text': 'B', 'success': False},
+               {'tool_call_id': 'a', 'tool': 'lookup', 'text': 'A', 'success': True}]
+    assert [(row['tool_call_id'], row['success']) for row in tool_provenance(calls, results)] == [
+        ('a', True), ('b', False)]
+    results[1]['tool_call_id'] = 'b'
+    with pytest.raises(ValueError, match='one result'):
+        tool_provenance(calls, results)

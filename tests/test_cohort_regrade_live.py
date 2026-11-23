@@ -25,6 +25,7 @@ def offline(tmp_path, monkeypatch):
     monkeypatch.setenv('OPENROUTER_API_KEY', key)
     monkeypatch.setenv('PACBENCH_OPENROUTER_PROFILE', live.PROFILE)
     monkeypatch.setattr('pacbench.openrouter_route.PROFILE_NAME', live.PROFILE)
+    monkeypatch.setattr('pacbench.openrouter_direct.PROFILE_NAME', live.PROFILE)
     monkeypatch.setattr(openrouter_run, 'fetch_catalog', lambda **_: ({'max_completion_tokens': 32768}, None))
     monkeypatch.setattr(direct_http, '_installed', False)
 

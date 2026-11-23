@@ -108,10 +108,12 @@ def install_gateway():
         options = {}
         number = 1
         if scope.get('week_schedule'):
-            from .honcho_week_state import pending, plan
+            from .honcho_week_state import pending, plan_for, previous_turns
 
-            number = pending(scope)[0]+1
-            prior = plan()[1][number-2].prompt if number>1 else ''
+            index = pending(scope)[0]
+            preceding = previous_turns(scope, index)
+            number = len(preceding) + 1
+            prior = preceding[-1][1].prompt if preceding else ''
             if ((thread_name,log_label)==('honcho-resume-dialectic','resumed-session dialectic')
                     and number>1 and fired_at==number-1
                     and query==(current_question.prompt if instance._is_trivial_prompt(prior) else prior)):
@@ -134,7 +136,7 @@ def install_gateway():
             if 'stop' not in previous['response_validation']['finish_reasons']:
                 raise OwnershipConflict('Honcho post-answer prefetch has no observed final answer')
             origin.update(kind='post-answer-prefetch',after_answer=previous['id'])
-            if scope.get('week_schedule') and number < len(plan()[1]):
+            if scope.get('week_schedule') and index + 1 < len(plan_for(scope)[1]):
                 origin['within_week'] = True
         token = _origin.set(origin)
         try:

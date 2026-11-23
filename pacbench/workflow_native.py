@@ -48,9 +48,16 @@ def tool_provenance(calls, results):
     """Record explicit native operations separately from automatic memory delivery."""
     from .followups import tool_category
     from .source_policy import viking_read_result_category
+    by_id = {row['tool_call_id']: row for row in results}
+    call_ids = {row['tool_call_id'] for row in calls}
+    if len(by_id) != len(results) or len(call_ids) != len(calls) or by_id.keys() != call_ids:
+        raise ValueError('tool provenance requires one result per unique tool call')
     observed = []
-    for call,result in zip(calls,results,strict=True):
+    for call in calls:
         name = call['name']
+        result = by_id[call['tool_call_id']]
+        if result['tool'] != name:
+            raise ValueError('tool provenance result does not match the selected tool')
         category = tool_category(name,call['input'])
         if name=='viking_read' and result['success']:
             category = viking_read_result_category(result['text'])

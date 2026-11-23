@@ -493,6 +493,7 @@ def _honcho_releases(root, scope, documents, rows):
 def honcho_checkpoint(root, scope, scope_sha, expected_admission, projection):
     """Read the native Honcho Week seal without opening its service or provider state."""
     from .observational_receipts import replay_attempts
+    from .honcho_week_state import AUTHORED_CHATS, plan_for
     from .openrouter_route import validate_request
     from .workflow_tracks import HERMES_TOOLS
 
@@ -507,16 +508,11 @@ def honcho_checkpoint(root, scope, scope_sha, expected_admission, projection):
         raise ValueError('Honcho scope uses a different frozen workflow')
     manifest = bound_json(root/'frozen-documents/manifest.json', scope['manifest'])
     planned = bound_json(root/'ordered-questions.json', scope['week_schedule'])
-    schedule = [dict(index=i, id=turn.id, at=turn.at, authored_session=turn.session, measure=turn.measure,
-                     after=turn.after, prompt_sha256=hashlib.sha256(turn.prompt.encode()).hexdigest(),
-                     ready_files=[doc.filename for doc in documents if instant(doc.cutoff) <= instant(turn.at)])
-                for i, turn in enumerate(turns, 1)]
-    expected = dict(protocol=HONCHO_WEEK, session='one continuing Hermes session', corpus=basis,
-                    document_index_sha256=canonical['normalized_index_sha256'],
-                    gradable_turns=sum(bool(turn.claims) for turn in turns),
-                    criteria=sum(len(turn.claims) for turn in turns), turns=schedule)
+    authored = scope.get('week_session_layout') == AUTHORED_CHATS
+    _, _, expected = plan_for(scope)
+    schedule, protocol = expected['turns'], expected['protocol']
     result, result_sha = read_json(root/'result.json')
-    if (manifest != canonical or planned != expected or result['protocol'] != HONCHO_WEEK
+    if (manifest != canonical or planned != expected or result['protocol'] != protocol
             or result['state'] != 'stock-week-answers-complete' or result['cleanup'] != 'owned-services-stopped'
             or result['ordered_schedule_sha256'] != scope['week_schedule']['sha256']
             or result['canonical_manifest_sha256'] != scope['manifest']['sha256']
@@ -535,11 +531,12 @@ def honcho_checkpoint(root, scope, scope_sha, expected_admission, projection):
         raise ValueError('Honcho gateway startup does not match the owned run and source')
     pins = startup['pins']
     condition = Condition('honcho', 'nightly-document', 'continuing-account', 'Hermes ' + pins['hermes'],
-                          'openai/gpt-6-luna', 'amazon-bedrock/global', HONCHO_WEEK, '3.6.1 / SDK 2.9.0',
+                          'openai/gpt-6-luna', 'amazon-bedrock/global', protocol, '3.6.1 / SDK 2.9.0',
                           pins['hermes_isolation_sha256'], 'Physical Honcho server, bounded authored Hermes checkpoints',
                           HERMES_TOOLS['honcho'])
     answers, ids, turn_bindings = {}, set(), []
-    prior = None
+    last = {turn.session: turn.id for turn in turns}
+    session_ids, chat_history, closures = {}, {}, []
     folder = root/'week-turns'
     sealed = sorted(folder.glob('*-verified.json'))
     if sealed != [folder/f'{i:02}-verified.json' for i in range(1, len(turns)+1)]:
@@ -550,6 +547,21 @@ def honcho_checkpoint(root, scope, scope_sha, expected_admission, projection):
         intent = bound_json(folder/f'{index:02}-intent.json', verified['intent'])
         surface = bound_json(folder/f'{index:02}-surface.private.json', verified['surface'])
         prefix = listed['ready_files']
+        chat = turn.session if authored else 'single'
+        prior, chat_binding = chat_history.get(chat, (None, None))
+        if authored:
+            if (verified.get('authored_session') != chat or verified.get('session_id') != surface['session_id']
+                    or intent.get('authored_session') != chat or intent.get('chat_prior') != chat_binding
+                    or session_ids.setdefault(surface['session_id'], chat) != chat):
+                raise ValueError('Honcho saved native chat differs from the authored chat')
+            if last[chat] == turn.id:
+                closure, _ = read_json(folder/f'{index:02}-chat-close.json')
+                if (closure.get('session_id') != surface['session_id']
+                        or closure.get('gateway_identity') != surface['gateway_identity']
+                        or closure.get('end_reason') != 'cli_close' or not closure.get('ended_at')
+                        or closure.get('captures') != index):
+                    raise ValueError('Honcho saved chat close differs from the frozen boundary')
+                closures.append(closure)
         if (verified['index'] != index or verified['question'] != turn.id
                 or intent['index'] != index-1 or intent['question'] != turn.id or intent['ready'] != ready[:len(prefix)]
                 or intent['prior'] != (turn_bindings[-1] if turn_bindings else None)
@@ -571,19 +583,24 @@ def honcho_checkpoint(root, scope, scope_sha, expected_admission, projection):
         ids.update(turn_ids)
         inspect_source_cutoff({'model_requests': [r['request'] for r in requests], 'prefetch': surface['prefetch']},
                               documents, prefix, [t.prompt for t in turns[:index]])
-        surface = {**surface, 'conversation_times': [t.at for t in turns[:index]]}
+        surface = {**surface, 'conversation_times': [*(prior['conversation_times'] if prior else ()), turn.at]}
         turn_bindings.append({'path': str(path), 'sha256': verified_sha})
         answers[turn.id] = (surface, {'retained_turn_sha256': verified_sha})
-        prior = surface
+        chat_history[chat] = (surface, turn_bindings[-1])
     close, close_sha = read_json(root/'native-chat-close.json')
+    if authored and (len(chat_history) != len(last) or len(session_ids) != len(last)
+                     or len(closures) != len(last) or result.get('native_sessions') != len(last)
+                     or not all(row['clean'] for row in close['sessions'])
+                     or {row['session_id'] for row in close['sessions']} != set(session_ids)):
+        raise ValueError('Honcho closure did not account for all authored chats')
     if close['native_failures'] or result['driver_requests'] != len(ids):
         raise ValueError('Honcho shutdown or driver request count differs from its original completion')
     condition = json.loads(json.dumps(asdict(condition)))
     _, _, binding = week_plan(spec_sha, basis, condition, False, projection=NORMALIZED_DAILY)
-    binding.update(protocol=HONCHO_WEEK, ingestion_protocol=HONCHO_ADMISSION, scope_sha256=scope_sha,
+    binding.update(protocol=protocol, ingestion_protocol=HONCHO_ADMISSION, scope_sha256=scope_sha,
                    result_sha256=result_sha, ordered_native_schedule_sha256=scope['week_schedule']['sha256'],
                    wire_receipts_sha256=receipts_sha, startup_sha256=startup_sha, close_sha256=close_sha,
-                   single_native_session=True, run_key=fingerprint([scope_sha, result_sha]))
+                   single_native_session=not authored, run_key=fingerprint([scope_sha, result_sha]))
     provenance = dict(kind='native-honcho-daily-file-readback', ready_documents=len(ready),
                       ready_releases=len(ready), readiness_sha256=fingerprint(ready))
     return RetainedArm(documents, turns, condition, binding, provenance, answers, {}, True, [])

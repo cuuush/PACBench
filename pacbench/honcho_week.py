@@ -1,4 +1,4 @@
-"""Run the frozen seven-document, single-session Honcho Week on the verified prepaid route."""
+"""Run the frozen seven-document Honcho Week on the verified prepaid route."""
 import argparse
 import json
 import math
@@ -20,16 +20,21 @@ from .workflow_runner import Condition, captured_turn, inspect_source_cutoff
 RUN='honcho-seven-daily-stock-week-v1'
 
 
-def cohort_name(suffix):
+def cohort_name(suffix, *, layout=None):
+    if layout not in (None, week.AUTHORED_CHATS):
+        raise ValueError('Unknown Honcho Week session layout')
+    name = 'honcho-seven-daily-authored-chats-week-v2' if layout == week.AUTHORED_CHATS else RUN
     if suffix is None:
-        return RUN
+        return name
     if not re.fullmatch(r'[a-z0-9][a-z0-9-]{0,31}', suffix):
         raise ValueError('Honcho cohort suffix must be a short lowercase directory label')
-    return f'{RUN}-{suffix}'
+    return f'{name}-{suffix}'
 
 
 def answers(root,scope,env,marker,ledger,result):
-    docs,turns,schedule=week.plan()
+    docs,turns,schedule=week.plan_for(scope)
+    authored = scope.get('week_session_layout') == week.AUTHORED_CHATS
+    last = {turn.session: turn.id for turn in turns}
     home=root/'hermes-home'
     child=harness.turn_env(scope['plan'][0]['at'],home,','.join(TOOLS),{
         **env,'PACBENCH_WORKFLOW_CAPTURE':scope['protocol'],'PACBENCH_PROVIDER_ONLY':'1',
@@ -38,6 +43,7 @@ def answers(root,scope,env,marker,ledger,result):
     })
     clock=CheckpointClock(home,turns[0].at,scope['spec_sha256'],bounded=True)
     prior=None
+    physical_sessions = set()
     latencies=[]
     driver_ids=set()
     ready=result['documents_verified']
@@ -64,6 +70,8 @@ def answers(root,scope,env,marker,ledger,result):
                     result['source_records']+=len(docs[ready].source_ids)
                     ready+=1
                     result['documents_verified']=ready
+                if authored:
+                    prior = week.prior_surface(scope, index)
                 sid=prior['session_id'] if prior else None
                 week.arm(scope,owner,turn,sid)
                 surface=frontend.ask(turn.prompt,at=turn.at,session_id=sid,
@@ -87,6 +95,7 @@ def answers(root,scope,env,marker,ledger,result):
                     'prefetch':surface['prefetch']},docs,prefix,[t.prompt for t in turns[:index+1]])
                 week.publish(scope,index,surface)
                 driver_ids.update(ids)
+                physical_sessions.add(surface['session_id'])
                 prior=surface
                 latency=surface['timing']['cli_result_received_s']
                 latencies.append(latency)
@@ -95,7 +104,17 @@ def answers(root,scope,env,marker,ledger,result):
                     answer_latency_p95_seconds=sorted(latencies)[math.ceil(.95*len(latencies))-1],
                     native_captures=len(native['messages']),ineligible_capture_queue_items=len(native['deferred_queue_ids']))
                 atomic(root/'progress.json',result)
-            frontend.end_chat(prior['session_id'])
+                if authored and turn.id == last[turn.session]:
+                    end_id = surface['session_id']
+                    frontend.end_chat(end_id)
+                    verified = capture.closed_chat(scope, owner, ledger, end_id, captures=index + 1)
+                    atomic(week.path_for(root, index, 'chat-close'), verified)
+            if not authored:
+                frontend.end_chat(prior['session_id'])
+            if authored:
+                result['native_sessions'] = len(physical_sessions)
+                if result['native_sessions'] != len(last):
+                    raise ValueError('Honcho did not complete all authored chat sessions')
             atomic(root/'native-chat-close.json',owner.fence(prior['session_id']))
     if (ready,result['source_records'],week.position(scope))!=(7,142,49):
         raise ValueError('Honcho did not complete the frozen seven-file Week')
@@ -106,10 +125,12 @@ def main():
     for name in ('campaign','checkpoint','plugin_home'):
         parser.add_argument(name,type=Path)
     parser.add_argument('--cohort-suffix',help='Use a distinct fresh run directory under the shared campaign lock')
+    parser.add_argument('--session-layout', choices=(week.AUTHORED_CHATS,),
+                        help='use the authored chat boundaries in one continuing account')
     options=parser.parse_args()
     os.umask(0o077)
     result=run(*(getattr(options,name).resolve(strict=True) for name in ('campaign','checkpoint','plugin_home')),
-               full_week=True,cohort_suffix=options.cohort_suffix)
+               full_week=True,cohort_suffix=options.cohort_suffix,week_session_layout=options.session_layout)
     print(json.dumps(result,sort_keys=True))
 
 

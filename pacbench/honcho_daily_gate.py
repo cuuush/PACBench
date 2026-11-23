@@ -151,7 +151,7 @@ def _lock(scope):
 
 def create(root, *, execution_lock, session_id, canonical_manifest, manifest_sha256,
            prepaid, auto_recharge_evidence,
-           layout=('documents', 'cutoff', 'file', 'document_sha256', 'source_ids'), first_question=False, week=False):
+           layout=('documents', 'cutoff', 'file', 'document_sha256', 'source_ids'), first_question=False, week=False, week_session_layout=None):
     """Bind the canonical producer's files and the already-held execution lock."""
     root = Path(root).resolve(strict=True)
     path = Path(canonical_manifest).absolute()
@@ -178,12 +178,16 @@ def create(root, *, execution_lock, session_id, canonical_manifest, manifest_sha
                  lock=dict(fd=fd, path=str(Path(f'/proc/self/fd/{fd}').resolve()), inode=[st.st_dev, st.st_ino]))
     if first_question:
         scope['first_question'] = 'rsvp-before'
+    if week_session_layout is not None and not week:
+        raise GateError('A Honcho chat layout requires the full Week')
     if week:
-        from .honcho_week_state import plan as week_plan
+        from .honcho_week_state import plan_for as week_plan
 
+        if week_session_layout is not None:
+            scope['week_session_layout'] = week_session_layout
         (root/'week-turns').mkdir(mode=0o700)
         (root/'chat-writes').mkdir(mode=0o700)
-        scope['week_schedule'] = _write(root/'ordered-questions.json',week_plan()[2])
+        scope['week_schedule'] = _write(root/'ordered-questions.json',week_plan(scope)[2])
     _lock(scope)
     return _write(root / 'workflow-scope.json', scope)
 
@@ -199,12 +203,14 @@ def validate(scope, bound):
             or scope['spec_sha256'] != sha(SPEC) or scope['plan'] != _plan(scope['manifest'], scope['layout'])
             or not re.fullmatch('[A-Za-z0-9_-]+', scope['session'])):
         raise GateError('Unbound Honcho daily document condition')
+    if 'week_session_layout' in scope and 'week_schedule' not in scope:
+        raise GateError('Honcho chat layout lacks its Week schedule')
     if 'week_schedule' in scope:
-        from .honcho_week_state import plan as week_plan
+        from .honcho_week_state import plan_for as week_plan
 
         schedule = scope['week_schedule']
         if (first_question or tuple(scope['layout'])!=CANONICAL_LAYOUT
-                or schedule!=binding(root/'ordered-questions.json') or read(schedule)!=week_plan()[2]):
+                or schedule!=binding(root/'ordered-questions.json') or read(schedule)!=week_plan(scope)[2]):
             raise GateError('Unbound Honcho Week question schedule')
     _lock(scope)
 

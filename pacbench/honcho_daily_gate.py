@@ -46,38 +46,51 @@ def schedule():
     return ordered, turns
 
 
-def _plan(manifest, layout):
+def canonical_inputs(*, first_release=False):
+    from .workflow_daily_documents import compile_daily_week, member_digest
+
+    _, documents, _, _, manifest = compile_daily_week()
+    if not first_release:
+        return documents, manifest
+    index = manifest['document_index'][:1]
+    return documents[:1], dict(source_layout=manifest['source_layout'], documents=1,
+                               records=len(documents[0].source_ids), document_index=index,
+                               normalized_index_sha256=member_digest(index),
+                               parent_index_sha256=manifest['normalized_index_sha256'],
+                               layout_spec_sha256=manifest['layout_spec_sha256'])
+
+
+def _plan(manifest, layout, *, first_release=False):
     """Read the producer's exact JSON. Layout selects existing fields only."""
     collection, cutoff_key, file_key, hash_key, ids_key = layout
     source = read(manifest)
     if tuple(layout) == CANONICAL_LAYOUT:
-        from .workflow_daily_documents import compile_daily_week
-
-        if source != compile_daily_week()[4]:
+        if source != canonical_inputs(first_release=first_release)[1]:
             raise GateError('Honcho manifest differs from the frozen daily renderer')
+    elif first_release:
+        raise GateError('Honcho canary needs the exact canonical day-one manifest')
     documents = source[collection]
     folder = Path(manifest['path']).parent
     plan = []
-    for row, (cutoff, ids) in zip(documents, schedule()[0], strict=True):
+    releases = schedule()[0][:1] if first_release else schedule()[0]
+    for row, (cutoff, ids) in zip(documents, releases, strict=True):
         path = folder / row[file_key]
         if (instant(row[cutoff_key]) != instant(cutoff) or row[ids_key] != ids
                 or path != path.resolve() or not path.is_relative_to(folder) or path.suffix != '.txt'
                 or not re.fullmatch('[0-9a-f]{64}', row[hash_key])):
             raise GateError('Canonical manifest differs from the frozen seven daily releases')
         plan.append(dict(at=cutoff, path=str(path), sha256=row[hash_key], source_ids=ids))
-    if len({r['path'] for r in plan}) != 7 or len({r['sha256'] for r in plan}) != 7:
+    if len({r['path'] for r in plan}) != len(releases) or len({r['sha256'] for r in plan}) != len(releases):
         raise GateError('Canonical daily files must be distinct')
     return plan
 
 
-def materialize_canonical_files(folder):
-    """Render the shared seven-file input and return its manifest binding."""
-    from .workflow_daily_documents import compile_daily_week
-
+def materialize_canonical_files(folder, *, first_release=False):
+    """Render the exact scoped inputs and return their manifest binding."""
     folder = Path(folder).absolute()
     if folder != folder.resolve():
         raise GateError('Expected an owned canonical input directory')
-    _, documents, _, _, manifest = compile_daily_week()
+    documents, manifest = canonical_inputs(first_release=first_release)
     folder.mkdir(mode=0o700)
     for doc in documents:
         with (folder / doc.filename).open('xb') as stream:
@@ -151,7 +164,8 @@ def _lock(scope):
 
 def create(root, *, execution_lock, session_id, canonical_manifest, manifest_sha256,
            prepaid, auto_recharge_evidence,
-           layout=('documents', 'cutoff', 'file', 'document_sha256', 'source_ids'), first_question=False, week=False, week_session_layout=None):
+           layout=('documents', 'cutoff', 'file', 'document_sha256', 'source_ids'), first_question=False, week=False,
+           week_session_layout=None, week_first_four=False):
     """Bind the canonical producer's files and the already-held execution lock."""
     root = Path(root).resolve(strict=True)
     path = Path(canonical_manifest).absolute()
@@ -162,10 +176,11 @@ def create(root, *, execution_lock, session_id, canonical_manifest, manifest_sha
     manifest = binding(path)
     if manifest['sha256'] != manifest_sha256:
         raise GateError('Canonical manifest SHA-256 differs from the pinned producer output')
-    plan = _plan(manifest, layout)
-    if (type(first_question) is not bool or type(week) is not bool or first_question and week
+    if (type(first_question) is not bool or type(week) is not bool or type(week_first_four) is not bool
+            or first_question and week or week_first_four and not week
             or (first_question or week) and tuple(layout) != CANONICAL_LAYOUT):
         raise GateError('Honcho chat needs one scope and the exact shared daily layout')
+    plan = _plan(manifest, layout, first_release=week_first_four)
     for entry in plan:
         _payload(entry, layout)
     fd = execution_lock.fileno()
@@ -181,13 +196,18 @@ def create(root, *, execution_lock, session_id, canonical_manifest, manifest_sha
     if week_session_layout is not None and not week:
         raise GateError('A Honcho chat layout requires the full Week')
     if week:
-        from .honcho_week_state import plan_for as week_plan
+        from .honcho_week_state import CANARY_PROTOCOL, plan_for as week_plan
 
         if week_session_layout is not None:
             scope['week_session_layout'] = week_session_layout
+        if week_first_four:
+            if root.parent.name != CANARY_PROTOCOL:
+                raise GateError('Honcho canary needs its single dedicated run directory')
+            scope['week_first_four'] = True
+        schedule = week_plan(scope)[2]
         (root/'week-turns').mkdir(mode=0o700)
         (root/'chat-writes').mkdir(mode=0o700)
-        scope['week_schedule'] = _write(root/'ordered-questions.json',week_plan(scope)[2])
+        scope['week_schedule'] = _write(root/'ordered-questions.json',schedule)
     _lock(scope)
     return _write(root / 'workflow-scope.json', scope)
 
@@ -200,11 +220,18 @@ def validate(scope, bound):
             or scope['run_id'] != root.parent.name or bound != binding(root / 'workflow-scope.json')
             or scope['projects'] != projects(root,chat_enabled(scope))
             or first_question and (scope['first_question'] != 'rsvp-before' or tuple(scope['layout']) != CANONICAL_LAYOUT)
-            or scope['spec_sha256'] != sha(SPEC) or scope['plan'] != _plan(scope['manifest'], scope['layout'])
+            or scope['spec_sha256'] != sha(SPEC)
+            or scope['plan'] != _plan(scope['manifest'], scope['layout'], first_release=scope.get('week_first_four', False))
             or not re.fullmatch('[A-Za-z0-9_-]+', scope['session'])):
         raise GateError('Unbound Honcho daily document condition')
     if 'week_session_layout' in scope and 'week_schedule' not in scope:
         raise GateError('Honcho chat layout lacks its Week schedule')
+    if 'week_first_four' in scope:
+        from .honcho_week_state import CANARY_PROTOCOL
+
+        if (scope['week_first_four'] is not True or 'week_schedule' not in scope
+                or root.parent.name != CANARY_PROTOCOL):
+            raise GateError('Unbound Honcho first-four canary scope')
     if 'week_schedule' in scope:
         from .honcho_week_state import plan_for as week_plan
 
@@ -486,7 +513,8 @@ def _source_completion(scope, rows, release, queue_id):
     final=attempts[-1]
     if len(attempts)==1:
         return final if not final.get('retry_of') else None
-    if not scope.get('week_schedule') or len({row['upstream_request_id'] for row in attempts})!=len(attempts):
+    if (scope.get('week_first_four') or not scope.get('week_schedule')
+            or len({row['upstream_request_id'] for row in attempts})!=len(attempts)):
         return None
     from .honcho_week_retry import reserve_retry
 
@@ -526,7 +554,13 @@ def finish(root, at):
 def followup_ready(root, turn_id):
     """Check the exact source prefix for one frozen question without granting a model permit."""
     scope = controller(root)
-    turn = next((t for t in schedule()[1] if t.id == turn_id), None)
+    if scope.get('week_schedule'):
+        from .honcho_week_state import plan_for
+
+        turns = plan_for(scope)[1]
+    else:
+        turns = schedule()[1]
+    turn = next((t for t in turns if t.id == turn_id), None)
     completed, pending = _progress(root, scope)
     if (turn is None or pending is not None
             or scope.get('first_question') not in (None,turn_id)
@@ -594,6 +628,8 @@ def _live(scope, slot=None):
             or not telemetry.trace_id
             or telemetry.step_seq != 0 or plan.is_fallback):
         raise GateError('Missing first-send ownership or unsupported Honcho call purpose')
+    if scope.get('week_first_four') and plan.attempt != 1:
+        raise GateError('The Honcho authored-chat canary does not replay native inference')
     if scope.get('week_schedule') and unit.split(':')[2:3] != [scope['session']]:
         from .honcho_week_capture import native_batch
 

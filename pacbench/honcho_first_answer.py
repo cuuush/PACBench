@@ -168,7 +168,8 @@ def cleanup_verified(root):
         time.sleep(.25)
 
 
-def run(campaign, checkpoint, plugin_home, *, full_week=False, cohort_suffix=None, week_session_layout=None):
+def run(campaign, checkpoint, plugin_home, *, full_week=False, cohort_suffix=None, week_session_layout=None,
+        week_first_four=False):
     from provider_adapters.honcho_local import start
 
     check_stops(campaign)
@@ -181,10 +182,10 @@ def run(campaign, checkpoint, plugin_home, *, full_week=False, cohort_suffix=Non
     if full_week:
         from .honcho_week import answers as run_answers, cohort_name
 
-        run_name=cohort_name(cohort_suffix, layout=week_session_layout)
+        run_name=cohort_name(cohort_suffix, layout=week_session_layout, first_four=week_first_four)
     else:
-        if cohort_suffix is not None or week_session_layout is not None:
-            raise ValueError('Only a full Honcho Week supports a fresh cohort suffix')
+        if cohort_suffix is not None or week_session_layout is not None or week_first_four:
+            raise ValueError('Only the Honcho Week launcher supports a cohort or authored-chat canary')
         run_name,run_answers=RUN,ask
     root = campaign/run_name/'honcho'
     key = os.environ['OPENROUTER_API_KEY']
@@ -203,11 +204,11 @@ def run(campaign, checkpoint, plugin_home, *, full_week=False, cohort_suffix=Non
         balance = root/'prepaid-verification'/(prepaid['receipt_sha256']+'.private.json')
         with os.fdopen(os.open(balance,os.O_WRONLY|os.O_CREAT|os.O_EXCL|os.O_NOFOLLOW,0o600),'wb') as file:
             file.write(raw)
-        manifest = gate.materialize_canonical_files(root/'frozen-documents')
+        manifest = gate.materialize_canonical_files(root/'frozen-documents', first_release=week_first_four)
         bound = gate.create(root,execution_lock=lock,session_id='pizza-week-source',canonical_manifest=manifest['path'],
                             manifest_sha256=manifest['sha256'],prepaid=prepaid,auto_recharge_evidence=confirmation,
                             layout=gate.CANONICAL_LAYOUT,first_question=not full_week,week=full_week,
-                            week_session_layout=week_session_layout)
+                            week_session_layout=week_session_layout,week_first_four=week_first_four)
         settings = {capability.ENV:json.dumps(bound),JOURNAL:str(root/'receipts.jsonl'),COHORT_STOP:str(campaign/'ACCOUNT_STOP'),
                     'PACBENCH_STOP_FILE':str(root/'STOP'),'PACBENCH_DIRECT_STOP_ON_429':str(root/'STOP'),
                     'PACBENCH_ROLE_ROUTES':'luna-all-roles-v1','PACBENCH_LUNA_COMPATIBILITY':'temperature-omitted-default-v1',
@@ -247,7 +248,10 @@ def run(campaign, checkpoint, plugin_home, *, full_week=False, cohort_suffix=Non
                 verify_receipts({row['id']:row for row in rows})
                 if result['cleanup'] != 'owned-services-stopped' or not rows or not all(map(settled,rows)):
                     raise RuntimeError('Honcho qualification lacks cleanup or settled receipt evidence')
-                result['state'] = 'stock-week-answers-complete' if full_week else 'stock-first-answer-qualified'
+                if week_first_four:
+                    result['state'] = 'stock-authored-chat-canary-complete'
+                else:
+                    result['state'] = 'stock-week-answers-complete' if full_week else 'stock-first-answer-qualified'
             except BaseException as exc:
                 result['failure_type'] = type(exc).__name__
                 raise

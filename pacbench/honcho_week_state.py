@@ -13,14 +13,18 @@ from .workflow_spec import instant
 PROTOCOL = 'honcho-seven-daily-single-hermes-week-v1'
 AUTHORED_CHATS = 'authored-chats'
 AUTHORED_PROTOCOL = 'honcho-seven-daily-authored-hermes-chats-v2'
+CANARY_PROTOCOL = 'honcho-day-one-authored-chat-canary-v1'
+CANARY_QUESTIONS = ('rsvp-before', 'cancellation-before', 'obligations-before', 'lunch-snapshot')
 
 
-@lru_cache(maxsize=2)
-def plan(layout=None):
+@lru_cache(maxsize=3)
+def plan(layout=None, *, first_four=False):
     from .workflow_daily_documents import compile_daily_week
 
     if layout not in (None, AUTHORED_CHATS):
         raise ValueError('Unknown Honcho Week session layout')
+    if type(first_four) is not bool or (first_four and layout != AUTHORED_CHATS):
+        raise ValueError('The four-turn canary needs the authored chat layout')
     _, docs, turns, basis, manifest = compile_daily_week()
     if (len(docs),sum(len(d.source_ids) for d in docs),len(turns)) != (7,142,49):
         raise ValueError('Frozen Honcho Week coverage differs')
@@ -32,6 +36,16 @@ def plan(layout=None):
                 for i,t in enumerate(turns)]
     protocol, session = ((AUTHORED_PROTOCOL, AUTHORED_CHATS) if layout == AUTHORED_CHATS
                          else (PROTOCOL, 'one continuing Hermes session'))
+    if first_four:
+        turns, schedule = turns[:4], schedule[:4]
+        sessions = [turn.session for turn in turns]
+        if (tuple(turn.id for turn in turns) != CANARY_QUESTIONS
+                or sessions[0] != sessions[-1] or len(set(sessions)) != 3
+                or any(row['ready_files'] != [docs[0].filename] for row in schedule)
+                or len(docs[0].source_ids) != 39):
+            raise ValueError('The frozen day-one source or four-turn chat sequence changed')
+        docs, manifest = gate.canonical_inputs(first_release=True)
+        protocol = CANARY_PROTOCOL
     return docs,turns,dict(protocol=protocol,session=session,
                           corpus=basis,document_index_sha256=manifest['normalized_index_sha256'],
                           gradable_turns=sum(bool(t.claims) for t in turns),
@@ -39,7 +53,7 @@ def plan(layout=None):
 
 
 def plan_for(scope):
-    return plan(scope.get('week_session_layout'))
+    return plan(scope.get('week_session_layout'), first_four=scope.get('week_first_four', False))
 
 
 def path_for(root,index,name):

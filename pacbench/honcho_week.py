@@ -20,9 +20,13 @@ from .workflow_runner import Condition, captured_turn, inspect_source_cutoff
 RUN='honcho-seven-daily-stock-week-v1'
 
 
-def cohort_name(suffix, *, layout=None):
+def cohort_name(suffix, *, layout=None, first_four=False):
     if layout not in (None, week.AUTHORED_CHATS):
         raise ValueError('Unknown Honcho Week session layout')
+    if first_four:
+        if layout != week.AUTHORED_CHATS or suffix is not None:
+            raise ValueError('The authored-chat canary uses one fixed run directory')
+        return week.CANARY_PROTOCOL
     name = 'honcho-seven-daily-authored-chats-week-v2' if layout == week.AUTHORED_CHATS else RUN
     if suffix is None:
         return name
@@ -33,6 +37,7 @@ def cohort_name(suffix, *, layout=None):
 
 def answers(root,scope,env,marker,ledger,result):
     docs,turns,schedule=week.plan_for(scope)
+    all_source = week.plan()[0]
     authored = scope.get('week_session_layout') == week.AUTHORED_CHATS
     last = {turn.session: turn.id for turn in turns}
     home=root/'hermes-home'
@@ -92,7 +97,7 @@ def answers(root,scope,env,marker,ledger,result):
                     operation=receipts[ident]['dispatch_context']['operation_id']) for ident in ids])
                 captured_turn(surface,turn,prior,condition,prefix)
                 inspect_source_cutoff({'model_requests':[req['request'] for req in surface['model_requests']],
-                    'prefetch':surface['prefetch']},docs,prefix,[t.prompt for t in turns[:index+1]])
+                    'prefetch':surface['prefetch']},all_source,prefix,[t.prompt for t in turns[:index+1]])
                 week.publish(scope,index,surface)
                 driver_ids.update(ids)
                 physical_sessions.add(surface['session_id'])
@@ -116,8 +121,9 @@ def answers(root,scope,env,marker,ledger,result):
                 if result['native_sessions'] != len(last):
                     raise ValueError('Honcho did not complete all authored chat sessions')
             atomic(root/'native-chat-close.json',owner.fence(prior['session_id']))
-    if (ready,result['source_records'],week.position(scope))!=(7,142,49):
-        raise ValueError('Honcho did not complete the frozen seven-file Week')
+    if (ready,result['source_records'],week.position(scope)) != (
+            len(docs),sum(len(doc.source_ids) for doc in docs),len(turns)):
+        raise ValueError('Honcho did not complete the exact scoped source and questions')
 
 
 def main():
@@ -127,10 +133,16 @@ def main():
     parser.add_argument('--cohort-suffix',help='Use a distinct fresh run directory under the shared campaign lock')
     parser.add_argument('--session-layout', choices=(week.AUTHORED_CHATS,),
                         help='use the authored chat boundaries in one continuing account')
+    parser.add_argument('--authored-chat-canary', action='store_true',
+                        help='use only the first daily document and four frozen questions')
     options=parser.parse_args()
+    if options.authored_chat_canary and (options.cohort_suffix or options.session_layout):
+        parser.error('--authored-chat-canary sets the authored chat layout and has a fixed run directory')
     os.umask(0o077)
     result=run(*(getattr(options,name).resolve(strict=True) for name in ('campaign','checkpoint','plugin_home')),
-               full_week=True,cohort_suffix=options.cohort_suffix,week_session_layout=options.session_layout)
+               full_week=True,cohort_suffix=options.cohort_suffix,
+               week_session_layout=week.AUTHORED_CHATS if options.authored_chat_canary else options.session_layout,
+               week_first_four=options.authored_chat_canary)
     print(json.dumps(result,sort_keys=True))
 
 

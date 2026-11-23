@@ -1,10 +1,12 @@
 from copy import deepcopy
+import fcntl
 from hashlib import sha256
+from pathlib import Path
 
 import pytest
 
-from pacbench import honcho_week_state as week
-from pacbench.canary_capability import binding
+from pacbench import honcho_daily_gate as gate, honcho_week_state as week
+from pacbench.canary_capability import binding, read
 from pacbench.dispatch_ownership import OwnershipConflict
 from pacbench.honcho_daily_gate import _source_completion
 from pacbench.honcho_first_answer_admission import check_prepared, verify_prior
@@ -202,6 +204,49 @@ def test_authored_layout_keeps_the_same_schedule_and_uses_only_the_chat_predeces
         with pytest.raises(OwnershipConflict, match='active'):
             harness.publish(scope, i, {'session_id': sid, 'turn': turn.id})
     assert (starts, continuations, harness.position(scope)) == (31, 18, 49)
+
+
+def test_authored_chat_canary_owns_only_day_one_and_exactly_four_turns(tmp_path, monkeypatch):
+    with pytest.raises(ValueError, match='authored chat layout'):
+        week.plan(first_four=True)
+    with pytest.raises(ValueError, match='fixed run directory'):
+        cohort_name('another', layout=week.AUTHORED_CHATS, first_four=True)
+    assert cohort_name(None, layout=week.AUTHORED_CHATS, first_four=True) == week.CANARY_PROTOCOL
+
+    root = tmp_path / week.CANARY_PROTOCOL / 'honcho'
+    root.mkdir(parents=True)
+    manifest = gate.materialize_canonical_files(root/'frozen-documents', first_release=True)
+    full_docs, full_turns, full_schedule = week.plan(week.AUTHORED_CHATS)
+    with (tmp_path/'execution.lock').open('w+') as lock:
+        fcntl.flock(lock, fcntl.LOCK_EX)
+        scope = gate.create(root, execution_lock=lock, session_id='source', canonical_manifest=manifest['path'],
+                            manifest_sha256=manifest['sha256'], prepaid={}, auto_recharge_evidence={},
+                            layout=gate.CANONICAL_LAYOUT, week=True, week_session_layout=week.AUTHORED_CHATS,
+                            week_first_four=True)
+        bound = read(scope)
+        gate.validate(bound, scope)
+        docs, turns, schedule = week.plan_for(bound)
+        assert read(bound['week_schedule']) == schedule
+        assert schedule['turns'] == full_schedule['turns'][:4]
+        assert turns == full_turns[:4] and docs == full_docs[:1]
+        assert len(bound['plan']) == 1 and len(bound['plan'][0]['source_ids']) == 39
+        assert list(Path(manifest['path']).parent.glob('*.txt')) == [Path(bound['plan'][0]['path'])]
+        with pytest.raises(gate.GateError, match='frozen daily renderer'):
+            gate._plan(manifest, gate.CANONICAL_LAYOUT)
+        with pytest.raises(gate.GateError, match='frozen daily renderer'):
+            gate.validate({**bound, 'week_first_four': False}, scope)
+        monkeypatch.setattr(gate, 'controller', lambda _: bound)
+        with pytest.raises(gate.GateError, match='Next exact daily release'):
+            gate.begin(root, full_docs[1].cutoff)
+        with pytest.raises(gate.GateError, match='Frozen follow-up'):
+            gate.followup_ready(root, full_turns[4].id)
+        for i, sid in enumerate(('first', 'second', 'third', 'first')):
+            assert week.pending(bound)[1] == turns[i]
+            week.path_for(root, i, 'intent').write_text('{}')
+            week.publish(bound, i, {'session_id': sid})
+        assert week.position(bound) == 4
+        with pytest.raises(OwnershipConflict, match='already complete'):
+            week.pending(bound)
 
 
 def test_honcho_stock_capture_inventory_is_bound_per_durable_session(tmp_path, monkeypatch):

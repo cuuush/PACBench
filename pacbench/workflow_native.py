@@ -14,6 +14,7 @@ from .context_isolation import actual_context
 from .harness import _parse_turn, capture_prefetch_provenance
 from .hermes_gateway import _identity
 from .gateway_reuse import NATIVE_CHAT_CLOSE
+from .stop import communicate_until_stop
 from .workflow_delivery import submit_document
 
 
@@ -84,12 +85,13 @@ class WarmHermes:
     closes a conversation between its related turns. Per-provider readback of the
     write and source inventory belongs to the provisioned account binding.
     """
-    def __init__(self, owner, clock, observe_idle, *, chat_close_timeout_s=120):
+    def __init__(self, owner, clock, observe_idle, *, chat_close_timeout_s=120, watch_stop=False):
         self.owner = owner
         self.clock = clock
         self.clock_owner = OpenChatClockOwner(owner, observe_idle)
         self.starts = {}
         self.chat_close_timeout_s = chat_close_timeout_s
+        self.watch_stop = watch_stop
         if owner.env.get('PACBENCH_WORKFLOW_CAPTURE') != 'pizza-week-conversation-v2':
             raise ValueError('exact driver capture must be enabled at gateway startup')
 
@@ -125,7 +127,13 @@ class WarmHermes:
         hook_cursor = trace_position(trace_path)
         wire_cursor = trace_position(Path(env['PACBENCH_API_INPUT_TRACE']))
         started = time.monotonic()
-        proc = subprocess.run(cmd, cwd=owner.cwd, env=env, capture_output=True, text=True, timeout=240)
+        if self.watch_stop:
+            with subprocess.Popen(cmd, cwd=owner.cwd, env=env, stdout=subprocess.PIPE,
+                                  stderr=subprocess.PIPE, text=True) as child:
+                stdout, stderr = communicate_until_stop(child, timeout=240, env=env)
+                proc = subprocess.CompletedProcess(cmd, child.returncode, stdout, stderr)
+        else:
+            proc = subprocess.run(cmd, cwd=owner.cwd, env=env, capture_output=True, text=True, timeout=240)
         result_received = time.monotonic()
         raw = dict(stdout=proc.stdout, returncode=proc.returncode, cli_elapsed_s=result_received-started,
                    question_at=at, turn_nonce=desc['nonce'], hook_cursor=hook_cursor, wire_cursor=wire_cursor)

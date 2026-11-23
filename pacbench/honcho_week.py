@@ -52,7 +52,8 @@ def answers(root,scope,env,marker,ledger,result):
             condition=Condition('honcho','nightly-document','continuing-account','Hermes '+owner.pins['hermes'],
                 MODEL,ENDPOINT,schedule['protocol'],'3.6.1 / SDK 2.9.0',owner.pins['hermes_isolation_sha256'],
                 'Physical Honcho server, bounded authored Hermes checkpoints',TOOLS)
-            frontend=WarmHermes(owner,clock,lambda:capture.barrier(scope,owner,ledger,captures=week.position(scope)))
+            frontend=WarmHermes(owner,clock,lambda:capture.barrier(scope,owner,ledger,captures=week.position(scope)),
+                                watch_stop=True)
             for index,(turn,scheduled) in enumerate(zip(turns,schedule['turns'],strict=True)):
                 check_stops(root.parent.parent)
                 prefix=scheduled['ready_files']

@@ -145,3 +145,11 @@ def test_tool_status_is_joined_to_the_actual_native_row_before_provenance():
     events[0]['tool_call_id'] = 'foreign'
     with pytest.raises(ValueError, match='native tool-result identity'):
         capture_tool_results(native, events)
+
+
+def test_spec_cli_validates_the_frozen_daily_layout(capsys):
+    from pacbench.specs import main
+    from pacbench.workflow_daily_documents import DAILY_SPEC
+
+    assert main([str(DAILY_SPEC)]) == 0
+    assert '7 | frozen | 47 | frozen' in capsys.readouterr().out

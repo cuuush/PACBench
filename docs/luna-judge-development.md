@@ -56,3 +56,38 @@ finite nonresetting key limit. It requires the matching execution account,
 retained operator confirmation of Auto Recharge off, and no contrary live
 billing evidence. It never changes account settings. The conditional sizing
 figure above is reference arithmetic for the original offline proposal.
+
+## Harder development comparison
+
+The frozen synthetic challenge has 24 single-criterion cases across six
+families. `pacbench.decisions_calibration.render_plan(seed)` renders 96 requests
+in balanced order. Each blind case ID receives both existing Luna rubric
+prompts on Bedrock Global and the explicit rubric through two Decisions routes.
+The Decisions prompts use the typed choice output contract. The model-visible
+body contains the timed question, its answer, the prior public conversation
+and the criterion. Gold labels, reference rationales, family IDs and the
+blinding seed are excluded. The reference file is opened only for the offline
+comparison. `paired_errors` reports false accepts, false rejects, semantic
+gains and regressions by family, with separate invalid, refusal and missing
+counts.
+
+The Decisions routes are `openai/gpt-6-luna-decisions` through `openai` and
+`typesafe/jev-1.14` through `typesafe`. Both disable fallback. The endpoint
+documents ordinary OpenRouter Bearer API-key authentication.
+[Decisions API guide](https://openrouter.ai/docs/guides/features/decisions)
+[Luna endpoint catalog](https://openrouter.ai/api/v1/models/openai/gpt-6-luna-decisions/endpoints)
+[Jev endpoint catalog](https://openrouter.ai/api/v1/models/typesafe/jev-1.14/endpoints)
+
+`DecisionsAdmission` rehearses the 48 Decisions requests using the existing
+prepaid verifier and shared executor lock. The caller supplies the independently
+reviewed manifest hash. Each cell has one possible send, and a complete response
+must prove the pinned served model, provider, unique generation ID and numeric
+billed cost before another cell can proceed. A settled refusal or invalid
+verdict remains separately visible. Reproduce the offline checks with
+`python -m pytest -q tests/test_decisions_calibration.py tests/test_judge_development_challenge.py`.
+
+The current Chat Completions sender refuses the Decisions endpoint. Live
+calibration still requires integration through the guarded transport, reviewed
+admission of the new Chat Completions cells, and a fresh check of the account's
+eligibility for both pinned routes. This development comparison has no effect
+on provider grades.

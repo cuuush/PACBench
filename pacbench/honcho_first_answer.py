@@ -168,7 +168,7 @@ def cleanup_verified(root):
         time.sleep(.25)
 
 
-def run(campaign, checkpoint, plugin_home, *, full_week=False):
+def run(campaign, checkpoint, plugin_home, *, full_week=False, cohort_suffix=None):
     from provider_adapters.honcho_local import start
 
     check_stops(campaign)
@@ -179,8 +179,12 @@ def run(campaign, checkpoint, plugin_home, *, full_week=False):
     validate_recall_environment()
     verify_retained_catalog_provider('honcho',plugin_home)
     if full_week:
-        from .honcho_week import RUN as run_name, answers as run_answers
+        from .honcho_week import answers as run_answers, cohort_name
+
+        run_name=cohort_name(cohort_suffix)
     else:
+        if cohort_suffix is not None:
+            raise ValueError('Only a full Honcho Week supports a fresh cohort suffix')
         run_name,run_answers=RUN,ask
     root = campaign/run_name/'honcho'
     key = os.environ['OPENROUTER_API_KEY']
@@ -192,7 +196,8 @@ def run(campaign, checkpoint, plugin_home, *, full_week=False):
         fetch_catalog(profile=capability.PROFILE)
         confirmation, raw, prepaid = read_prepaid_evidence(checkpoint,key)
         started = time.monotonic()
-        root.mkdir(mode=0o700,parents=True)
+        root.parent.mkdir(mode=0o700)
+        root.mkdir(mode=0o700)
         for name in ('fallback-home','prepaid-verification'):
             (root/name).mkdir(mode=0o700)
         balance = root/'prepaid-verification'/(prepaid['receipt_sha256']+'.private.json')

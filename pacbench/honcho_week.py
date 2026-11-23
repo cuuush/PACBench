@@ -4,6 +4,7 @@ import json
 import math
 import os
 from pathlib import Path
+import re
 from statistics import median
 from tempfile import TemporaryDirectory
 
@@ -17,6 +18,14 @@ from .workflow_native import WarmHermes
 from .workflow_runner import Condition, captured_turn, inspect_source_cutoff
 
 RUN='honcho-seven-daily-stock-week-v1'
+
+
+def cohort_name(suffix):
+    if suffix is None:
+        return RUN
+    if not re.fullmatch(r'[a-z0-9][a-z0-9-]{0,31}', suffix):
+        raise ValueError('Honcho cohort suffix must be a short lowercase directory label')
+    return f'{RUN}-{suffix}'
 
 
 def answers(root,scope,env,marker,ledger,result):
@@ -95,9 +104,11 @@ def main():
     parser=argparse.ArgumentParser(description=__doc__)
     for name in ('campaign','checkpoint','plugin_home'):
         parser.add_argument(name,type=Path)
+    parser.add_argument('--cohort-suffix',help='Use a distinct fresh run directory under the shared campaign lock')
     options=parser.parse_args()
     os.umask(0o077)
-    result=run(*(getattr(options,name).resolve(strict=True) for name in ('campaign','checkpoint','plugin_home')),full_week=True)
+    result=run(*(getattr(options,name).resolve(strict=True) for name in ('campaign','checkpoint','plugin_home')),
+               full_week=True,cohort_suffix=options.cohort_suffix)
     print(json.dumps(result,sort_keys=True))
 
 

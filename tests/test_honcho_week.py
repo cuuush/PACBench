@@ -5,7 +5,16 @@ import pytest
 from pacbench import honcho_week_state as week
 from pacbench.dispatch_ownership import OwnershipConflict
 from pacbench.honcho_first_answer_admission import check_prepared, verify_prior
+from pacbench.honcho_week import RUN, cohort_name
 from pacbench.honcho_week_retry import REJECTION, reserve_chat_retry
+
+
+def test_cohort_label_keeps_the_protocol_prefix_and_rejects_paths():
+    assert cohort_name(None)==RUN
+    assert cohort_name('cohort-02')==f'{RUN}-cohort-02'
+    for label in ('','../outside','run/other','-bad','X','a'*33):
+        with pytest.raises(ValueError):
+            cohort_name(label)
 
 
 def test_week_schedule_preserves_all_turns_and_only_the_eligible_prefix(tmp_path):

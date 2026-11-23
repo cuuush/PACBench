@@ -13,33 +13,35 @@ SOURCE_REJECTION = 'stock-daily-prompt-representation-truncated-and-empty-v1'
 EMPTY_SHA256 = sha256(b'').hexdigest()
 
 
-def _reason(slot):
-    if slot.get('honcho_daily_release'):
-        return SOURCE_REJECTION
-    if slot.get('honcho_chat_work',{}).get('purpose')==PURPOSE:
-        return REJECTION
-    return None
+def _representation(slot):
+    return (bool(slot.get('honcho_daily_release'))
+            or slot.get('honcho_chat_work', {}).get('purpose') == PURPOSE)
 
 
 def _rejection(row):
     """Build the exact proof a matched native parser failure is allowed to record."""
-    reason=_reason(row['workflow_slot'])
-    evidence=row.get('response_validation',{})
-    if not reason or not settled(row) or evidence['finish_reasons']!=['length']:
+    slot = row['workflow_slot']
+    evidence = row.get('response_validation', {})
+    if (not _representation(slot) or not settled(row)
+            or evidence.get('finish_reasons') != ['length']
+            or evidence.get('tool_call_fragments') != 0):
         return None
-    digest=evidence.get('assistant_text_sha256')
-    if reason==SOURCE_REJECTION:
-        if (digest!=EMPTY_SHA256 or evidence.get('assistant_text_characters')!=0
-                or evidence.get('tool_call_fragments')!=0):
-            return None
-    elif not digest or digest==EMPTY_SHA256:
+    digest = evidence.get('assistant_text_sha256')
+    characters = evidence.get('assistant_text_characters')
+    if not digest or type(characters) is not int:
+        return None
+    if characters == 0 and digest == EMPTY_SHA256 and slot.get('honcho_daily_release'):
+        reason = SOURCE_REJECTION
+    elif characters > 0 and digest != EMPTY_SHA256:
+        reason = REJECTION
+    else:
         return None
     return dict(reason=reason,request_sha256=row['request_sha256'],response_sha256=digest,
                 upstream_request_id=row['upstream_request_id'],native_attempt=row['honcho_daily_attempt']['native_attempt'])
 
 
 def watch(original):
-    """Observe the pinned executor's rejection before the native save loop."""
+    """Observe the pinned parser's rejection before it can return a representation to save."""
     from src.llm.structured_output import StructuredOutputError
     from src.utils.representation import PromptRepresentation
 
@@ -66,7 +68,7 @@ def watch(original):
 
 def mark_physical_send(row):
     sent=_physical_send.get()
-    if _reason(row['workflow_slot']):
+    if _representation(row['workflow_slot']):
         if sent is None or sent:
             raise OwnershipConflict('Honcho representation has no unique native executor send')
         sent.append(row['id'])
@@ -104,7 +106,7 @@ def reserve_retry(rows,row):
         claim_keys=('queue_ids','claim','trace')
     if not prior and number==1:
         return None
-    if not _reason(slot) or number not in (2,3) or len(prior)!=number-1:
+    if not _representation(slot) or number not in (2,3) or len(prior)!=number-1:
         raise OwnershipConflict('Honcho representation retry is outside its observed stock attempt sequence')
     parent=None
     generations=set()

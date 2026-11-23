@@ -61,10 +61,11 @@ def test_new_question_may_open_once_after_a_settled_predecessor():
         check_prepared({'prior':earlier,'replay':current},current)
 
 
-@pytest.fixture(params=('source','chat'))
+@pytest.fixture(params=('source-empty', 'source-partial', 'chat'))
 def rejected_representation(request):
-    source=request.param=='source'
-    response=sha256(b'' if source else b'truncated content').hexdigest()
+    source = request.param.startswith('source-')
+    payload = b'' if request.param == 'source-empty' else b'truncated content'
+    response = sha256(payload).hexdigest()
     slot={'honcho_daily_release':{'sha256':'daily-release'}} if source else {
         'honcho_chat_work':{'queue_ids':[3,5],'purpose':'deriver.representation'}}
     queue={'queue_id':43} if source else {'queue_ids':[3,5]}
@@ -72,9 +73,9 @@ def rejected_representation(request):
         response_body_complete=True,served_model='openai/gpt-6-luna',served_provider='Amazon Bedrock',
         billing_receipt={'proof':True},upstream_request_id='generation-1',request_sha256='request',
         dispatch_owner={'pid':7},response_validation=dict(finish_reasons=['length'],assistant_text_sha256=response,
-            assistant_text_characters=0 if source else 17,tool_call_fragments=0),workflow_slot=slot,
+            assistant_text_characters=len(payload),tool_call_fragments=0),workflow_slot=slot,
         honcho_daily_attempt=dict(claim='owned',trace='native-trace',native_attempt=1,**queue),
-        honcho_validation_rejection=dict(reason=SOURCE_REJECTION if source else REJECTION,
+        honcho_validation_rejection=dict(reason=REJECTION if payload else SOURCE_REJECTION,
                                         request_sha256='request',response_sha256=response,
                                         upstream_request_id='generation-1',native_attempt=1))
     return earlier
@@ -86,9 +87,13 @@ def test_native_retry_needs_unchanged_claim_request_and_verified_failed_output(r
     retry['honcho_daily_attempt']['native_attempt']=2
     assert reserve_retry({'request-1':earlier},retry)==earlier
     for changed in ({'state':'receipt_missing'},{'honcho_validation_rejection':{}},
-                    {'dispatch_execution':'ambiguous'},{'request_sha256':'foreign'},
+                    {'dispatch_execution':'ambiguous'},{'response_body_complete':False},
+                    {'request_sha256':'foreign'}, {'billing_receipt':None},
                     {'workflow_capability':{'sha256':'wrong-scope'}},
-                    {'response_validation':{**earlier['response_validation'],'finish_reasons':['stop']}}):
+                    {'response_validation':{**earlier['response_validation'],'finish_reasons':['stop']}},
+                    {'response_validation':{**earlier['response_validation'],'tool_call_fragments':1}},
+                    {'response_validation':{**earlier['response_validation'],
+                                            'assistant_text_sha256':sha256(b'other response').hexdigest()}}):
         with pytest.raises(OwnershipConflict):
             reserve_retry({'request-1':{**earlier,**changed}},retry)
     retry['honcho_daily_attempt']['claim']='new-worker'
@@ -117,17 +122,24 @@ def test_native_third_attempt_requires_distinct_linked_receipts_and_is_final(rej
         reserve_retry(rows,third)
 
 
-@pytest.mark.parametrize('rejected_representation',('source',),indirect=True)
-def test_daily_retry_cannot_use_a_nonempty_or_tool_response_as_its_empty_rejection(rejected_representation):
+@pytest.mark.parametrize('rejected_representation', ('source-empty', 'source-partial'), indirect=True)
+def test_daily_retry_requires_matching_text_count_and_rejection_kind(rejected_representation):
     first=rejected_representation
     retry=deepcopy(first)
     retry['honcho_daily_attempt']['native_attempt']=2
-    for patch in ({'assistant_text_characters':1},{'tool_call_fragments':1}):
+    evidence = first['response_validation']
+    contradictory = {**evidence, 'assistant_text_characters': int(not evidence['assistant_text_characters'])}
+    wrong_reason = SOURCE_REJECTION if evidence['assistant_text_characters'] else REJECTION
+    for changed in ({'response_validation':contradictory},
+                    {'honcho_validation_rejection':{**first['honcho_validation_rejection'],'reason':wrong_reason}}):
         with pytest.raises(OwnershipConflict):
-            reserve_retry({first['id']:{**first,'response_validation':{**first['response_validation'],**patch}}},retry)
+            reserve_retry({first['id']:{**first,**changed}},retry)
+    retry['workflow_slot']['honcho_daily_release'] = {'sha256':'different-daily-release'}
+    with pytest.raises(OwnershipConflict):
+        reserve_retry({first['id']:first},retry)
 
 
-@pytest.mark.parametrize('rejected_representation',('source',),indirect=True)
+@pytest.mark.parametrize('rejected_representation', ('source-empty', 'source-partial'), indirect=True)
 def test_daily_ready_binds_the_successful_receipt_at_the_tail_of_the_stock_chain(tmp_path,rejected_representation):
     path=tmp_path/'workflow-scope.json'
     path.write_text('{}')

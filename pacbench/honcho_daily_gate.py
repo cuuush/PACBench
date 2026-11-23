@@ -132,13 +132,17 @@ def projects(root, first_question=False):
     return {'honcho': roles}
 
 
+def chat_enabled(scope):
+    return bool(scope.get('first_question') or scope.get('week_schedule'))
+
+
 def _lock(scope):
     from .workflow_capability import _has_flock
 
     owner, proof = scope['controller'], scope['lock']
     path, fd = Path(proof['path']), proof['fd']
     st = path.stat()
-    expected = Path(scope['root']).parent.parent/'execution.lock' if scope.get('first_question') else path.parent/LOCK
+    expected = Path(scope['root']).parent.parent/'execution.lock' if chat_enabled(scope) else path.parent/LOCK
     if (path != expected or path != path.resolve() or path.is_relative_to(scope['root'])
             or proof['inode'] != [st.st_dev, st.st_ino] or process_identity(owner['pid']) != owner
             or Path(f"/proc/{owner['pid']}/fd/{fd}").resolve() != path or not _has_flock(owner['pid'], fd)):
@@ -147,7 +151,7 @@ def _lock(scope):
 
 def create(root, *, execution_lock, session_id, canonical_manifest, manifest_sha256,
            prepaid, auto_recharge_evidence,
-           layout=('documents', 'cutoff', 'file', 'document_sha256', 'source_ids'), first_question=False):
+           layout=('documents', 'cutoff', 'file', 'document_sha256', 'source_ids'), first_question=False, week=False):
     """Bind the canonical producer's files and the already-held execution lock."""
     root = Path(root).resolve(strict=True)
     path = Path(canonical_manifest).absolute()
@@ -159,20 +163,27 @@ def create(root, *, execution_lock, session_id, canonical_manifest, manifest_sha
     if manifest['sha256'] != manifest_sha256:
         raise GateError('Canonical manifest SHA-256 differs from the pinned producer output')
     plan = _plan(manifest, layout)
-    if first_question and (first_question is not True or tuple(layout) != CANONICAL_LAYOUT):
-        raise GateError('Honcho first question requires the exact shared daily layout')
+    if (type(first_question) is not bool or type(week) is not bool or first_question and week
+            or (first_question or week) and tuple(layout) != CANONICAL_LAYOUT):
+        raise GateError('Honcho chat needs one scope and the exact shared daily layout')
     for entry in plan:
         _payload(entry, layout)
     fd = execution_lock.fileno()
     st = os.fstat(fd)
     scope = dict(admission=CONDITION, protocol='pizza-week-conversation-v2', provider='honcho',
                  root=str(root), run_id=root.parent.name, controller=process_identity(), session=session_id,
-                 projects=projects(root,first_question), spec_sha256=sha(SPEC),
+                 projects=projects(root,first_question or week), spec_sha256=sha(SPEC),
                  manifest=manifest, layout=list(layout), plan=plan, prepaid=prepaid,
                  auto_recharge_evidence=auto_recharge_evidence,
                  lock=dict(fd=fd, path=str(Path(f'/proc/self/fd/{fd}').resolve()), inode=[st.st_dev, st.st_ino]))
     if first_question:
         scope['first_question'] = 'rsvp-before'
+    if week:
+        from .honcho_week_state import plan as week_plan
+
+        (root/'week-turns').mkdir(mode=0o700)
+        (root/'chat-writes').mkdir(mode=0o700)
+        scope['week_schedule'] = _write(root/'ordered-questions.json',week_plan()[2])
     _lock(scope)
     return _write(root / 'workflow-scope.json', scope)
 
@@ -183,11 +194,18 @@ def validate(scope, bound):
     if (root != root.resolve() or root.name != 'honcho' or scope['provider'] != 'honcho'
             or scope['admission'] != CONDITION or scope['protocol'] != 'pizza-week-conversation-v2'
             or scope['run_id'] != root.parent.name or bound != binding(root / 'workflow-scope.json')
-            or scope['projects'] != projects(root,first_question)
+            or scope['projects'] != projects(root,chat_enabled(scope))
             or first_question and (scope['first_question'] != 'rsvp-before' or tuple(scope['layout']) != CANONICAL_LAYOUT)
             or scope['spec_sha256'] != sha(SPEC) or scope['plan'] != _plan(scope['manifest'], scope['layout'])
             or not re.fullmatch('[A-Za-z0-9_-]+', scope['session'])):
         raise GateError('Unbound Honcho daily document condition')
+    if 'week_schedule' in scope:
+        from .honcho_week_state import plan as week_plan
+
+        schedule = scope['week_schedule']
+        if (first_question or tuple(scope['layout'])!=CANONICAL_LAYOUT
+                or schedule!=binding(root/'ordered-questions.json') or read(schedule)!=week_plan()[2]):
+            raise GateError('Unbound Honcho Week question schedule')
     _lock(scope)
 
 
@@ -213,7 +231,7 @@ def register(root, worker_pid, *, api_pid=None, api_url=None):
     worker = owned(worker_pid)
     host = json.loads((root / 'hermes-home/honcho.json').read_bytes())['hosts']['hermes']
     api = {}
-    if scope.get('first_question'):
+    if chat_enabled(scope):
         if not api_pid or api_pid == worker_pid or not re.fullmatch(r'http://127\.0\.0\.1:[0-9]+',api_url or ''):
             raise GateError('First question requires a distinct owned native loopback API')
         (root/'peer-reads').mkdir(mode=0o700)
@@ -230,13 +248,12 @@ def runtime(root):
     return record
 
 
-def capture(root, scope, native):
-    """One physical, read-only observation of the source uploads and their queue."""
-    from provider_adapters.honcho_checkpoint import docker, sql
+def owned_container(root,native):
+    from provider_adapters.honcho_checkpoint import docker
     from provider_adapters.honcho_local import PGVECTOR_IMAGE
 
     host = native['host']
-    space, session = host['workspace'], scope['session']
+    space = host['workspace']
     settings, owner = read(native['settings']), read(native['store'])
     cid = owner['container_id']
     mount = str(root / 'honcho-db')
@@ -249,6 +266,15 @@ def capture(root, scope, native):
     if (inspected['Id'] != cid or not inspected['State']['Running'] or inspected['Config']['Image'] != PGVECTOR_IMAGE
             or inspected['Config']['Labels'].get('pacbench.import-root') != str(root) or mounts != [('bind', mount)]):
         raise GateError('Honcho database mount or container changed')
+    return cid
+
+
+def capture(root, scope, native):
+    """One physical, read-only observation of the source uploads and their queue."""
+    from provider_adapters.honcho_checkpoint import sql
+
+    cid = owned_container(root,native)
+    space,session = native['host']['workspace'],scope['session']
     return json.loads(sql(cid, 'postgres', f"""
         SELECT coalesce(json_agg(json_build_object(
           'public_id',m.public_id,'local_id',m.id,'session',s.name,'session_id',s.id,
@@ -366,6 +392,10 @@ def begin(root, at):
     limit = 1 if scope.get('first_question') else len(scope['plan'])
     if pending or index > limit or at != scope['plan'][index-1]['at']:
         raise GateError('Next exact daily release required, with no upload replay')
+    if scope.get('week_schedule'):
+        from .honcho_week_state import release_scope
+
+        release_scope(scope,at)
     _require_receipts(root, scope, completed)
     _inventory(root, scope, runtime(root), completed)
     entry = scope['plan'][index-1]
@@ -439,7 +469,7 @@ def _successful(scope, row, release, queue_id):
             and row.get('honcho_daily_attempt', {}).get('queue_id') == queue_id
             and row.get('dispatch_context', {}).get('operation_id') == operation_id(row)
             and row.get('dispatch_execution') == 'response_ended' and row.get('http_status') == 200
-            and bool(row.get('finished')) and (not scope.get('first_question') or settled(row)))
+            and bool(row.get('finished')) and (not chat_enabled(scope) or settled(row)))
 
 
 def _require_receipts(root, scope, completed):
@@ -532,15 +562,26 @@ def _live(scope, slot=None):
     if native['worker'] != process_identity() or not enabled():
         raise GateError('Only the metered owned Honcho deriver may send')
     work, batch, call = _work.get(), _batch.get(), _executor.get()
-    if not work or not batch or not call:
+    if not work or not call:
         raise GateError('Paid call lacks stock work, batch or executor evidence')
     manager, unit, worker_id, owner = work[0]
     telemetry, plan = call[0]
     if (not owner or manager.worker_ownership.get(worker_id) is not owner
             or owner.work_unit_key != unit or not owner.aqs_id or not telemetry or not plan
-            or telemetry.call_purpose != 'deriver.representation' or not telemetry.trace_id
+            or not telemetry.trace_id
             or telemetry.step_seq != 0 or plan.attempt != 1 or plan.is_fallback):
         raise GateError('Missing first-send ownership or unsupported Honcho call purpose')
+    if scope.get('week_schedule') and unit.split(':')[2:3] != [scope['session']]:
+        from .honcho_week_capture import native_batch
+
+        if telemetry.call_purpose not in ('deriver.representation','summary.short','summary.long'):
+            raise GateError('Unsupported stock Honcho Week worker inference purpose')
+        expected,witness=native_batch(scope,native,telemetry,batch,unit,owner.aqs_id)
+        if slot is not None and slot!=expected:
+            raise GateError('Honcho chat worker job changed before dispatch')
+        return expected,witness
+    if not batch or telemetry.call_purpose!='deriver.representation':
+        raise GateError('Only the exact native source representation may send')
     index, files, q, release = _check_release(root, scope, native)
     expected = dict(provider='honcho', kind='ingest', at=scope['plan'][index-1]['at'], honcho_daily_release=release)
     latest = files[-1]
@@ -570,16 +611,25 @@ def admission(scope, project, profile, body):
     from .workflow_capability import ENV, PROFILE
 
     roles = scope['projects']['honcho']
-    if scope.get('first_question') and project == roles.get('driver') and profile == PROFILE:
+    if chat_enabled(scope) and project == roles.get('driver') and profile == PROFILE:
         from .honcho_first_answer_admission import permit
         return permit(scope, project, body)
-    if scope.get('first_question') and project == roles.get('dialectic') and profile == PROFILE:
+    if chat_enabled(scope) and project == roles.get('dialectic') and profile == PROFILE:
         from .honcho_first_answer_peer import permit
         return permit(scope, project, body)
     if project != roles['memory'] or profile != PROFILE:
         raise GateError('Only the exact Honcho daily representation role is enabled')
     validate_request(body, profile=PROFILE)
     slot, _ = _live(scope)
+    if scope.get('week_schedule'):
+        from .honcho_week_state import plan, position
+        from .workflow_runner import inspect_source_cutoff
+
+        docs,turns,_=plan()
+        completed,pending=_progress(Path(scope['root']),scope)
+        visible=[doc.filename for doc in docs[:len(completed)+int(pending is not None)]]
+        inspect_source_cutoff({'model_requests':[body],'prefetch':None},docs,visible,
+                              [turn.prompt for turn in turns[:position(scope)+1]])
     return dict(root=scope['root'], run_id=scope['run_id'], capability=json.loads(os.environ[ENV]),
                 projects=[project], slot=slot)
 

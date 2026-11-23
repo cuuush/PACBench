@@ -90,6 +90,7 @@ def install_gateway():
     provider = plugin.HonchoMemoryProvider
     spawn = provider._spawn_dialectic
     handle_tool = provider.handle_tool_call
+    sync_turn = provider.sync_turn
     send = httpx.Client.send
 
     def submission(instance, scope):
@@ -103,12 +104,25 @@ def install_gateway():
     @wraps(spawn)
     def observe_spawn(instance, query, *, thread_name, fired_at, log_label, use_query_rewrite=True):
         scope = load()
+        current_question = question(scope)
+        options = {}
+        number = 1
+        if scope.get('week_schedule'):
+            from .honcho_week_state import pending, plan
+
+            number = pending(scope)[0]+1
+            prior = plan()[1][number-2].prompt if number>1 else ''
+            if ((thread_name,log_label)==('honcho-resume-dialectic','resumed-session dialectic')
+                    and number>1 and fired_at==number-1
+                    and query==(current_question.prompt if instance._is_trivial_prompt(prior) else prior)):
+                options['resumed'] = True
         before_answer = ((thread_name,log_label) == ('honcho-prewarm-dialectic','dialectic prewarm')
-                and query == plugin._PREWARM_QUERY and fired_at == 0 and not use_query_rewrite
+                and number==1 and query == plugin._PREWARM_QUERY and fired_at == 0 and not use_query_rewrite
                 or (thread_name,log_label) == ('honcho-prefetch-first','first-turn dialectic')
-                and query == question(scope).prompt and fired_at == 1)
+                and number==1 and query == current_question.prompt and fired_at == 1
+                or options.get('resumed'))
         after_answer = ((thread_name,log_label) == ('honcho-prefetch','prefetch')
-                        and query == question(scope).prompt and fired_at == 1)
+                        and query == current_question.prompt and fired_at == number)
         if not (before_answer or after_answer):
             # A later question's stock asynchronous prefetch cannot spend under this scope.
             return spawn(instance, query, thread_name=thread_name, fired_at=fired_at,
@@ -120,6 +134,8 @@ def install_gateway():
             if 'stop' not in previous['response_validation']['finish_reasons']:
                 raise OwnershipConflict('Honcho post-answer prefetch has no observed final answer')
             origin.update(kind='post-answer-prefetch',after_answer=previous['id'])
+            if scope.get('week_schedule') and number < len(plan()[1]):
+                origin['within_week'] = True
         token = _origin.set(origin)
         try:
             return spawn(instance, query, thread_name=thread_name, fired_at=fired_at,
@@ -140,6 +156,16 @@ def install_gateway():
         finally:
             _origin.reset(token)
 
+    @wraps(sync_turn)
+    def observe_sync(instance,user_content,assistant_content,*,session_id='',turn_author=None):
+        scope = load()
+        if scope.get('week_schedule'):
+            from .honcho_week_capture import prepare
+
+            current = submission(instance,scope)
+            prepare(scope,current,_last_driver(scope,current),user_content,assistant_content,session_id)
+        return sync_turn(instance,user_content,assistant_content,session_id=session_id,turn_author=turn_author)
+
     @wraps(send)
     def observe_send(client, request, *args, **kwargs):
         origin = _origin.get()
@@ -158,6 +184,7 @@ def install_gateway():
 
     provider._spawn_dialectic = observe_spawn
     provider.handle_tool_call = observe_tool
+    provider.sync_turn = observe_sync
     httpx.Client.send = observe_send
 
 
@@ -204,7 +231,8 @@ def wrap_api(app):
             if _native(cap)['api'] != process_identity():
                 raise OwnershipConflict('Honcho peer read entered a foreign API process')
             proof = claim(cap,tokens[0],_peer_request(cap,scope['method'],scope['path'],request['body']))
-            if read(proof)['origin']['kind'] == 'post-answer-prefetch':
+            origin = read(proof)['origin']
+            if origin['kind']=='post-answer-prefetch' and not origin.get('within_week'):
                 # The stock plugin asks to warm a subsequent turn. This standalone
                 # scope has already returned its answer and funds no later turn.
                 return await JSONResponse({'detail':'Prefetch for a later turn is outside the first-question scope'},
@@ -263,7 +291,14 @@ def permit(scope, project, body):
     validate_request(body,profile=PROFILE)
     slot = native_slot(scope)
     documents = compile_daily_week()[1]
-    inspect_source_cutoff({'model_requests':[body],'prefetch':''},documents,[documents[0].filename],[question(scope).prompt])
+    names, prompts = [documents[0].filename],[question(scope).prompt]
+    if scope.get('week_schedule'):
+        from .honcho_week_state import pending, plan
+
+        index,_,scheduled = pending(scope)
+        names = scheduled['ready_files']
+        prompts = [turn.prompt for turn in plan()[1][:index+1]]
+    inspect_source_cutoff({'model_requests':[body],'prefetch':''},documents,names,prompts)
     return dict(root=scope['root'],run_id=scope['run_id'],capability=json.loads(os.environ[ENV]),projects=[project],slot=slot)
 
 

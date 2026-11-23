@@ -80,6 +80,10 @@ def operation_id(row):
         witness = slot['honcho_peer_read']
         step = row['workflow_capability']['sha256'], witness['operation'], witness['step']
         return hashlib.sha256(json.dumps(step).encode()).hexdigest()
+    if slot.get('honcho_chat_work'):
+        witness = slot['honcho_chat_work']
+        work = row['workflow_capability']['sha256'],witness['purpose'],witness['queue_ids']
+        return hashlib.sha256(json.dumps(work).encode()).hexdigest()
     scope = {k:slot[k] for k in ('kind','provider','group_id','batch_id','question_id') if k in slot}
     effect = slot.get('checkpoint_effect')
     if effect is not None and slot.get('provider') == 'memcal' and row.get('workflow_slot'):
@@ -136,7 +140,7 @@ def mark_possible(row, at, sender=None):
     if not check_owner(row, sender):
         return
     slot = row.get('workflow_slot') or {}
-    if slot.get('honcho_daily_release'):
+    if slot.get('honcho_daily_release') or slot.get('honcho_chat_work'):
         from .honcho_daily_gate import confirm_sender
         confirm_sender(row)
     elif slot.get('honcho_first_answer'):

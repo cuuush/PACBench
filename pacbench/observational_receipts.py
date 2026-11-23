@@ -156,11 +156,18 @@ class ObservedBudget:
    honcho_daily=row.get('workflow_slot',{}).get('honcho_daily_release')
    honcho_answer=row.get('workflow_slot',{}).get('honcho_first_answer')
    honcho_peer=row.get('workflow_slot',{}).get('honcho_peer_read')
+   honcho_chat=row.get('workflow_slot',{}).get('honcho_chat_work')
    from .direct_http import _native_http_request
    original=_native_http_request.get()
-   if honcho_daily:
+   if honcho_daily or honcho_chat:
     from .honcho_daily_gate import bind_attempt
     bind_attempt(row)
+    if honcho_chat:
+     from .honcho_first_answer_admission import verify_receipts
+     verify_receipts(rows)
+     if any(old['purpose']==honcho_chat['purpose'] and set(old['queue_ids'])&set(honcho_chat['queue_ids'])
+            for previous in rows.values() if (old:=previous['workflow_slot'].get('honcho_chat_work'))):
+      raise OwnershipConflict('No replay or changed batch for a scoped Honcho chat job')
    elif honcho_answer:
     from .honcho_first_answer_admission import check_prepared,verify_receipts
     verify_receipts(rows)
@@ -176,7 +183,7 @@ class ObservedBudget:
    previous=(rows.previous(project,operation) if indexed else
              [r for r in rows.values() if r['project']==project and r.get('dispatch_context',{}).get('operation_id')==operation])
    if previous:
-    if honcho_daily or honcho_answer or honcho_peer:raise OwnershipConflict('No automatic replay of a scoped Honcho request')
+    if honcho_daily or honcho_answer or honcho_peer or honcho_chat:raise OwnershipConflict('No automatic replay of a scoped Honcho request')
     grant=json.loads(os.environ.get('PACBENCH_JUDGE_OUTPUT_RECOVERY','{}'))
     lost_output=(project.endswith('-judge') and len(previous)==1 and grant.get('attempt_id')==previous[0]['id'] and previous[0].get('state')=='settled' and grant.get('reason')=='model_recorder_failed_before_saving_judgment')
     if not lost_output and (len(previous)>=3 or previous[-1].get('provider_rejection') not in ('openrouter_in_flight_budget','in_flight_budget_exhausted','upstream_provider_shared_pool_rate_limit')):raise OwnershipConflict('No automatic replay of a prepared request')

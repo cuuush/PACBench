@@ -19,6 +19,10 @@ TOOLS = HERMES_TOOLS['honcho']
 
 
 def question(scope):
+    if scope.get('week_schedule'):
+        from .honcho_week_state import pending
+
+        return pending(scope)[1]
     turn = gate.schedule()[1][0]
     if scope.get('first_question') != QUESTION or turn.id != QUESTION:
         raise OwnershipConflict('No ordinary Honcho first-question admission')
@@ -47,16 +51,27 @@ def active(scope, *, gateway_process=True):
     stop = os.environ.get('PACBENCH_STOP_FILE')
     if stop and Path(stop).exists():
         raise OwnershipConflict('Honcho admission is stopped')
-    root, turn = Path(scope['root']), question(scope)
-    owner = read(binding(root/'question-gateway.json'))
-    ready = binding(root/'honcho-daily-1-ready.json')
+    root = Path(scope['root'])
+    if scope.get('week_schedule'):
+        from .honcho_week_state import active as week_active, ready_bindings
+
+        turn,owner,names,_ = week_active(scope)
+        ready = ready_bindings(root,len(names))
+        expected_session = owner['session_id']
+    else:
+        turn = question(scope)
+        owner = read(binding(root/'question-gateway.json'))
+        ready = binding(root/'honcho-daily-1-ready.json')
+        expected_session = None
     if (owner['condition'] != gate.CONDITION or owner['controller'] != scope['controller']
-            or owner['ready'] != ready or owner['question'] != QUESTION
+            or owner['ready'] != ready or owner['question'] != turn.id
             or process_identity(owner['gateway']['pid']) != owner['gateway']):
-        raise OwnershipConflict('Honcho source or gateway changed after first-question admission')
+        raise OwnershipConflict('Honcho source or gateway changed after question admission')
     completed, pending = gate._progress(root, scope)
-    if pending is not None or [s['at'] for s in completed] != [scope['plan'][0]['at']]:
-        raise OwnershipConflict('Only the day-one Honcho release is eligible')
+    from .workflow_spec import instant
+    if (pending is not None or [s['at'] for s in completed]
+            != [entry['at'] for entry in scope['plan'] if instant(entry['at'])<=instant(turn.at)]):
+        raise OwnershipConflict('Honcho source prefix differs from the frozen turn time')
     home, clock = root/'hermes-home',root/'reuse-clock'
     if gateway_process and (owner['gateway'] != process_identity() or os.environ.get('HERMES_HOME') != str(home)
             or Path(os.environ.get(ENV, '')) != clock/'active.json'
@@ -68,15 +83,17 @@ def active(scope, *, gateway_process=True):
     else:
         clock_row = descriptor(pointer=clock/'active.json', home=home)
     prompt_hash = sha256(turn.prompt.encode()).hexdigest()
-    if (clock_row['kind'] != 'fresh' or clock_row['home'] != str(home) or clock_row['at'] != turn.at
+    if (clock_row['kind'] != ('continuation' if expected_session else 'fresh')
+            or clock_row.get('continued_session_id')!=expected_session
+            or clock_row['home'] != str(home) or clock_row['at'] != turn.at
             or clock_row['checkpoint'] != scope['spec_sha256'] or clock_row['question_sha256'] != prompt_hash):
-        raise OwnershipConflict('Honcho request differs from the frozen first submission')
+        raise OwnershipConflict('Honcho request differs from the frozen submission')
     nonce = clock_row['nonce']
     native = read(binding(clock/'bindings'/(nonce+'.json')))
     sid = native['session_id']
     observed = audit_question(clock,clock_row,{'prompt':turn.prompt,'session_id':sid},
                               owner['witness'],remote_runtime=not gateway_process)
-    if (native['nonce'] != nonce or native['question_sha256'] != prompt_hash
+    if (native['nonce'] != nonce or native['question_sha256'] != prompt_hash or expected_session and sid!=expected_session
             or not observed['native_admission'][-1].get('in_window')):
         raise OwnershipConflict('No active native Honcho submission witness')
     return dict(session_id=sid,turn_nonce=nonce,native_request_id=native['request_id'],ready=ready)
@@ -162,27 +179,60 @@ def driver_slot(scope, body):
             or body.keys() - {'model','provider','messages','tools','session_id','stream','stream_options',
                               'reasoning','max_completion_tokens'}):
         raise OwnershipConflict('Honcho driver affinity, stream or stock tool surface differs')
-    observations = [r for r in rows(root/'reuse-context.jsonl') if r['session_id']==sid and r['query']==turn.prompt]
+    documents = compile_daily_week()[1]
+    prior, names, prior_prompts = [], [documents[0].filename], []
+    context_trace = root/'reuse-context.jsonl'
+    if scope.get('week_schedule'):
+        from .honcho_week_state import active as week_active, plan, prior_surface
+        from .workflow_native import appended_rows
+
+        _, owner, names, index = week_active(scope)
+        saved = prior_surface(scope,index)
+        prior = saved['history'] if saved else []
+        prior_prompts = [past.prompt for past in plan()[1][:index]]
+        observed = appended_rows(context_trace,owner['cursor'])
+    else:
+        observed = rows(context_trace)
+    observations = [r for r in observed if r['session_id']==sid and r['query']==turn.prompt]
     if len(observations) != 1 or not isinstance(observations[0]['prefetch'],str):
         raise OwnershipConflict('No unique stock Honcho memory prefetch for the active question')
     prefetch = observations[0]['prefetch']
     block = build_memory_context_block(prefetch)
     user = turn.prompt + ('\n\n'+block if block else '')
     messages = body['messages']
-    if (len(messages) < 2 or messages[0]['role'] != 'system' or not isinstance(messages[0]['content'],str)
-            or '# Project Context' in messages[0]['content'] or messages[1] != {'role':'user','content':user}):
+    boundary = len(prior)+1
+    if (len(messages)<=boundary or messages[0]['role']!='system' or not isinstance(messages[0]['content'],str)
+            or '# Project Context' in messages[0]['content'] or messages[boundary]!={'role':'user','content':user}):
         raise OwnershipConflict('Honcho driver prompt or native recall differs')
     system, stored = _history(root/'hermes-home',sid)
     if system != messages[0]['content']:
         raise OwnershipConflict('Honcho system prompt differs from the persisted native prompt')
+    if prior:
+        verify_prior(prior,stored[:len(prior)],messages[1:boundary])
+        stored = stored[len(prior):]
     if stored and (stored[0]['role']!='user' or stored[0]['content']!=turn.prompt
                    or (stored[0]['api_content'] or turn.prompt)!=user):
         raise OwnershipConflict('Honcho native question row differs from its scoped submission')
-    rounds = tool_rounds(messages[2:],stored[1:])
-    documents = compile_daily_week()[1]
-    inspect_source_cutoff({'model_requests':[body],'prefetch':prefetch}, documents, [documents[0].filename], [turn.prompt])
+    rounds = tool_rounds(messages[boundary+1:],stored[1:])
+    inspect_source_cutoff({'model_requests':[body],'prefetch':prefetch},documents,names,[*prior_prompts,turn.prompt])
     return dict(provider='honcho',kind='answer',question_id=turn.id,
                 honcho_first_answer={**current,'tool_rounds':rounds})
+
+
+def verify_prior(prior,live,wire):
+    from .workflow_runner import _tool_call_contract, _wire_tool_text
+
+    for saved,native,sent in zip(prior,live,wire,strict=True):
+        role = saved['role']
+        stored = saved.get('api_content') or saved.get('content') or ''
+        delivered = sent.get('content') or ''
+        if (any(saved.get(key)!=value for key,value in native.items()) or sent['role']!=role
+                or delivered!=stored and not (role=='user' and delivered==saved['content'])
+                and not (role=='tool' and _wire_tool_text(stored,delivered))
+                or role=='tool' and sent.get('tool_call_id')!=saved['tool_call_id']
+                or [_tool_call_contract(c,stored=True) for c in json.loads(saved['tool_calls'] or '[]')]
+                != [_tool_call_contract(c) for c in sent.get('tool_calls') or []]):
+            raise OwnershipConflict('Honcho driver changed prior native history or tool results')
 
 
 def permit(scope, project, body):
@@ -217,7 +267,8 @@ def check_prepared(rows,row):
     from .direct_accounting import stop_measured_admission
 
     proof = row['workflow_slot']['honcho_first_answer']
-    previous = [r for r in rows.values() if 'honcho_first_answer' in r['workflow_slot']]
+    previous = [r for r in rows.values() if 'honcho_first_answer' in r['workflow_slot']
+                and r['workflow_slot'].get('question_id')==row['workflow_slot'].get('question_id')]
     order = proof['tool_rounds']
     if len(previous) != len(order):
         stop_measured_admission('honcho_first_answer_duplicate_or_skipped')

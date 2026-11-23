@@ -80,7 +80,7 @@ def check_stops(campaign):
         raise RuntimeError('An applicable execution or account stop is active')
 
 
-def upload(root, scope, env):
+def upload(root, scope, env, index=0):
     import httpx
     from honcho import Honcho
     from honcho.api_types import SessionPeerConfig
@@ -88,7 +88,7 @@ def upload(root, scope, env):
 
     native = gate.runtime(root)
     host = native['host']
-    at = scope['plan'][0]['at']
+    at = scope['plan'][index]['at']
     with httpx.Client() as transport:
         client = Honcho(environment='local',base_url=env['HONCHO_BASE_URL'],
                         workspace_id=host['workspace'],max_retries=0,http_client=transport)
@@ -108,7 +108,7 @@ def upload(root, scope, env):
             return gate.finish(root,at)
         except CanaryBusy:
             if time.monotonic() >= deadline:
-                raise TimeoutError('Honcho stock first-release representation or embedding remains pending') from None
+                raise TimeoutError('Honcho stock daily representation or embedding remains pending') from None
             time.sleep(.3)
 
 
@@ -168,7 +168,7 @@ def cleanup_verified(root):
         time.sleep(.25)
 
 
-def run(campaign, checkpoint, plugin_home):
+def run(campaign, checkpoint, plugin_home, *, full_week=False):
     from provider_adapters.honcho_local import start
 
     check_stops(campaign)
@@ -178,13 +178,17 @@ def run(campaign, checkpoint, plugin_home):
         raise ValueError('Honcho needs an isolated, pinned, ordinary Luna runner')
     validate_recall_environment()
     verify_retained_catalog_provider('honcho',plugin_home)
-    root = campaign/RUN/'honcho'
+    if full_week:
+        from .honcho_week import RUN as run_name, answers as run_answers
+    else:
+        run_name,run_answers=RUN,ask
+    root = campaign/run_name/'honcho'
     key = os.environ['OPENROUTER_API_KEY']
     with os.fdopen(os.open(campaign/'execution.lock',os.O_RDWR|os.O_NOFOLLOW),'r+') as lock:
         fcntl.flock(lock,fcntl.LOCK_EX|fcntl.LOCK_NB)
         check_stops(campaign)
         if root.parent.exists():
-            raise RuntimeError('Retain the existing Honcho first-answer cohort without replay')
+            raise RuntimeError('Retain the existing Honcho cohort without replay')
         fetch_catalog(profile=capability.PROFILE)
         confirmation, raw, prepaid = read_prepaid_evidence(checkpoint,key)
         started = time.monotonic()
@@ -197,13 +201,17 @@ def run(campaign, checkpoint, plugin_home):
         manifest = gate.materialize_canonical_files(root/'frozen-documents')
         bound = gate.create(root,execution_lock=lock,session_id='pizza-week-source',canonical_manifest=manifest['path'],
                             manifest_sha256=manifest['sha256'],prepaid=prepaid,auto_recharge_evidence=confirmation,
-                            layout=gate.CANONICAL_LAYOUT,first_question=True)
+                            layout=gate.CANONICAL_LAYOUT,first_question=not full_week,week=full_week)
         settings = {capability.ENV:json.dumps(bound),JOURNAL:str(root/'receipts.jsonl'),COHORT_STOP:str(campaign/'ACCOUNT_STOP'),
                     'PACBENCH_STOP_FILE':str(root/'STOP'),'PACBENCH_DIRECT_STOP_ON_429':str(root/'STOP'),
                     'PACBENCH_ROLE_ROUTES':'luna-all-roles-v1','PACBENCH_LUNA_COMPATIBILITY':'temperature-omitted-default-v1',
                     'PACBENCH_EFFECTIVE_OUTPUT_TOKENS':'32768','PACBENCH_DISPATCH_TRACKING':CONDITION,
                     'PACBENCH_MEMORY_API_INPUT_TRACE_ROOT':str(root/'memory-api-inputs'),'PACBENCH_IMPORT_ROOT':str(root)}
-        result = dict(state='incomplete',question='rsvp-before',documents_verified=0,answers_received=0)
+        if full_week:
+            settings['PACBENCH_HONCHO_STOCK_WEEK']='1'
+        result = dict(state='incomplete',documents_verified=0,answers_received=0)
+        if not full_week:
+            result['question']='rsvp-before'
         with run_environment(settings):
             ledger = capability.budget()
             scope = capability.load()
@@ -224,7 +232,7 @@ def run(campaign, checkpoint, plugin_home):
                         result['source_ready'] = upload(root,scope,env)['sha256']
                         result['documents_verified'] = 1
                         result['source_records'] = len(scope['plan'][0]['source_ids'])
-                        ask(root,scope,env,marker,ledger,result)
+                        run_answers(root,scope,env,marker,ledger,result)
                     finally:
                         stop()
                         result['cleanup'] = 'owned-services-stopped' if cleanup_verified(root) else 'unverified'
@@ -233,13 +241,13 @@ def run(campaign, checkpoint, plugin_home):
                 verify_receipts({row['id']:row for row in rows})
                 if result['cleanup'] != 'owned-services-stopped' or not rows or not all(map(settled,rows)):
                     raise RuntimeError('Honcho qualification lacks cleanup or settled receipt evidence')
-                result['state'] = 'stock-first-answer-qualified'
+                result['state'] = 'stock-week-answers-complete' if full_week else 'stock-first-answer-qualified'
             except BaseException as exc:
                 result['failure_type'] = type(exc).__name__
                 raise
             finally:
                 rows = ledger.snapshot()
-                result['billing'] = receipt_summary(root,rows,RUN)
+                result['billing'] = receipt_summary(root,rows,run_name)
                 result['elapsed_seconds'] = time.monotonic()-started
                 atomic(root/'result.json',result)
     return result

@@ -288,6 +288,13 @@ processing={name:getattr(settings.DERIVER,name) for name in (
     'QUEUE_ERROR_RETENTION_SECONDS')}
 assert all(value==fields[name].default for name,value in processing.items())
 assert settings.LLM.DEFAULT_MAX_TOKENS==type(settings.LLM).model_fields['DEFAULT_MAX_TOKENS'].default
+week={}
+if os.environ.get('PACBENCH_HONCHO_STOCK_WEEK')=='1':
+    summary={name:getattr(settings.SUMMARY,name) for name in ('ENABLED','MESSAGES_PER_SHORT_SUMMARY','MESSAGES_PER_LONG_SUMMARY')}
+    dream={name:getattr(settings.DREAM,name) for name in ('ENABLED','IDLE_TIMEOUT_MINUTES','DOCUMENT_THRESHOLD')}
+    for section,values in ((settings.SUMMARY,summary),(settings.DREAM,dream)):
+        assert all(value==type(section).model_fields[name].default for name,value in values.items())
+    week={'summary':summary,'dream':dream}
 deriver_limit=settings.DERIVER.MODEL_CONFIG.max_output_tokens
 deriver_thinking=settings.DERIVER.MODEL_CONFIG.thinking_effort
 print(json.dumps({'native_defaults_verified':deriver_limit is None and deriver_thinking is None,
@@ -295,7 +302,7 @@ print(json.dumps({'native_defaults_verified':deriver_limit is None and deriver_t
                  'native_batching_defaults_verified':True,
                  'deriver_max_output_tokens':deriver_limit,'deriver_thinking_effort':deriver_thinking,
                  'deriver':processing,
-                 'llm_default_max_tokens':settings.LLM.DEFAULT_MAX_TOKENS}))
+                 'llm_default_max_tokens':settings.LLM.DEFAULT_MAX_TOKENS,**week}))
 '''
     child['PYTHONPATH']=str(source)+os.pathsep+str(Path(__file__).resolve().parents[1])
     from pacbench.openrouter_direct import runtime_environment

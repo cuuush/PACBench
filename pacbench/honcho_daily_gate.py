@@ -472,6 +472,22 @@ def _successful(scope, row, release, queue_id):
             and bool(row.get('finished')) and (not chat_enabled(scope) or settled(row)))
 
 
+def _source_completion(scope, rows, release, queue_id):
+    attempts=[row for row in rows.values() if row.get('workflow_slot',{}).get('honcho_daily_release')==release]
+    if (not attempts or not all(_successful(scope, row, release, queue_id) for row in attempts)
+            or attempts[-1].get('honcho_validation_rejection')):
+        return None
+    final=attempts[-1]
+    if len(attempts)==1:
+        return final if not final.get('retry_of') else None
+    if not scope.get('week_schedule') or len({row['upstream_request_id'] for row in attempts})!=len(attempts):
+        return None
+    from .honcho_week_retry import reserve_retry
+
+    previous=reserve_retry({row['id']:row for row in attempts[:-1]},final)
+    return final if previous and final.get('retry_of')==previous['id'] else None
+
+
 def _require_receipts(root, scope, completed):
     if not completed:
         return
@@ -480,7 +496,8 @@ def _require_receipts(root, scope, completed):
     with RunReceiptJournal(root / 'receipts.jsonl').journal() as (rows, _):
         for saved in completed:
             ready = saved['ready']
-            if not _successful(scope, rows.get(ready['attempt'], {}), ready['release'], saved['queue_id']):
+            final = _source_completion(scope, rows, ready['release'], saved['queue_id'])
+            if final is None or final['id'] != ready['attempt']:
                 raise GateError('Retained readiness lost its exact receipt attempt')
 
 
@@ -494,10 +511,10 @@ def finish(root, at):
         index, _, q, release = _check_release(root, scope, runtime(root), complete=True)
         if at != scope['plan'][index-1]['at']:
             raise GateError('Readiness cutoff differs from the sealed release')
-        matched = [r for r in rows.values() if r.get('workflow_slot',{}).get('honcho_daily_release') == release]
-        if len(matched) != 1 or not _successful(scope, matched[0], release, q['id']):
+        final = _source_completion(scope, rows, release, q['id'])
+        if final is None:
             raise GateError('Native completion lacks a matching finished generation attempt')
-        return _write(_read_stage(root, index, 'ready')[0], dict(release=release, attempt=matched[0]['id']))
+        return _write(_read_stage(root, index, 'ready')[0], dict(release=release, attempt=final['id']))
 
 
 def followup_ready(root, turn_id):
@@ -582,7 +599,8 @@ def _live(scope, slot=None):
         if slot is not None and slot!=expected:
             raise GateError('Honcho chat worker job changed before dispatch')
         return expected,dict(**witness,native_attempt=plan.attempt)
-    if not batch or telemetry.call_purpose!='deriver.representation' or plan.attempt!=1:
+    allowed_attempts = (1,2,3) if scope.get('week_schedule') else (1,)
+    if not batch or telemetry.call_purpose!='deriver.representation' or plan.attempt not in allowed_attempts:
         raise GateError('Only the exact native source representation may send')
     index, files, q, release = _check_release(root, scope, native)
     expected = dict(provider='honcho', kind='ingest', at=scope['plan'][index-1]['at'], honcho_daily_release=release)
@@ -605,7 +623,10 @@ def _live(scope, slot=None):
             or sorted(ctx.get('observers') or ()) != sorted(q['observers'])
             or len(messages) != len(observed) or latest['local_id'] not in observed or observed != target):
         raise GateError('Honcho native claim, trigger or model batch differs from the sealed upload')
-    return expected, dict(queue_id=q['id'], claim=owner.aqs_id, trace=telemetry.trace_id)
+    witness = dict(queue_id=q['id'], claim=owner.aqs_id, trace=telemetry.trace_id)
+    if scope.get('week_schedule'):
+        witness['native_attempt'] = plan.attempt
+    return expected, witness
 
 
 def admission(scope, project, profile, body):
@@ -656,10 +677,11 @@ def bind_attempt(row):
 def confirm_sender(row):
     from .workflow_capability import load
 
-    _, now = _live(load(), row['workflow_slot'])
+    scope = load()
+    _, now = _live(scope, row['workflow_slot'])
     if any(row['honcho_daily_attempt'][key] != value for key,value in now.items()):
         raise GateError('Honcho native claim changed after reservation')
-    if row['workflow_slot'].get('honcho_chat_work'):
+    if scope.get('week_schedule'):
         from .honcho_week_retry import mark_physical_send
 
         mark_physical_send(row)

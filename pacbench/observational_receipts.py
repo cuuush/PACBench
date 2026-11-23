@@ -163,11 +163,11 @@ class ObservedBudget:
    if honcho_daily or honcho_chat:
     from .honcho_daily_gate import bind_attempt
     bind_attempt(row)
-    if honcho_chat:
+    if honcho_chat or row['honcho_daily_attempt'].get('native_attempt',1)>1:
      from .honcho_first_answer_admission import verify_receipts
-     from .honcho_week_retry import reserve_chat_retry
+     from .honcho_week_retry import reserve_retry
      verify_receipts(rows)
-     honcho_retry=reserve_chat_retry(rows,row)
+     honcho_retry=reserve_retry(rows,row)
    elif honcho_answer:
     from .honcho_first_answer_admission import check_prepared,verify_receipts
     verify_receipts(rows)

@@ -1,4 +1,4 @@
-"""Admit stock chat-deriver retries after an observed, settled output rejection."""
+"""Admit stock representation retries after an observed, settled output rejection."""
 from contextvars import ContextVar
 from functools import wraps
 from hashlib import sha256
@@ -6,9 +6,36 @@ from hashlib import sha256
 from .dispatch_ownership import OwnershipConflict
 from .honcho_first_answer_admission import settled
 
-_physical_send = ContextVar('honcho_week_chat_representation_send',default=None)
+_physical_send = ContextVar('honcho_week_representation_send',default=None)
 PURPOSE = 'deriver.representation'
 REJECTION = 'stock-prompt-representation-truncated-and-unparseable-v1'
+SOURCE_REJECTION = 'stock-daily-prompt-representation-truncated-and-empty-v1'
+EMPTY_SHA256 = sha256(b'').hexdigest()
+
+
+def _reason(slot):
+    if slot.get('honcho_daily_release'):
+        return SOURCE_REJECTION
+    if slot.get('honcho_chat_work',{}).get('purpose')==PURPOSE:
+        return REJECTION
+    return None
+
+
+def _rejection(row):
+    """Build the exact proof a matched native parser failure is allowed to record."""
+    reason=_reason(row['workflow_slot'])
+    evidence=row.get('response_validation',{})
+    if not reason or not settled(row) or evidence['finish_reasons']!=['length']:
+        return None
+    digest=evidence.get('assistant_text_sha256')
+    if reason==SOURCE_REJECTION:
+        if (digest!=EMPTY_SHA256 or evidence.get('assistant_text_characters')!=0
+                or evidence.get('tool_call_fragments')!=0):
+            return None
+    elif not digest or digest==EMPTY_SHA256:
+        return None
+    return dict(reason=reason,request_sha256=row['request_sha256'],response_sha256=digest,
+                upstream_request_id=row['upstream_request_id'],native_attempt=row['honcho_daily_attempt']['native_attempt'])
 
 
 def watch(original):
@@ -23,10 +50,13 @@ def watch(original):
         try:
             return await original(*args,**kwargs)
         except StructuredOutputError as error:
-            if (len(sent)==1 and kwargs.get('response_model') is PromptRepresentation
-                    and str(error).startswith('PromptRepresentation structured output failed failure_class=ValidationError ')
-                    and isinstance(error.raw_content,str) and error.raw_content):
-                record_rejection(sent[0],sha256(error.raw_content.encode()).hexdigest())
+            if len(sent)==1 and kwargs.get('response_model') is PromptRepresentation:
+                prefix='PromptRepresentation structured output failed failure_class='
+                if error.raw_content=='' and str(error).startswith(prefix+'ValueError '):
+                    record_rejection(sent[0],EMPTY_SHA256,SOURCE_REJECTION)
+                elif (isinstance(error.raw_content,str) and error.raw_content
+                      and str(error).startswith(prefix+'ValidationError ')):
+                    record_rejection(sent[0],sha256(error.raw_content.encode()).hexdigest(),REJECTION)
             raise
         finally:
             _physical_send.reset(token)
@@ -36,54 +66,57 @@ def watch(original):
 
 def mark_physical_send(row):
     sent=_physical_send.get()
-    if row['workflow_slot'].get('honcho_chat_work',{}).get('purpose')==PURPOSE:
+    if _reason(row['workflow_slot']):
         if sent is None or sent:
-            raise OwnershipConflict('Honcho chat representation has no unique native executor send')
+            raise OwnershipConflict('Honcho representation has no unique native executor send')
         sent.append(row['id'])
 
 
-def record_rejection(ident,payload_sha256):
+def record_rejection(ident,payload_sha256,reason):
     from .honcho_daily_gate import _live
     from .workflow_capability import budget,load
 
     scope=load()
     with budget().journal() as (rows,append):
         row=rows[ident]
-        native=row['honcho_daily_attempt']
-        evidence=row['response_validation']
-        if (not scope.get('week_schedule') or row['workflow_slot']['honcho_chat_work']['purpose']!=PURPOSE
-                or not settled(row) or evidence['finish_reasons']!=['length']
-                or evidence['assistant_text_sha256']!=payload_sha256 or row.get('honcho_validation_rejection')):
+        proof=_rejection(row)
+        if (not scope.get('week_schedule') or not proof or proof['reason']!=reason
+                or proof['response_sha256']!=payload_sha256 or row.get('honcho_validation_rejection')):
             return
         _,current=_live(scope,row['workflow_slot'])
-        if any(native[key]!=value for key,value in current.items()):
+        if any(row['honcho_daily_attempt'][key]!=value for key,value in current.items()):
             raise OwnershipConflict('Honcho queue claim changed before its native validation rejection')
-        append('validation_rejection',ident,dict(honcho_validation_rejection=dict(
-            reason=REJECTION,request_sha256=row['request_sha256'],response_sha256=payload_sha256,
-            upstream_request_id=row['upstream_request_id'],native_attempt=native['native_attempt'])))
+        append('validation_rejection',ident,dict(honcho_validation_rejection=proof))
 
 
-def reserve_chat_retry(rows,row):
+def reserve_retry(rows,row):
     """Return one exact predecessor for a stock retry. Reject replay and changed batches."""
-    job=row['workflow_slot']['honcho_chat_work']
+    slot=row['workflow_slot']
     native=row['honcho_daily_attempt']
     number=native['native_attempt']
-    prior=[r for r in rows.values() if (old:=r['workflow_slot'].get('honcho_chat_work'))
-           and old['purpose']==job['purpose'] and set(old['queue_ids'])&set(job['queue_ids'])]
+    if release:=slot.get('honcho_daily_release'):
+        prior=[r for r in rows.values() if r['workflow_slot'].get('honcho_daily_release')==release]
+        claim_keys=('queue_id','claim','trace')
+    else:
+        job=slot['honcho_chat_work']
+        prior=[r for r in rows.values() if (old:=r['workflow_slot'].get('honcho_chat_work'))
+               and old['purpose']==job['purpose'] and set(old['queue_ids'])&set(job['queue_ids'])]
+        claim_keys=('queue_ids','claim','trace')
     if not prior and number==1:
         return None
-    if job['purpose']!=PURPOSE or number not in (2,3) or len(prior)!=number-1:
-        raise OwnershipConflict('Honcho chat retry is outside its observed stock attempt sequence')
+    if not _reason(slot) or number not in (2,3) or len(prior)!=number-1:
+        raise OwnershipConflict('Honcho representation retry is outside its observed stock attempt sequence')
+    parent=None
+    generations=set()
     for ordinal,old in enumerate(prior,1):
         earlier=old['honcho_daily_attempt']
-        proof=old.get('honcho_validation_rejection',{})
-        if (old['workflow_slot']!=row['workflow_slot'] or old['dispatch_owner']!=row['dispatch_owner']
-                or old['request_sha256']!=row['request_sha256'] or not settled(old)
-                or old['response_validation']['finish_reasons']!=['length']
-                or any(earlier[key]!=native[key] for key in ('queue_ids','claim','trace'))
-                or earlier['native_attempt']!=ordinal
-                or proof!=dict(reason=REJECTION,request_sha256=row['request_sha256'],
-                              response_sha256=old['response_validation']['assistant_text_sha256'],
-                              upstream_request_id=old['upstream_request_id'],native_attempt=ordinal)):
-            raise OwnershipConflict('Honcho chat retry lacks a settled, unmodified native validation rejection')
+        proof=_rejection(old)
+        if (any(old.get(key)!=row.get(key) for key in ('workflow_slot','workflow_capability',
+                'workflow_root','project','dispatch_owner','request_sha256'))
+                or any(earlier[key]!=native[key] for key in claim_keys) or earlier['native_attempt']!=ordinal
+                or old.get('retry_of')!=parent or not proof or old.get('honcho_validation_rejection')!=proof
+                or old['upstream_request_id'] in generations):
+            raise OwnershipConflict('Honcho representation retry lacks a settled, unchanged native validation rejection')
+        generations.add(old['upstream_request_id'])
+        parent=old['id']
     return prior[-1]

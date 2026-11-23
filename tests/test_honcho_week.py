@@ -1,12 +1,16 @@
 from copy import deepcopy
+from hashlib import sha256
 
 import pytest
 
 from pacbench import honcho_week_state as week
+from pacbench.canary_capability import binding
 from pacbench.dispatch_ownership import OwnershipConflict
+from pacbench.honcho_daily_gate import _source_completion
 from pacbench.honcho_first_answer_admission import check_prepared, verify_prior
 from pacbench.honcho_week import RUN, cohort_name
-from pacbench.honcho_week_retry import REJECTION, reserve_chat_retry
+from pacbench.honcho_week_retry import REJECTION, SOURCE_REJECTION, reserve_retry
+from pacbench.live_dispatch import operation_id
 
 
 def test_cohort_label_keeps_the_protocol_prefix_and_rejects_paths():
@@ -57,24 +61,94 @@ def test_new_question_may_open_once_after_a_settled_predecessor():
         check_prepared({'prior':earlier,'replay':current},current)
 
 
-def test_native_chat_retry_needs_unchanged_claim_request_and_verified_failed_output():
+@pytest.fixture(params=('source','chat'))
+def rejected_representation(request):
+    source=request.param=='source'
+    response=sha256(b'' if source else b'truncated content').hexdigest()
+    slot={'honcho_daily_release':{'sha256':'daily-release'}} if source else {
+        'honcho_chat_work':{'queue_ids':[3,5],'purpose':'deriver.representation'}}
+    queue={'queue_id':43} if source else {'queue_ids':[3,5]}
     earlier=dict(id='request-1',state='settled',http_status=200,dispatch_execution='response_ended',
         response_body_complete=True,served_model='openai/gpt-6-luna',served_provider='Amazon Bedrock',
         billing_receipt={'proof':True},upstream_request_id='generation-1',request_sha256='request',
-        dispatch_owner={'pid':7},response_validation={'finish_reasons':['length'],'assistant_text_sha256':'response'},
-        workflow_slot={'honcho_chat_work':{'queue_ids':[3,5],'purpose':'deriver.representation'}},
-        honcho_daily_attempt={'claim':'owned','trace':'native-trace','queue_ids':[3,5],'native_attempt':1},
-        honcho_validation_rejection=dict(reason=REJECTION,request_sha256='request',response_sha256='response',
+        dispatch_owner={'pid':7},response_validation=dict(finish_reasons=['length'],assistant_text_sha256=response,
+            assistant_text_characters=0 if source else 17,tool_call_fragments=0),workflow_slot=slot,
+        honcho_daily_attempt=dict(claim='owned',trace='native-trace',native_attempt=1,**queue),
+        honcho_validation_rejection=dict(reason=SOURCE_REJECTION if source else REJECTION,
+                                        request_sha256='request',response_sha256=response,
                                         upstream_request_id='generation-1',native_attempt=1))
-    retry=deepcopy(earlier)
+    return earlier
+
+
+def test_native_retry_needs_unchanged_claim_request_and_verified_failed_output(rejected_representation):
+    earlier=rejected_representation
+    retry={**deepcopy(earlier),'id':'request-2'}
     retry['honcho_daily_attempt']['native_attempt']=2
-    assert reserve_chat_retry({'request-1':earlier},retry)==earlier
+    assert reserve_retry({'request-1':earlier},retry)==earlier
     for changed in ({'state':'receipt_missing'},{'honcho_validation_rejection':{}},
-                    {'dispatch_execution':'ambiguous'},{'request_sha256':'foreign'}):
+                    {'dispatch_execution':'ambiguous'},{'request_sha256':'foreign'},
+                    {'workflow_capability':{'sha256':'wrong-scope'}},
+                    {'response_validation':{**earlier['response_validation'],'finish_reasons':['stop']}}):
         with pytest.raises(OwnershipConflict):
-            reserve_chat_retry({'request-1':{**earlier,**changed}},retry)
+            reserve_retry({'request-1':{**earlier,**changed}},retry)
     retry['honcho_daily_attempt']['claim']='new-worker'
     with pytest.raises(OwnershipConflict):
-        reserve_chat_retry({'request-1':earlier},retry)
+        reserve_retry({'request-1':earlier},retry)
     with pytest.raises(OwnershipConflict):
-        reserve_chat_retry({'request-1':earlier},earlier)
+        reserve_retry({'request-1':earlier},earlier)
+
+
+def test_native_third_attempt_requires_distinct_linked_receipts_and_is_final(rejected_representation):
+    first=rejected_representation
+    second={**deepcopy(first),'id':'request-2','retry_of':'request-1','upstream_request_id':'generation-2'}
+    second['honcho_daily_attempt']['native_attempt']=2
+    second['honcho_validation_rejection'].update(upstream_request_id='generation-2',native_attempt=2)
+    third={**deepcopy(first),'id':'request-3'}
+    third['honcho_daily_attempt']['native_attempt']=3
+    rows={row['id']:row for row in (first,second)}
+    assert reserve_retry(rows,third)==second
+    for patch in ({'retry_of':'other'},{'upstream_request_id':'generation-1',
+                    'honcho_validation_rejection':{**second['honcho_validation_rejection'],
+                                                   'upstream_request_id':'generation-1'}}):
+        with pytest.raises(OwnershipConflict):
+            reserve_retry({**rows,'request-2':{**second,**patch}},third)
+    third['honcho_daily_attempt']['native_attempt']=4
+    with pytest.raises(OwnershipConflict):
+        reserve_retry(rows,third)
+
+
+@pytest.mark.parametrize('rejected_representation',('source',),indirect=True)
+def test_daily_retry_cannot_use_a_nonempty_or_tool_response_as_its_empty_rejection(rejected_representation):
+    first=rejected_representation
+    retry=deepcopy(first)
+    retry['honcho_daily_attempt']['native_attempt']=2
+    for patch in ({'assistant_text_characters':1},{'tool_call_fragments':1}):
+        with pytest.raises(OwnershipConflict):
+            reserve_retry({first['id']:{**first,'response_validation':{**first['response_validation'],**patch}}},retry)
+
+
+@pytest.mark.parametrize('rejected_representation',('source',),indirect=True)
+def test_daily_ready_binds_the_successful_receipt_at_the_tail_of_the_stock_chain(tmp_path,rejected_representation):
+    path=tmp_path/'workflow-scope.json'
+    path.write_text('{}')
+    scope=dict(root=str(tmp_path),projects={'honcho':{'memory':'test-memory'}},week_schedule=True)
+    first=rejected_representation
+    release=first['workflow_slot']['honcho_daily_release']
+    first.update(workflow_root=str(tmp_path),workflow_capability=binding(path),project='test-memory',finished='yes')
+    first['dispatch_context']={'operation_id':operation_id(first)}
+    rows={first['id']:first}
+    assert _source_completion(scope,rows,release,43) is None
+
+    # Stock accepted a length-finished, nonempty representation on the first release.
+    normal=deepcopy(first)
+    del normal['honcho_validation_rejection']
+    normal['response_validation'].update(assistant_text_sha256=sha256(b'accepted').hexdigest(),
+                                         assistant_text_characters=len('accepted'))
+    assert _source_completion(scope,{normal['id']:normal},release,43)==normal
+
+    final={**deepcopy(normal),'id':'request-2','retry_of':first['id'],'upstream_request_id':'generation-2'}
+    final['honcho_daily_attempt']['native_attempt']=2
+    final['response_validation']['finish_reasons']=['stop']
+    assert _source_completion(scope,{**rows,final['id']:final},release,43)==final
+    assert _source_completion(scope,{**rows,final['id']:{**final,'retry_of':'different'}},release,43) is None
+    assert _source_completion(scope,{**rows,final['id']:{**final,'upstream_request_id':'generation-1'}},release,43) is None

@@ -569,18 +569,20 @@ def _live(scope, slot=None):
     if (not owner or manager.worker_ownership.get(worker_id) is not owner
             or owner.work_unit_key != unit or not owner.aqs_id or not telemetry or not plan
             or not telemetry.trace_id
-            or telemetry.step_seq != 0 or plan.attempt != 1 or plan.is_fallback):
+            or telemetry.step_seq != 0 or plan.is_fallback):
         raise GateError('Missing first-send ownership or unsupported Honcho call purpose')
     if scope.get('week_schedule') and unit.split(':')[2:3] != [scope['session']]:
         from .honcho_week_capture import native_batch
 
         if telemetry.call_purpose not in ('deriver.representation','summary.short','summary.long'):
             raise GateError('Unsupported stock Honcho Week worker inference purpose')
+        if plan.attempt!=1 and (telemetry.call_purpose!='deriver.representation' or plan.attempt not in (2,3)):
+            raise GateError('Only an exact stock chat representation can request a validated retry')
         expected,witness=native_batch(scope,native,telemetry,batch,unit,owner.aqs_id)
         if slot is not None and slot!=expected:
             raise GateError('Honcho chat worker job changed before dispatch')
-        return expected,witness
-    if not batch or telemetry.call_purpose!='deriver.representation':
+        return expected,dict(**witness,native_attempt=plan.attempt)
+    if not batch or telemetry.call_purpose!='deriver.representation' or plan.attempt!=1:
         raise GateError('Only the exact native source representation may send')
     index, files, q, release = _check_release(root, scope, native)
     expected = dict(provider='honcho', kind='ingest', at=scope['plan'][index-1]['at'], honcho_daily_release=release)
@@ -657,6 +659,10 @@ def confirm_sender(row):
     _, now = _live(load(), row['workflow_slot'])
     if any(row['honcho_daily_attempt'][key] != value for key,value in now.items()):
         raise GateError('Honcho native claim changed after reservation')
+    if row['workflow_slot'].get('honcho_chat_work'):
+        from .honcho_week_retry import mark_physical_send
+
+        mark_physical_send(row)
 
 
 def worker(source):
@@ -706,7 +712,12 @@ def worker(source):
             or embed.overrides.provider_params):
         raise GateError('Unqualified native scheduler or local embedder')
     manager = queue_manager.QueueManager
-    inner = observe(api.honcho_llm_call_inner, _executor, executor)
+    native_call=api.honcho_llm_call_inner
+    if scope.get('week_schedule'):
+        from .honcho_week_retry import watch
+
+        native_call=watch(native_call)
+    inner = observe(native_call, _executor, executor)
     with ExitStack() as stack:
         for module in (api, tool_loop):
             stack.enter_context(patch.object(module,'honcho_llm_call_inner',inner))

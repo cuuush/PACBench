@@ -157,6 +157,7 @@ class ObservedBudget:
    honcho_answer=row.get('workflow_slot',{}).get('honcho_first_answer')
    honcho_peer=row.get('workflow_slot',{}).get('honcho_peer_read')
    honcho_chat=row.get('workflow_slot',{}).get('honcho_chat_work')
+   honcho_retry=None
    from .direct_http import _native_http_request
    original=_native_http_request.get()
    if honcho_daily or honcho_chat:
@@ -164,10 +165,9 @@ class ObservedBudget:
     bind_attempt(row)
     if honcho_chat:
      from .honcho_first_answer_admission import verify_receipts
+     from .honcho_week_retry import reserve_chat_retry
      verify_receipts(rows)
-     if any(old['purpose']==honcho_chat['purpose'] and set(old['queue_ids'])&set(honcho_chat['queue_ids'])
-            for previous in rows.values() if (old:=previous['workflow_slot'].get('honcho_chat_work'))):
-      raise OwnershipConflict('No replay or changed batch for a scoped Honcho chat job')
+     honcho_retry=reserve_chat_retry(rows,row)
    elif honcho_answer:
     from .honcho_first_answer_admission import check_prepared,verify_receipts
     verify_receipts(rows)
@@ -182,7 +182,13 @@ class ObservedBudget:
    operation=row['dispatch_context']['operation_id']
    previous=(rows.previous(project,operation) if indexed else
              [r for r in rows.values() if r['project']==project and r.get('dispatch_context',{}).get('operation_id')==operation])
-   if previous:
+   if honcho_retry is not None:
+    if not previous or previous[-1]['id']!=honcho_retry['id']:
+     raise OwnershipConflict('Honcho native validation retry belongs to a different operation')
+    row['retry_of']=honcho_retry['id']
+    row['retry_reason']='stock_honcho_representation_validation_rejection'
+    row['dispatch_context']['attempt_number']=row['honcho_daily_attempt']['native_attempt']
+   elif previous:
     if honcho_daily or honcho_answer or honcho_peer or honcho_chat:raise OwnershipConflict('No automatic replay of a scoped Honcho request')
     grant=json.loads(os.environ.get('PACBENCH_JUDGE_OUTPUT_RECOVERY','{}'))
     lost_output=(project.endswith('-judge') and len(previous)==1 and grant.get('attempt_id')==previous[0]['id'] and previous[0].get('state')=='settled' and grant.get('reason')=='model_recorder_failed_before_saving_judgment')

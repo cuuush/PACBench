@@ -7,7 +7,7 @@ import json
 import os
 from pathlib import Path
 
-from .canary_capability import sha
+from .canary_capability import digest, sha
 from .dispatch_ownership import OwnershipConflict
 from .live_dispatch import CONDITION, process_identity
 from .observational_receipts import COHORT_STOP, RunReceiptJournal
@@ -15,6 +15,7 @@ from .openrouter_route import validate_request
 from .supermemory_question_admission import PROTOCOL, check_driver_rounds, driver_slot, projects, terminal_response
 from .supermemory_source_admission import PROFILE, PROVIDER, check_lock, physical_effect
 from .supermemory_source_effect import BOUNDARY
+from . import supermemory_explicit_store as explicit
 from . import supermemory_worker_chunks as chunks
 from . import supermemory_worker_rounds as rounds
 from .workflow_progress import WorkflowProgress
@@ -43,6 +44,8 @@ def validate(scope, bound):
             or scope['namespace'] != f'supermemory-data-{WEEK_RUN}-{PROVIDER}' or scope['native_effect'] != BOUNDARY
             or scope['worker_round_protocol'] != rounds.PROTOCOL
             or scope['chunk_read_protocol'] != chunks.PROTOCOL
+            or scope['explicit_store_protocol'] != explicit.PROTOCOL
+            or os.environ.get(explicit.ENV) != explicit.PROTOCOL
             or os.environ.get('PACBENCH_SUPERMEMORY_STOCK_ROUNDS') != '1'
             or os.environ.get('PACBENCH_SUPERMEMORY_STOCK_CHUNKS') != '1'
             or os.environ.get('PACBENCH_STOP_FILE') != str(root / 'STOP')
@@ -114,9 +117,36 @@ def answer_slot(scope, body):
     start = json.loads(path.read_text())
     if path.resolve() != path or start['claim'] != claim:
         raise OwnershipConflict('Supermemory question observation belongs to a different durable operation')
-    return {**driver_slot(scope, body, turn, prior=prior, cursor=start['cursor'],
+    slot = {**driver_slot(scope, body, turn, prior=prior, cursor=start['cursor'],
                           prefix=[d.filename for d in expected], public_prompts=public_prompts, documents=plan()[0]),
             'supermemory_week_claim': claim}
+    slot['explicit_store_ids'] = explicit.match_driver(scope, slot, body)
+    return slot
+
+
+def explicit_slot(scope, effect, root, body, round_evidence):
+    path = root / 'explicit-ready' / f'{effect.document_id}.json'
+    entry = explicit.read_store(root, effect.document_id, scope['namespace'])
+    if not path.is_file() or path.resolve() != path:
+        raise OwnershipConflict('Supermemory explicit document lacks its verified first native revision')
+    ready = json.loads(path.read_text())
+    if (ready['store_sha256'] != digest(entry) or ready['native_id'] != effect.document_id
+            or ready['chunk_anchor']['revision'] != 1):
+        raise OwnershipConflict('Supermemory explicit native readiness changed')
+    with progress_reader(scope) as progress:
+        verified = progress.get_verified(entry['question_id'])
+        if verified is not None:
+            if ready not in verified[1]['write_barrier']['explicit_writes']:
+                raise OwnershipConflict('Supermemory explicit document differs from its committed tool turn')
+        else:
+            row = progress.db.execute('SELECT attempt_id FROM effects WHERE phase=? AND op_key=?',
+                                      ('answer', entry['question_id'])).fetchone()
+            if row is None or row[0] != entry['claim']['attempt_id']:
+                raise OwnershipConflict('Supermemory explicit worker lacks its durable answer operation')
+    witness = chunks.read_witness(effect, round_evidence['visit'])
+    anchor = dict(question_id=entry['question_id'], readback=ready)
+    reads = chunks.verify_reads(witness, [anchor], round_evidence, body)
+    return dict(kind='background', explicit_store_question_id=entry['question_id'], chunk_reads=reads)
 
 
 def capture_slot(scope, effect, root, body, round_evidence):
@@ -172,6 +202,8 @@ def memory_slot(scope, body=None):
                                         cutoff=doc.cutoff, namespace=scope['namespace']):
             raise OwnershipConflict('Supermemory update lacks its exact accepted source document')
         slot = dict(kind='ingest', batch_id=doc.cutoff)
+    elif (root / 'explicit-adds' / f'{ident}.json').is_file():
+        slot = explicit_slot(scope, effect, root, body, round_evidence)
     else:
         slot = capture_slot(scope, effect, root, body, round_evidence)
     slot = dict(provider=PROVIDER, stock_source_effect=effect_fields, **slot)

@@ -56,7 +56,7 @@ def _options(deadline):
     return {'timeout': min(10, remaining), 'max_retries': 0}
 
 
-def verify_release_inventory(client, namespace, expected_ids, *, deadline):
+def verify_release_inventory(client, namespace, expected_ids, *, deadline, on_rejection=None):
     """Require the exact namespace inventory, including previously witnessed IDs."""
     expected = set(expected_ids)
     if not namespace or len(expected) != len(expected_ids):
@@ -67,14 +67,19 @@ def verify_release_inventory(client, namespace, expected_ids, *, deadline):
         result = _wire(client.list(namespace, 'documents', page=page, limit=100,
                                    sort='createdAt', order='asc', request_options=_options(deadline)))
         _options(deadline)
-        pagination = result['pagination']
-        rows = result['documents']
-        ids = {row['id'] for row in rows}
-        if (pagination['currentPage'] != page or pagination['totalItems'] != len(expected)
-                or pagination['totalPages'] not in ({pages} if expected else {0, 1})
-                or len(rows) != min(100, len(expected) - len(seen))
-                or len(ids) != len(rows) or seen & ids or not ids <= expected):
-            raise ValueError('unexpected documents in Supermemory namespace')
+        try:
+            pagination = result['pagination']
+            rows = result['documents']
+            ids = {row['id'] for row in rows}
+            if (pagination['currentPage'] != page or pagination['totalItems'] != len(expected)
+                    or pagination['totalPages'] not in ({pages} if expected else {0, 1})
+                    or len(rows) != min(100, len(expected) - len(seen))
+                    or len(ids) != len(rows) or seen & ids or not ids <= expected):
+                raise ValueError('unexpected documents in Supermemory namespace')
+        except (KeyError, TypeError, ValueError):
+            if on_rejection is not None:
+                on_rejection('v5', expected, result)
+            raise
         seen.update(ids)
 
 
@@ -91,7 +96,7 @@ def wait_for_batch_processing(client, namespace, documents, acknowledgements, *,
 
 
 def read_release_processing(client, namespace, documents, *, deadline, other_ids=(),
-                            before_read=None, native_readback=None):
+                            before_read=None, native_readback=None, on_rejection=None):
     """Read processing state and content for one exact release without doing an add."""
     expected = {doc.filename: doc for doc in documents}
     if (not namespace or not expected or len(expected) != len(documents)
@@ -144,6 +149,7 @@ def read_release_processing(client, namespace, documents, *, deadline, other_ids
             time.sleep(min(0.5, _options(deadline)['timeout']))
     if before_read is not None:
         before_read()
-    verify_release_inventory(client, namespace, (*other_ids, *expected), deadline=deadline)
+    verify_release_inventory(client, namespace, (*other_ids, *expected), deadline=deadline,
+                             on_rejection=on_rejection)
     return dict(condition='stock-document-processing-v1', namespace=namespace,
                 cutoff=documents[0].cutoff, documents=observed)

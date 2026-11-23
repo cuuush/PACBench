@@ -11,11 +11,12 @@ import sqlite3
 from tempfile import TemporaryDirectory
 import time
 from types import SimpleNamespace
+from uuid import uuid4
 from urllib.parse import quote
 from urllib.request import Request
 
 from . import harness, workflow_capability as cap
-from .canary_capability import binding, sha
+from .canary_capability import binding, digest, sha
 from .catalog_plugins import verify_retained_catalog_provider
 from .checkpoint_clock import CheckpointClock, atomic
 from .context_isolation import validate_recall_environment
@@ -32,11 +33,14 @@ from .provider_loader import provider_module
 from .supermemory_question_admission import PROTOCOL, projects, terminal_response
 from .supermemory_source_admission import BINARY_SHA, PROFILE, PROVIDER
 from .supermemory_source_effect import BOUNDARY, NATIVE_ID
+from . import supermemory_explicit_store as explicit
 from .supermemory_source_qualify import account_lock, check_runtime, check_stops, verify_prepaid
 from .supermemory_week_admission import SCOPE, WEEK_RUN, plan, prepare_driver, verified_final_response
 from .supermemory_worker_rounds import PROTOCOL as WORKER_ROUND_PROTOCOL
 from .supermemory_worker_chunks import PROTOCOL as CHUNK_READ_PROTOCOL, capture_anchor
-from .supermemory_week_observation import PENDING, read_release_processing, verify_native_version, verify_release_inventory
+from .supermemory_week_observation import (
+    PENDING, read_release_processing, stock_temporal_metadata, verify_native_version, verify_release_inventory,
+)
 from .workflow_memcal_live import run_environment
 from .workflow_native import NativeAccount, WarmHermes
 from .workflow_receipts import receipt_summary
@@ -53,6 +57,7 @@ class StockWeekWitness:
         self.setup = json.loads((root / 'native-server-setup.json').read_text())
         self.documents = plan()[0]
         self.accepted, self.ready, self.captures = {}, {}, {}
+        self.explicit_writes = {}
         self.cutoff, self.batch = None, ()
         with run_environment({'HERMES_HOME': str(owner.home)}):
             self.plugin = provider_module(PROVIDER)
@@ -67,16 +72,80 @@ class StockWeekWitness:
             return json.load(response)
 
     def catalog(self, expected):
+        expected = set(expected)
         result = self.read_native('/v3/documents/list', dict(containerTags=[self.namespace], includeContent=False,
                                   page=1, limit=100))
-        rows, page = result['memories'], result['pagination']
-        by_public = {row['customId']: row for row in rows}
-        native_ids = {row['id'] for row in rows}
-        if (len(by_public) != len(rows) or len(native_ids) != len(rows) or by_public.keys() != set(expected)
-                or page['currentPage'] != 1 or page['totalPages'] not in ({1} if rows else {0, 1})
-                or any(row['containerTags'] != [self.namespace] or not NATIVE_ID.fullmatch(row['id']) for row in rows)):
-            raise ValueError('Supermemory authenticated inventory differs from the exact released and captured documents')
+        try:
+            rows, page = result['memories'], result['pagination']
+            native_ids = {row['id'] for row in rows}
+            explicit_ids = set(self.explicit_writes)
+            by_public = {row['customId']: row for row in rows if row['id'] not in explicit_ids}
+            if (len(by_public) + len(explicit_ids) != len(rows) or len(native_ids) != len(rows)
+                    or by_public.keys() != expected or not explicit_ids <= native_ids
+                    or page['currentPage'] != 1 or page['totalPages'] not in ({1} if rows else {0, 1})
+                    or any(row['containerTags'] != [self.namespace] or not NATIVE_ID.fullmatch(row['id']) for row in rows)
+                    or any(row.get('customId') is not None for row in rows if row['id'] in explicit_ids)):
+                raise ValueError('Supermemory authenticated inventory differs from its exact source, capture and tool documents')
+        except (KeyError, TypeError, ValueError):
+            self.reject_inventory('v3', expected, result)
+            raise
         return by_public
+
+    def reject_inventory(self, api, expected, response):
+        explicit.write_once(self.root / 'inventory-rejections' / f'{uuid4().hex}.json',
+                            dict(api=api, namespace=self.namespace, expected=sorted(expected),
+                                 authorized_tool_ids=sorted(self.explicit_writes), response=response))
+
+    def register_tool_documents(self, ids):
+        proofs = []
+        for identifier in ids:
+            if (identifier in self.explicit_writes or identifier in self.accepted.values()
+                    or any(entry['native_id'] == identifier for entry in self.captures.values())):
+                raise ValueError('Supermemory store reused a known native document identity')
+            entry = explicit.read_store(self.root, identifier, self.namespace)
+            proof = self.read_tool_document(entry)
+            explicit.write_once(self.root / 'explicit-ready' / f'{identifier}.json', proof)
+            self.explicit_writes[identifier] = proof
+            proofs.append(proof)
+        return proofs
+
+    def read_tool_document(self, entry):
+        from supermemory import APITimeoutError
+
+        identifier = entry['native_id']
+        path = '/v3/documents/' + quote(identifier, safe='')
+        payload = entry['payload']
+        # The pinned v5 Add consumes sm_source as a routing field. Its absence
+        # from the native document does not remove it from the POST witness.
+        expected_metadata = {k: v for k, v in payload['metadata'].items() if k != 'sm_source'}
+        expected_metadata.update(stock_temporal_metadata(payload['date']))
+        document = SimpleNamespace(filename=None)
+        deadline = time.monotonic() + 60
+        while time.monotonic() < deadline:
+            check_stops(self.root.parent.parent)
+            try:
+                response = self.sdk.documents.get(
+                    self.namespace, identifier, include='chunks',
+                    request_options={'max_retries': 0, 'timeout': min(5, deadline - time.monotonic())})
+            except APITimeoutError:
+                continue  # Only the same idempotent read, within the existing deadline.
+            wire = response.model_dump(mode='json', by_alias=True)
+            state = wire['system']['status']
+            if wire['id'] != identifier or state not in PENDING | {'done'}:
+                raise ValueError('Supermemory tool-created native document failed or changed identity')
+            if state == 'done':
+                native = self.read_native(path)
+                if wire.get('content') != payload['content'] or native.get('metadata') != expected_metadata:
+                    self.reject_inventory('explicit-readback', [identifier], dict(native=native, wire=wire))
+                    raise ValueError('Supermemory tool-created document differs from the acknowledged payload')
+                anchor = capture_anchor(native, wire, self.read_native(path), document, native_id=identifier,
+                                        namespace=self.namespace)
+                if anchor['revision'] != 1:
+                    raise ValueError('Supermemory tool-created document is outside its initial revision')
+                return dict(native_id=identifier, status=state, store_sha256=digest(entry),
+                            question_id=entry['question_id'], tool_call_id=entry['tool_call_id'], chunk_anchor=anchor)
+            time.sleep(.25)
+        raise TimeoutError('Supermemory tool-created document did not finish native processing')
 
     def verify_deployment(self, condition, identity):
         verify_retained_catalog_provider(PROVIDER, self.owner.home)
@@ -93,7 +162,8 @@ class StockWeekWitness:
     def control_readback(self):
         idle = self.idle()
         self.catalog(())
-        verify_release_inventory(self.sdk, self.namespace, (), deadline=time.monotonic() + 10)
+        verify_release_inventory(self.sdk, self.namespace, (), deadline=time.monotonic() + 10,
+                                 on_rejection=self.reject_inventory)
         if idle['readback']['sessions']:
             raise ValueError('Supermemory Week did not start with an empty native Hermes account')
         return dict(account=str(self.root), chat_count=0, conversation_writes=0, source_files=[],
@@ -140,7 +210,8 @@ class StockWeekWitness:
                 return version
 
             proof = read_release_processing(self.sdk, self.namespace, self.batch, deadline=time.monotonic() + 180,
-                       other_ids=(*self.ready, *self.captures), native_readback=verify,
+                       other_ids=(*self.ready, *self.captures, *self.explicit_writes), native_readback=verify,
+                       on_rejection=self.reject_inventory,
                        before_read=lambda: check_stops(self.root.parent.parent))
             self.ready.update(proof['documents'])
         if acceptance['request']['native_id'] != self.accepted[doc.filename]:
@@ -155,7 +226,16 @@ class StockWeekWitness:
             raise ValueError('Supermemory source document identity changed before driver dispatch')
         if any(rows[name]['id'] != proof['native_id'] for name, proof in self.captures.items()):
             raise ValueError('Supermemory conversation ID changed')
-        verify_release_inventory(self.sdk, self.namespace, names, deadline=time.monotonic() + 10)
+        verify_release_inventory(self.sdk, self.namespace, [*names, *self.explicit_writes],
+                                 deadline=time.monotonic() + 10, on_rejection=self.reject_inventory)
+        for identifier, proof in self.explicit_writes.items():
+            current = self.read_native('/v3/documents/' + quote(identifier, safe=''))
+            anchor = proof['chunk_anchor']
+            if ((current.get('id'), current.get('customId'), current.get('containerTags'), current.get('status'),
+                 current.get('latestRevision'), current.get('activeContentUpdateId'))
+                    != (identifier, None, [self.namespace], 'done', anchor['revision'], anchor['publication'])):
+                self.reject_inventory('explicit-inventory', [identifier], current)
+                raise ValueError('Supermemory tool-created document changed since its verified version')
         evidence = [dict(name=d.filename, sha256=self.ready[d.filename]['sha256'], cutoff=d.cutoff)
                     for d in self.documents if d.filename in self.ready]
         atomic(self.root / 'ready-inventory.json', dict(namespace=self.namespace, sources=evidence))
@@ -188,15 +268,16 @@ class StockWeekWitness:
         raise TimeoutError('Supermemory native work did not drain with the chat open')
 
     def capture(self, sid, expected, *, anchor_chunks=False):
-        from supermemory import NotFoundError
+        from supermemory import APITimeoutError, NotFoundError
 
         public = self.plugin._capture_doc_id(sid)
         deadline = time.monotonic() + 60
         while time.monotonic() < deadline:
             check_stops(self.root.parent.parent)
             try:
-                response = self.sdk.documents.get(self.namespace, public, request_options={'max_retries': 0, 'timeout': 5})
-            except NotFoundError:
+                response = self.sdk.documents.get(
+                    self.namespace, public, request_options={'max_retries': 0, 'timeout': min(5, deadline - time.monotonic())})
+            except (NotFoundError, APITimeoutError):
                 time.sleep(.25)
                 continue
             wire = response.model_dump(mode='json', by_alias=True)
@@ -290,9 +371,11 @@ class StockWeekAccount(NativeAccount):
         reqs = [selected[r['request_id']] for r in trace['model_requests']]
         if not all(terminal_response(row) for row in reqs[:-1]) or not verified_final_response(reqs[-1], trace['answer']):
             raise ValueError('Supermemory final native answer or preceding tool response is unverified')
-        surface = super().observe_answer(trace)
-        readback = surface['write_barrier']['readback']
         slot = reqs[-1]['workflow_slot']
+        writes = self.witness.register_tool_documents(slot['explicit_store_ids'])
+        surface = super().observe_answer(trace)
+        surface['write_barrier']['explicit_writes'] = writes
+        readback = surface['write_barrier']['readback']
         history = self.witness.root / 'capture-membership' / readback['native_id']
         history.mkdir(mode=0o700, exist_ok=True)
         record = history / (str(readback['revision']) + '.json')
@@ -360,7 +443,8 @@ def run(campaign, checkpoint, plugin_home):
         confirmation, credit, prepaid = verify_prepaid(checkpoint, key)
         root.parent.mkdir(mode=0o700)
         root.mkdir(mode=0o700)
-        for name in ('prepaid-verification', 'source-membership', 'capture-membership', 'answer-admissions', 'fallback-home'):
+        for name in ('prepaid-verification', 'source-membership', 'capture-membership', 'answer-admissions',
+                     'explicit-tool-operations', 'explicit-adds', 'explicit-ready', 'inventory-rejections', 'fallback-home'):
             (root / name).mkdir(mode=0o700)
         credit_path = root / 'prepaid-verification' / (prepaid['receipt_sha256'] + '.private.json')
         with os.fdopen(os.open(credit_path, os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW, 0o600), 'wb') as stream:
@@ -368,7 +452,7 @@ def run(campaign, checkpoint, plugin_home):
         scope = dict(admission=SCOPE, protocol=PROTOCOL, root=str(root), provider=PROVIDER, run_id=WEEK_RUN, canary=False,
                      namespace=f'supermemory-data-{WEEK_RUN}-{PROVIDER}', contract=contract, frozen_inputs=basis,
                      native_effect=BOUNDARY, worker_round_protocol=WORKER_ROUND_PROTOCOL,
-                     chunk_read_protocol=CHUNK_READ_PROTOCOL, prepaid=prepaid,
+                     chunk_read_protocol=CHUNK_READ_PROTOCOL, explicit_store_protocol=explicit.PROTOCOL, prepaid=prepaid,
                      auto_recharge_evidence=confirmation, controller=process_identity(),
                      lock_fd=lock, projects=projects(root), spec_sha256=sha(SPEC))
         atomic(root / 'workflow-scope.json', scope)
@@ -377,7 +461,8 @@ def run(campaign, checkpoint, plugin_home):
                     'PACBENCH_DIRECT_STOP_ON_429': str(root / 'STOP'), 'PACBENCH_DISPATCH_TRACKING': CONDITION,
                     'PACBENCH_ROLE_ROUTES': 'luna-all-roles-v1', 'PACBENCH_LUNA_COMPATIBILITY': 'temperature-omitted-default-v1',
                     'PACBENCH_EFFECTIVE_OUTPUT_TOKENS': '32768', 'PACBENCH_SUPERMEMORY_STOCK_SOURCE': '1',
-                    'PACBENCH_SUPERMEMORY_STOCK_ROUNDS': '1', 'PACBENCH_SUPERMEMORY_STOCK_CHUNKS': '1'}
+                    'PACBENCH_SUPERMEMORY_STOCK_ROUNDS': '1', 'PACBENCH_SUPERMEMORY_STOCK_CHUNKS': '1',
+                    explicit.ENV: explicit.PROTOCOL}
         result = dict(state='incomplete', condition=SCOPE, cleanup='unverified', contract=contract)
         with run_environment(settings):
             ledger = cap.budget()

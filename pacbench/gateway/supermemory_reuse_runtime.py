@@ -4,6 +4,11 @@ from . import memos_reuse_runtime
 
 
 def main():
+    import os
+    from pacbench import supermemory_explicit_store as explicit
+
+    if os.environ.get(explicit.ENV) == explicit.PROTOCOL:
+        explicit.observe_gateway()
     previous=memos_reuse_runtime.provider_state
 
     def state(provider):

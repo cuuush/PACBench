@@ -44,6 +44,7 @@ def test_stock_sdk_add_and_readback_of_one_complete_day(tmp_path):
         witness.root, witness.namespace, witness.endpoint, witness.sdk = tmp_path, namespace, 'http://offline.invalid', client
         witness.documents, witness.batch, witness.cutoff = [doc], [doc], doc.cutoff
         witness.ready, witness.accepted, witness.captures = {}, {}, {}
+        witness.explicit_writes = {}
         witness.read_native = lambda path, body=None: (dict(memories=[db_row], pagination=dict(currentPage=1, totalPages=1))
                                                         if path.endswith('/list') else db_row)
         accepted = witness.acceptance(submit_document('supermemory', client.with_raw_response, namespace, doc), doc)

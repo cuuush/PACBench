@@ -1,50 +1,66 @@
 # Offline cohort regrading
 
-Plan every saved provider answer without listing cases:
+Verify the declared arms and plan every saved answer in one command.
 
 ```sh
-python -m pacbench.cohort_regrade /path/to/cohort.json --revision luna-explicit-criteria-v1
+python -m pacbench.cohort_regrade /path/to/cohort.json --revision luna-explicit-criteria-v1 --verify
 ```
 
-A single native workflow `run.json` is also accepted. Cohort schema:
+The default command, without `--verify`, prints the verified plan and fails on
+an invalid arm. With `--verify` it inspects every declared arm, reports missing
+or invalid inputs alongside verified ones, and exits nonzero if an arm fails
+verification. Coverage shows missing turns, incomplete native execution and
+any unavailable document readback evidence. The report contains no answer
+text or prompts.
+
+The cohort manifest lists retained arm manifests and their SHA-256 digests.
+Paths are relative to the cohort manifest. Use the provider ID recorded by the
+run. A single arm path works as input without a cohort wrapper.
 
 ```json
-{"schema":"pacbench-regrade-cohort-v1","runs":[
-  {"provider":"memcal","manifest":"memcal/workflow/run.json","sha256":"SHA256_OF_RUN_JSON"},
-  {"provider":"mem0","manifest":"mem0/workflow/run.json","sha256":"SHA256_OF_RUN_JSON"}
-]}
+{
+  "schema": "pacbench-regrade-cohort-v1",
+  "runs": [
+    {"provider": "memcal", "manifest": "memcal/workflow-scope.json", "sha256": "SHA256_OF_SCOPE"},
+    {"provider": "mem0", "manifest": "mem0/workflow/run.json", "sha256": "SHA256_OF_RUN_JSON"},
+    {"provider": "supermemory", "manifest": "supermemory/workflow/workflow.jsonl", "sha256": "SHA256_OF_LEGACY_JOURNAL"}
+  ]
+}
 ```
 
-Paths resolve relative to the cohort manifest. Each provider's complete registered
-turn plan, verified saved surfaces, content-addressed evidence and original grades
-come from its existing workflow progress store, opened read-only in one SQLite
-snapshot. No provider adapter is started. No model transport is imported or called.
-Unsupported export formats fail explicitly rather than guessing file names.
+- A current arm directory, `workflow-scope.json`, `result.json`, or
+  `workflow/run.json` locates its original `workflow.sqlite3` and
+  `workflow-artifacts/`. Keep the bound scope beside the workflow directory.
+  The document track uses the original `workflow/workflow.jsonl` for native
+  intake and readback evidence. An absent document journal is reported as
+  unavailable. An explicit result manifest must agree with its saved store.
+- An original, pre-SQLite `workflow.jsonl` supplies its own native condition,
+  schedule, verified answers and available original verdicts. Use the branch
+  with the original compiled spec if its digest differs. A torn append stays
+  outside the verified prefix.
+- Public aggregate results and answer-only exports lack the original retained
+  store or journal bindings. They cannot supply a regrade plan.
 
-Coverage includes all planned turns and criteria, completed answers, missing turns
-and execution-seal status. A missing answer is not graded as zero. The expected
-set is the registered stored plan, not a hardcoded 49/192 denominator; this tool
-does not independently recertify a corrupted plan against the original dataset.
-It checks manifest/identity bindings, content-addressed artifact hashes, ordinal
-continuity, duplicate runs/providers/criteria, final questions, original criterion
-IDs and temporal conversation cutoffs. Full saved surface/activity/turn evidence,
-original grades and source cutoffs are bound into the immutable overlay. This is
-an integrity check of retained evidence, not a fresh audit of native ingestion.
+The reader verifies the original run and scope hashes, ingestion track and
+admission protocol when recorded, compiled spec and dataset manifest,
+ordered questions with exact criteria, and content-addressed artifacts.
+Saved question clocks, session history, answer, and source inventory must
+agree with the original cutoff. For MemCal, the indexed source plan and
+aggregate collection receipts provide the native IDs, channel cursors and
+Dream readiness at each completed release. The collection witness count
+comes from those observations. Document providers have separate document
+acceptance and readback evidence. The plan preserves each arm's original
+condition, including the canary flag and any recorded MemCal product
+manifest. A version string alone does not establish that product manifest.
 
-Registered revisions:
+Registered revisions are `luna-context-v4-v1`, the original v4 prompt, and
+`luna-explicit-criteria-v1`, the experimental diet, RSVP, roster and schedule
+rules. Both record the Luna Bedrock Global route with fallback disabled and
+reuse the original verdict parser and criterion granularity. Source and
+scorer digests are bound to the plan.
 
-- `luna-context-v4-v1`: unchanged v4 prompt.
-- `luna-explicit-criteria-v1`: experimental versioned criterion-rule supplement
-  for diet polarity, RSVP versus cancellation, roster scope and temporal precedence.
-  It applies only when the criterion asks for the corresponding fact. It adds no
-  quote requirement and retains the original verdict parser and granularity.
-
-Both register Luna on Bedrock Global, fallback disabled. Registration binds the
-rule text and scorer/planner source hashes; there is no mutable `latest` alias or
-arbitrary external prompt loading. Official grades and the production judge are
-unchanged. Uncertainty in old rubric interpretation is not retroactively gold.
-
-To retain a separate versioned plan and analyze supplied saved responses:
+Use a new, private overlay directory to retain the plan or analyze supplied
+responses.
 
 ```sh
 python -m pacbench.cohort_regrade /path/to/cohort.json \
@@ -54,25 +70,15 @@ python -m pacbench.cohort_regrade /path/to/cohort.json \
   --responses /path/to/response-records.json
 ```
 
-The overlay SQLite binding contains the full plan, prompts and their digests; keep
-this directory private like the original runs. Output cannot be inside an original
-run. A changed input, original grade or revision requires a new output directory.
-Response records are a JSON list with `plan_id`, `cell` (`provider/turn-id`),
-`prompt_sha256`, unique `attempt_id`, and raw string `response`. Duplicate/conflicting
-imports fail; identical retained imports are idempotent. Reports separate per-cell
-state, provider credit deltas and criterion verdict deltas. Unparsed/missing grades
-have null deltas. Imported responses remain explicitly **receipt-unverified offline
-analysis**, never official scores or evidence of paid settlement.
+Response records contain `plan_id`, `cell` (`provider/turn-id`),
+`prompt_sha256`, a unique `attempt_id`, and the raw string `response`.
+Identical imports are idempotent. A reserved attempt with no response remains
+ambiguous, and the same cell cannot be reserved again. Changed input, grades
+or revision require a new versioned overlay. Provider and criterion deltas
+compare with the original saved verdicts, with null deltas for unavailable
+grades. Imported responses retain their receipt-unverified status.
 
-`Overlay.reserve` durably reserves a unique cell/attempt before any future external
-admitted dispatch. A crash leaves an ambiguous attempt; there is no retry/reset API
-and no automatic resend. It may only be completed by importing its matching saved
-response. The CLI does not dispatch even on resume. Existing
-`pacbench.workflow_grading` is reused through its shared `judge_options`, pinned
-`judge_prompt` and `grade_semantic` logic; its in-place recovery writes are not called.
-
-Live regrading remains a separate integration: original executor admission, account
-lock, fresh prepaid/limit checks, prompt-specific scope and receipt reconciliation
-must be reviewed before connecting any dispatcher. These offline commands do not
-supply those capabilities or authorize charges. No live completeness claims are
-made from synthetic tests.
+The CLI works offline and only opens source stores read-only. It uses the
+same `judge_options`, `judge_prompt` and `grade_semantic` logic as the
+original judge-only workflow. Live dispatch and billing reconciliation require
+separate integration in the original runtime.

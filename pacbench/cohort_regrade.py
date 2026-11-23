@@ -1,13 +1,14 @@
 """Plan all saved cohort answers, or analyze retained responses, without a transport."""
 import argparse
 from dataclasses import asdict
+import re
 import hashlib
 import json
 from pathlib import Path
 import sqlite3
 
 from .semantic_grade import Claim, CONTEXT_JUDGE_PROTOCOL, VERDICTS, judge_prompt, grade_semantic
-from .workflow_runner import judge_options
+from . import cohort_regrade_retained as retained
 from .workflow_progress import WorkflowProgress, _turn
 from .workflow_stream import fingerprint
 from .workflow_spec import instant
@@ -35,110 +36,278 @@ def digest(value):
 
 
 def read(path):
+    raw, sha = retained.read_bytes(path)
+    return json.loads(raw), sha
+
+
+def _native_input(directory):
+    if (directory/'run.json').is_file() or (directory/'workflow.sqlite3').is_file():
+        return directory/'run.json'
+    if (directory/'workflow.jsonl').is_file():
+        return directory/'workflow.jsonl'
+    return directory/'run.json'
+
+
+def _entry_path(path):
     path = Path(path).absolute()
-    if path != path.resolve():
-        raise ValueError('symlinked input is not supported')
-    raw = path.read_bytes()
-    return json.loads(raw), hashlib.sha256(raw).hexdigest()
+    if path.is_dir():
+        if path != path.resolve():
+            raise ValueError('symlinked run directory')
+        if (path/'workflow-scope.json').is_file():
+            return path/'workflow-scope.json'
+        return _native_input(path/'workflow' if (path/'workflow').is_dir() else path)
+    return path
 
 
 def discover(path):
-    """Accept a native run.json or an explicit cohort of hash-bound run manifests."""
-    path = Path(path).absolute()
-    meta, sha = read(path)
-    if meta.get('schema') == 'pacbench-regrade-cohort-v1':
-        rows = meta['runs']
-    elif 'run_key' in meta:
-        rows = [{'provider': meta['identity']['condition']['provider'],
-                 'manifest': path.name, 'sha256': sha}]
+    """Discover arms from declarations, never from a count or recursive directory scan."""
+    path = _entry_path(path)
+    if path.name == 'workflow.jsonl':
+        events, sha, _ = retained.journal(path)
+        provider = events[1]['condition']['provider']
+        rows = [{'provider': provider, 'manifest': path.name, 'sha256': sha}]
     else:
-        raise ValueError('unsupported saved manifest schema; no directory guessing')
-    if not rows:
-        raise ValueError('empty cohort')
-    seen = set()
-    paths = set()
+        meta, sha = retained.read_json(path)
+        if meta.get('schema') == 'pacbench-regrade-cohort-v1':
+            rows = meta['runs']
+        else:
+            if meta.get('schema') == 'pacbench/pizza-week-results-v1':
+                raise ValueError('public aggregate only; need each arm’s retained run.json, SQLite store and artifacts, or original workflow.jsonl')
+            if 'run_key' in meta:
+                provider = meta['identity']['condition']['provider']
+            elif path.name == 'workflow-scope.json' and meta.get('protocol') == retained.WEEK:
+                provider = meta['provider']
+            elif path.name == 'result.json' and type(meta.get('canary')) is bool:
+                provider = meta.get('provider', 'memcal' if 'scope' in meta else None)
+            else:
+                raise ValueError('unsupported retained run or cohort manifest format')
+            rows = [{'provider': provider, 'manifest': path.name, 'sha256': sha}]
+    if not isinstance(rows, list) or not rows:
+        raise ValueError('empty or invalid cohort')
+    seen, paths = set(), set()
     result = []
     for row in rows:
-        name = row['provider']
+        provider = row['provider']
         target = (path.parent / row['manifest']).absolute()
-        if not isinstance(name, str) or not name or name in seen or target.resolve() in paths:
+        expected = row['sha256']
+        if (not isinstance(provider, str) or not re.fullmatch(r'[a-zA-Z0-9][a-zA-Z0-9_-]*', provider)
+                or provider in seen or target.resolve() in paths):
             raise ValueError('duplicate/invalid provider or run manifest')
-        seen.add(name); paths.add(target.resolve())
-        result.append((name, target, row['sha256']))
+        if not isinstance(expected, str) or not re.fullmatch(r'[0-9a-f]{64}', expected):
+            raise ValueError('cohort arm requires the original manifest SHA-256')
+        seen.add(provider)
+        paths.add(target.resolve())
+        result.append((provider, target, expected))
     return result, sha
 
 
-def snapshot(path, revision):
+def _original(turn, record):
+    criteria = record['criteria']
+    if (record['grade_state'] == 'graded') != (criteria is not None):
+        raise ValueError('original grade state differs from its saved criteria')
+    if criteria is not None and ([c['id'] for c in criteria] != [c.id for c in turn.claims]
+            or not criteria or any(c['verdict'] not in VERDICTS or not isinstance(c['reason'], str)
+                                   or not c['reason'].strip() for c in criteria)):
+        raise ValueError('original grade criterion mismatch')
+    return record
+
+
+def _checkpoint_arm(manifest, provider, scope_sha):
+    meta, sha = retained.read_json(manifest)
+    identity = meta['identity']
+    key = meta['run_key']
+    directory = manifest.parent
+    if (fingerprint(identity) != key or identity['condition']['provider'] != provider
+            or meta.get('evidence_kind') != 'native' or identity.get('evidence_kind') != 'native'):
+        raise ValueError('run identity/provider/evidence mismatch')
+    database = directory/'workflow.sqlite3'
+    if not database.is_file():
+        raise FileNotFoundError(f'missing retained workflow SQLite database: {database}')
+    if database != database.resolve():
+        raise ValueError('symlinked progress database')
+    with WorkflowProgress(directory, key, read_only=True) as progress:
+        progress.db.execute('BEGIN')
+        if progress.binding('identity') != identity or progress.binding('plan_registered') is not True:
+            raise ValueError('unregistered or stale native plan')
+        progress.audit_artifacts()
+        rows = list(progress.db.execute('SELECT * FROM turns ORDER BY ordinal'))
+        if [r['ordinal'] for r in rows] != list(range(len(rows))):
+            raise ValueError('missing or noncontiguous planned turns')
+        turns = [_turn(row['plan']) for row in rows]
+        for row, turn in zip(rows, turns, strict=True):
+            if ((row['id'], row['session'], row['measure'], row['criteria_count'])
+                    != (turn.id, turn.session, turn.measure, len(turn.claims))
+                    or len({c.id for c in turn.claims}) != len(turn.claims)):
+                raise ValueError('duplicate/stale criterion or turn plan')
+        documents, binding = retained.verify_progress(progress, identity, turns, directory, scope_sha)
+        saved, originals = {}, {}
+        verified_pending = []
+        for row, turn in zip(rows, turns, strict=True):
+            if not row['done']:
+                if row['surface']:
+                    verified_pending.append(turn.id)
+                continue
+            if not row['surface'] or not row['activity']:
+                raise ValueError('completed turn lacks its saved answer or activity artifact')
+            _, surface, activity = progress.get_verified(turn.id)
+            saved[turn.id] = surface, activity
+            originals[turn.id] = _original(turn, progress.grade_record(turn.id))
+        sealed = progress.execution_sealed
+        if list(saved) != [t.id for t in turns[:len(saved)]] or (sealed and len(saved) != len(turns)):
+            raise ValueError('retained completed turns do not form their original ordered prefix')
+        binding.update(run_manifest_sha256=sha, run_key=key)
+        journal_path = directory/'workflow.jsonl'
+        if binding['protocol'] == retained.MEMCAL_PROGRESS:
+            provenance = retained.memcal_readbacks(progress, documents)
+        elif journal_path.is_file():
+            events, journal_sha, torn = retained.journal(journal_path)
+            retained.verify_journal_header(events, turns, identity['condition'],
+                                           identity['spec_sha256'], identity['source_basis'], identity['canary'])
+            latest = turns[len(saved)-1].at if saved else None
+            provenance = retained.document_readbacks(events, documents, turns, through=latest, complete=sealed)
+            binding.update(journal_sha256=journal_sha, journal_torn_tail=torn)
+        else:
+            provenance = {'kind': 'document-readbacks-unavailable', 'ready_documents': None,
+                          'ready_releases': None, 'missing_evidence': str(journal_path)}
+        return retained.RetainedArm(documents, turns, identity['condition'], binding, provenance, saved,
+                                    originals, sealed, verified_pending)
+
+
+def _arm(provider, manifest, expected_sha):
+    if manifest.name == 'workflow.jsonl':
+        directory = manifest.parent
+        if (directory/'run.json').exists() or (directory/'workflow.sqlite3').exists():
+            raise ValueError('journal belongs to a checkpoint store; select the original run.json or workflow-scope.json')
+        events, sha, torn = retained.journal(manifest)
+        if sha != expected_sha:
+            raise ValueError('stale workflow journal digest')
+        data = retained.legacy_journal(events, sha, torn)
+        if data.condition['provider'] != provider:
+            raise ValueError('legacy journal provider differs from the cohort')
+        return directory, data
+    meta, sha = retained.read_json(manifest)
+    if sha != expected_sha:
+        raise ValueError('stale run manifest digest')
+    scope_sha = None
+    if manifest.name in ('workflow-scope.json', 'result.json'):
+        directory = manifest.parent/'workflow'
+        if manifest.name == 'workflow-scope.json':
+            scope_sha = sha
+        elif 'scope' in meta:
+            bound = meta['scope']
+            if bound['path'] != str(manifest.parent/'workflow-scope.json'):
+                raise ValueError('result refers to a foreign workflow scope')
+            scope_sha = bound['sha256']
+        data = _checkpoint_arm(directory/'run.json', provider, scope_sha)
+        if (meta.get('provider', data.condition['provider']) != provider
+                or meta.get('canary') is not data.binding['canary']):
+            raise ValueError('arm manifest provider or canary condition differs')
+        if manifest.name == 'result.json':
+            state = meta['state']
+            full = state == 'live-week-complete'
+            if full and (not data.execution_sealed or data.binding['canary']):
+                raise ValueError('result claims a completed Week but its retained execution is unsealed or canary')
+            data.binding.update(result_sha256=sha, original_result_state=state)
+            declared = meta.get('coverage') or (meta.get('workflow') or {}).get('coverage')
+            if declared:
+                _check_result_coverage(declared, data)
+    elif 'run_key' in meta:
+        directory = manifest.parent
+        data = _checkpoint_arm(manifest, provider, None)
+        if data.binding['run_manifest_sha256'] != expected_sha:
+            raise ValueError('run manifest changed while being read')
+    else:
+        raise ValueError('unsupported arm manifest')
+    return directory, data
+
+
+def _check_result_coverage(declared, data):
+    """A supplied result can describe an older checkpoint. Do not combine it with newer grades."""
+    grades = [c for row in data.originals.values() for c in row['criteria'] or []]
+    expected = {'planned_turns': len(data.turns),
+                'planned_criteria': sum(len(t.claims) for t in data.turns),
+                'graded_criteria': len(grades),
+                'correct': sum(c['verdict'] == 'correct' for c in grades) if grades else None}
+    if (any(field in declared and declared[field] != value for field, value in expected.items())
+            or 'verified_turns' in declared and declared['verified_turns'] not in (
+                len(data.answers), len(data.answers) + len(data.verified_pending_completion))):
+        raise ValueError('result coverage differs from the retained store; select run.json to inspect its current snapshot')
+
+
+def _make_items(provider, data, revision):
+    binding, provenance, saved = data.binding, data.source_provenance, data.answers
+    items, previous, native_sessions = [], {}, {}
+    completed = original_graded = 0
+    supplement = REVISIONS[revision]['supplement']
+    collections = {row['cutoff']: row for row in provenance.get('collections', [])}
+    collection_input = provenance['kind'] in ('native-connector-collection', 'legacy-native-connector-collection')
+    for turn in data.turns:
+        if turn.id not in saved:
+            continue
+        surface, activity = saved[turn.id]
+        options, cutoff = retained.verify_surface(turn, surface, previous.get(turn.session), data.documents,
+                                                  qualified_memcal='memcal_product' in binding)
+        sid = surface['session_id']
+        if native_sessions.setdefault(sid, turn.session) != turn.session:
+            raise ValueError('native session was reused for a different logical chat')
+        previous[turn.session] = surface
+        if cutoff and collection_input:
+            collection = collections.get(cutoff)
+            if collection is None or instant(collection['ready_at']) > instant(turn.at):
+                raise ValueError('saved answer lacks original native collection coverage at its cutoff')
+        original = _original(turn, data.originals.get(turn.id, {'grade_state': 'ungraded', 'criteria': None, 'failure': None}))
+        completed += len(turn.claims)
+        if original['criteria'] is not None:
+            original_graded += len(original['criteria'])
+        if not turn.claims:
+            continue
+        frozen = {'turn': asdict(turn), 'surface': surface, 'activity': activity, 'original': original,
+                  'run_key': binding.get('run_key'), 'arm_binding_sha256': digest(binding),
+                  'source_cutoff': cutoff}
+        prompt = judge_prompt(turn.prompt, surface['answer'], turn.claims, **options)
+        if supplement:
+            prompt += '\n' + supplement
+        items.append({'id': provider + '/' + turn.id, 'provider': provider, 'saved': frozen,
+                      'input_sha256': digest(frozen), 'options': options, 'prompt': prompt,
+                      'prompt_sha256': hashlib.sha256(prompt.encode()).hexdigest()})
+    return items, {
+        'state': 'verified-retained-inputs',
+        'expected_turns': len(data.turns), 'completed_turns': len(saved),
+        'expected_criteria': sum(len(t.claims) for t in data.turns), 'completed_criteria': completed,
+        'original_graded_criteria': original_graded, 'judge_requests_planned': len(items),
+        'missing_turns': [t.id for t in data.turns if t.id not in saved],
+        'verified_pending_completion': data.verified_pending_completion, 'execution_sealed': data.execution_sealed,
+        'original_condition': data.condition, 'binding': binding, 'source_provenance': provenance,
+    }
+
+
+def snapshot(path, revision, *, verify_all=False):
     if revision not in REVISIONS:
         raise ValueError('unregistered judge/rubric revision')
     runs, manifest_sha = discover(path)
     items, coverage, roots = [], {}, []
     run_keys = set()
     for provider, manifest, expected_sha in runs:
-        meta, actual_sha = read(manifest)
-        if actual_sha != expected_sha:
-            raise ValueError('stale run manifest digest')
-        identity = meta['identity']; directory = manifest.parent
-        if (fingerprint(identity) != meta['run_key'] or meta['run_key'] in run_keys
-                or identity['condition']['provider'] != provider
-                or meta.get('evidence_kind') != 'native' or identity.get('evidence_kind') != 'native'):
-            raise ValueError('run identity/provider/evidence mismatch')
-        run_keys.add(meta['run_key']); roots.append(str(directory))
-        database = directory/'workflow.sqlite3'
-        if database != database.resolve():
-            raise ValueError('symlinked progress database')
-        with WorkflowProgress(directory, meta['run_key'], read_only=True) as progress:
-            progress.db.execute('BEGIN')  # one consistent read-only SQLite snapshot
-            if progress.binding('identity') != identity or not progress.binding('plan_registered'):
-                raise ValueError('unregistered or stale native plan')
-            progress.audit_artifacts()
-            rows = list(progress.db.execute('SELECT * FROM turns ORDER BY ordinal'))
-            if not rows or [r['ordinal'] for r in rows] != list(range(len(rows))):
-                raise ValueError('missing/noncontiguous planned turns')
-            expected_ids, completed_ids = [], []
-            expected_criteria = completed_criteria = 0
-            missing = []
-            for row in rows:
-                turn = _turn(row['plan']); ids = [c.id for c in turn.claims]
-                if turn.id != row['id'] or len(set(ids)) != len(ids) or len(ids) != row['criteria_count']:
-                    raise ValueError('duplicate/stale criterion or turn plan')
-                expected_ids.append(turn.id); expected_criteria += len(ids)
-                if not row['done'] or not row['surface']:
-                    missing.append(turn.id); continue
-                verified = progress.get_verified(turn.id)
-                _, surface, activity = verified
-                if not isinstance(surface.get('answer'), str) or not surface['answer'].strip():
-                    raise ValueError('completed answer is empty')
-                options = judge_options(turn, surface)
-                history = surface['history']
-                last_user = next(r for r in reversed(history) if r['role'] == 'user')
-                if last_user['content'] != turn.prompt:
-                    raise ValueError('saved final question differs from plan')
-                for message in options['conversation']:
-                    if instant(message['at']) > instant(turn.at):
-                        raise ValueError('future conversation context')
-                original = progress.grade_record(turn.id)
-                criteria = original['criteria']
-                if criteria is not None and ([c['id'] for c in criteria] != ids
-                        or any(c['verdict'] not in VERDICTS for c in criteria)):
-                    raise ValueError('original grade criterion mismatch')
-                completed_ids.append(turn.id); completed_criteria += len(ids)
-                if not ids:
-                    continue
-                saved = {'turn': asdict(turn), 'surface': surface, 'activity': activity,
-                         'original': original, 'run_key': meta['run_key']}
-                prompt = judge_prompt(turn.prompt, surface['answer'], turn.claims, **options)
-                supplement = REVISIONS[revision]['supplement']
-                if supplement:
-                    prompt += '\n' + supplement
-                items.append({'id': provider + '/' + turn.id, 'provider': provider,
-                              'saved': saved, 'input_sha256': digest(saved), 'options': options,
-                              'prompt': prompt, 'prompt_sha256': hashlib.sha256(prompt.encode()).hexdigest()})
-            coverage[provider] = {'expected_turns': len(expected_ids), 'completed_turns': len(completed_ids),
-                'expected_criteria': expected_criteria, 'completed_criteria': completed_criteria,
-                'missing_turns': missing, 'execution_sealed': progress.execution_sealed}
+        try:
+            directory, data = _arm(provider, manifest, expected_sha)
+            binding = data.binding
+            key = binding.get('run_key') or binding['journal_sha256']
+            if key in run_keys:
+                raise ValueError('duplicate retained run identity')
+            arm_items, report = _make_items(provider, data, revision)
+        except (OSError, ValueError, KeyError, TypeError, IndexError, sqlite3.Error) as exc:
+            if not verify_all:
+                raise
+            coverage[provider] = {'state': 'unavailable-or-invalid', 'manifest': str(manifest),
+                                  'reason': str(exc) if isinstance(exc, (ValueError, OSError)) else type(exc).__name__}
+            continue
+        run_keys.add(key)
+        roots.append(str(directory.parent if directory.name == 'workflow' else directory))
+        items.extend(arm_items)
+        coverage[provider] = report
     registry = dict(REVISIONS[revision])
     registry['planner_sha256'] = hashlib.sha256(Path(__file__).read_bytes()).hexdigest()
+    registry['input_adapter_sha256'] = hashlib.sha256(Path(retained.__file__).read_bytes()).hexdigest()
     registry['scorer_sha256'] = hashlib.sha256(Path(__file__).with_name('semantic_grade.py').read_bytes()).hexdigest()
     plan = {'schema': 'pacbench-cohort-regrade-plan-v1', 'revision': revision, 'judge': registry,
             'manifest_sha256': manifest_sha, 'source_roots': roots, 'coverage': coverage, 'items': items,
@@ -208,8 +377,13 @@ class Overlay:
             result = {'state': 'invalid-output', 'criteria': None}
         # No claim that imported text has a verified route, billing receipt or paid provenance.
         result['receipt_verified'] = False
-        self.db.execute('UPDATE attempts SET response=?, result=? WHERE cell=? AND response IS NULL',
-                        (record['response'], json.dumps(result), record['cell']))
+        update = self.db.execute('UPDATE attempts SET response=?, result=? WHERE cell=? AND response IS NULL',
+                                 (record['response'], json.dumps(result), record['cell']))
+        if update.rowcount == 0:
+            winner = self.db.execute('SELECT attempt,response FROM attempts WHERE cell=?',
+                                     (record['cell'],)).fetchone()
+            if winner != (record['attempt_id'], record['response']):
+                raise ValueError('attempt or immutable response mismatch')
 
     def report(self):
         attempts = {r[0]: r[1:] for r in self.db.execute('SELECT cell,response,result FROM attempts')}
@@ -234,16 +408,24 @@ class Overlay:
 
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('manifest', type=Path, help='saved run.json or cohort manifest; all turns discovered')
+    parser.add_argument('manifest', type=Path, help='retained Week arm, workflow manifest or cohort manifest')
     parser.add_argument('--revision', required=True, choices=sorted(REVISIONS))
+    parser.add_argument('--verify', action='store_true', help='check each declared arm and report missing or invalid inputs')
     parser.add_argument('--output', type=Path, help='separate versioned overlay; never writes original run')
     parser.add_argument('--responses', type=Path, help='offline saved response records, not a dispatch request')
     args = parser.parse_args(argv)
     if args.responses and not args.output:
         parser.error('--responses requires --output')
-    plan = snapshot(args.manifest, args.revision)
+    if args.verify and args.output:
+        parser.error('--verify reports coverage without opening an overlay')
+    try:
+        plan = snapshot(args.manifest, args.revision, verify_all=args.verify)
+    except (OSError, ValueError, KeyError, TypeError, IndexError, sqlite3.Error) as exc:
+        parser.error(str(exc))
     if not args.output:
-        print(json.dumps(public_summary(plan), indent=2)); return
+        print(json.dumps(public_summary(plan), indent=2))
+        return int(args.verify and any(row['state'] != 'verified-retained-inputs'
+                                       for row in plan['coverage'].values()))
     overlay = Overlay(args.output, plan)
     try:
         if args.responses:
@@ -259,4 +441,4 @@ def main(argv=None):
 
 
 if __name__ == '__main__':
-    main()
+    raise SystemExit(main())

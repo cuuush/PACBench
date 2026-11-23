@@ -141,17 +141,27 @@ def controls(spec):
     return sorted(cases, key=lambda case: case['id']), expected
 
 
-def historical_rsvp_scopes():
-    """Read the authored question and the contract selected by the public r2 loader."""
+def authored_questions():
     path = ROOT / 'specs/pizza_week_assistant.json'
     _, _, resolved = resolve_spec(read_spec(path), path.with_suffix(''))
-    authored = next(t for t in resolved['checks'] if t['id'] == 'rsvp-before')
+    return resolved['checks']
+
+
+def scope_pair(authored, turn, dataset, track):
+    a = dict(id=authored['id'], at=authored['at'], question=authored['prompt'], facts=authored['facts'])
+    if 'expect' in authored:
+        a['expect'] = authored['expect']
+    s = dict(dataset=dataset, track=track, id=turn.id, at=turn.at, question=turn.prompt,
+             claims=[asdict(c) for c in turn.claims])
+    return a, s
+
+
+def historical_rsvp_scopes():
     track = 'continuing-account'
     workflow, _, turns, _ = compile_week(track)
-    scored = next(t for t in turns if t.id == authored['id'])
-    return (dict(id=authored['id'], at=authored['at'], question=authored['prompt'], facts=authored['facts']),
-            dict(dataset=workflow['dataset'], track=track, id=scored.id, at=scored.at, question=scored.prompt,
-                 claims=[asdict(c) for c in scored.claims]))
+    authored = next(q for q in authored_questions() if q['id'] == 'rsvp-before')
+    turn = next(t for t in turns if t.id == authored['id'])
+    return scope_pair(authored, turn, workflow['dataset'], track)
 
 
 def audit_scope(authored, scored, exception=None):
@@ -164,7 +174,8 @@ def audit_scope(authored, scored, exception=None):
         return dict(status='aligned', differences=[])
     # Bind both complete projections, including ordered claims and evidence.
     drift_sha = bundle_hash({'authored': authored, 'scored': scored})
-    if (not exception or exception.get('revision') != 'rsvp-existing-scope-v1'
+    if (not differing or not exception or not exception.get('reason', '').strip()
+            or exception.get('revision') not in ('rsvp-existing-scope-v1', 'pizza-week-existing-scope-v1')
             or exception.get('question_id') != authored['id'] or exception.get('scope_sha256') != drift_sha):
         detail = ', '.join(differing) or 'obsolete exception'
         raise ValueError(f'unrecognized scope drift on {authored["id"]}: {detail} ({drift_sha})')

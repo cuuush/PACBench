@@ -5,9 +5,16 @@ One person imports records each evening and returns to the same memory account. 
 
 ## What a week measures
 
-The synthetic source has 142 messages. At 21:00 America/New_York, the document condition makes one UTF-8 export per observed channel and thread for records that became available to the account since the preceding cutoff. Seven evenings yield 38 Messages files and 10 email files. SDKs that accept text receive the same contents as file uploaders. A question before the cutoff uses the previous collection. Arrival sets the first eligible evening. An explicit later access event (`available_at`) can delay it, for example when joining a thread exposes older messages. A prior collector’s polling time has no effect on eligibility. Comparisons use instants, including across DST.
+The synthetic source has 142 messages. The historical document condition in the retained Week runs makes one UTF-8 export per observed channel and thread for records that became available to the account since the preceding cutoff. Seven releases at 21:00 America/New_York yield 38 Messages files and 10 email files in that condition. SDKs that accept text receive the same contents as file uploaders. A question before the cutoff uses the previous collection. Arrival sets the first eligible evening. An explicit later access event (`available_at`) can delay it, for example when joining a thread exposes older messages. A prior collector’s polling time has no effect on eligibility. Comparisons use instants, including across DST.
 
-The file projection copies each body and quotation, uses the recorded speaker, owner direction, timestamp and thread, and includes observed rosters and email headers when available. A roster change establishes when membership was observed. A precise join time needs its own source event. The compiler preserves supplied deidentified reply and address headers. The frozen source has no structured reply headers to replay. All its written, received and collected timestamps coincide. The regression fixtures exercise late arrivals, partial headers and DST separately.
+The seven-document projection uses the same release clocks, frozen questions and
+criteria. It groups only that day's newly authored Messages and emails in
+chronological order using the original source metadata. The projection checks
+creation, arrival and access at release time. The frozen layout manifest
+records the one verified email export copy excluded by native MemCal parsing.
+The byte and source record hashes bind that projection.
+
+The historical file projection copies each body and quotation, uses the recorded speaker, owner direction, timestamp and thread, and includes observed rosters and email headers when available. A roster change establishes when membership was observed. A precise join time needs its own source event. The compiler preserves supplied deidentified reply and address headers. The frozen source has no structured reply headers to replay. All its written, received and collected timestamps coincide. The regression fixtures exercise late arrivals, partial headers and DST separately.
 
 | Continuing-account measure | Turns | Criteria | Interpretation |
 | --- | ---: | ---: | --- |
@@ -44,9 +51,17 @@ From the checkout, run the planner to see the exact source digest, cutoff instan
 ```sh
 python3 -m pacbench.workflow plan --track nightly-document
 python3 -m pacbench.workflow conform --track nightly-document --output /tmp/pizza-doc-check
+python3 -m pacbench.workflow conform --track nightly-document --seven-daily-documents --output /tmp/pizza-daily-check
 python3 -m pacbench.workflow conform --track first-party-connector --output /tmp/pizza-sync-check
 python3 -m pacbench.workflow conform --track nightly-document --state isolated-control --output /tmp/pizza-control-check
 ```
+
+The seven-document conformance option asks the complete 49-turn schedule
+through the authored 31 chats on one account. It verifies native request
+shapes through recording fixtures for the supported generic upload adapters.
+Provider-specific launchers retain their own source, process, and admission
+requirements. MemCal's real Messages and Mail acquisition is a distinct
+connector condition.
 
 Add `--provider` to exercise one declaration. Recording fakes call the submission adapters and read back the submitted data. Fake connectors expose successive synthetic source prefixes at a cursor. The offline answer is a sentinel and receives no semantic grade. Prompt caching and paid costs were unmeasured.
 
@@ -244,3 +259,21 @@ No third-party provider source was changed. The independent integration review
 covered shared admission/dispatch, Hindsight clock composition, source/readiness
 claims and snapshot accounting. Regression checks use synthetic inputs and local
 services; they do not establish new live readiness or change saved grades.
+
+
+### Saved-run comparison
+
+The saved-answer overlay compares coverage and scores inside a shared source,
+release, question, session, and model condition. A retained single-chat Honcho
+Week belongs to its own comparison group. The `honcho_week` launcher has a
+separately named `--session-layout authored-chats` condition. It keeps one
+warm gateway and binds each fresh chat and continuation to the frozen
+schedule, including independent native close observations.
+
+A recorded response journal using `pacbench-regrade-response-journal-v2`
+preserves a valid request/receipt pair with malformed model text as an
+ungraded judgment. Other responses keep their grades. Each version requires
+the full set of response identities, exact frozen prompts and valid recording
+evidence. The report includes planned criteria, graded criteria and each
+judge-output state. Provider accuracy comparisons require a shared condition
+and complete grading coverage.

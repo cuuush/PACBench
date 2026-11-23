@@ -649,6 +649,49 @@ class CohortRegradeTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'missing original intake evidence'):
             load_judge_journal(journal, plan, 'first', hash_file(journal))
 
+    def test_v2_recorded_invalid_response_keeps_other_cells(self):
+        from pacbench.cohort_regrade_journal import COVERAGE_SCHEMA
+
+        run = self.make_run('cognee', count=49, seal=True)
+        plan = snapshot(run, NEUTRAL_REVISION)
+        journal = self.root / 'malformed-cell.jsonl'
+        rows = self.judge_records(plan)
+        rows[0]['schema'] = COVERAGE_SCHEMA
+        rows[1]['response'] = '{"verdicts":[]}'
+        rows[1]['receipt']['response_sha256'] = hashlib.sha256(rows[1]['response'].encode()).hexdigest()
+        write_journal(journal, rows)
+        output = self.root / 'overlay-v2'
+        args = self.judge_cli(run, journal, output)
+        with patch('socket.socket', side_effect=AssertionError('network forbidden')), patch('builtins.print'):
+            main(args)
+            main(args)
+        report = json.loads((output / 'report.json').read_text())
+        result = report['arms']['cognee']
+        lost = len(plan['items'][0]['saved']['turn']['claims'])
+        self.assertEqual(result['judge_states'], {'invalid-output': 1, 'parsed-recorded-response': 46})
+        self.assertEqual(result['regraded_criteria'], 192 - lost)
+        self.assertEqual(result['regrade_ungraded_criteria'], lost)
+        self.assertEqual(report['conditions'][0]['fully_regraded_arms'], [])
+        self.assertEqual(report['provenance']['schema'], COVERAGE_SCHEMA)
+        rows[1]['receipt']['status'] = 'incomplete'
+        write_journal(journal, rows)
+        with self.assertRaisesRegex(ValueError, 'incomplete recorded judge response'):
+            load_judge_journal(journal, plan, 'first', hash_file(journal))
+
+    def test_identical_documents_with_different_chat_layouts_do_not_share_a_group(self):
+        plan = snapshot(self.runs[0], REVISION)
+        separate = plan['coverage']['mem0']
+        # Build two coverage rows with identical verified source/model bindings.
+        separate['original_condition'].update(frontend='Hermes', model='luna',
+            model_route='bedrock', gateway_patch='digest')
+        single = deepcopy(separate)
+        single['binding']['single_native_session'] = True
+        plan['coverage']['single'] = single
+        overlay = Overlay(self.root/'comparison-layout', plan)
+        self.addCleanup(overlay.close)
+        self.assertEqual({g['session_layout']: g['arms'] for g in overlay.report()['conditions']},
+                         {'authored-chats': ['mem0'], 'single-continuing-chat': ['single']})
+
     def test_selected_judge_rejects_unsupported_format_and_changed_luna_pin(self):
         run = self.make_run('openviking', count=4, canary=True, seal=True)
         plan = snapshot(run, REVISION)

@@ -291,8 +291,8 @@ def document_readbacks(events, documents, turns, *, through=None, complete=False
     """Bind native acceptance/readback to the original submitted document."""
     submitted, accepted, ready, intake_failures = set(), {}, {}, []
     planned = {doc.filename: doc for doc in documents}
-    questions = {turn.id: turn for turn in turns}
-    pending = None
+    ordered_questions = iter(turns)
+    pending, submitted_through = None, None
     for event in events:
         phase = event['phase']
         if phase == 'submit':
@@ -303,6 +303,8 @@ def document_readbacks(events, documents, turns, *, through=None, complete=False
                     or instant(event['at']) != instant(doc.cutoff)):
                 raise ValueError('submitted document differs from the original source manifest')
             submitted.add(name)
+            cutoff = instant(doc.cutoff)
+            submitted_through = cutoff if submitted_through is None else max(cutoff, submitted_through)
             pending = doc
         elif phase == 'acceptance':
             proof = event['evidence']
@@ -333,8 +335,10 @@ def document_readbacks(events, documents, turns, *, through=None, complete=False
             else:
                 ready[doc.filename] = proof
         elif phase == 'dispatch':
-            turn = questions.get(event['question'])
-            if (turn is None or event['prompt'] != turn.prompt or event['at'] != turn.at
+            turn = next(ordered_questions, None)
+            if (turn is None or event['question'] != turn.id or event['prompt'] != turn.prompt
+                    or event['at'] != turn.at
+                    or (submitted_through is not None and submitted_through > instant(turn.at))
                     or any(d.filename not in ready or instant(ready[d.filename]['at']) > instant(turn.at)
                            for d in documents if instant(d.cutoff) <= instant(turn.at))):
                 raise ValueError('document intake or dispatched question differs at its original cutoff')

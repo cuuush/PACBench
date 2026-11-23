@@ -8,6 +8,7 @@ from .cohort_regrade_retained import read_bytes
 from .semantic_grade import Claim, grade_semantic
 
 SCHEMA = 'pacbench-regrade-response-journal-v1'
+COVERAGE_SCHEMA = 'pacbench-regrade-response-journal-v2'
 FORMAT = 'semantic-verdicts-v1'
 IDENTITY_FIELDS = {'model', 'route', 'endpoint', 'fallback', 'response_format'}
 
@@ -70,7 +71,7 @@ def _require_complete_arms(plan):
             raise ValueError(f'missing original intake evidence for arm {arm}')
 
 
-def _result(row, item, judge):
+def _result(row, item, judge, *, keep_invalid):
     cell = item['id']
     request = row['request']
     receipt = row['receipt']
@@ -96,11 +97,13 @@ def _result(row, item, judge):
         claims = tuple(Claim(c['id'], c['description'], tuple(c['evidence'])) for c in turn['claims'])
         grade = grade_semantic(turn['id'], turn['prompt'], item['saved']['surface']['answer'],
                                claims, lambda _: response, **item['options'])
-    except (ValueError, TypeError, KeyError):
-        raise ValueError(f'unsupported or incomplete semantic verdicts for {cell}') from None
+        state, criteria = 'parsed-recorded-response', [vars(slot) for slot in grade.slots]
+    except (ValueError, TypeError, KeyError, RecursionError):
+        if not keep_invalid:
+            raise ValueError(f'unsupported or incomplete semantic verdicts for {cell}') from None
+        state, criteria = 'invalid-output', None
     return RecordedVerdict(cell, row['attempt_id'], response, {
-        'state': 'parsed-recorded-response',
-        'criteria': [vars(slot) for slot in grade.slots],
+        'state': state, 'criteria': criteria,
         'request_id': receipt['request_id'],
         'prompt_sha256': row['prompt_sha256'],
         'input_sha256': row['input_sha256'],
@@ -118,7 +121,8 @@ def load(path, plan, selector, expected_sha256):
         raise ValueError('incomplete response journal tail')
     head, *lines = raw.decode('utf-8').split('\n')[:-1]
     header = _object(head)
-    if header.get('schema') != SCHEMA:
+    schema = header.get('schema')
+    if schema not in (SCHEMA, COVERAGE_SCHEMA):
         raise ValueError('unsupported recorded response journal schema')
     if (header.get('plan_id'), header.get('revision')) != (plan['plan_id'], plan['revision']):
         raise ValueError('response journal belongs to another frozen plan or rubric revision')
@@ -151,7 +155,7 @@ def load(path, plan, selector, expected_sha256):
         if not isinstance(row.get('request'), dict) or not isinstance(row.get('receipt'), dict):
             raise ValueError(f'missing recorded request or response receipt for {cell}')
         try:
-            recorded = _result(row, items[cell], judge)
+            recorded = _result(row, items[cell], judge, keep_invalid=schema == COVERAGE_SCHEMA)
         except (KeyError, TypeError):
             raise ValueError(f'incomplete judge evidence for {cell}') from None
         request_id = recorded.result['request_id']
@@ -162,6 +166,6 @@ def load(path, plan, selector, expected_sha256):
         records[cell] = recorded
     if len(records) != len(items):
         raise ValueError(f'selected judge is missing {len(items) - len(records)} of {len(items)} planned responses')
-    return JournalResult({'schema': SCHEMA, 'judge_id': selector, **judge, 'journal_sha256': sha,
+    return JournalResult({'schema': schema, 'judge_id': selector, **judge, 'journal_sha256': sha,
                           'coverage': len(records)},
                          tuple(records[cell] for cell in items))

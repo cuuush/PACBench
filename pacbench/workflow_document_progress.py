@@ -11,7 +11,7 @@ PROTOCOL = 'pizza-week-native-document-progress-v1'
 PROVIDERS = frozenset(('mem0', 'hindsight', 'openviking', 'reme', 'cognee', 'memos'))
 
 
-def run(condition, account, docs, turns, directory, spec, spec_digest, basis, all_docs, judge, canary, *, resume=False):
+def run(condition, account, docs, turns, directory, spec, spec_digest, basis, all_docs, judge, canary, *, resume=False, daily_manifest=None):
     from .gateway_reuse import atomic
     from .workflow_grading import grade_verified
     from .workflow_runner import Journal, run_workflow
@@ -20,6 +20,9 @@ def run(condition, account, docs, turns, directory, spec, spec_digest, basis, al
     identity = dict(protocol=PROTOCOL, condition=asdict(condition), account=account.identity,
                     source_basis=basis, spec_sha256=spec_digest, evidence_kind=account.evidence_kind,
                     canary=canary, schedule_sha256=fingerprint([asdict(t) for t in turns]))
+    if daily_manifest is not None:
+        identity.update(input_projection=daily_manifest['source_layout'],
+                        document_index_sha256=daily_manifest['normalized_index_sha256'])
     key = fingerprint(identity)
     if resume:
         from uuid import uuid4

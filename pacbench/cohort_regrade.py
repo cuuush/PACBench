@@ -271,6 +271,7 @@ def _make_items(entry, data, revision):
     binding, provenance, saved = data.binding, data.source_provenance, data.answers
     items, previous, native_sessions = [], {}, {}
     completed = original_graded = 0
+    gateways = set()
     supplement = REVISIONS[revision]['supplement']
     collections = {row['cutoff']: row for row in provenance.get('collections', [])}
     collection_input = provenance['kind'] in ('native-connector-collection', 'legacy-native-connector-collection')
@@ -282,6 +283,9 @@ def _make_items(entry, data, revision):
         options, cutoff = retained.verify_surface(turn, surface, previous.get(chat), data.documents,
                                                   qualified_memcal='memcal_product' in binding)
         sid = surface['session_id']
+        gateways.add(digest(surface['gateway_identity']))
+        if data.condition['state'] == 'continuing-account' and len(gateways) > 1:
+            raise ValueError('saved continuing account changed its warm gateway between chats')
         if native_sessions.setdefault(sid, chat) != chat:
             raise ValueError('native session was reused for a different logical chat')
         previous[chat] = surface
@@ -312,6 +316,7 @@ def _make_items(entry, data, revision):
         'missing_turns': [t.id for t in data.turns if t.id not in saved],
         'verified_pending_completion': data.verified_pending_completion, 'execution_sealed': data.execution_sealed,
         'original_condition': data.condition, 'binding': binding, 'source_provenance': provenance,
+        'observed_native_sessions': len(native_sessions),
     }
 
 
@@ -353,6 +358,17 @@ def snapshot(path, revision, *, verify_all=False):
 
 def public_summary(plan):
     return {k: plan[k] for k in ('plan_id', 'revision', 'judge', 'coverage', 'dispatch_enabled')}
+
+
+def condition_basis(coverage):
+    source = coverage['binding']
+    condition = coverage['original_condition']
+    fields = ('input_projection', 'release_clock', 'dataset_sha256', 'ordered_questions_sha256',
+              'document_schedule_sha256', 'canary')
+    setup = ('state', 'track', 'frontend', 'model', 'model_route', 'gateway_patch')
+    return {**{key: source.get(key) for key in fields}, **{key: condition.get(key) for key in setup},
+            'session_layout': ('single-continuing-chat' if source.get('single_native_session')
+                               else 'authored-chats')}
 
 
 class Overlay:
@@ -452,6 +468,7 @@ class Overlay:
             'expected_criteria': row['expected_criteria'], 'original_graded_criteria': 0,
             'original_correct': 0, 'regraded_criteria': 0, 'regrade_correct': 0,
             'compared_criteria': 0, 'paired_original_correct': 0, 'paired_regrade_correct': 0,
+            'judge_states': {},
         } for arm, row in self.plan['coverage'].items()}
         for item in self.plan['items']:
             cell = item['id']
@@ -460,6 +477,8 @@ class Overlay:
             old = {c['id']: c['verdict'] for c in item['saved']['original']['criteria'] or []}
             new = {c['id']: c['verdict'] for c in (parsed or {}).get('criteria') or []}
             arm = arms[item['arm']]
+            judge_states = arm['judge_states']
+            judge_states[states[cell]] = judge_states.get(states[cell], 0) + 1
             for claim in item['saved']['turn']['claims']:
                 claim_id = claim['id']
                 original, regrade = old.get(claim_id), new.get(claim_id)
@@ -478,11 +497,20 @@ class Overlay:
 
         conditions = {}
         for arm, row in arms.items():
-            source = self.plan['coverage'][arm]['binding']
-            basis = {field: source[field] for field in ('input_projection', 'release_clock',
-                                                        'dataset_sha256', 'ordered_questions_sha256', 'canary')}
-            group = conditions.setdefault(digest(basis), {**basis, 'arms': []})
+            coverage = self.plan['coverage'][arm]
+            basis = condition_basis(coverage)
+            basis_complete = all(value is not None for value in basis.values())
+            # Older recordings can lack setup details. Never group unknown conditions.
+            group_id = digest(basis if basis_complete else [arm, basis])
+            group = conditions.setdefault(group_id, {**basis, 'comparison_basis_complete': basis_complete,
+                                                    'arms': [], 'fully_regraded_arms': []})
             group['arms'].append(arm)
+            if (row['regraded_criteria'] == row['expected_criteria'] > 0
+                    and coverage['completed_turns'] == coverage['expected_turns']
+                    and not coverage['verified_pending_completion']
+                    and (coverage['execution_sealed'] or coverage['binding'].get('journal_completed'))
+                    and not coverage['source_provenance'].get('missing_evidence')):
+                group['fully_regraded_arms'].append(arm)
             row['credit_delta'] = (row['paired_regrade_correct'] - row['paired_original_correct']
                                    if row['compared_criteria'] else None)
             row['original_correct'] = row['original_correct'] if row['original_graded_criteria'] else None

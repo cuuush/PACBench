@@ -59,8 +59,13 @@ def daily_documents(originals, messages, timezone, *, mail_history=None):
     for cutoff, channel, ident, text in expected:
         row = records[ident]
         creation = instant(row['written_at']).astimezone(zone)
-        if creation.date() != instant(cutoff).astimezone(zone).date():
+        release = instant(cutoff).astimezone(zone)
+        if creation.date() != release.date():
             raise ValueError('Source creation day differs from the frozen release day; prior-day backfill is forbidden')
+        arrived = instant(row['arrived_at'])
+        available = instant(row.get('available_at', row['arrived_at']))
+        if not creation <= arrived <= available <= release:
+            raise ValueError('Source creation, arrival or access falls outside the frozen cutoff')
         if (row['channel'], row['text']) != (channel, text):
             raise ValueError('Daily export differs from the original source record')
         if mail_history is not None and ident == mail_history['source_id']:
@@ -78,7 +83,8 @@ def daily_documents(originals, messages, timezone, *, mail_history=None):
     for cutoff, rows in sorted(groups.items(), key=lambda item: instant(item[0])):
         rows.sort(key=lambda row: (instant(row['written_at']), row['source_id']))
         doc_text = '\n\n'.join(message_block(row) for row in rows) + '\n'
-        docs.append(Document(f'{cutoff[:10]}-messages.txt', cutoff, DAILY_CHANNEL, doc_text,
+        day = instant(cutoff).astimezone(zone).date().isoformat()
+        docs.append(Document(f'{day}-messages.txt', cutoff, DAILY_CHANNEL, doc_text,
                              tuple(row['source_id'] for row in rows), tuple(row['text'] for row in rows)))
     return docs
 

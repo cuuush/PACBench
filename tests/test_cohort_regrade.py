@@ -1,26 +1,31 @@
 """Synthetic answers in the real retained Week formats. No provider or transport."""
 from collections import defaultdict
+from copy import deepcopy
 from dataclasses import asdict
 from functools import lru_cache
 import hashlib
 import json
 from pathlib import Path
 import sqlite3
+import subprocess
+import sys
 import tempfile
 import unittest
 from unittest.mock import patch
 
 from pacbench.canary_capability import binding, digest as wire_digest
 from pacbench.cohort_regrade import Overlay, main, snapshot
-from pacbench.cohort_regrade_retained import ADMISSIONS, DOCUMENT_PROGRESS, MEMCAL_PROGRESS, WEEK
+from pacbench.cohort_regrade_journal import FORMAT, SCHEMA, load as load_judge_journal
+from pacbench.cohort_regrade_retained import ADMISSIONS, DAILY_FILES, DOCUMENT_PROGRESS, MEMCAL_PROGRESS, THREAD_FILES, WEEK
 from pacbench.workflow_capability import _memcal_schedule
 from pacbench.workflow_memcal_tools import TOOLS, manifest as memcal_product
 from pacbench.workflow_progress import WorkflowProgress
 from pacbench.workflow_source_plan import SourcePlan
-from pacbench.workflow_spec import SPEC, compile_week, instant
+from pacbench.workflow_spec import Document, SPEC, compile_week, instant
 from pacbench.workflow_stream import fingerprint
 
 REVISION = 'luna-context-v4-v1'
+NEUTRAL_REVISION = 'explicit-criteria-v1'
 SPEC_SHA = hashlib.sha256(SPEC.read_bytes()).hexdigest()
 
 
@@ -31,6 +36,18 @@ def week(canary=False):
         turns = turns[:4]
     docs = [d for d in full_docs if not canary or instant(d.cutoff) <= instant(turns[-1].at)]
     return docs, turns, basis, full_docs
+
+
+def seven_daily(*, original_clock=False):
+    documents, _, _, _ = week()
+    nightly = {d.cutoff[:10]: d.cutoff for d in documents}
+    dataset = SPEC.parents[1]/'datasets/pizza-week/r2'
+    manifest = json.loads((dataset/'manifest.json').read_text())
+    return [
+        Document('daily-'+batch['id']+'.txt', batch['at'] if original_clock else nightly[batch['id']],
+                 'mixed', (dataset/batch['source_file']).read_bytes().decode('utf-8'), tuple(batch['source_ids']))
+        for batch in manifest['source_batches']
+    ]
 
 
 def write(path, value):
@@ -106,11 +123,13 @@ class CohortRegradeTests(unittest.TestCase):
         return write(self.root/'cohort.json', {'schema': 'pacbench-regrade-cohort-v1', 'runs': providers})
 
     def make_run(self, provider, *, count=2, future=False, canary=False, current_memcal=False,
-                 historical_memcal=False, journal=True, seal=False):
+                 historical_memcal=False, journal=True, seal=False, daily=False):
         arm = self.root/provider
         directory = arm/'workflow'
         directory.mkdir(parents=True)
         docs, turns, basis, full_docs = week(canary)
+        if daily:
+            docs = seven_daily()
         is_memcal = current_memcal or historical_memcal
         cond = condition(provider, '0.8.12' if is_memcal else None,
                          'first-party-connector' if is_memcal else 'nightly-document')
@@ -118,7 +137,10 @@ class CohortRegradeTests(unittest.TestCase):
                         account=str(arm), spec_sha256=SPEC_SHA, source_basis=basis,
                         evidence_kind='native', canary=canary)
         scope = dict(protocol=WEEK, provider=provider, root=str(arm), run_id=self.root.name, canary=canary,
-                     admission=ADMISSIONS[provider], spec_sha256=SPEC_SHA, frozen_inputs=basis)
+                     admission=ADMISSIONS.get(provider, 'recorded-'+provider+'-daily-v1'),
+                     spec_sha256=SPEC_SHA, frozen_inputs=basis)
+        if daily:
+            identity['input_projection'] = scope['input_projection'] = DAILY_FILES
         if is_memcal:
             with SourcePlan(directory, docs, turns, all_source_documents=full_docs) as plan:
                 identity.update(plan_sha256=plan.digest, store=str(arm/'memcal-home'))
@@ -189,6 +211,64 @@ class CohortRegradeTests(unittest.TestCase):
             for phase, record in [('source-clock', clock), ('sync', accepted), ('dream', dream)]:
                 progress.effect(phase, cutoff, {'fixture': phase}, lambda: record)
             progress.advance_cutoff(cutoff, native_ready=ready)
+
+    def legacy_complete(self, directory, provider, *, documents=None, skip_original=False):
+        directory.mkdir(parents=True)
+        default, turns, basis, _ = week()
+        docs = default if documents is None else documents
+        cond = condition(provider, 'historical-fixture')
+        events = journal_header(cond, turns, basis, False)
+        remaining = iter(docs)
+        next_doc = next(remaining, None)
+        prior = {}
+        for index, turn in enumerate(turns):
+            while next_doc is not None and instant(next_doc.cutoff) <= instant(turn.at):
+                events.extend(journal_documents([next_doc]))
+                next_doc = next(remaining, None)
+            surface = saved_surface(turn, docs, prior.get(turn.session, {}))
+            prior[turn.session] = surface
+            events.extend([
+                dict(phase='dispatch', question=turn.id, prompt=turn.prompt, at=turn.at),
+                dict(phase='answer-visible', question=turn.id, surface=surface),
+                dict(phase='verified-turn', question=turn.id, activity={'synthetic': True}),
+            ])
+            if turn.claims and not (skip_original and index == 0):
+                events.append(dict(phase='grade', question=turn.id, criteria=original_criteria(turn), judge=REVISION))
+        if next_doc is not None:
+            events.extend(journal_documents([next_doc, *remaining]))
+        events.append(dict(phase='completion'))
+        path = directory/'workflow.jsonl'
+        write_journal(path, events)
+        return path
+
+    def judge_records(self, plan, *, other=False):
+        judges = {
+            'first': {'model': 'fixture/judge-one', 'route': 'fixture/first',
+                      'endpoint': 'https://judges.example.invalid/v1/rubric', 'fallback': False, 'response_format': FORMAT},
+        }
+        if other:
+            judges['second'] = {**judges['first'], 'model': 'fixture/judge-two', 'route': 'fixture/second'}
+        if plan['judge'].get('model'):
+            judges['first'].update(model=plan['judge']['model'], route=plan['judge']['route'])
+        rows = [dict(schema=SCHEMA, plan_id=plan['plan_id'], revision=plan['revision'], judges=judges)]
+        for selector, identity in judges.items():
+            route = {name: identity[name] for name in ('model', 'route', 'endpoint')}
+            for item in plan['items']:
+                cell = item['id']
+                response = json.dumps({'verdicts': [
+                    {'id': c['id'], 'verdict': 'correct' if selector == 'first' else 'misrepresented',
+                     'reason': 'synthetic judgment'} for c in item['saved']['turn']['claims']]})
+                rows.append({'judge': selector, 'cell': cell, 'attempt_id': selector+'-'+cell,
+                             'input_sha256': item['input_sha256'], 'prompt_sha256': item['prompt_sha256'],
+                             'request': {**route, 'fallback': identity['fallback'], 'prompt': item['prompt']},
+                             'receipt': {**route, 'request_id': 'synthetic-request-'+selector+'-'+cell,
+                                         'status': 'complete', 'response_sha256': hashlib.sha256(response.encode()).hexdigest()},
+                             'response': response})
+        return rows
+
+    def judge_cli(self, manifest, journal, output, *, selector='first', revision=NEUTRAL_REVISION):
+        return [str(manifest), '--revision', revision, '--response-journal', str(journal),
+                '--journal-sha256', hash_file(journal), '--judge', selector, '--output', str(output)]
 
     def plan(self):
         return snapshot(self.manifest, REVISION)
@@ -428,6 +508,175 @@ class CohortRegradeTests(unittest.TestCase):
             plan = json.loads(out.call_args.args[0])
         self.assertFalse(plan['dispatch_enabled'])
         self.assertNotIn('Synthetic retained answer.', json.dumps(plan))
+
+    def test_complete_selected_judge_comparisons_keep_conditions_and_originals_separate(self):
+        historical = self.legacy_complete(self.root/'old-supermemory', 'supermemory', skip_original=True)
+        daily = self.make_run('supermemory', count=49, seal=True, daily=True)
+        manifest = write(self.root/'cohort.json', {
+            'schema': 'pacbench-regrade-cohort-v1',
+            'runs': [
+                {'arm': 'historical', 'provider': 'supermemory', 'manifest': str(historical.relative_to(self.root)),
+                 'sha256': hash_file(historical)},
+                {'arm': 'daily', 'provider': 'supermemory', 'manifest': str(daily.relative_to(self.root)),
+                 'sha256': hash_file(daily), 'input_projection': DAILY_FILES,
+                 'ingestion_protocol': 'recorded-supermemory-daily-v1'},
+            ]})
+        plan = snapshot(manifest, NEUTRAL_REVISION)
+        self.assertEqual(len(plan['items']), 94)
+        self.assertEqual(plan['coverage']['historical']['source_provenance']['ready_documents'], 48)
+        self.assertEqual(plan['coverage']['daily']['source_provenance']['ready_documents'], 7)
+        journal = self.root/'responses.jsonl'
+        write_journal(journal, self.judge_records(plan, other=True))
+        before = {path: hash_file(path) for path in (manifest, journal, historical, *daily.parent.rglob('*.json'),
+                                                    daily.parent/'workflow.sqlite3', daily.with_name('workflow.jsonl'))}
+        output = self.root/'first-overlay'
+        args = self.judge_cli(manifest, journal, output)
+        subprocess.run([sys.executable, '-m', 'pacbench.cohort_regrade', *args], check=True, capture_output=True, text=True)
+        result = json.loads((output/'report.json').read_text())
+        old, new = result['arms']['historical'], result['arms']['daily']
+        self.assertEqual({g['input_projection']: g['arms'] for g in result['conditions']},
+                         {THREAD_FILES: ['historical'], DAILY_FILES: ['daily']})
+        self.assertEqual((new['original_correct'], new['regrade_correct'], new['compared_criteria']), (0, 192, 192))
+        self.assertGreater(old['original_ungraded_criteria'], 0)
+        self.assertEqual(old['regrade_correct'], 192)
+        self.assertTrue(any(row['original'] is None and row['regrade'] == 'correct' and row['credit_delta'] is None
+                            for row in result['criterion_deltas']))
+        self.assertEqual(result['provenance']['model'], 'fixture/judge-one')
+        self.assertNotIn('Synthetic retained answer.', json.dumps(result))
+        with patch('socket.socket', side_effect=AssertionError('network forbidden')), patch('builtins.print'):
+            main(args)
+            other = self.root/'second-overlay'
+            main(self.judge_cli(manifest, journal, other, selector='second'))
+            rival = json.loads((other/'report.json').read_text())
+            self.assertEqual(rival['provenance']['judge_id'], 'second')
+            self.assertEqual(rival['arms']['daily']['regrade_correct'], 0)
+            with patch('sys.stderr'), self.assertRaises(SystemExit):
+                main(self.judge_cli(manifest, journal, output, selector='second'))
+        self.assertEqual(json.loads((output/'report.json').read_text()), result)
+        self.assertEqual(before, {path: hash_file(path) for path in before})
+
+    def test_daily_projection_uses_original_clock_if_recorder_used_it(self):
+        journal = self.legacy_complete(self.root/'honcho', 'honcho', documents=seven_daily(original_clock=True))
+        manifest = write(self.root/'daily-only.json', {'schema': 'pacbench-regrade-cohort-v1', 'runs': [
+            {'provider': 'honcho', 'manifest': str(journal.relative_to(self.root)),
+             'sha256': hash_file(journal), 'input_projection': DAILY_FILES}]})
+        plan = snapshot(manifest, NEUTRAL_REVISION)
+        self.assertEqual(plan['coverage']['honcho']['binding']['release_clock'], 'r2-original-batch-cutoff')
+        self.assertEqual(plan['coverage']['honcho']['completed_turns'], 49)
+        rows = [json.loads(line) for line in journal.read_text().splitlines()]
+        submit = next(row for row in rows if row['phase'] == 'submit')
+        submit['content'] = 'changed daily content'
+        write_journal(journal, rows)
+        configured = json.loads(manifest.read_text())
+        configured['runs'][0]['sha256'] = hash_file(journal)
+        write(manifest, configured)
+        with self.assertRaisesRegex(ValueError, 'frozen daily source'):
+            snapshot(manifest, NEUTRAL_REVISION)
+
+    def test_daily_projection_cannot_relabel_historical_run(self):
+        configured = json.loads(self.manifest.read_text())
+        configured['runs'][0]['input_projection'] = DAILY_FILES
+        write(self.manifest, configured)
+        with self.assertRaisesRegex(ValueError, 'seven original submit witnesses'):
+            snapshot(self.manifest, NEUTRAL_REVISION)
+
+    def test_recorded_result_rejects_wrong_provenance_and_incomplete_judgments(self):
+        run = self.make_run('cognee', count=4, canary=True, seal=True)
+        plan = snapshot(run, NEUTRAL_REVISION)
+        rows = self.judge_records(plan)
+        journal = self.root/'selected.jsonl'
+        write_journal(journal, rows)
+        with self.assertRaisesRegex(ValueError, 'journal SHA-256'):
+            load_judge_journal(journal, plan, 'first', '0'*64)
+        with self.assertRaisesRegex(ValueError, 'no recorded identity'):
+            load_judge_journal(journal, plan, 'other', hash_file(journal))
+
+        def update_record(rows, section, field, value):
+            if section:
+                rows[1][section][field] = value
+            else:
+                rows[1][field] = value
+
+        for section, field, value, error in [
+            ('request', 'prompt', 'foreign prompt', 'wrong judge request'),
+            ('request', 'fallback', True, 'wrong judge request'),
+            ('receipt', 'route', 'different/route', 'wrong judge request'),
+            (None, 'input_sha256', '0'*64, 'frozen input'),
+            ('receipt', 'status', 'truncated', 'incomplete recorded judge response'),
+            ('receipt', 'response_sha256', '0'*64, 'response hash'),
+            (None, 'cell', 'cognee/not-a-turn', 'absent or ungradable'),
+        ]:
+            with self.subTest(field=field):
+                changed = deepcopy(rows)
+                update_record(changed, section, field, value)
+                write_journal(journal, changed)
+                with self.assertRaisesRegex(ValueError, error):
+                    load_judge_journal(journal, plan, 'first', hash_file(journal))
+
+        for body in ['{"verdicts":[]}', '{"verdicts":[],"verdicts":[]}', '{"answers":{}}']:
+            changed = deepcopy(rows)
+            changed[1]['response'] = body
+            changed[1]['receipt']['response_sha256'] = hashlib.sha256(body.encode()).hexdigest()
+            write_journal(journal, changed)
+            with self.assertRaisesRegex(ValueError, 'unsupported or incomplete semantic verdicts'):
+                load_judge_journal(journal, plan, 'first', hash_file(journal))
+
+        write_journal(journal, rows[:-1])
+        output = self.root/'should-not-exist'
+        with patch('sys.stderr'), self.assertRaises(SystemExit):
+            main(self.judge_cli(run, journal, output))
+        self.assertFalse(output.exists())
+
+        write_journal(journal, rows)
+        with journal.open('ab') as stream:
+            stream.write(b'{"torn":')
+        with self.assertRaisesRegex(ValueError, 'incomplete response journal tail'):
+            load_judge_journal(journal, plan, 'first', hash_file(journal))
+
+    def test_jsonl_selected_judge_refuses_incomplete_original_arm(self):
+        run = self.runs[0]
+        plan = snapshot(run, NEUTRAL_REVISION)
+        journal = self.root/'incomplete-arm.jsonl'
+        write_journal(journal, self.judge_records(plan))
+        with self.assertRaisesRegex(ValueError, 'incomplete retained answers'):
+            load_judge_journal(journal, plan, 'first', hash_file(journal))
+
+    def test_complete_turns_without_intake_evidence_are_not_accepted_for_comparison(self):
+        run = self.make_run('hindsight', count=4, canary=True, seal=True, journal=False)
+        plan = snapshot(run, NEUTRAL_REVISION)
+        journal = self.root/'missing-intake.jsonl'
+        write_journal(journal, self.judge_records(plan))
+        with self.assertRaisesRegex(ValueError, 'missing original intake evidence'):
+            load_judge_journal(journal, plan, 'first', hash_file(journal))
+
+    def test_selected_judge_rejects_unsupported_format_and_changed_luna_pin(self):
+        run = self.make_run('openviking', count=4, canary=True, seal=True)
+        plan = snapshot(run, REVISION)
+        journal = self.root/'unsupported.jsonl'
+        rows = self.judge_records(plan)
+        rows[0]['judges']['first']['response_format'] = 'decisions-alpha'
+        write_journal(journal, rows)
+        with self.assertRaisesRegex(ValueError, 'unsupported selected judge'):
+            load_judge_journal(journal, plan, 'first', hash_file(journal))
+        rows[0]['judges']['first'].update(response_format=FORMAT, model='not/luna')
+        write_journal(journal, rows)
+        with self.assertRaisesRegex(ValueError, 'model/route revision'):
+            load_judge_journal(journal, plan, 'first', hash_file(journal))
+
+    def test_selected_judge_rejects_duplicate_attempt_and_request(self):
+        run = self.make_run('hindsight', count=4, canary=True, seal=True)
+        plan = snapshot(run, NEUTRAL_REVISION)
+        journal = self.root/'duplicate.jsonl'
+        rows = self.judge_records(plan)
+        duplicate = deepcopy(rows)
+        duplicate.append(duplicate[1])
+        write_journal(journal, duplicate)
+        with self.assertRaisesRegex(ValueError, 'duplicate cell or attempt'):
+            load_judge_journal(journal, plan, 'first', hash_file(journal))
+        rows[2]['receipt']['request_id'] = rows[1]['receipt']['request_id']
+        write_journal(journal, rows)
+        with self.assertRaisesRegex(ValueError, 'duplicate recorded request'):
+            load_judge_journal(journal, plan, 'first', hash_file(journal))
 
     def test_published_aggregate_requires_actual_retained_inputs(self):
         public_summary = SPEC.parents[1]/'results/pizza-week-v2/summary.json'

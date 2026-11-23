@@ -1,14 +1,17 @@
 """Plan all saved cohort answers, or analyze retained responses, without a transport."""
 import argparse
-from dataclasses import asdict
-import re
+from dataclasses import asdict, dataclass
 import hashlib
 import json
+import os
 from pathlib import Path
+import re
 import sqlite3
+import tempfile
 
 from .semantic_grade import Claim, CONTEXT_JUDGE_PROTOCOL, VERDICTS, judge_prompt, grade_semantic
 from . import cohort_regrade_retained as retained
+from . import cohort_regrade_journal as response_journal
 from .workflow_progress import WorkflowProgress, _turn
 from .workflow_stream import fingerprint
 from .workflow_spec import instant
@@ -28,6 +31,23 @@ REVISIONS = {'luna-context-v4-v1': {'protocol': CONTEXT_JUDGE_PROTOCOL,
       'Credit unambiguous paraphrases and each independent attribute. Do not invent omitted facts or '
       'resolve genuine rubric ambiguity by adding requirements. Contradictory extras must be considered '
       'against the particular criterion they contradict.')}}
+
+# These revision names freeze the rubric and parser independently of the
+# model and route declared in a verified response journal.
+REVISIONS.update({
+    revision.removeprefix('luna-'): {key: rule[key] for key in ('protocol', 'supplement')}
+    for revision, rule in list(REVISIONS.items())
+})
+
+
+@dataclass(frozen=True)
+class ArmInput:
+    arm: str
+    provider: str
+    path: Path
+    sha256: str
+    projection: str | None
+    expected_admission: str | None
 
 
 def digest(value):
@@ -88,16 +108,18 @@ def discover(path):
     result = []
     for row in rows:
         provider = row['provider']
+        arm = row.get('arm', provider)
         target = (path.parent / row['manifest']).absolute()
         expected = row['sha256']
-        if (not isinstance(provider, str) or not re.fullmatch(r'[a-zA-Z0-9][a-zA-Z0-9_-]*', provider)
-                or provider in seen or target.resolve() in paths):
-            raise ValueError('duplicate/invalid provider or run manifest')
+        if (any(not isinstance(name, str) or not re.fullmatch(r'[a-zA-Z0-9][a-zA-Z0-9_-]*', name)
+                for name in (arm, provider)) or arm in seen or target.resolve() in paths):
+            raise ValueError('duplicate or invalid arm/run manifest')
         if not isinstance(expected, str) or not re.fullmatch(r'[0-9a-f]{64}', expected):
             raise ValueError('cohort arm requires the original manifest SHA-256')
-        seen.add(provider)
+        seen.add(arm)
         paths.add(target.resolve())
-        result.append((provider, target, expected))
+        result.append(ArmInput(arm, provider, target, expected, row.get('input_projection'),
+                               row.get('ingestion_protocol')))
     return result, sha
 
 
@@ -112,12 +134,12 @@ def _original(turn, record):
     return record
 
 
-def _checkpoint_arm(manifest, provider, scope_sha):
+def _checkpoint_arm(manifest, entry, scope_sha, projection):
     meta, sha = retained.read_json(manifest)
     identity = meta['identity']
     key = meta['run_key']
     directory = manifest.parent
-    if (fingerprint(identity) != key or identity['condition']['provider'] != provider
+    if (fingerprint(identity) != key or identity['condition']['provider'] != entry.provider
             or meta.get('evidence_kind') != 'native' or identity.get('evidence_kind') != 'native'):
         raise ValueError('run identity/provider/evidence mismatch')
     database = directory/'workflow.sqlite3'
@@ -139,7 +161,13 @@ def _checkpoint_arm(manifest, provider, scope_sha):
                     != (turn.id, turn.session, turn.measure, len(turn.claims))
                     or len({c.id for c in turn.claims}) != len(turn.claims)):
                 raise ValueError('duplicate/stale criterion or turn plan')
-        documents, binding = retained.verify_progress(progress, identity, turns, directory, scope_sha)
+        journal_path = directory/'workflow.jsonl'
+        journal = None
+        if identity.get('protocol') == retained.DOCUMENT_PROGRESS and journal_path.is_file():
+            journal = retained.journal(journal_path)
+        documents, binding = retained.verify_progress(
+            progress, identity, turns, directory, scope_sha, projection=projection,
+            events=journal[0] if journal is not None else (), expected_admission=entry.expected_admission)
         saved, originals = {}, {}
         verified_pending = []
         for row, turn in zip(rows, turns, strict=True):
@@ -156,11 +184,10 @@ def _checkpoint_arm(manifest, provider, scope_sha):
         if list(saved) != [t.id for t in turns[:len(saved)]] or (sealed and len(saved) != len(turns)):
             raise ValueError('retained completed turns do not form their original ordered prefix')
         binding.update(run_manifest_sha256=sha, run_key=key)
-        journal_path = directory/'workflow.jsonl'
         if binding['protocol'] == retained.MEMCAL_PROGRESS:
             provenance = retained.memcal_readbacks(progress, documents)
-        elif journal_path.is_file():
-            events, journal_sha, torn = retained.journal(journal_path)
+        elif journal is not None:
+            events, journal_sha, torn = journal
             retained.verify_journal_header(events, turns, identity['condition'],
                                            identity['spec_sha256'], identity['source_basis'], identity['canary'])
             latest = turns[len(saved)-1].at if saved else None
@@ -173,7 +200,8 @@ def _checkpoint_arm(manifest, provider, scope_sha):
                                     originals, sealed, verified_pending)
 
 
-def _arm(provider, manifest, expected_sha):
+def _arm(entry):
+    provider, manifest, expected_sha = entry.provider, entry.path, entry.sha256
     if manifest.name == 'workflow.jsonl':
         directory = manifest.parent
         if (directory/'run.json').exists() or (directory/'workflow.sqlite3').exists():
@@ -181,7 +209,8 @@ def _arm(provider, manifest, expected_sha):
         events, sha, torn = retained.journal(manifest)
         if sha != expected_sha:
             raise ValueError('stale workflow journal digest')
-        data = retained.legacy_journal(events, sha, torn)
+        data = retained.legacy_journal(events, sha, torn, projection=entry.projection,
+                                       expected_admission=entry.expected_admission)
         if data.condition['provider'] != provider:
             raise ValueError('legacy journal provider differs from the cohort')
         return directory, data
@@ -198,7 +227,8 @@ def _arm(provider, manifest, expected_sha):
             if bound['path'] != str(manifest.parent/'workflow-scope.json'):
                 raise ValueError('result refers to a foreign workflow scope')
             scope_sha = bound['sha256']
-        data = _checkpoint_arm(directory/'run.json', provider, scope_sha)
+        projection = retained.select_projection(entry.projection, meta.get('input_projection'))
+        data = _checkpoint_arm(directory/'run.json', entry, scope_sha, projection)
         if (meta.get('provider', data.condition['provider']) != provider
                 or meta.get('canary') is not data.binding['canary']):
             raise ValueError('arm manifest provider or canary condition differs')
@@ -213,7 +243,7 @@ def _arm(provider, manifest, expected_sha):
                 _check_result_coverage(declared, data)
     elif 'run_key' in meta:
         directory = manifest.parent
-        data = _checkpoint_arm(manifest, provider, None)
+        data = _checkpoint_arm(manifest, entry, None, entry.projection)
         if data.binding['run_manifest_sha256'] != expected_sha:
             raise ValueError('run manifest changed while being read')
     else:
@@ -234,7 +264,7 @@ def _check_result_coverage(declared, data):
         raise ValueError('result coverage differs from the retained store; select run.json to inspect its current snapshot')
 
 
-def _make_items(provider, data, revision):
+def _make_items(entry, data, revision):
     binding, provenance, saved = data.binding, data.source_provenance, data.answers
     items, previous, native_sessions = [], {}, {}
     completed = original_graded = 0
@@ -267,11 +297,11 @@ def _make_items(provider, data, revision):
         prompt = judge_prompt(turn.prompt, surface['answer'], turn.claims, **options)
         if supplement:
             prompt += '\n' + supplement
-        items.append({'id': provider + '/' + turn.id, 'provider': provider, 'saved': frozen,
+        items.append({'id': entry.arm + '/' + turn.id, 'arm': entry.arm, 'provider': entry.provider, 'saved': frozen,
                       'input_sha256': digest(frozen), 'options': options, 'prompt': prompt,
                       'prompt_sha256': hashlib.sha256(prompt.encode()).hexdigest()})
     return items, {
-        'state': 'verified-retained-inputs',
+        'state': 'verified-retained-inputs', 'provider': entry.provider,
         'expected_turns': len(data.turns), 'completed_turns': len(saved),
         'expected_criteria': sum(len(t.claims) for t in data.turns), 'completed_criteria': completed,
         'original_graded_criteria': original_graded, 'judge_requests_planned': len(items),
@@ -287,28 +317,29 @@ def snapshot(path, revision, *, verify_all=False):
     runs, manifest_sha = discover(path)
     items, coverage, roots = [], {}, []
     run_keys = set()
-    for provider, manifest, expected_sha in runs:
+    for entry in runs:
         try:
-            directory, data = _arm(provider, manifest, expected_sha)
+            directory, data = _arm(entry)
             binding = data.binding
             key = binding.get('run_key') or binding['journal_sha256']
             if key in run_keys:
                 raise ValueError('duplicate retained run identity')
-            arm_items, report = _make_items(provider, data, revision)
+            arm_items, report = _make_items(entry, data, revision)
         except (OSError, ValueError, KeyError, TypeError, IndexError, sqlite3.Error) as exc:
             if not verify_all:
                 raise
-            coverage[provider] = {'state': 'unavailable-or-invalid', 'manifest': str(manifest),
+            coverage[entry.arm] = {'state': 'unavailable-or-invalid', 'manifest': str(entry.path),
                                   'reason': str(exc) if isinstance(exc, (ValueError, OSError)) else type(exc).__name__}
             continue
         run_keys.add(key)
         roots.append(str(directory.parent if directory.name == 'workflow' else directory))
         items.extend(arm_items)
-        coverage[provider] = report
+        coverage[entry.arm] = report
     registry = dict(REVISIONS[revision])
     registry['planner_sha256'] = hashlib.sha256(Path(__file__).read_bytes()).hexdigest()
     registry['input_adapter_sha256'] = hashlib.sha256(Path(retained.__file__).read_bytes()).hexdigest()
     registry['scorer_sha256'] = hashlib.sha256(Path(__file__).with_name('semantic_grade.py').read_bytes()).hexdigest()
+    registry['response_adapter_sha256'] = hashlib.sha256(Path(response_journal.__file__).read_bytes()).hexdigest()
     plan = {'schema': 'pacbench-cohort-regrade-plan-v1', 'revision': revision, 'judge': registry,
             'manifest_sha256': manifest_sha, 'source_roots': roots, 'coverage': coverage, 'items': items,
             'dispatch_enabled': False}
@@ -322,24 +353,28 @@ def public_summary(plan):
 
 class Overlay:
     """Separate durable offline overlay. Claimed attempts never become eligible again."""
-    def __init__(self, output, plan):
-        self.plan = plan; self.directory = Path(output).absolute()
+    def __init__(self, output, plan, *, journal=None):
+        self.plan = plan
+        self.journal = journal
+        self.directory = Path(output).absolute()
         if self.directory != self.directory.resolve():
             raise ValueError('symlinked output')
         if any(self.directory == Path(r) or Path(r) in self.directory.parents for r in plan['source_roots']):
             raise ValueError('output must be outside original run directories')
         self.directory.mkdir(mode=0o700, parents=True, exist_ok=True)
         database = self.directory/'overlay.sqlite3'
-        if database != database.resolve():
-            raise ValueError('symlinked overlay database')
+        if database != database.resolve() or (database.exists() and database.stat().st_nlink != 1):
+            raise ValueError('linked overlay database')
         self.db = sqlite3.connect(database, isolation_level=None)
         self.db.execute('PRAGMA synchronous=FULL')
         self.db.executescript('CREATE TABLE IF NOT EXISTS binding (id INTEGER PRIMARY KEY CHECK(id=1), plan TEXT);'
             'CREATE TABLE IF NOT EXISTS attempts (cell TEXT PRIMARY KEY, attempt TEXT UNIQUE, response TEXT, result TEXT);')
-        encoded = json.dumps(plan, sort_keys=True)
+        encoded = json.dumps(plan if journal is None else {'plan': plan, 'selected_judge': journal.provenance},
+                             sort_keys=True)
         self.db.execute('INSERT OR IGNORE INTO binding VALUES (1,?)', (encoded,))
         if self.db.execute('SELECT plan FROM binding').fetchone()[0] != encoded:
-            self.db.close(); raise ValueError('stale inputs/revision; use a new versioned output directory')
+            self.db.close()
+            raise ValueError('stale inputs, revision or judge recording; use a new versioned output directory')
 
     def close(self):
         self.db.close()
@@ -385,25 +420,101 @@ class Overlay:
             if winner != (record['attempt_id'], record['response']):
                 raise ValueError('attempt or immutable response mismatch')
 
+    def import_journal(self):
+        """Import the prevalidated batch in a single transaction."""
+        if self.journal is None:
+            raise ValueError('no validated judge journal selected')
+        rows = [(r.cell, r.attempt, r.response, json.dumps(r.result, sort_keys=True))
+                for r in self.journal.verdicts]
+        self.db.execute('BEGIN IMMEDIATE')
+        try:
+            prior = self.db.execute('SELECT cell,attempt,response,result FROM attempts').fetchall()
+            if prior:
+                if set(prior) != set(rows):
+                    raise ValueError('selected judge overlay conflicts with its original imported recording')
+            else:
+                self.db.executemany('INSERT INTO attempts VALUES (?,?,?,?)', rows)
+            self.db.commit()
+        except BaseException:
+            self.db.rollback()
+            raise
+
+
     def report(self):
-        attempts = {r[0]: r[1:] for r in self.db.execute('SELECT cell,response,result FROM attempts')}
-        providers = {}; deltas = []; states = {}
+        attempts = dict(self.db.execute('SELECT cell,result FROM attempts'))
+        states, deltas = {}, []
+        arms = {arm: {
+            'provider': row['provider'], 'condition': row['original_condition'],
+            'expected_criteria': row['expected_criteria'], 'original_graded_criteria': 0,
+            'original_correct': 0, 'regraded_criteria': 0, 'regrade_correct': 0,
+            'compared_criteria': 0, 'paired_original_correct': 0, 'paired_regrade_correct': 0,
+        } for arm, row in self.plan['coverage'].items()}
         for item in self.plan['items']:
-            row = attempts.get(item['id']); parsed = json.loads(row[1]) if row and row[1] else None
-            state = parsed['state'] if parsed else 'ambiguous-attempt' if row else 'unsent'
-            states[item['id']] = state
+            cell = item['id']
+            parsed = json.loads(attempts[cell]) if attempts.get(cell) else None
+            states[cell] = parsed['state'] if parsed else 'ambiguous-attempt' if cell in attempts else 'unsent'
             old = {c['id']: c['verdict'] for c in item['saved']['original']['criteria'] or []}
             new = {c['id']: c['verdict'] for c in (parsed or {}).get('criteria') or []}
-            p = providers.setdefault(item['provider'], {'compared_criteria': 0, 'credit_delta': 0})
-            for c in item['saved']['turn']['claims']:
-                a, b = old.get(c['id']), new.get(c['id'])
-                delta = int(b == 'correct') - int(a == 'correct') if a is not None and b is not None else None
-                if delta is not None:
-                    p['compared_criteria'] += 1; p['credit_delta'] += delta
-                deltas.append({'cell': item['id'], 'criterion': c['id'], 'original': a, 'regrade': b, 'credit_delta': delta})
-        return {'plan_id': self.plan['plan_id'], 'coverage': self.plan['coverage'], 'states': states,
-                'providers': providers, 'criterion_deltas': deltas, 'receipt_verified': False,
-                'provenance': 'offline analysis of supplied responses; not official or billing-verified grades'}
+            arm = arms[item['arm']]
+            for claim in item['saved']['turn']['claims']:
+                claim_id = claim['id']
+                original, regrade = old.get(claim_id), new.get(claim_id)
+                arm['original_graded_criteria'] += original is not None
+                arm['original_correct'] += original == 'correct'
+                arm['regraded_criteria'] += regrade is not None
+                arm['regrade_correct'] += regrade == 'correct'
+                delta = None
+                if original is not None and regrade is not None:
+                    arm['compared_criteria'] += 1
+                    arm['paired_original_correct'] += original == 'correct'
+                    arm['paired_regrade_correct'] += regrade == 'correct'
+                    delta = int(regrade == 'correct') - int(original == 'correct')
+                deltas.append({'cell': cell, 'criterion': claim_id, 'original': original,
+                               'regrade': regrade, 'credit_delta': delta})
+
+        conditions = {}
+        for arm, row in arms.items():
+            source = self.plan['coverage'][arm]['binding']
+            basis = {field: source[field] for field in ('input_projection', 'release_clock',
+                                                        'dataset_sha256', 'ordered_questions_sha256', 'canary')}
+            group = conditions.setdefault(digest(basis), {**basis, 'arms': []})
+            group['arms'].append(arm)
+            row['credit_delta'] = (row['paired_regrade_correct'] - row['paired_original_correct']
+                                   if row['compared_criteria'] else None)
+            row['original_correct'] = row['original_correct'] if row['original_graded_criteria'] else None
+            row['regrade_correct'] = row['regrade_correct'] if row['regraded_criteria'] else None
+            row['original_ungraded_criteria'] = row['expected_criteria'] - row['original_graded_criteria']
+            row['regrade_ungraded_criteria'] = row['expected_criteria'] - row['regraded_criteria']
+
+        result = {'plan_id': self.plan['plan_id'], 'revision': self.plan['revision'],
+                  'coverage': self.plan['coverage'], 'states': states,
+                  'conditions': list(conditions.values()), 'criterion_deltas': deltas,
+                  'receipt_verified': False}
+        if self.journal is None:
+            result.update(providers=arms, provenance='offline analysis of supplied responses')
+        else:
+            result.update(schema='pacbench-cohort-regrade-comparison-v1', arms=arms,
+                          provenance=self.journal.provenance)
+        return result
+
+
+def write_report(path, result):
+    """Atomically publish the same immutable comparison on exact replay."""
+    raw = (json.dumps(result, indent=2, sort_keys=True, ensure_ascii=False) + '\n').encode()
+    with tempfile.NamedTemporaryFile(dir=path.parent, prefix='.report-', delete=False) as stream:
+        temporary = Path(stream.name)
+        try:
+            stream.write(raw)
+            stream.flush()
+            os.fsync(stream.fileno())
+            try:
+                os.link(temporary, path)
+            except FileExistsError:
+                old, _ = retained.read_bytes(path)
+                if old != raw:
+                    raise ValueError('existing report differs from the selected judge recording')
+        finally:
+            temporary.unlink()
 
 
 def main(argv=None):
@@ -412,32 +523,49 @@ def main(argv=None):
     parser.add_argument('--revision', required=True, choices=sorted(REVISIONS))
     parser.add_argument('--verify', action='store_true', help='check each declared arm and report missing or invalid inputs')
     parser.add_argument('--output', type=Path, help='separate versioned overlay; never writes original run')
-    parser.add_argument('--responses', type=Path, help='offline saved response records, not a dispatch request')
+    imports = parser.add_mutually_exclusive_group()
+    imports.add_argument('--responses', type=Path, help='legacy offline observations without journal provenance')
+    imports.add_argument('--response-journal', type=Path, help='import one complete result from a recorded JSONL journal')
+    parser.add_argument('--judge', help='select one judge ID from the recorded journal')
+    parser.add_argument('--journal-sha256', help='expected SHA-256 of the original recorded journal')
     args = parser.parse_args(argv)
-    if args.responses and not args.output:
-        parser.error('--responses requires --output')
+    if (args.responses or args.response_journal) and not args.output:
+        parser.error('response import requires --output')
     if args.verify and args.output:
         parser.error('--verify reports coverage without opening an overlay')
+    if args.responses and 'model' not in REVISIONS[args.revision]:
+        parser.error('model-neutral results require a selected --response-journal')
+    if args.response_journal:
+        if not args.judge or not re.fullmatch(r'[0-9a-f]{64}', args.journal_sha256 or ''):
+            parser.error('--response-journal requires --judge and --journal-sha256')
+    elif args.judge is not None or args.journal_sha256 is not None:
+        parser.error('--judge and --journal-sha256 require --response-journal')
     try:
         plan = snapshot(args.manifest, args.revision, verify_all=args.verify)
+        if not args.output:
+            print(json.dumps(public_summary(plan), indent=2))
+            return int(args.verify and any(row['state'] != 'verified-retained-inputs'
+                                           for row in plan['coverage'].values()))
+        recorded = (response_journal.load(args.response_journal, plan, args.judge, args.journal_sha256)
+                    if args.response_journal else None)
+        overlay = Overlay(args.output, plan, journal=recorded)
+        try:
+            if recorded:
+                overlay.import_journal()
+            elif args.responses:
+                records, _ = read(args.responses)
+                if len({r['cell'] for r in records}) != len(records):
+                    raise ValueError('duplicate responses in import')
+                for record in records:
+                    overlay.import_response(record)
+            result = overlay.report()
+            if recorded:
+                write_report(overlay.directory/'report.json', result)
+            print(json.dumps(result, indent=2))
+        finally:
+            overlay.close()
     except (OSError, ValueError, KeyError, TypeError, IndexError, sqlite3.Error) as exc:
         parser.error(str(exc))
-    if not args.output:
-        print(json.dumps(public_summary(plan), indent=2))
-        return int(args.verify and any(row['state'] != 'verified-retained-inputs'
-                                       for row in plan['coverage'].values()))
-    overlay = Overlay(args.output, plan)
-    try:
-        if args.responses:
-            records, _ = read(args.responses)
-            keys = [(r['cell'], r['attempt_id']) for r in records]
-            if len(keys) != len(set(keys)) or len({r['cell'] for r in records}) != len(records):
-                raise ValueError('duplicate responses in import')
-            for record in records:
-                overlay.import_response(record)
-        print(json.dumps(overlay.report(), indent=2))
-    finally:
-        overlay.close()
 
 
 if __name__ == '__main__':

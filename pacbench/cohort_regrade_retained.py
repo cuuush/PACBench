@@ -17,6 +17,9 @@ from .workflow_stream import fingerprint
 
 MEMCAL_PROGRESS = 'memcal-incremental-v1'
 WEEK = 'pizza-week-conversation-v2'
+THREAD_FILES = 'nightly-thread-files-v2'
+CONNECTOR = 'native-connector-v2'
+DAILY_FILES = 'seven-daily-files-v1'
 ADMISSIONS = {
     'memcal': MEMCAL_SCOPE,
     'mem0': 'mem0-native-oss-document-week-v1',
@@ -89,34 +92,91 @@ def _plan(spec_sha, state, canary, channels):
     return documents, turns, basis, dataset_manifest['dataset_sha256'], dataset_sha
 
 
-def week_plan(spec_sha, source_basis, condition, canary):
+def _daily_documents(documents, dataset_manifest, manifest_sha, events):
+    """Verify the seven original daily blobs against the captured submit rows."""
+    manifest, actual_sha = read_json(dataset_manifest)
+    if actual_sha != manifest_sha:
+        raise ValueError('frozen daily dataset manifest changed')
+    batches = manifest['source_batches']
+    submissions = [e for e in events if e['phase'] == 'submit']
+    if len(submissions) != len(batches) or len(batches) != 7:
+        raise ValueError('seven-daily-files requires all seven original submit witnesses')
+    nightly = {doc.cutoff[:10]: doc.cutoff for doc in documents}
+    observed = [instant(row['at']) for row in submissions]
+    if observed == [instant(nightly[row['id']]) for row in batches]:
+        clock = 'v2-nightly-cutoff'
+    elif observed == [instant(row['at']) for row in batches]:
+        clock = 'r2-original-batch-cutoff'
+    else:
+        raise ValueError('seven-daily-files release clock differs from the frozen schedule')
+
+    frozen = []
+    seen = set()
+    for row, batch in zip(submissions, batches, strict=True):
+        raw, sha = read_bytes(dataset_manifest.parent / batch['source_file'])
+        name = row['filename']
+        if (not isinstance(name, str) or not name or name in seen or name.startswith('/')
+                or '..' in Path(name).parts or sha != batch['document_sha256']
+                or row['sha256'] != sha or row['source_ids'] != batch['source_ids']
+                or row['content'].encode('utf-8') != raw):
+            raise ValueError('seven-daily-files payload differs from a frozen daily source')
+        seen.add(name)
+        frozen.append(Document(name, row['at'], 'mixed', raw.decode('utf-8'), tuple(batch['source_ids'])))
+    return frozen, clock
+
+
+def week_plan(spec_sha, source_basis, condition, canary, *, projection=None, events=()):
     if type(canary) is not bool:
         raise ValueError('missing retained canary/full condition')
     channels = tuple(condition['channels'])
     if not channels or len(set(channels)) != len(channels) or not set(channels) <= {'email', 'imessage'}:
         raise ValueError('invalid original ingestion channels')
-    if condition['track'] not in ('nightly-document', 'first-party-connector'):
+    track = condition['track']
+    if track not in ('nightly-document', 'first-party-connector'):
         raise ValueError('unsupported original ingestion track')
     documents, turns, basis, dataset, manifest_sha = _plan(spec_sha, condition['state'], canary, channels)
     if source_basis != basis:
         raise ValueError('source manifest binding differs from the compiled Week')
+    default_projection = CONNECTOR if track == 'first-party-connector' else THREAD_FILES
+    projection = projection or default_projection
+    clock = 'v2-nightly-cutoff'
+    if projection == DAILY_FILES:
+        if track != 'nightly-document' or canary or not turns or condition['state'] != 'continuing-account':
+            raise ValueError('seven-daily-files requires a complete continuing document condition')
+        spec, _ = read_json(SPEC)
+        dataset_manifest = SPEC.parents[1] / spec['dataset'] / 'manifest.json'
+        documents, clock = _daily_documents(documents, dataset_manifest, manifest_sha, events)
+    elif projection != default_projection:
+        raise ValueError('input projection differs from its original ingestion track')
     return documents, turns, {
         'spec_sha256': spec_sha,
         'source_basis': basis,
         'dataset_sha256': dataset,
         'dataset_manifest_sha256': manifest_sha,
         'ordered_questions_sha256': fingerprint([asdict(turn) for turn in turns]),
+        'input_projection': projection,
+        'release_clock': clock,
+        'document_schedule_sha256': fingerprint(
+            [{'filename': d.filename, 'cutoff': d.cutoff, 'sha256': d.sha256, 'source_ids': d.source_ids}
+             for d in documents]),
         'canary': canary,
     }
 
 
-def verify_scope(progress, identity, directory, supplied=None):
+def select_projection(expected, *recorded):
+    values = {value for value in (expected, *recorded) if value is not None}
+    if len(values) > 1:
+        raise ValueError('conflicting retained input projection')
+    return values.pop() if values else None
+
+
+def verify_scope(progress, identity, directory, projection, supplied=None, expected_admission=None):
     """Verify the original scope bytes without opening any prepaid or credential references."""
     provider = identity['condition']['provider']
     expected = directory.parent/'workflow-scope.json'
     bound = progress.binding('workflow_scope')
     if bound is None:
-        if supplied is not None or (directory.name == 'workflow' and expected.exists()):
+        if supplied is not None or expected_admission is not None or (directory.name == 'workflow' and expected.exists()):
             raise ValueError('workflow scope exists without its original run binding')
         return None, None
     if directory.name != 'workflow' or bound.get('path') != str(expected):
@@ -124,12 +184,17 @@ def verify_scope(progress, identity, directory, supplied=None):
     scope, sha = read_json(expected)
     if sha != bound.get('sha256') or (supplied is not None and sha != supplied):
         raise ValueError('workflow-scope.json SHA-256 differs')
+    admission = scope.get('admission')
     if (scope.get('root') != str(directory.parent) or scope.get('provider') != provider
             or scope.get('run_id') != directory.parent.parent.name or scope.get('protocol') != WEEK
-            or scope.get('admission') != ADMISSIONS[provider] or scope.get('canary') is not identity['canary']
+            or not isinstance(admission, str) or not admission
+            or (projection != DAILY_FILES and admission != ADMISSIONS.get(provider))
+            or (expected_admission is not None and admission != expected_admission)
+            or scope.get('canary') is not identity['canary']
             or scope.get('spec_sha256') != identity['spec_sha256']
             or scope.get('frozen_inputs') != identity['source_basis']):
         raise ValueError('original workflow scope, ingestion protocol or source manifest differs')
+    select_projection(projection, scope.get('input_projection'))
     if provider == 'memcal':
         contract, plan_sha, *_ = _memcal_schedule(identity['spec_sha256'], identity['canary'])
         if (scope.get('account') != identity.get('account') or scope.get('store') != identity.get('store')
@@ -143,13 +208,17 @@ def verify_scope(progress, identity, directory, supplied=None):
     return scope, sha
 
 
-def verify_progress(progress, identity, saved_turns, directory, scope_sha=None):
+def verify_progress(progress, identity, saved_turns, directory, scope_sha=None, *,
+                    projection=None, events=(), expected_admission=None):
     """Check persisted order and source contract against the reviewed compiler."""
     condition = identity['condition']
     provider = condition['provider']
     protocol = identity.get('protocol')
+    projection = select_projection(projection, identity.get('input_projection'),
+                                   events[0].get('input_projection') if events else None)
     if protocol == DOCUMENT_PROGRESS:
-        if provider not in PROVIDERS or condition['track'] != 'nightly-document':
+        allowed = PROVIDERS | {'honcho', 'supermemory'} if projection == DAILY_FILES else PROVIDERS
+        if provider not in allowed or condition['track'] != 'nightly-document':
             raise ValueError('document progress has the wrong provider or ingestion track')
     elif protocol == MEMCAL_PROGRESS:
         if provider != 'memcal' or condition['track'] != 'first-party-connector':
@@ -159,12 +228,13 @@ def verify_progress(progress, identity, saved_turns, directory, scope_sha=None):
     if condition['state'] != 'continuing-account':
         raise ValueError('incremental progress requires a continuing account')
     documents, turns, binding = week_plan(identity['spec_sha256'], identity['source_basis'],
-                                          condition, identity['canary'])
+                                          condition, identity['canary'], projection=projection, events=events)
     if saved_turns != turns:
         raise ValueError('saved turn order, question, time or criteria differ from their frozen schedule')
     if progress.binding('evidence_kind') != 'native' or progress.binding('canary') is not identity['canary']:
         raise ValueError('progress evidence kind or canary binding differs')
-    scope, bound_sha = verify_scope(progress, identity, directory, scope_sha)
+    scope, bound_sha = verify_scope(progress, identity, directory, binding['input_projection'],
+                                    scope_sha, expected_admission)
     binding.update(protocol=protocol, scope_sha256=bound_sha,
                    ingestion_protocol=scope['admission'] if scope else None)
     if protocol == DOCUMENT_PROGRESS:
@@ -358,7 +428,7 @@ def verify_surface(turn, surface, prior, documents, *, qualified_memcal=False):
     return judge_options(turn, surface), prefix[-1].cutoff if prefix else None
 
 
-def legacy_journal(events, document_sha, torn):
+def legacy_journal(events, document_sha, torn, *, projection=None, expected_admission=None):
     """Read the non-SQLite writer format, preserving its condition and verdicts."""
     if len(events) < 2 or [r['phase'] for r in events[:2]] != ['spec', 'condition']:
         raise ValueError('workflow.jsonl lacks its original spec and condition events')
@@ -366,7 +436,11 @@ def legacy_journal(events, document_sha, torn):
     condition = deployment['condition']
     if spec.get('version') != WEEK or not isinstance(spec.get('schedule'), list):
         raise ValueError('unsupported original workflow journal format')
-    documents, turns, binding = week_plan(spec['sha256'], spec['source_basis'], condition, spec['canary'])
+    projection = select_projection(projection, spec.get('input_projection'))
+    documents, turns, binding = week_plan(spec['sha256'], spec['source_basis'], condition, spec['canary'],
+                                          projection=projection, events=events)
+    if expected_admission is not None and deployment.get('admission') != expected_admission:
+        raise ValueError('legacy journal ingestion protocol differs')
     verify_journal_header(events, turns, condition, spec['sha256'], spec['source_basis'], spec['canary'])
     saved = {}
     originals = {}

@@ -1,0 +1,114 @@
+{
+  "revision": "luna-judge-development-challenge-v2",
+  "synthetic": true,
+  "families": [
+    {
+      "id": "roster-completeness",
+      "question_at": "2026-10-01T10:00:00-04:00",
+      "conversation": [
+        {"role": "user", "at": "2026-10-01T09:58:00-04:00", "content": "We've got the bake sale and the lantern supper this weekend. I mean the supper at Birch Hall."},
+        {"role": "assistant", "at": "2026-10-01T09:59:00-04:00", "content": "Got it, the supper and bake sale are separate."}
+      ],
+      "question": "Who's on the confirmed list for the lantern supper?",
+      "claim": "The entire confirmed guest list for the lantern supper is Inez and Milo.",
+      "explicit_rule": "Evaluate closure and confirmed membership for the relevant event. An unqualified answer presented as the confirmed list can be exhaustive without the word 'only'. Wording that leaves the list open supplies no closure. A different asserted complete list conflicts, and tentative people are outside the confirmed set.",
+      "distractor": "It's at Birch Hall.",
+      "cases": {
+        "clay": "The confirmed guests at the supper include Inez and Milo.",
+        "lilac": "The confirmed guests at the supper are Inez and Milo.",
+        "flint": "Inez, Milo, and Noor are the confirmed guests at supper.",
+        "moss": "Inez and Milo make up the full confirmed supper list."
+      }
+    },
+    {
+      "id": "communicated-decline",
+      "question_at": "2026-10-08T16:15:00-04:00",
+      "conversation": [
+        {"role": "user", "at": "2026-10-08T16:13:00-04:00", "content": "Jun is collecting replies for the dumpling lunch. The spice swap has its own thread."},
+        {"role": "assistant", "at": "2026-10-08T16:14:00-04:00", "content": "I'm following the dumpling lunch replies."}
+      ],
+      "question": "What's the latest on Sol's reply to Jun about the dumpling lunch?",
+      "claim": "Sol told Jun she would not attend the dumpling lunch.",
+      "explicit_rule": "Judge whether the named attendee communicated nonattendance to the specified recipient for this event. Inability to attend does not establish that the recipient was told. An explicit denial that they were told conflicts. Do not substitute an event cancellation for a reply.",
+      "distractor": "Lunch is scheduled for twelve thirty.",
+      "cases": {
+        "pearl": "Jun heard directly from Sol that she won't be at lunch.",
+        "silt": "Sol hasn't told Jun that she can't make the lunch.",
+        "rust": "Sol already knows she won't be able to make the lunch.",
+        "wren": "Sol let Jun know she can't make the dumpling lunch."
+      }
+    },
+    {
+      "id": "dietary-uncertainty",
+      "question_at": "2026-10-10T17:15:00-04:00",
+      "conversation": [
+        {"role": "user", "at": "2026-10-10T17:13:00-04:00", "content": "Ren said sesame was fine for last month's lake outing. This order is for the courtyard picnic."},
+        {"role": "assistant", "at": "2026-10-10T17:14:00-04:00", "content": "I'll keep the courtyard order separate from the lake outing."}
+      ],
+      "question": "What's the current sesame note for Ren on the courtyard picnic order?",
+      "claim": "It remains unconfirmed whether Ren can eat sesame at this courtyard picnic.",
+      "explicit_rule": "When a claim is about uncertainty, judge whether the named person's status for that ingredient is unresolved for the relevant meal. A prior meal's status alone leaves the current claim unaddressed. A definite current answer in either direction conflicts with the claim of uncertainty.",
+      "distractor": "The order is due at nine tonight.",
+      "cases": {
+        "pine": "Ren was okay with sesame at the September lake outing.",
+        "fern": "Ren confirmed that sesame is fine for this courtyard picnic.",
+        "slate": "We're still unsure about sesame for Ren at this picnic.",
+        "jade": "Whether Ren can eat sesame at this picnic remains open."
+      }
+    },
+    {
+      "id": "next-recurrence",
+      "question_at": "2026-10-16T12:35:00-04:00",
+      "conversation": [
+        {"role": "user", "at": "2026-10-16T12:33:00-04:00", "content": "For this week only, map club met on Thursday, October 15, instead of Monday. The Saturday map sale is a separate thing."},
+        {"role": "assistant", "at": "2026-10-16T12:34:00-04:00", "content": "I'm tracking the club meeting and the map sale separately."}
+      ],
+      "question": "Which day is the next map club after that Thursday switch?",
+      "claim": "The next map club meeting after October 15 is Monday, October 19, 2026.",
+      "explicit_rule": "Anchor the first future occurrence after the temporary move to the question clock. A weekday or return to the usual schedule can establish the date if the answer ties it unambiguously to that next meeting. Earlier meeting details alone do not establish a future date. A different date for the next meeting conflicts.",
+      "distractor": "We use the east reading room.",
+      "cases": {
+        "reed": "The next map club is this coming Monday, October 19.",
+        "opal": "The Thursday map club meeting finished before the room closed.",
+        "dune": "The next map club meeting is on Thursday, October 22.",
+        "lark": "Map club returns to Mondays starting with the next meeting."
+      }
+    },
+    {
+      "id": "venue-cancellation",
+      "question_at": "2026-10-22T18:45:00-04:00",
+      "conversation": [
+        {"role": "user", "at": "2026-10-22T18:43:00-04:00", "content": "There are two Friday bookings at Cedar House. This thread is about supper with Rafi and Nila, not the lunch."},
+        {"role": "assistant", "at": "2026-10-22T18:44:00-04:00", "content": "Understood, this is the supper booking."}
+      ],
+      "question": "What happened to Friday's supper booking at Cedar House?",
+      "claim": "The Friday supper booking at Cedar House was cancelled for the whole group.",
+      "explicit_rule": "Judge the status of the whole booking for the specified event. Removing one guest does not establish cancellation of the booking. Wording that unambiguously removes the reservation for the party can convey cancellation. An explicit statement that the booking still stands conflicts.",
+      "distractor": "Rafi has the group text thread.",
+      "cases": {
+        "ochre": "Cedar House is keeping Friday's supper reservation for the whole group.",
+        "coral": "Cedar House called off Friday's supper reservation for the whole group.",
+        "brass": "Rafi declined his spot at the Friday supper at Cedar House.",
+        "mica": "The whole group's Friday supper reservation at Cedar House was dropped."
+      }
+    },
+    {
+      "id": "entity-venue",
+      "question_at": "2026-10-24T14:30:00-04:00",
+      "conversation": [
+        {"role": "user", "at": "2026-10-24T14:28:00-04:00", "content": "Niko and Bex are holding separate tastings on Sunday. Niko's is the skillet tasting."},
+        {"role": "assistant", "at": "2026-10-24T14:29:00-04:00", "content": "Right, the skillet tasting is Niko's."}
+      ],
+      "question": "What's the venue for Niko's Sunday skillet tasting?",
+      "claim": "Niko's Sunday skillet tasting is at Willow Loft.",
+      "explicit_rule": "Evaluate the venue only for the event identified by the question and conversation. The answer may inherit an unambiguous event reference. A matching venue explicitly assigned to another event leaves the target unaddressed. A different venue asserted for the target conflicts.",
+      "distractor": "The market meeting is at five.",
+      "cases": {
+        "birch": "Niko's Sunday tasting is booked over at Willow Loft.",
+        "ivory": "Niko's Sunday tasting is booked over at Juniper Hall.",
+        "amber": "Head to Willow Loft for Niko's tasting on Sunday.",
+        "ash": "Head to Willow Loft for Bex's tasting on Sunday."
+      }
+    }
+  ]
+}

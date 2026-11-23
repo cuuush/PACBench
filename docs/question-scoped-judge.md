@@ -157,18 +157,82 @@ manifest maps those names to full source IDs, original UTF-8 body and excerpt
 hashes. The answer model never uses this module. A compatibility projection
 maps only usable semantic judgments into v4's three labels.
 
-The inventory currently covers nine complete turns and 32 criteria. For a
-future nine-arm descriptive shadow, complete and independently review the other
-38 gradeable turns, check each selected passage against the actual input
-projection for each retained condition, and verify releases and correction
-deliveries. The historical and seven-document inputs are distinct conditions.
-Use the existing native evidence verifier first, then
-`Week.from_surface(turn_id, verified_surface, delivered_corrections)`. It calls
-v4's own public-dialogue projector, retaining intermediate assistant prose
-from earlier tool calls. An arbitrary JSON case file supplies development data
-only. A request hash in a local reply establishes which bytes it purports to
-answer. An actual model judgment additionally needs the normal verified
-request, route, receipt and terminal response evidence.
+The continuing-account inventory covers 47 graded questions and 192 original
+points in release order. All 41 initial questions, two conversational follow-ups,
+two correction-uptake questions and two later correction-persistence questions
+keep their exact dated assertions. Two additional user corrections supply
+context without a score. Isolated-control questions do not enter this schedule.
+
+The compiler checks 383 original evidence references across all criteria,
+including four references to earlier user corrections. The original lists name 104 distinct source or correction keys. Each of the
+326 selected passages (counting reuse across criteria) binds to one of them. For each question it records the count and digest
+of the available source IDs. The observed horizons contain 39, 62, 89, 113,
+122 and 142 records. No question occurs between the sixth and seventh releases.
+Pass verified documents to `Week.audit_projection(documents)` to validate
+each selection against the body of its own record and its release clock.
+The local checks covered both the published 48 thread/day files and the seven
+canonical daily files. The second layout omits the quoted older email from
+Maya’s 12:30 update. All selected passages survive both layouts. Provenance
+retains the different projected-body digests.
+
+### Criterion review list
+
+These are authoring questions for human review before promotion. The frozen
+criterion IDs, statements and points remain the reference for both arms.
+
+| Criteria | Ground truth at the question time | Interpretation to review |
+|---|---|---|
+| `rsvp-after/fact-6`, `withdrawal/fact-8`, `game-reference/fact-7` | The eligible exchange records particular confirmations and withdrawals. Permission to invite Alex Reed leaves his RSVP outstanding. | An exhaustive answer to “who” can bound a roster. An illustrative list, or silence about other people, may leave it open. The ground truth here is recorded confirmations. A real-world universal claim would exceed the source. |
+| `pizza-final/fact-13`, `game-reference/fact-1`, `roles/fact-6` | The two Friday outings, the single Thursday game described in different exchanges, and the last known tentative concert plans each concern a particular participant and event. | The question is whether the answer conveys the boundary. Requiring “only” in every answer would change the point. A third party’s overlapping booking, an invitation and a recording of actual attendance are different claims. |
+| `assistant-bored/fact-4` | Jen explicitly left the Roxy invitation open. The user’s only message cited by this criterion discusses a different mystery movie. The eligible exchange contains no Roxy acceptance. | Read this as absence of a recorded acceptance. A movie preference or lack of tickets alone cannot establish an RSVP. The open-invite passage appears with `fact-3` on the same question. Preserve both original criteria. |
+| `tasks-final/fact-4` | The user finished proofreading and Jen acknowledged the feedback. The messages do not say whether Jen made the company-name edit. | Feedback, acknowledgment and completed editing are distinct. Reporting uncertainty about the edit differs from asserting it remains undone. |
+| `assistant-weekend-after/tasting-time` | The user planned 2–2:30 pm. Earlier turns grade the two endpoints individually. | The weekend-after question assigns one point to the full interval. A start plus a determinate duration can express both endpoints. |
+| `friday-lunch-time/lunch-time`, `assistant-friday-plans/lunch-time` | Both point to Maya’s 12:30 update. | A direct answer can inherit its lunch from the question. A multi-event agenda must let the reader identify which event has that time. Naming Maya is one way to do so. |
+| `next-week-pizza/fact-9`, `namesakes/fact-6`, `namesakes/fact-7` | Maya’s dairy decision for October 16 is still open. The user’s corrected preference accepts mushrooms and excludes dairy. | Earlier permission for a different meal and subsequently quoted old preferences do not supersede the current scoped state. |
+
+Other regression controls bind the early unspecified studio cancellation and
+its later resolution, Morgan’s day trip versus ending the stay, the one-week
+game exception versus subsequent series termination, and the category for
+each Ben reminder after the user’s correction. A guest declining the tasting
+affects that guest’s status independently of the user’s commitment.
+
+### Rehearsing a complete retained arm
+
+The paired batch reader verifies the original full schedule and uses the actual
+native-session prefix for each question. It retains public assistant prose
+around earlier tools. Both arms receive the same public answer and history.
+The descriptive Week plan preserves chronological question order and alternates
+which judge is first. Its hash binds all 94 ordered request digests. The blind
+efficacy plan uses independent scenarios and its own balanced order.
+Requests and parsed replies go to new local outputs. The v4 implementation and
+official scores are separate. To inspect the options and run the end-to-end
+CLI fixture locally:
+
+```sh
+python -m pacbench.question_judge_batch --help
+python -m pytest -q tests/test_question_judge_batch.py
+```
+
+For a later descriptive shadow, start in the reviewed retained-reader checkout
+at `41c89fb59ed5181e2a44c41d6a85be0430914f33`. The cohort manifest supplies
+the local run paths. Set `CONTRACT_TREE` to this experimental worktree and
+choose unused output paths outside the retained run. The first command prints
+the export digest and the observed session layout. Supply those values to both
+subsequent commands, running them in the contract worktree.
+
+```sh
+PYTHONPATH=. python "$CONTRACT_TREE/pacbench/question_judge_batch.py" export-retained "$COHORT" --arm "$ARM" --sha256 "$COHORT_SHA" --output "$EXPORT"
+cd "$CONTRACT_TREE"
+python -m pacbench.question_judge_batch plan "$EXPORT" --sha256 "$EXPORT_SHA" --session-layout "$LAYOUT" --output "$PLAN"
+python -m pacbench.question_judge_batch interpret "$EXPORT" --sha256 "$EXPORT_SHA" --session-layout "$LAYOUT" --replies "$REPLIES" --output "$REPORT"
+```
+
+`interpret` accepts a JSON object with `plan_sha256` and `responses`. Replies
+are keyed first by the frozen turn ID and then by arm. Each reply supplies
+`request_sha256`, `finish_reason` and `text`. Omitted replies remain ungraded.
+A local response digest binds bytes for rehearsal. Live efficacy evaluation
+additionally requires ordinary verified transport, route, receipts and sealed
+human labels.
 
 `question_judge_comparison.comparison_plan(cases)` fixes both wire hashes,
 the scenario clusters, case membership and balanced arm order. Archive its

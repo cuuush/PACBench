@@ -26,44 +26,97 @@ class Week:
         manifest = json.loads(checked_file(DATA, 'manifest.json', MANIFEST))
         bundle = load_bundle(DATA / manifest['source_bundle'], manifest['source_bundle_hash'])
         released = {key: doc.cutoff for doc in documents for key in doc.source_ids}
+        self.documents = documents
         self.sources = {}
         for life in bundle['lives'].values():
             for row in life['messages']:
                 key = row['source_id']
                 self.sources[key] = Source(key, row['sender'], row['thread'], row['written_at'],
                                            released[key], row['text'], row['arrived_at'], row.get('available_at'))
-        contract = _json(CONTRACT)
+        contract_text = CONTRACT.read_bytes().decode('utf-8')
+        contract = DECODER.decode(contract_text.strip())
         fields(contract, ('protocol', 'schedule_sha256', 'turns'))
         if (contract['protocol'] != PROTOCOL or contract['schedule_sha256'] != fingerprint(spec)
                 or not isinstance(contract['turns'], dict) or not contract['turns']
-                or contract['turns'].keys() - self.by_id.keys()):
-            raise ValueError('unrecognized protocol, schedule or migrated question')
+                or list(contract['turns']) != [turn.id for turn in self.turns if turn.claims]):
+            raise ValueError('unrecognized protocol, schedule or incomplete ordered question coverage')
         self.entries = contract['turns']
-        self.contract_sha256 = text_hash(CONTRACT.read_text(encoding='utf-8'))
+        self.contract_sha256 = text_hash(contract_text)
         self.dataset_sha256 = manifest['dataset_sha256']
 
     def _correction(self, turn):
         return Source('turn/' + turn.id, 'user', turn.session, turn.at, turn.at, turn.prompt)
 
-    def inventory(self):
+    def _authored_sources(self):
         authored = dict(self.sources)
         for turn in self.turns:
             if turn.measure == 'user-correction':
                 source = self._correction(turn)
                 authored[source.source_id] = source
-        counts = {}
-        pending = []
-        for turn in self.turns:
-            if turn.id in self.entries:
-                rules, _ = assertions(turn, self.entries[turn.id], authored)
-                counts[turn.id] = len(rules)
-            elif turn.claims:
-                pending.append(turn.id)
-        return dict(protocol=PROTOCOL, dataset_sha256=self.dataset_sha256,
-                    contract_file_sha256=self.contract_sha256, migrated=counts,
-                    pending=pending, total_criteria=sum(len(t.claims) for t in self.turns))
+        return authored
 
-    def from_surface(self, ident, surface, delivered_corrections):
+    def audit_projection(self, documents):
+        """Check excerpts by source ID in the actual projection a trusted reader verified."""
+        rendered = {}
+        for doc in documents:
+            for ident, body in zip(doc.source_ids, doc.bodies, strict=True):
+                if ident in rendered or ident not in self.sources:
+                    raise ValueError('duplicate or foreign projected source')
+                original = self.sources[ident]
+                if instant(doc.cutoff) != instant(original.released_at):
+                    raise ValueError('projection release clock differs from the judge source clock')
+                rendered[ident] = (body, doc.cutoff)
+        if rendered.keys() != self.sources.keys():
+            raise ValueError('incomplete Week source projection')
+        evidence_uses = correction_uses = anchor_uses = 0
+        cited = set()
+        horizons = {}
+        corrections = {}
+        for turn in self.turns:
+            cutoff = instant(turn.at)
+            available = sorted(ident for ident, (_, release) in rendered.items() if instant(release) <= cutoff)
+            horizons[turn.id] = dict(records=len(available), ids_sha256=fingerprint(available))
+            if not turn.claims:
+                if turn.measure != 'user-correction':
+                    raise ValueError('unexpected ungraded Week turn')
+                corrections['turn/' + turn.id] = self._correction(turn)
+                continue
+            entry = self.entries[turn.id]
+            for claim, row in zip(turn.claims, entry['criteria'], strict=True):
+                for ident in claim.evidence:
+                    evidence_uses += 1
+                    cited.add(ident)
+                    if ident.startswith('turn/'):
+                        if ident not in corrections or instant(corrections[ident].released_at) >= cutoff:
+                            raise ValueError('undelivered or future authored correction')
+                        correction_uses += 1
+                    elif ident not in available:
+                        raise ValueError('criterion evidence unavailable at question cutoff')
+                for ref in row['anchors']:
+                    ident, quote = ref['source_id'], ref['quote']
+                    if ident in corrections:
+                        body = corrections[ident].body
+                    else:
+                        body, _ = rendered[ident]
+                    if body.count(quote) != 1:
+                        raise ValueError('selected anchor differs in the supplied source projection')
+                    anchor_uses += 1
+        return dict(source_records=len(rendered), evidence_uses=evidence_uses,
+                    distinct_evidence_keys=len(cited), correction_uses=correction_uses,
+                    anchor_uses=anchor_uses, question_horizons=horizons,
+                    projected_records_sha256=fingerprint(sorted(
+                        (key, release, text_hash(body)) for key, (body, release) in rendered.items())))
+
+    def inventory(self):
+        authored = self._authored_sources()
+        counts = {turn.id: len(assertions(turn, self.entries[turn.id], authored)[0])
+                  for turn in self.turns if turn.claims}
+        return dict(protocol=PROTOCOL, dataset_sha256=self.dataset_sha256,
+                    contract_file_sha256=self.contract_sha256, migrated=counts, pending=[],
+                    total_criteria=sum(counts.values()), ungraded=[t.id for t in self.turns if not t.claims],
+                    frozen_evidence=self.audit_projection(self.documents))
+
+    def from_surface(self, ident, surface, delivered_corrections, *, previous_turns=None):
         """Adapt a previously verified native surface. The caller owns native evidence verification."""
         turn = self.by_id[ident]
         rows = surface['history']
@@ -74,9 +127,10 @@ class Week:
             raise ValueError('saved answer surface differs from the frozen turn')
         history = judge_options(turn, surface)['conversation']
         return self.prepare(dict(turn_id=ident, answer_state='received', answer=surface['answer'],
-                                 prior_public_dialogue=history, delivered_corrections=delivered_corrections))
+                                 prior_public_dialogue=history, delivered_corrections=delivered_corrections),
+                            previous_turns=previous_turns)
 
-    def prepare(self, case):
+    def prepare(self, case, *, previous_turns=None):
         fields(case, ('turn_id', 'answer_state', 'answer', 'prior_public_dialogue', 'delivered_corrections'))
         ident = case['turn_id']
         if not isinstance(ident, str) or ident not in self.entries:
@@ -86,7 +140,11 @@ class Week:
         if case['answer_state'] != 'received':
             raise ValueError('unknown answer state')
         turn = self.by_id[ident]
-        previous = [t for t in self.turns if t.session == turn.session and instant(t.at) < instant(turn.at)]
+        earlier = self.turns[:self.turns.index(turn)]
+        logical = [t for t in earlier if t.session == turn.session]
+        previous = logical if previous_turns is None else list(previous_turns)
+        if previous != logical and previous != earlier:
+            raise ValueError('native prefix differs from both supported complete session layouts')
         history = case['prior_public_dialogue']
         if not isinstance(history, list):
             raise ValueError('prior public dialogue must be a list')

@@ -53,13 +53,15 @@ def output(pair, rows):
 def test_complete_migrations_and_coverage(week):
     inventory = week.inventory()
     assert inventory['dataset_sha256'] == '402a2e0a1ff9e7378ec2a915bc10f77bb60303bd7aef5146a9f29338bd174953'
-    assert len(inventory['migrated']) == 9 and sum(inventory['migrated'].values()) == 32
-    assert len(inventory['pending']) == 38 and inventory['total_criteria'] == 192
+    assert list(inventory['migrated']) == [t.id for t in week.turns if t.claims]
+    assert len(inventory['migrated']) == 47 and sum(inventory['migrated'].values()) == 192
+    assert not inventory['pending'] and inventory['total_criteria'] == 192
+    assert inventory['ungraded'] == ['weekend-correction', 'ben-correction']
     for key in inventory['migrated']:
         pair = week.prepare(case(week, key))
         assert pair.manifest()['criteria'] == [c.id for c in week.by_id[key].claims]
     with pytest.raises(ValueError, match='no complete'):
-        week.prepare(case(week, 'rsvp-before'))
+        week.prepare(case(week, 'weekend-correction'))
 
 
 def test_paired_baseline_is_actual_v4_wire_and_same_sampling(week):
@@ -348,3 +350,65 @@ def test_verified_surface_adapter_keeps_intermediate_public_prose(week):
     assert 'private retrieval body' not in json.dumps(pair.requests)
     with pytest.raises(ValueError,match='surface'):
         week.from_surface(key,dict(surface,answer='replacement'),{})
+
+
+def test_all_frozen_evidence_is_available_at_each_cutoff(week):
+    audit = week.inventory()['frozen_evidence']
+    assert (audit['source_records'], audit['evidence_uses'], audit['distinct_evidence_keys'],
+            audit['correction_uses']) == (142, 383, 104, 4)
+    assert set(audit['question_horizons']) == set(week.by_id)
+    # No question falls between the sixth and seventh nightly releases.
+    assert [*dict.fromkeys(r['records'] for r in audit['question_horizons'].values())] == [39,62,89,113,122,142]
+    # All anchor passages are present in the actual text keyed to the cited record.
+    assert audit['anchor_uses'] == sum(len(r['anchors']) for e in week.entries.values() for r in e['criteria'])
+    turn = week.by_id['rsvp-before']
+    sid = turn.claims[0].evidence[0]
+    docs = list(week.documents)
+    i = next(i for i, d in enumerate(docs) if sid in d.source_ids)
+    doc = docs[i]
+    with pytest.raises(ValueError, match='clock'):
+        week.audit_projection([*docs[:i], replace(doc, cutoff=week.turns[-1].at), *docs[i+1:]])
+    changed = tuple('Unrelated text' if k == sid else v for k, v in zip(doc.source_ids, doc.bodies))
+    with pytest.raises(ValueError, match='selected anchor'):
+        week.audit_projection([*docs[:i], replace(doc, bodies=changed), *docs[i+1:]])
+    with pytest.raises(ValueError, match='duplicate'):
+        week.audit_projection([*docs, doc])
+
+
+@pytest.mark.parametrize(('early', 'late', 'source_fragment'), [
+    ('rsvp-before', 'rsvp-after', 'Nora is joining too'),
+    ('visit-mid', 'visit-final', 'Train changed'),
+    ('recurrence-exception', 'series-final', 'end the series'),
+    ('draft-before', 'draft-after', 'I’ve decided'),
+    ('link-before', 'link-final', 'https://example.org/parcel381'),
+])
+def test_cutoff_changes_the_source_state(week, early, late, source_fragment):
+    def passages(key):
+        payload = json.loads(week.prepare(case(week, key)).requests[PROTOCOL]['messages'][1]['content'])
+        return [x['quote'] for x in payload['source_anchors'].values()]
+    assert not any(source_fragment in q for q in passages(early))
+    assert any(source_fragment in q for q in passages(late))
+
+
+def test_historical_time_points_and_exclusions_keep_original_weights(week):
+    history = week.prepare(case(week, 'lunch-history'))
+    assert len(history.rules) == 7
+    assert [r['attribute'] for r in history.rules[:3]] == [
+        'original start time', 'intermediate start time', 'final start time']
+    assert all('On Monday October 5' not in r['quote'] for r in json.loads(
+        history.requests[PROTOCOL]['messages'][1]['content'])['source_anchors'].values())
+    weekend = week.prepare(case(week, 'assistant-weekend-after'))
+    tasting = next(r for r in weekend.rules if r['id'] == 'tasting-time')
+    assert tasting['attribute'] == 'time interval' and '2–2:30' in tasting['accept']
+    ben = week.prepare(case(week, 'ben-persistence'))
+    assert {a['source_id'] for a in ben.manifest()['anchor_bindings'].values()} == {'turn/ben-correction'}
+    assert week.prepare(case(week, 'rsvp-after')).rules[5]['mode'] == 'affirm'
+
+
+def test_cannot_select_an_arbitrary_earlier_subset(week):
+    sample = case(week, 'friday-lunch-time')
+    chosen = week.by_id['obligations-after']
+    sample['prior_public_dialogue'] = [dict(role='user', at=chosen.at, content=chosen.prompt),
+                                      dict(role='assistant', at=chosen.at, content='Synthetic earlier reply.')]
+    with pytest.raises(ValueError, match='complete session layouts'):
+        week.prepare(sample, previous_turns=[chosen])

@@ -2,6 +2,1428 @@
   "protocol": "question-scoped-assertions-v1",
   "schedule_sha256": "2bdd2abe669fa0a6e7e9d007751ffec15ff05a1dd1a22ccb22e75d1e9a39cad9",
   "turns": {
+    "rsvp-before": {
+      "turn_sha256": "f17d982cc62b65c0bc9ca79f7d4e10c1b6331ee111129084a51cf00cd3933578",
+      "criteria": [
+        {
+          "id": "fact-1",
+          "mode": "affirm",
+          "entity": "user and Friday lunch group",
+          "event": "Friday pizza lunch with Maya",
+          "target_time": "October 9, 2026, as agreed at the question cutoff",
+          "attribute": "sender of invitation",
+          "accept": "Identifies Maya as the person who invited the group.",
+          "insufficient": "Mentions Maya as a possible guest without identifying her as inviter.",
+          "contradicts": "Attributes the invitation to another person.",
+          "anchors": [
+            {
+              "source_id": "message-84165f4026ea26e5089b1074",
+              "quote": "Pizza Friday at 1, Rosa's on Oak Street? Leo, Tess, want in?"
+            }
+          ]
+        },
+        {
+          "id": "fact-2",
+          "mode": "affirm",
+          "entity": "user and Friday lunch group",
+          "event": "Friday pizza lunch with Maya",
+          "target_time": "October 9, 2026, as agreed at the question cutoff",
+          "attribute": "confirmed participant: the user",
+          "accept": "Includes the user among the agreed participants. First/second person or an unambiguous group description counts.",
+          "insufficient": "Presents the user only as invited, undecided or mentioned in passing.",
+          "contradicts": "Excludes the user or represents their attendance as declined.",
+          "anchors": [
+            {
+              "source_id": "message-1efe7b0b5b7e0bc8183de054",
+              "quote": "Yes, Friday works for me."
+            }
+          ]
+        },
+        {
+          "id": "fact-3",
+          "mode": "affirm",
+          "entity": "user and Friday lunch group",
+          "event": "Friday pizza lunch with Maya",
+          "target_time": "October 9, 2026, as agreed at the question cutoff",
+          "attribute": "Leo’s reply",
+          "accept": "Says there is no recorded reply yet from Leo; a reply-status list may mark Leo pending.",
+          "insufficient": "Lists only the people who answered with no indication of Leo’s status.",
+          "contradicts": "Says Leo accepted, declined or gave a condition.",
+          "anchors": [
+            {
+              "source_id": "message-84165f4026ea26e5089b1074",
+              "quote": "Pizza Friday at 1, Rosa's on Oak Street? Leo, Tess, want in?"
+            },
+            {
+              "source_id": "message-cebf3499c4273ea2ccb0181c",
+              "quote": "I can make it if my shift finishes early."
+            }
+          ]
+        },
+        {
+          "id": "fact-4",
+          "mode": "affirm",
+          "entity": "user and Friday lunch group",
+          "event": "Friday pizza lunch with Maya",
+          "target_time": "October 9, 2026, as agreed at the question cutoff",
+          "attribute": "Tess’s reply",
+          "accept": "Tess can come if her shift finishes early.",
+          "insufficient": "Calls her a maybe without the work/early-finish condition.",
+          "contradicts": "Reports unconditional confirmation, a decline, or a different requirement.",
+          "anchors": [
+            {
+              "source_id": "message-cebf3499c4273ea2ccb0181c",
+              "quote": "I can make it if my shift finishes early."
+            }
+          ]
+        }
+      ]
+    },
+    "cancellation-before": {
+      "turn_sha256": "6a1dcc0cab8ad0ccca9857aa6bd05b48e7a20e0a3ea7dadecc85424d7f1b91a2",
+      "criteria": [
+        {
+          "id": "fact-1",
+          "mode": "affirm",
+          "entity": "user and Oak studio",
+          "event": "pottery and framing bookings",
+          "target_time": "October 6 morning, before the clarification",
+          "attribute": "which booking the cancellation identifies",
+          "accept": "Convey that the cancellation message leaves which booking unresolved.",
+          "insufficient": "Repeating one booking without addressing whether its identity is known.",
+          "contradicts": "Definitively naming one or both bookings as cancelled at this point.",
+          "anchors": [
+            {
+              "source_id": "message-ae385732cd2ce9b54980bbd3",
+              "quote": "Your bookings: pottery Wednesday October 7 at 10 am; framing Thursday October 8 at 10 am, both at our Oak studio."
+            },
+            {
+              "source_id": "message-62da634d42cbdd5aab31a837",
+              "quote": "Sorry, that appointment is cancelled."
+            }
+          ]
+        }
+      ]
+    },
+    "obligations-before": {
+      "turn_sha256": "096fec4537433f38a58f5747d6529c1eaccd55a560a6d49d62c7189b208079b4",
+      "criteria": [
+        {
+          "id": "fact-1",
+          "mode": "affirm",
+          "entity": "Jen and the user",
+          "event": "application preparations with Jen",
+          "target_time": "state at the question cutoff",
+          "attribute": "revised checklist delivery",
+          "accept": "Jen still owes the revised checklist, or the user is waiting to receive it.",
+          "insufficient": "Refers only to the old checklist or names the item without its status.",
+          "contradicts": "Reports that Jen already sent the revised version.",
+          "anchors": [
+            {
+              "source_id": "message-db40f08cf443f6cf5dbb4061",
+              "quote": "I’ll send you the revised checklist tomorrow."
+            }
+          ]
+        },
+        {
+          "id": "fact-2",
+          "mode": "affirm",
+          "entity": "Jen and the user",
+          "event": "application preparations with Jen",
+          "target_time": "state at the question cutoff",
+          "attribute": "interview-room response",
+          "accept": "Jen has yet to answer which room the interview is in.",
+          "insufficient": "Repeats the room question without indicating it remains open.",
+          "contradicts": "Gives a confirmed room or says Jen has already answered.",
+          "anchors": [
+            {
+              "source_id": "message-acdbdfffc7696a4187ae6f7e",
+              "quote": "Thanks. Could you also tell me the interview room?"
+            }
+          ]
+        },
+        {
+          "id": "fact-3",
+          "mode": "affirm",
+          "entity": "Jen and the user",
+          "event": "application preparations with Jen",
+          "target_time": "state at the question cutoff",
+          "attribute": "cover-letter proofreading",
+          "accept": "The user still owes Jen a review of her cover letter.",
+          "insufficient": "Mentions the letter without assigning the pending proofreading to the user.",
+          "contradicts": "Calls the review finished or assigns the promised proofreading to Jen.",
+          "anchors": [
+            {
+              "source_id": "message-e85696338b2c67b9a767df69",
+              "quote": "Can you proofread my cover letter by Thursday evening?"
+            },
+            {
+              "source_id": "message-c5d8ae828095ebf7e4808ecc",
+              "quote": "I can do that."
+            }
+          ]
+        },
+        {
+          "id": "fact-4",
+          "mode": "affirm",
+          "entity": "Jen and the user",
+          "event": "application preparations with Jen",
+          "target_time": "state at the question cutoff",
+          "attribute": "proofreading deadline",
+          "accept": "Conveys Thursday evening as the proofreading deadline of application preparations with Jen. Equivalent expressions and a uniquely scoped answer to the question count.",
+          "insufficient": "Leaves the proofreading deadline of application preparations with Jen unspecified, or supplies the value only for the checklist or interview-room response.",
+          "contradicts": "Assigns an incompatible proofreading deadline to application preparations with Jen in this scope.",
+          "anchors": [
+            {
+              "source_id": "message-e85696338b2c67b9a767df69",
+              "quote": "Can you proofread my cover letter by Thursday evening?"
+            },
+            {
+              "source_id": "message-c5d8ae828095ebf7e4808ecc",
+              "quote": "I can do that."
+            }
+          ]
+        }
+      ]
+    },
+    "lunch-snapshot": {
+      "turn_sha256": "1b0604af4288bd844ba725702ccec7a21e2c7497749a65ef20fefc26adf80def",
+      "criteria": [
+        {
+          "id": "fact-1",
+          "mode": "affirm",
+          "entity": "user and Friday lunch group",
+          "event": "Friday pizza lunch with Maya",
+          "target_time": "October 9, 2026, as agreed at the question cutoff",
+          "attribute": "start time",
+          "accept": "Conveys 1 pm as the start time of Friday pizza lunch with Maya. Equivalent expressions and a uniquely scoped answer to the question count.",
+          "insufficient": "Leaves the start time of Friday pizza lunch with Maya unspecified, or supplies the value only for another outing.",
+          "contradicts": "Assigns an incompatible start time to Friday pizza lunch with Maya in this scope.",
+          "anchors": [
+            {
+              "source_id": "message-84165f4026ea26e5089b1074",
+              "quote": "Pizza Friday at 1, Rosa's on Oak Street? Leo, Tess, want in?"
+            },
+            {
+              "source_id": "message-1efe7b0b5b7e0bc8183de054",
+              "quote": "Yes, Friday works for me."
+            }
+          ]
+        },
+        {
+          "id": "fact-2",
+          "mode": "affirm",
+          "entity": "user and Friday lunch group",
+          "event": "Friday pizza lunch with Maya",
+          "target_time": "October 9, 2026, as agreed at the question cutoff",
+          "attribute": "venue",
+          "accept": "Conveys Rosa’s as the venue of Friday pizza lunch with Maya. Equivalent expressions and a uniquely scoped answer to the question count.",
+          "insufficient": "Leaves the venue of Friday pizza lunch with Maya unspecified, or supplies the value only for an unrelated pizza venue.",
+          "contradicts": "Assigns an incompatible venue to Friday pizza lunch with Maya in this scope.",
+          "anchors": [
+            {
+              "source_id": "message-84165f4026ea26e5089b1074",
+              "quote": "Pizza Friday at 1, Rosa's on Oak Street? Leo, Tess, want in?"
+            }
+          ]
+        },
+        {
+          "id": "fact-3",
+          "mode": "affirm",
+          "entity": "user and Friday lunch group",
+          "event": "Friday pizza lunch with Maya",
+          "target_time": "October 9, 2026, as agreed at the question cutoff",
+          "attribute": "street",
+          "accept": "Conveys Oak Street as the street of Friday pizza lunch with Maya. Equivalent expressions and a uniquely scoped answer to the question count.",
+          "insufficient": "Leaves the street of Friday pizza lunch with Maya unspecified, or supplies the value only for a place name without its street.",
+          "contradicts": "Assigns an incompatible street to Friday pizza lunch with Maya in this scope.",
+          "anchors": [
+            {
+              "source_id": "message-84165f4026ea26e5089b1074",
+              "quote": "Pizza Friday at 1, Rosa's on Oak Street? Leo, Tess, want in?"
+            }
+          ]
+        }
+      ]
+    },
+    "short-reply": {
+      "turn_sha256": "338ace82078fe57efd978e89f215d586b99a21ffccc0d60f1f8412ae807acbf6",
+      "criteria": [
+        {
+          "id": "fact-1",
+          "mode": "affirm",
+          "entity": "user and tutor",
+          "event": "watercolor workshop",
+          "target_time": "Tuesday October 6, before the session",
+          "attribute": "agreement",
+          "accept": "Conveys that the user agreed to the workshop. The thumbs-up is assent in this exchange.",
+          "insufficient": "Mentions an invitation or the tutor’s plan without conveying agreement.",
+          "contradicts": "Denies the agreement or says the user declined.",
+          "anchors": [
+            {
+              "source_id": "message-6e9e0b4be29598d444579b8d",
+              "quote": "Your watercolor workshop is Tuesday October 6, 10–11 am at MR Hall."
+            },
+            {
+              "source_id": "message-c91e33a76a40c50c6231a4dc",
+              "quote": "👍"
+            },
+            {
+              "source_id": "message-12b8cda76b4ec8edc1440046",
+              "quote": "Great, see you Tuesday."
+            }
+          ]
+        },
+        {
+          "id": "fact-2",
+          "mode": "affirm",
+          "entity": "user and tutor",
+          "event": "watercolor workshop",
+          "target_time": "Tuesday October 6, before the session",
+          "attribute": "start time",
+          "accept": "Conveys 10 am as the start time of watercolor workshop. Equivalent expressions and a uniquely scoped answer to the question count.",
+          "insufficient": "Leaves the start time of watercolor workshop unspecified, or supplies the value only for the 11 am end time.",
+          "contradicts": "Assigns an incompatible start time to watercolor workshop in this scope.",
+          "anchors": [
+            {
+              "source_id": "message-6e9e0b4be29598d444579b8d",
+              "quote": "Your watercolor workshop is Tuesday October 6, 10–11 am at MR Hall."
+            }
+          ]
+        },
+        {
+          "id": "fact-3",
+          "mode": "affirm",
+          "entity": "user and tutor",
+          "event": "watercolor workshop",
+          "target_time": "Tuesday October 6, before the session",
+          "attribute": "venue",
+          "accept": "Conveys MR Hall as the venue of watercolor workshop. Equivalent expressions and a uniquely scoped answer to the question count.",
+          "insufficient": "Leaves the venue of watercolor workshop unspecified, or supplies the value only for another hall or a venue not tied to the workshop.",
+          "contradicts": "Assigns an incompatible venue to watercolor workshop in this scope.",
+          "anchors": [
+            {
+              "source_id": "message-6e9e0b4be29598d444579b8d",
+              "quote": "Your watercolor workshop is Tuesday October 6, 10–11 am at MR Hall."
+            }
+          ]
+        }
+      ]
+    },
+    "draft-before": {
+      "turn_sha256": "bda6823b6e6189dc0b86e744acd03054552bb9d1a1015a11ff5ed947bb377930",
+      "criteria": [
+        {
+          "id": "fact-1",
+          "mode": "affirm",
+          "entity": "user and PizzaLab",
+          "event": "PizzaLab tasting",
+          "target_time": "Sunday October 11, 2026, as planned at the cutoff",
+          "attribute": "draft request",
+          "accept": "The user asked for a provisional itinerary or draft for the tasting.",
+          "insufficient": "Lists the event or times without the planning request.",
+          "contradicts": "Describes a finalized booking in place of the requested draft.",
+          "anchors": [
+            {
+              "source_id": "message-86a7e9e69c1060d52613dc9c",
+              "quote": "Please sketch an itinerary for the Sunday October 11, 2–2:30 pm PizzaLab tasting. I’m still deciding whether to go."
+            }
+          ]
+        },
+        {
+          "id": "fact-2",
+          "mode": "affirm",
+          "entity": "user and PizzaLab",
+          "event": "PizzaLab tasting",
+          "target_time": "Sunday October 11, 2026, as planned at the cutoff",
+          "attribute": "user commitment",
+          "accept": "The user is still deciding, or has made no commitment to go.",
+          "insufficient": "Provides a time or draft without addressing whether the user is going.",
+          "contradicts": "Calls the user booked, confirmed or definitely not going.",
+          "anchors": [
+            {
+              "source_id": "message-86a7e9e69c1060d52613dc9c",
+              "quote": "Please sketch an itinerary for the Sunday October 11, 2–2:30 pm PizzaLab tasting. I’m still deciding whether to go."
+            }
+          ]
+        }
+      ]
+    },
+    "rsvp-after": {
+      "turn_sha256": "cd17798bac8f2c1b3a97c8a145e810dd3ab67618137c6f8700650b18fb5e780e",
+      "criteria": [
+        {
+          "id": "fact-1",
+          "mode": "affirm",
+          "entity": "user and Friday lunch group",
+          "event": "Friday pizza lunch with Maya",
+          "target_time": "October 9, 2026, as agreed at the question cutoff",
+          "attribute": "confirmed participant: the user",
+          "accept": "Includes the user among the agreed participants. First/second person or an unambiguous group description counts.",
+          "insufficient": "Presents the user only as invited, undecided or mentioned in passing.",
+          "contradicts": "Excludes the user or represents their attendance as declined.",
+          "anchors": [
+            {
+              "source_id": "message-1efe7b0b5b7e0bc8183de054",
+              "quote": "Yes, Friday works for me."
+            },
+            {
+              "source_id": "message-f48f97255f44fd842cf8d6d6",
+              "quote": "Noon works. I’ll tell the others."
+            }
+          ]
+        },
+        {
+          "id": "fact-2",
+          "mode": "affirm",
+          "entity": "user and Friday lunch group",
+          "event": "Friday pizza lunch with Maya",
+          "target_time": "October 9, 2026, as agreed at the question cutoff",
+          "attribute": "confirmed participant: Maya",
+          "accept": "Includes Maya among the agreed participants. First/second person or an unambiguous group description counts.",
+          "insufficient": "Presents Maya only as invited, undecided or mentioned in passing.",
+          "contradicts": "Excludes Maya or represents their attendance as declined.",
+          "anchors": [
+            {
+              "source_id": "message-84165f4026ea26e5089b1074",
+              "quote": "Pizza Friday at 1, Rosa's on Oak Street? Leo, Tess, want in?"
+            },
+            {
+              "source_id": "message-24862b467f0edde9f259877e",
+              "quote": "Maya and I just agreed noon instead for Friday."
+            }
+          ]
+        },
+        {
+          "id": "fact-3",
+          "mode": "affirm",
+          "entity": "user and Friday lunch group",
+          "event": "Friday pizza lunch with Maya",
+          "target_time": "October 9, 2026, as agreed at the question cutoff",
+          "attribute": "confirmed participant: Leo",
+          "accept": "Includes Leo among the agreed participants. First/second person or an unambiguous group description counts.",
+          "insufficient": "Presents Leo only as invited, undecided or mentioned in passing.",
+          "contradicts": "Excludes Leo or represents their attendance as declined.",
+          "anchors": [
+            {
+              "source_id": "message-903883a050e981d8ae7a7cb5",
+              "quote": "Friday works."
+            },
+            {
+              "source_id": "message-a46c8303f4280a825254fd9f",
+              "quote": "Noon is good for me."
+            }
+          ]
+        },
+        {
+          "id": "fact-4",
+          "mode": "affirm",
+          "entity": "user and Friday lunch group",
+          "event": "Friday pizza lunch with Maya",
+          "target_time": "October 9, 2026, as agreed at the question cutoff",
+          "attribute": "confirmed participant: Tess",
+          "accept": "Includes Tess among the agreed participants. First/second person or an unambiguous group description counts.",
+          "insufficient": "Presents Tess only as invited, undecided or mentioned in passing.",
+          "contradicts": "Excludes Tess or represents their attendance as declined.",
+          "anchors": [
+            {
+              "source_id": "message-c60a8c041039c2e1b72a0e76",
+              "quote": "Shift got covered. I can come at noon too."
+            }
+          ]
+        },
+        {
+          "id": "fact-5",
+          "mode": "affirm",
+          "entity": "user and Friday lunch group",
+          "event": "Friday pizza lunch with Maya",
+          "target_time": "October 9, 2026, as agreed at the question cutoff",
+          "attribute": "confirmed participant: Nora",
+          "accept": "Includes Nora among the agreed participants. First/second person or an unambiguous group description counts.",
+          "insufficient": "Presents Nora only as invited, undecided or mentioned in passing.",
+          "contradicts": "Excludes Nora or represents their attendance as declined.",
+          "anchors": [
+            {
+              "source_id": "message-e97a9b5352c4a6352defa069",
+              "quote": "Nora is joining too. I invited her to our Friday lunch and she said yes to noon at Mario’s."
+            }
+          ]
+        },
+        {
+          "id": "fact-6",
+          "mode": "affirm",
+          "entity": "user and Friday lunch group",
+          "event": "Friday pizza lunch with Maya",
+          "target_time": "October 9, 2026, as agreed at the question cutoff",
+          "attribute": "confirmed roster boundary",
+          "accept": "Communicates a complete confirmed roster confined to the user, Maya, Leo, Tess and Nora. An exhaustive list in answer to “who” counts. Invitees may be identified separately. Limit the assertion to recorded confirmations at this checkpoint.",
+          "insufficient": "A merely illustrative list or silence does not establish closure when additional guests remain plausible. If adjudication turns on whether an unmarked partial list exhausts the recorded confirmations and the question cannot resolve it, abstain.",
+          "contradicts": "Adds an outsider as a confirmed participant. A clearly tentative or declined guest does not expand the confirmed roster.",
+          "anchors": [
+            {
+              "source_id": "message-84165f4026ea26e5089b1074",
+              "quote": "Pizza Friday at 1, Rosa's on Oak Street? Leo, Tess, want in?"
+            },
+            {
+              "source_id": "message-1efe7b0b5b7e0bc8183de054",
+              "quote": "Yes, Friday works for me."
+            },
+            {
+              "source_id": "message-24862b467f0edde9f259877e",
+              "quote": "Maya and I just agreed noon instead for Friday."
+            },
+            {
+              "source_id": "message-a46c8303f4280a825254fd9f",
+              "quote": "Noon is good for me."
+            },
+            {
+              "source_id": "message-c60a8c041039c2e1b72a0e76",
+              "quote": "Shift got covered. I can come at noon too."
+            },
+            {
+              "source_id": "message-e97a9b5352c4a6352defa069",
+              "quote": "Nora is joining too. I invited her to our Friday lunch and she said yes to noon at Mario’s."
+            }
+          ]
+        },
+        {
+          "id": "fact-7",
+          "mode": "affirm",
+          "entity": "user and Friday lunch group",
+          "event": "Friday pizza lunch with Maya",
+          "target_time": "October 9, 2026, as agreed at the question cutoff",
+          "attribute": "start time",
+          "accept": "Conveys noon (12 pm) as the start time of Friday pizza lunch with Maya. Equivalent expressions and a uniquely scoped answer to the question count.",
+          "insufficient": "Leaves the start time of Friday pizza lunch with Maya unspecified, or supplies the value only for the original 1 pm plan.",
+          "contradicts": "Assigns an incompatible start time to Friday pizza lunch with Maya in this scope.",
+          "anchors": [
+            {
+              "source_id": "message-2bf558cd8ee5b5204f8392a2",
+              "quote": "Could Friday lunch be noon instead?"
+            },
+            {
+              "source_id": "message-f48f97255f44fd842cf8d6d6",
+              "quote": "Noon works. I’ll tell the others."
+            }
+          ]
+        },
+        {
+          "id": "fact-8",
+          "mode": "affirm",
+          "entity": "user and Friday lunch group",
+          "event": "Friday pizza lunch with Maya",
+          "target_time": "October 9, 2026, as agreed at the question cutoff",
+          "attribute": "venue",
+          "accept": "Conveys Mario’s as the venue of Friday pizza lunch with Maya. Equivalent expressions and a uniquely scoped answer to the question count.",
+          "insufficient": "Leaves the venue of Friday pizza lunch with Maya unspecified, or supplies the value only for the former venue Rosa’s.",
+          "contradicts": "Assigns an incompatible venue to Friday pizza lunch with Maya in this scope.",
+          "anchors": [
+            {
+              "source_id": "message-ed996546e0d2b3eed33e0e72",
+              "quote": "Rosa's is closed Friday. Same lunch, can we switch to Mario's on Pine Street?"
+            },
+            {
+              "source_id": "message-5a337fa38bda7dc3b087f1ad",
+              "quote": "Yes, Mario's."
+            }
+          ]
+        },
+        {
+          "id": "fact-9",
+          "mode": "affirm",
+          "entity": "user and Friday lunch group",
+          "event": "Friday pizza lunch with Maya",
+          "target_time": "October 9, 2026, as agreed at the question cutoff",
+          "attribute": "street",
+          "accept": "Conveys Pine Street as the street of Friday pizza lunch with Maya. Equivalent expressions and a uniquely scoped answer to the question count.",
+          "insufficient": "Leaves the street of Friday pizza lunch with Maya unspecified, or supplies the value only for the location of Rosa’s.",
+          "contradicts": "Assigns an incompatible street to Friday pizza lunch with Maya in this scope.",
+          "anchors": [
+            {
+              "source_id": "message-ed996546e0d2b3eed33e0e72",
+              "quote": "Rosa's is closed Friday. Same lunch, can we switch to Mario's on Pine Street?"
+            }
+          ]
+        }
+      ]
+    },
+    "lunch-refreshed": {
+      "turn_sha256": "aba8b60c92eddd2601ddce073387db96ef3e586cf6dbf487c0390549fdc8324c",
+      "criteria": [
+        {
+          "id": "fact-1",
+          "mode": "affirm",
+          "entity": "user and Friday lunch group",
+          "event": "Friday pizza lunch with Maya",
+          "target_time": "October 9, 2026, as agreed at the question cutoff",
+          "attribute": "start time",
+          "accept": "Conveys noon (12 pm) as the start time of Friday pizza lunch with Maya. Equivalent expressions and a uniquely scoped answer to the question count.",
+          "insufficient": "Leaves the start time of Friday pizza lunch with Maya unspecified, or supplies the value only for the original 1 pm plan.",
+          "contradicts": "Assigns an incompatible start time to Friday pizza lunch with Maya in this scope.",
+          "anchors": [
+            {
+              "source_id": "message-2bf558cd8ee5b5204f8392a2",
+              "quote": "Could Friday lunch be noon instead?"
+            },
+            {
+              "source_id": "message-f48f97255f44fd842cf8d6d6",
+              "quote": "Noon works. I’ll tell the others."
+            }
+          ]
+        },
+        {
+          "id": "fact-2",
+          "mode": "affirm",
+          "entity": "user and Friday lunch group",
+          "event": "Friday pizza lunch with Maya",
+          "target_time": "October 9, 2026, as agreed at the question cutoff",
+          "attribute": "venue",
+          "accept": "Conveys Mario’s as the venue of Friday pizza lunch with Maya. Equivalent expressions and a uniquely scoped answer to the question count.",
+          "insufficient": "Leaves the venue of Friday pizza lunch with Maya unspecified, or supplies the value only for the former venue Rosa’s.",
+          "contradicts": "Assigns an incompatible venue to Friday pizza lunch with Maya in this scope.",
+          "anchors": [
+            {
+              "source_id": "message-ed996546e0d2b3eed33e0e72",
+              "quote": "Rosa's is closed Friday. Same lunch, can we switch to Mario's on Pine Street?"
+            },
+            {
+              "source_id": "message-5a337fa38bda7dc3b087f1ad",
+              "quote": "Yes, Mario's."
+            }
+          ]
+        },
+        {
+          "id": "fact-3",
+          "mode": "affirm",
+          "entity": "user and Friday lunch group",
+          "event": "Friday pizza lunch with Maya",
+          "target_time": "October 9, 2026, as agreed at the question cutoff",
+          "attribute": "street",
+          "accept": "Conveys Pine Street as the street of Friday pizza lunch with Maya. Equivalent expressions and a uniquely scoped answer to the question count.",
+          "insufficient": "Leaves the street of Friday pizza lunch with Maya unspecified, or supplies the value only for the old venue’s street.",
+          "contradicts": "Assigns an incompatible street to Friday pizza lunch with Maya in this scope.",
+          "anchors": [
+            {
+              "source_id": "message-ed996546e0d2b3eed33e0e72",
+              "quote": "Rosa's is closed Friday. Same lunch, can we switch to Mario's on Pine Street?"
+            }
+          ]
+        }
+      ]
+    },
+    "cancellation-after": {
+      "turn_sha256": "2564b038d7ed06efe206006fc32bb8861f2ac64eb0a2251c33f1fac9af9332d2",
+      "criteria": [
+        {
+          "id": "fact-1",
+          "mode": "affirm",
+          "entity": "user and Oak studio",
+          "event": "pottery booking",
+          "target_time": "October 7 as known at the question",
+          "attribute": "booking status",
+          "accept": "Pottery is off, including a clear contrast with still-booked framing.",
+          "insufficient": "A guest declining, without saying the booking is off.",
+          "contradicts": "Saying pottery is still booked or that neither booking was cancelled.",
+          "anchors": [
+            {
+              "source_id": "message-62da634d42cbdd5aab31a837",
+              "quote": "Sorry, that appointment is cancelled."
+            },
+            {
+              "source_id": "message-4017cc672959d2c262ac5ecb",
+              "quote": "Sorry, I meant the Wednesday pottery booking. Thursday framing is still booked."
+            }
+          ]
+        },
+        {
+          "id": "fact-2",
+          "mode": "affirm",
+          "entity": "user and Oak studio",
+          "event": "framing booking",
+          "target_time": "October 8 as known at the question",
+          "attribute": "booking status",
+          "accept": "The framing booking is still on or was unaffected by the pottery cancellation.",
+          "insufficient": "A participant's decline or availability alone says nothing about the reservation.",
+          "contradicts": "Cancelling the framing reservation or both studio bookings.",
+          "anchors": [
+            {
+              "source_id": "message-4017cc672959d2c262ac5ecb",
+              "quote": "Sorry, I meant the Wednesday pottery booking. Thursday framing is still booked."
+            }
+          ]
+        },
+        {
+          "id": "fact-3",
+          "mode": "affirm",
+          "entity": "user and Oak studio",
+          "event": "framing booking",
+          "target_time": "October 8 as known at the question",
+          "attribute": "date",
+          "accept": "Thursday or October 8 as the framing date with a unique reference.",
+          "insufficient": "Wednesday for pottery only.",
+          "contradicts": "Putting the framing appointment on a different date.",
+          "anchors": [
+            {
+              "source_id": "message-ae385732cd2ce9b54980bbd3",
+              "quote": "Your bookings: pottery Wednesday October 7 at 10 am; framing Thursday October 8 at 10 am, both at our Oak studio."
+            },
+            {
+              "source_id": "message-4017cc672959d2c262ac5ecb",
+              "quote": "Sorry, I meant the Wednesday pottery booking. Thursday framing is still booked."
+            }
+          ]
+        },
+        {
+          "id": "fact-4",
+          "mode": "affirm",
+          "entity": "user and Oak studio",
+          "event": "framing booking",
+          "target_time": "October 8 as known at the question",
+          "attribute": "start time",
+          "accept": "Ten in the morning tied to framing, including a shared 10 am for both appointments.",
+          "insufficient": "10 am stated only for pottery.",
+          "contradicts": "A different framing start time.",
+          "anchors": [
+            {
+              "source_id": "message-ae385732cd2ce9b54980bbd3",
+              "quote": "Your bookings: pottery Wednesday October 7 at 10 am; framing Thursday October 8 at 10 am, both at our Oak studio."
+            }
+          ]
+        },
+        {
+          "id": "fact-5",
+          "mode": "affirm",
+          "entity": "user and Oak studio",
+          "event": "framing booking",
+          "target_time": "October 8 as known at the question",
+          "attribute": "venue",
+          "accept": "Oak studio tied to framing, including an explicit shared venue.",
+          "insufficient": "Oak given only as the pottery venue.",
+          "contradicts": "Giving a different site for framing.",
+          "anchors": [
+            {
+              "source_id": "message-ae385732cd2ce9b54980bbd3",
+              "quote": "Your bookings: pottery Wednesday October 7 at 10 am; framing Thursday October 8 at 10 am, both at our Oak studio."
+            }
+          ]
+        }
+      ]
+    },
+    "attendance-unknown": {
+      "turn_sha256": "f6423f4003a5a867d35dbb464f4b42b4172820c37993f56a89b14ae207ecb07b",
+      "criteria": [
+        {
+          "id": "fact-1",
+          "mode": "affirm",
+          "entity": "user",
+          "event": "watercolor workshop",
+          "target_time": "attendance on October 6 as known October 7",
+          "attribute": "knowledge of attendance",
+          "accept": "Explicitly saying attendance is unconfirmed, including 'I don’t know whether you went'.",
+          "insufficient": "Reporting the booked time, acceptance or attendance of another person only.",
+          "contradicts": "A definite assertion that the user attended or missed it.",
+          "anchors": [
+            {
+              "source_id": "message-6e9e0b4be29598d444579b8d",
+              "quote": "Your watercolor workshop is Tuesday October 6, 10–11 am at MR Hall."
+            },
+            {
+              "source_id": "message-c91e33a76a40c50c6231a4dc",
+              "quote": "👍"
+            },
+            {
+              "source_id": "message-12b8cda76b4ec8edc1440046",
+              "quote": "Great, see you Tuesday."
+            }
+          ]
+        }
+      ]
+    },
+    "obligations-middle": {
+      "turn_sha256": "2170d194114f0f126c33d63f5c15b018d7e92959b69fada2f3c963bc01e3d7ec",
+      "criteria": [
+        {
+          "id": "fact-1",
+          "mode": "affirm",
+          "entity": "Jen and the user",
+          "event": "application preparations with Jen",
+          "target_time": "state at the question cutoff",
+          "attribute": "interview room",
+          "accept": "Conveys Room 204 as the interview room of application preparations with Jen. Equivalent expressions and a uniquely scoped answer to the question count.",
+          "insufficient": "Leaves the interview room of application preparations with Jen unspecified, or supplies the value only for the checklist or cover letter.",
+          "contradicts": "Assigns an incompatible interview room to application preparations with Jen in this scope.",
+          "anchors": [
+            {
+              "source_id": "message-c39c497072e70e0570aeb9fc",
+              "quote": "Room 204. I’m still revising the checklist, so I’ll send it when it’s ready."
+            }
+          ]
+        },
+        {
+          "id": "fact-2",
+          "mode": "affirm",
+          "entity": "Jen and the user",
+          "event": "application preparations with Jen",
+          "target_time": "state at the question cutoff",
+          "attribute": "revised checklist delivery",
+          "accept": "Jen still owes the revised checklist, or the user is waiting to receive it.",
+          "insufficient": "Refers only to the old checklist or names the item without its status.",
+          "contradicts": "Reports that Jen already sent the revised version.",
+          "anchors": [
+            {
+              "source_id": "message-c39c497072e70e0570aeb9fc",
+              "quote": "Room 204. I’m still revising the checklist, so I’ll send it when it’s ready."
+            }
+          ]
+        },
+        {
+          "id": "fact-3",
+          "mode": "affirm",
+          "entity": "Jen and the user",
+          "event": "application preparations with Jen",
+          "target_time": "state at the question cutoff",
+          "attribute": "cover-letter proofreading",
+          "accept": "The user still owes Jen a review of her cover letter.",
+          "insufficient": "Mentions the letter without assigning the pending proofreading to the user.",
+          "contradicts": "Calls the review finished or assigns the promised proofreading to Jen.",
+          "anchors": [
+            {
+              "source_id": "message-e85696338b2c67b9a767df69",
+              "quote": "Can you proofread my cover letter by Thursday evening?"
+            },
+            {
+              "source_id": "message-c5d8ae828095ebf7e4808ecc",
+              "quote": "I can do that."
+            }
+          ]
+        }
+      ]
+    },
+    "recurrence-exception": {
+      "turn_sha256": "f219a5e7244cf70d317ba598a33c25fa5d809ec04511b1761eab9577e21b76fb",
+      "criteria": [
+        {
+          "id": "fact-1",
+          "mode": "affirm",
+          "entity": "user and game group",
+          "event": "this week’s regular game moved to Thursday",
+          "target_time": "week of October 5, 2026",
+          "attribute": "date",
+          "accept": "Conveys Thursday October 8 as the date of this week’s regular game moved to Thursday. Equivalent expressions and a uniquely scoped answer to the question count.",
+          "insufficient": "Leaves the date of this week’s regular game moved to Thursday unspecified, or supplies the value only for the normal Wednesday slot.",
+          "contradicts": "Assigns an incompatible date to this week’s regular game moved to Thursday in this scope.",
+          "anchors": [
+            {
+              "source_id": "message-97ba71ffbdb8556ad27cf59e",
+              "quote": "Our regular game is Wednesdays at 8 pm at my place. This week only, Thursday October 8 instead? Back to Wednesdays after that."
+            },
+            {
+              "source_id": "message-9e3d1184a60d95347d16ff0a",
+              "quote": "Thursday this week works."
+            },
+            {
+              "source_id": "message-3693453a2dfb5082d6019c46",
+              "quote": "Same here."
+            }
+          ]
+        },
+        {
+          "id": "fact-2",
+          "mode": "affirm",
+          "entity": "user and game group",
+          "event": "this week’s regular game moved to Thursday",
+          "target_time": "week of October 5, 2026",
+          "attribute": "start time",
+          "accept": "Conveys 8 pm as the start time of this week’s regular game moved to Thursday. Equivalent expressions and a uniquely scoped answer to the question count.",
+          "insufficient": "Leaves the start time of this week’s regular game moved to Thursday unspecified, or supplies the value only for the next week only.",
+          "contradicts": "Assigns an incompatible start time to this week’s regular game moved to Thursday in this scope.",
+          "anchors": [
+            {
+              "source_id": "message-97ba71ffbdb8556ad27cf59e",
+              "quote": "Our regular game is Wednesdays at 8 pm at my place. This week only, Thursday October 8 instead? Back to Wednesdays after that."
+            }
+          ]
+        },
+        {
+          "id": "fact-3",
+          "mode": "affirm",
+          "entity": "user and game group",
+          "event": "the following week’s regular game",
+          "target_time": "week of October 12 as then agreed",
+          "attribute": "date",
+          "accept": "Conveys Wednesday October 14, including “back to Wednesday next week” as the date of the following week’s regular game. Equivalent expressions and a uniquely scoped answer to the question count.",
+          "insufficient": "Leaves the date of the following week’s regular game unspecified, or supplies the value only for the one-week Thursday exception.",
+          "contradicts": "Assigns an incompatible date to the following week’s regular game in this scope.",
+          "anchors": [
+            {
+              "source_id": "message-97ba71ffbdb8556ad27cf59e",
+              "quote": "Our regular game is Wednesdays at 8 pm at my place. This week only, Thursday October 8 instead? Back to Wednesdays after that."
+            },
+            {
+              "source_id": "message-9e3d1184a60d95347d16ff0a",
+              "quote": "Thursday this week works."
+            }
+          ]
+        },
+        {
+          "id": "fact-4",
+          "mode": "affirm",
+          "entity": "user and game group",
+          "event": "the following week’s regular game",
+          "target_time": "week of October 12 as then agreed",
+          "attribute": "start time",
+          "accept": "Conveys 8 pm; “both at eight in the evening” applies to both games as the start time of the following week’s regular game. Equivalent expressions and a uniquely scoped answer to the question count.",
+          "insufficient": "Leaves the start time of the following week’s regular game unspecified, or supplies the value only for this week alone.",
+          "contradicts": "Assigns an incompatible start time to the following week’s regular game in this scope.",
+          "anchors": [
+            {
+              "source_id": "message-97ba71ffbdb8556ad27cf59e",
+              "quote": "Our regular game is Wednesdays at 8 pm at my place. This week only, Thursday October 8 instead? Back to Wednesdays after that."
+            }
+          ]
+        }
+      ]
+    },
+    "invitation-placeholder": {
+      "turn_sha256": "eb76a9ccc6e63c26f9fb9fa640696867843c3692d7b7d5c1d3a44a17e9b56a17",
+      "criteria": [
+        {
+          "id": "fact-1",
+          "mode": "affirm",
+          "entity": "user and Rae",
+          "event": "Rae’s concert invitation",
+          "target_time": "October 11 concert, as of October 7 morning",
+          "attribute": "RSVP status",
+          "accept": "The user has not yet accepted or declined the invitation.",
+          "insufficient": "Gives only the event details.",
+          "contradicts": "Reports a yes or a no, including treating the invitation as a booking.",
+          "anchors": [
+            {
+              "source_id": "message-cc12595edab973fb502f8811",
+              "quote": "You’re invited: Rae performs Sunday October 11 at 8 pm. Location shown after RSVP."
+            }
+          ]
+        },
+        {
+          "id": "fact-2",
+          "mode": "affirm",
+          "entity": "user and Rae",
+          "event": "Rae’s concert invitation",
+          "target_time": "October 11 concert, as of October 7 morning",
+          "attribute": "venue availability",
+          "accept": "Location is still unknown or will be supplied after RSVP.",
+          "insufficient": "Leaves location unmentioned.",
+          "contradicts": "Supplies a known venue or claims the venue was already disclosed.",
+          "anchors": [
+            {
+              "source_id": "message-cc12595edab973fb502f8811",
+              "quote": "You’re invited: Rae performs Sunday October 11 at 8 pm. Location shown after RSVP."
+            }
+          ]
+        }
+      ]
+    },
+    "withdrawal": {
+      "turn_sha256": "366860ba56656b5d3132d73c7ac0d2b011c62c7076f99767678da5b8dee33586",
+      "criteria": [
+        {
+          "id": "fact-1",
+          "mode": "affirm",
+          "entity": "user and Friday lunch group",
+          "event": "Friday pizza lunch with Maya",
+          "target_time": "October 9, 2026, as agreed at the question cutoff",
+          "attribute": "start time",
+          "accept": "Conveys 12:30 pm as the start time of Friday pizza lunch with Maya. Equivalent expressions and a uniquely scoped answer to the question count.",
+          "insufficient": "Leaves the start time of Friday pizza lunch with Maya unspecified, or supplies the value only for the earlier noon or 1 pm proposal.",
+          "contradicts": "Assigns an incompatible start time to Friday pizza lunch with Maya in this scope.",
+          "anchors": [
+            {
+              "source_id": "message-70eaf4efec7abbe141b4813e",
+              "quote": "Actually 12:30 Friday would be better. Same place we agreed yesterday."
+            },
+            {
+              "source_id": "message-ab675ac72b9a466e09a4a91a",
+              "quote": "12:30 works."
+            }
+          ]
+        },
+        {
+          "id": "fact-2",
+          "mode": "affirm",
+          "entity": "user and Friday lunch group",
+          "event": "Friday pizza lunch with Maya",
+          "target_time": "October 9, 2026, as agreed at the question cutoff",
+          "attribute": "venue",
+          "accept": "Conveys Mario’s as the venue of Friday pizza lunch with Maya. Equivalent expressions and a uniquely scoped answer to the question count.",
+          "insufficient": "Leaves the venue of Friday pizza lunch with Maya unspecified, or supplies the value only for the former Rosa’s booking.",
+          "contradicts": "Assigns an incompatible venue to Friday pizza lunch with Maya in this scope.",
+          "anchors": [
+            {
+              "source_id": "message-ed996546e0d2b3eed33e0e72",
+              "quote": "Rosa's is closed Friday. Same lunch, can we switch to Mario's on Pine Street?"
+            },
+            {
+              "source_id": "message-5a337fa38bda7dc3b087f1ad",
+              "quote": "Yes, Mario's."
+            }
+          ]
+        },
+        {
+          "id": "fact-3",
+          "mode": "affirm",
+          "entity": "user and Friday lunch group",
+          "event": "Friday pizza lunch with Maya",
+          "target_time": "October 9, 2026, as agreed at the question cutoff",
+          "attribute": "street",
+          "accept": "Conveys Pine Street as the street of Friday pizza lunch with Maya. Equivalent expressions and a uniquely scoped answer to the question count.",
+          "insufficient": "Leaves the street of Friday pizza lunch with Maya unspecified, or supplies the value only for the street of the former venue.",
+          "contradicts": "Assigns an incompatible street to Friday pizza lunch with Maya in this scope.",
+          "anchors": [
+            {
+              "source_id": "message-ed996546e0d2b3eed33e0e72",
+              "quote": "Rosa's is closed Friday. Same lunch, can we switch to Mario's on Pine Street?"
+            }
+          ]
+        },
+        {
+          "id": "fact-4",
+          "mode": "affirm",
+          "entity": "user and Friday lunch group",
+          "event": "Friday pizza lunch with Maya",
+          "target_time": "October 9, 2026, as agreed at the question cutoff",
+          "attribute": "confirmed participant: the user",
+          "accept": "Includes the user among the agreed participants. First/second person or an unambiguous group description counts.",
+          "insufficient": "Presents the user only as invited, undecided or mentioned in passing.",
+          "contradicts": "Excludes the user or represents their attendance as declined.",
+          "anchors": [
+            {
+              "source_id": "message-1efe7b0b5b7e0bc8183de054",
+              "quote": "Yes, Friday works for me."
+            },
+            {
+              "source_id": "message-ab675ac72b9a466e09a4a91a",
+              "quote": "12:30 works."
+            }
+          ]
+        },
+        {
+          "id": "fact-5",
+          "mode": "affirm",
+          "entity": "user and Friday lunch group",
+          "event": "Friday pizza lunch with Maya",
+          "target_time": "October 9, 2026, as agreed at the question cutoff",
+          "attribute": "confirmed participant: Maya",
+          "accept": "Includes Maya among the agreed participants. First/second person or an unambiguous group description counts.",
+          "insufficient": "Presents Maya only as invited, undecided or mentioned in passing.",
+          "contradicts": "Excludes Maya or represents their attendance as declined.",
+          "anchors": [
+            {
+              "source_id": "message-964b71b22accb000c2229981",
+              "quote": "We’ll miss you. Lunch is still on."
+            },
+            {
+              "source_id": "message-70eaf4efec7abbe141b4813e",
+              "quote": "Actually 12:30 Friday would be better. Same place we agreed yesterday."
+            }
+          ]
+        },
+        {
+          "id": "fact-6",
+          "mode": "affirm",
+          "entity": "user and Friday lunch group",
+          "event": "Friday pizza lunch with Maya",
+          "target_time": "October 9, 2026, as agreed at the question cutoff",
+          "attribute": "confirmed participant: Tess",
+          "accept": "Includes Tess among the agreed participants. First/second person or an unambiguous group description counts.",
+          "insufficient": "Presents Tess only as invited, undecided or mentioned in passing.",
+          "contradicts": "Excludes Tess or represents their attendance as declined.",
+          "anchors": [
+            {
+              "source_id": "message-1d5a31eb8e3067ae3fa68cbb",
+              "quote": "I’m still coming."
+            },
+            {
+              "source_id": "message-ba48e22a9602fd8dd1304ede",
+              "quote": "Me too."
+            }
+          ]
+        },
+        {
+          "id": "fact-7",
+          "mode": "affirm",
+          "entity": "user and Friday lunch group",
+          "event": "Friday pizza lunch with Maya",
+          "target_time": "October 9, 2026, as agreed at the question cutoff",
+          "attribute": "confirmed participant: Nora",
+          "accept": "Includes Nora among the agreed participants. First/second person or an unambiguous group description counts.",
+          "insufficient": "Presents Nora only as invited, undecided or mentioned in passing.",
+          "contradicts": "Excludes Nora or represents their attendance as declined.",
+          "anchors": [
+            {
+              "source_id": "message-e97a9b5352c4a6352defa069",
+              "quote": "Nora is joining too. I invited her to our Friday lunch and she said yes to noon at Mario’s."
+            },
+            {
+              "source_id": "message-7e3645a9f4db36a81909dab0",
+              "quote": "Nora says 12:30 works too; I just texted her."
+            }
+          ]
+        },
+        {
+          "id": "fact-8",
+          "mode": "affirm",
+          "entity": "user and Friday lunch group",
+          "event": "Friday pizza lunch with Maya",
+          "target_time": "October 9, 2026, as agreed at the question cutoff",
+          "attribute": "confirmed roster boundary",
+          "accept": "Communicates a complete confirmed roster confined to the user, Maya, Tess and Nora. An exhaustive list in answer to “who” counts. Invitees may be identified separately. Limit the assertion to recorded confirmations at this checkpoint.",
+          "insufficient": "A merely illustrative list or silence does not establish closure when additional guests remain plausible. If adjudication turns on whether an unmarked partial list exhausts the recorded confirmations and the question cannot resolve it, abstain.",
+          "contradicts": "Adds an outsider as a confirmed participant. A clearly tentative or declined guest does not expand the confirmed roster.",
+          "anchors": [
+            {
+              "source_id": "message-3d05f2bd28ae509e06c8d647",
+              "quote": "New shift landed. I can’t make Friday lunch after all."
+            },
+            {
+              "source_id": "message-bd8d1f37c75adeeb7424b51f",
+              "quote": "I’m still out, sorry."
+            },
+            {
+              "source_id": "message-1efe7b0b5b7e0bc8183de054",
+              "quote": "Yes, Friday works for me."
+            },
+            {
+              "source_id": "message-24862b467f0edde9f259877e",
+              "quote": "Maya and I just agreed noon instead for Friday."
+            },
+            {
+              "source_id": "message-ab675ac72b9a466e09a4a91a",
+              "quote": "12:30 works."
+            },
+            {
+              "source_id": "message-ba48e22a9602fd8dd1304ede",
+              "quote": "Me too."
+            },
+            {
+              "source_id": "message-7e3645a9f4db36a81909dab0",
+              "quote": "Nora says 12:30 works too; I just texted her."
+            }
+          ]
+        }
+      ]
+    },
+    "link-before": {
+      "turn_sha256": "17f55cd91688af3901ea65352f7b2ce613af84aaeb0703335b335f0058b983d6",
+      "criteria": [
+        {
+          "id": "fact-1",
+          "mode": "affirm",
+          "entity": "user and Courier",
+          "event": "parcel-support call",
+          "target_time": "Friday October 9, as of October 8 morning",
+          "attribute": "link availability",
+          "accept": "The support-call URL has not been provided yet.",
+          "insufficient": "Lists a driver webinar or only promises to look.",
+          "contradicts": "Supplies a URL as the support-call link.",
+          "anchors": [
+            {
+              "source_id": "message-f721271a588b9160db25e79f",
+              "quote": "I don’t have your support-call link yet."
+            }
+          ]
+        }
+      ]
+    },
+    "obligations-after": {
+      "turn_sha256": "f5c2880fc7c42bad369db3b23992a3073d3867a8f0c7d6fe6dc7ff6f9e08aaa5",
+      "criteria": [
+        {
+          "id": "fact-1",
+          "mode": "affirm",
+          "entity": "Jen and the user",
+          "event": "application preparations with Jen",
+          "target_time": "state at the question cutoff",
+          "attribute": "revised checklist delivery",
+          "accept": "The revised checklist has arrived or Jen sent it.",
+          "insufficient": "Only mentions the previous checklist.",
+          "contradicts": "Reports the revised checklist is still pending.",
+          "anchors": [
+            {
+              "source_id": "message-3fa940c34e4ddcb4e3ebb06d",
+              "quote": "Here’s the revised checklist: ID, printed portfolio, two references. That’s the complete new version."
+            }
+          ]
+        },
+        {
+          "id": "fact-2",
+          "mode": "affirm",
+          "entity": "Jen and the user",
+          "event": "application preparations with Jen",
+          "target_time": "state at the question cutoff",
+          "attribute": "cover-letter proofreading",
+          "accept": "The user still owes Jen a review of her cover letter.",
+          "insufficient": "Mentions the letter without assigning the pending proofreading to the user.",
+          "contradicts": "Calls the review finished or assigns the promised proofreading to Jen.",
+          "anchors": [
+            {
+              "source_id": "message-e85696338b2c67b9a767df69",
+              "quote": "Can you proofread my cover letter by Thursday evening?"
+            },
+            {
+              "source_id": "message-c5d8ae828095ebf7e4808ecc",
+              "quote": "I can do that."
+            }
+          ]
+        },
+        {
+          "id": "fact-3",
+          "mode": "affirm",
+          "entity": "Jen and the user",
+          "event": "application preparations with Jen",
+          "target_time": "state at the question cutoff",
+          "attribute": "proofreading deadline",
+          "accept": "Conveys Thursday evening as the proofreading deadline of application preparations with Jen. Equivalent expressions and a uniquely scoped answer to the question count.",
+          "insufficient": "Leaves the proofreading deadline of application preparations with Jen unspecified, or supplies the value only for the checklist or interview-room response.",
+          "contradicts": "Assigns an incompatible proofreading deadline to application preparations with Jen in this scope.",
+          "anchors": [
+            {
+              "source_id": "message-e85696338b2c67b9a767df69",
+              "quote": "Can you proofread my cover letter by Thursday evening?"
+            },
+            {
+              "source_id": "message-c5d8ae828095ebf7e4808ecc",
+              "quote": "I can do that."
+            }
+          ]
+        }
+      ]
+    },
+    "draft-after": {
+      "turn_sha256": "2aac30559f15714c02f2eba6a06ed004416ca183b78be35f1cd7ba1107caf76a",
+      "criteria": [
+        {
+          "id": "fact-1",
+          "mode": "affirm",
+          "entity": "user and PizzaLab",
+          "event": "PizzaLab tasting",
+          "target_time": "Sunday October 11, 2026, as planned at the cutoff",
+          "attribute": "user commitment",
+          "accept": "States or clearly presents the tasting as a decided plan for the user.",
+          "insufficient": "A draft itinerary or tentative option without a decision.",
+          "contradicts": "Calls the user undecided or says they declined.",
+          "anchors": [
+            {
+              "source_id": "message-bbc539a4447e14fece98267d",
+              "quote": "I’ve decided: I will attend the PizzaLab tasting Sunday October 11, 2–2:30 pm. Want to join?"
+            }
+          ]
+        },
+        {
+          "id": "fact-2",
+          "mode": "affirm",
+          "entity": "user and PizzaLab",
+          "event": "PizzaLab tasting",
+          "target_time": "Sunday October 11, 2026, as planned at the cutoff",
+          "attribute": "date",
+          "accept": "Conveys Sunday October 11 as the date of PizzaLab tasting. Equivalent expressions and a uniquely scoped answer to the question count.",
+          "insufficient": "Leaves the date of PizzaLab tasting unspecified, or supplies the value only for a different weekend activity.",
+          "contradicts": "Assigns an incompatible date to PizzaLab tasting in this scope.",
+          "anchors": [
+            {
+              "source_id": "message-bbc539a4447e14fece98267d",
+              "quote": "I’ve decided: I will attend the PizzaLab tasting Sunday October 11, 2–2:30 pm. Want to join?"
+            }
+          ]
+        },
+        {
+          "id": "fact-3",
+          "mode": "affirm",
+          "entity": "user and PizzaLab",
+          "event": "PizzaLab tasting",
+          "target_time": "Sunday October 11, 2026, as planned at the cutoff",
+          "attribute": "start time",
+          "accept": "Conveys 2 pm local time as the start time of PizzaLab tasting. Equivalent expressions and a uniquely scoped answer to the question count.",
+          "insufficient": "Leaves the start time of PizzaLab tasting unspecified, or supplies the value only for the end of the tasting or another appointment.",
+          "contradicts": "Assigns an incompatible start time to PizzaLab tasting in this scope.",
+          "anchors": [
+            {
+              "source_id": "message-bbc539a4447e14fece98267d",
+              "quote": "I’ve decided: I will attend the PizzaLab tasting Sunday October 11, 2–2:30 pm. Want to join?"
+            }
+          ]
+        },
+        {
+          "id": "fact-4",
+          "mode": "affirm",
+          "entity": "user and PizzaLab",
+          "event": "PizzaLab tasting",
+          "target_time": "Sunday October 11, 2026, as planned at the cutoff",
+          "attribute": "end time",
+          "accept": "Conveys 2:30 pm, including an explicit half hour from a 2 pm start as the end time of PizzaLab tasting. Equivalent expressions and a uniquely scoped answer to the question count.",
+          "insufficient": "Leaves the end time of PizzaLab tasting unspecified, or supplies the value only for a different outing or only a start with no duration.",
+          "contradicts": "Assigns an incompatible end time to PizzaLab tasting in this scope.",
+          "anchors": [
+            {
+              "source_id": "message-bbc539a4447e14fece98267d",
+              "quote": "I’ve decided: I will attend the PizzaLab tasting Sunday October 11, 2–2:30 pm. Want to join?"
+            }
+          ]
+        },
+        {
+          "id": "fact-5",
+          "mode": "affirm",
+          "entity": "Devon",
+          "event": "joining the user at PizzaLab",
+          "target_time": "Sunday October 11, as known at cutoff",
+          "attribute": "Devon’s RSVP",
+          "accept": "Devon declined to join the tasting.",
+          "insufficient": "Says only that the user invited Devon.",
+          "contradicts": "Counts Devon as attending, as undecided or as never invited. Score Devon’s decline independently of any claim about the tasting itself.",
+          "anchors": [
+            {
+              "source_id": "message-a49109de9aa693e10875777a",
+              "quote": "Not for me, thanks."
+            }
+          ]
+        }
+      ]
+    },
+    "assistant-weekend-before": {
+      "turn_sha256": "8f1971ca90300b14abb4504f24681db5c01c6a7479801a595df3aa8be937a845",
+      "criteria": [
+        {
+          "id": "fact-1",
+          "mode": "affirm",
+          "entity": "Ben and the user",
+          "event": "dinner with Ben",
+          "target_time": "final Saturday October 10 dinner arrangement as known at cutoff",
+          "attribute": "agreed date",
+          "accept": "Conveys Saturday October 10 as the agreed date of dinner with Ben. Equivalent expressions and a uniquely scoped answer to the question count.",
+          "insufficient": "Leaves the agreed date of dinner with Ben unspecified, or supplies the value only for the original Thursday or a rejected Friday proposal.",
+          "contradicts": "Assigns an incompatible agreed date to dinner with Ben in this scope.",
+          "anchors": [
+            {
+              "source_id": "message-0a0b9d9e87a648dfdc742ac7",
+              "quote": "Could we move dinner to Saturday October 10? Same time and place."
+            },
+            {
+              "source_id": "message-a6e3e58fcbde96b5456484cf",
+              "quote": "Yes, Saturday instead."
+            }
+          ]
+        },
+        {
+          "id": "fact-2",
+          "mode": "affirm",
+          "entity": "Ben and the user",
+          "event": "dinner with Ben",
+          "target_time": "final Saturday October 10 dinner arrangement as known at cutoff",
+          "attribute": "start time",
+          "accept": "Conveys 7 pm as the start time of dinner with Ben. Equivalent expressions and a uniquely scoped answer to the question count.",
+          "insufficient": "Leaves the start time of dinner with Ben unspecified, or supplies the value only for the Sunday drill return or a superseded Thursday-only plan.",
+          "contradicts": "Assigns an incompatible start time to dinner with Ben in this scope.",
+          "anchors": [
+            {
+              "source_id": "message-b3529fb0881dc977a1303a65",
+              "quote": "Dinner Thursday October 8 at 7 pm at Juniper Cafe?"
+            },
+            {
+              "source_id": "message-0a0b9d9e87a648dfdc742ac7",
+              "quote": "Could we move dinner to Saturday October 10? Same time and place."
+            }
+          ]
+        },
+        {
+          "id": "fact-3",
+          "mode": "affirm",
+          "entity": "Ben and the user",
+          "event": "dinner with Ben",
+          "target_time": "final Saturday October 10 dinner arrangement as known at cutoff",
+          "attribute": "venue",
+          "accept": "Conveys Juniper Cafe (Juniper suffices) as the venue of dinner with Ben. Equivalent expressions and a uniquely scoped answer to the question count.",
+          "insufficient": "Leaves the venue of dinner with Ben unspecified, or supplies the value only for a future suggestion for North Cafe.",
+          "contradicts": "Assigns an incompatible venue to dinner with Ben in this scope.",
+          "anchors": [
+            {
+              "source_id": "message-6e5997a6f7c2077ace849405",
+              "quote": "Thursday at 7 at Juniper works."
+            },
+            {
+              "source_id": "message-0a0b9d9e87a648dfdc742ac7",
+              "quote": "Could we move dinner to Saturday October 10? Same time and place."
+            }
+          ]
+        },
+        {
+          "id": "fact-4",
+          "mode": "affirm",
+          "entity": "user and PizzaLab",
+          "event": "PizzaLab tasting",
+          "target_time": "Sunday October 11, 2026, as planned at the cutoff",
+          "attribute": "user commitment",
+          "accept": "States or clearly presents the tasting as a decided plan for the user.",
+          "insufficient": "A draft itinerary or tentative option without a decision.",
+          "contradicts": "Calls the user undecided or says they declined.",
+          "anchors": [
+            {
+              "source_id": "message-bbc539a4447e14fece98267d",
+              "quote": "I’ve decided: I will attend the PizzaLab tasting Sunday October 11, 2–2:30 pm. Want to join?"
+            }
+          ]
+        },
+        {
+          "id": "fact-5",
+          "mode": "affirm",
+          "entity": "user and PizzaLab",
+          "event": "PizzaLab tasting",
+          "target_time": "Sunday October 11, 2026, as planned at the cutoff",
+          "attribute": "date",
+          "accept": "Conveys Sunday October 11 as the date of PizzaLab tasting. Equivalent expressions and a uniquely scoped answer to the question count.",
+          "insufficient": "Leaves the date of PizzaLab tasting unspecified, or supplies the value only for a different weekend activity.",
+          "contradicts": "Assigns an incompatible date to PizzaLab tasting in this scope.",
+          "anchors": [
+            {
+              "source_id": "message-bbc539a4447e14fece98267d",
+              "quote": "I’ve decided: I will attend the PizzaLab tasting Sunday October 11, 2–2:30 pm. Want to join?"
+            }
+          ]
+        },
+        {
+          "id": "fact-6",
+          "mode": "affirm",
+          "entity": "user and PizzaLab",
+          "event": "PizzaLab tasting",
+          "target_time": "Sunday October 11, 2026, as planned at the cutoff",
+          "attribute": "start time",
+          "accept": "Conveys 2 pm local time as the start time of PizzaLab tasting. Equivalent expressions and a uniquely scoped answer to the question count.",
+          "insufficient": "Leaves the start time of PizzaLab tasting unspecified, or supplies the value only for the end of the tasting or another appointment.",
+          "contradicts": "Assigns an incompatible start time to PizzaLab tasting in this scope.",
+          "anchors": [
+            {
+              "source_id": "message-bbc539a4447e14fece98267d",
+              "quote": "I’ve decided: I will attend the PizzaLab tasting Sunday October 11, 2–2:30 pm. Want to join?"
+            }
+          ]
+        },
+        {
+          "id": "fact-7",
+          "mode": "affirm",
+          "entity": "user and PizzaLab",
+          "event": "PizzaLab tasting",
+          "target_time": "Sunday October 11, 2026, as planned at the cutoff",
+          "attribute": "end time",
+          "accept": "Conveys 2:30 pm, including an explicit half hour from a 2 pm start as the end time of PizzaLab tasting. Equivalent expressions and a uniquely scoped answer to the question count.",
+          "insufficient": "Leaves the end time of PizzaLab tasting unspecified, or supplies the value only for a different outing or only a start with no duration.",
+          "contradicts": "Assigns an incompatible end time to PizzaLab tasting in this scope.",
+          "anchors": [
+            {
+              "source_id": "message-bbc539a4447e14fece98267d",
+              "quote": "I’ve decided: I will attend the PizzaLab tasting Sunday October 11, 2–2:30 pm. Want to join?"
+            }
+          ]
+        }
+      ]
+    },
     "assistant-friday-plans": {
       "turn_sha256": "1e79c3942d3aa994dc22a469f0a31f764983b2508d2c4e69b9abdf3f8465a0cc",
       "criteria": [
@@ -239,6 +1661,230 @@
         }
       ]
     },
+    "assistant-next-pizza": {
+      "turn_sha256": "ec81f80193f3c7f347da985328d5c7d6f07798f43a84a5e17576d25a8938858f",
+      "criteria": [
+        {
+          "id": "pizza-plan",
+          "mode": "affirm",
+          "entity": "user and Friday lunch group",
+          "event": "Friday pizza lunch with Maya",
+          "target_time": "October 9, 2026, as agreed at the question cutoff",
+          "attribute": "next agreed outing",
+          "accept": "Identifies the Friday lunch with Maya as the next agreed pizza; “today” resolves to October 9. The question supplies the next-pizza framing. Score the clock time independently.",
+          "insufficient": "Mentions an unspecified meal or names a later outing without identifying the next one.",
+          "contradicts": "Selects the evening pizza, PizzaLab or another event as the next agreed pizza.",
+          "anchors": [
+            {
+              "source_id": "message-e7a2f911d8fa36506339f31c",
+              "quote": "Nora just cancelled with me too. Then it’s just you and me for lunch now."
+            },
+            {
+              "source_id": "message-a002577d0a7104788a02ccc2",
+              "quote": "Yes, just the two of us."
+            },
+            {
+              "source_id": "message-70eaf4efec7abbe141b4813e",
+              "quote": "Actually 12:30 Friday would be better. Same place we agreed yesterday."
+            }
+          ]
+        },
+        {
+          "id": "pizza-time",
+          "mode": "affirm",
+          "entity": "user and Friday lunch group",
+          "event": "Friday pizza lunch with Maya",
+          "target_time": "October 9, 2026, as agreed at the question cutoff",
+          "attribute": "start time",
+          "accept": "Conveys 12:30 pm for the next agreed pizza as the start time of Friday pizza lunch with Maya. Equivalent expressions and a uniquely scoped answer to the question count.",
+          "insufficient": "Leaves the start time of Friday pizza lunch with Maya unspecified, or supplies the value only for the evening outing or a different lunch.",
+          "contradicts": "Assigns an incompatible start time to Friday pizza lunch with Maya in this scope.",
+          "anchors": [
+            {
+              "source_id": "message-70eaf4efec7abbe141b4813e",
+              "quote": "Actually 12:30 Friday would be better. Same place we agreed yesterday."
+            },
+            {
+              "source_id": "message-ab675ac72b9a466e09a4a91a",
+              "quote": "12:30 works."
+            }
+          ]
+        }
+      ]
+    },
+    "game-reference": {
+      "turn_sha256": "4a36a7246b1fa557b65143d36cba218ee1d0502eec08d608a2bb4e7ce495cf06",
+      "criteria": [
+        {
+          "id": "fact-1",
+          "mode": "affirm",
+          "entity": "Devon, Maya and the user",
+          "event": "Thursday game at Devon’s home",
+          "target_time": "Thursday October 8 plan, recalled October 9",
+          "attribute": "number of games",
+          "accept": "Describes one Thursday game; references from both threads may describe that same arrangement.",
+          "insufficient": "Leaves it unclear whether two references describe the same or distinct games.",
+          "contradicts": "Treats the follow-up invitation discussion as a second arranged game.",
+          "anchors": [
+            {
+              "source_id": "message-97ba71ffbdb8556ad27cf59e",
+              "quote": "Our regular game is Wednesdays at 8 pm at my place. This week only, Thursday October 8 instead? Back to Wednesdays after that."
+            },
+            {
+              "source_id": "message-36aee2517c3bc471bb4af0d4",
+              "quote": "Yes, the Thursday game with Maya at my place, 8. Tell him."
+            }
+          ]
+        },
+        {
+          "id": "fact-2",
+          "mode": "affirm",
+          "entity": "Devon, Maya and the user",
+          "event": "Thursday game at Devon’s home",
+          "target_time": "Thursday October 8 plan, recalled October 9",
+          "attribute": "start time",
+          "accept": "Conveys 8 pm as the start time of Thursday game at Devon’s home. Equivalent expressions and a uniquely scoped answer to the question count.",
+          "insufficient": "Leaves the start time of Thursday game at Devon’s home unspecified, or supplies the value only for the following week’s game only.",
+          "contradicts": "Assigns an incompatible start time to Thursday game at Devon’s home in this scope.",
+          "anchors": [
+            {
+              "source_id": "message-97ba71ffbdb8556ad27cf59e",
+              "quote": "Our regular game is Wednesdays at 8 pm at my place. This week only, Thursday October 8 instead? Back to Wednesdays after that."
+            },
+            {
+              "source_id": "message-36aee2517c3bc471bb4af0d4",
+              "quote": "Yes, the Thursday game with Maya at my place, 8. Tell him."
+            }
+          ]
+        },
+        {
+          "id": "fact-3",
+          "mode": "affirm",
+          "entity": "Devon, Maya and the user",
+          "event": "Thursday game at Devon’s home",
+          "target_time": "Thursday October 8 plan, recalled October 9",
+          "attribute": "venue",
+          "accept": "Conveys Devon’s home or place as the venue of Thursday game at Devon’s home. Equivalent expressions and a uniquely scoped answer to the question count.",
+          "insufficient": "Leaves the venue of Thursday game at Devon’s home unspecified, or supplies the value only for the location of another event.",
+          "contradicts": "Assigns an incompatible venue to Thursday game at Devon’s home in this scope.",
+          "anchors": [
+            {
+              "source_id": "message-97ba71ffbdb8556ad27cf59e",
+              "quote": "Our regular game is Wednesdays at 8 pm at my place. This week only, Thursday October 8 instead? Back to Wednesdays after that."
+            },
+            {
+              "source_id": "message-36aee2517c3bc471bb4af0d4",
+              "quote": "Yes, the Thursday game with Maya at my place, 8. Tell him."
+            }
+          ]
+        },
+        {
+          "id": "fact-4",
+          "mode": "affirm",
+          "entity": "Devon, Maya and the user",
+          "event": "Thursday game at Devon’s home",
+          "target_time": "Thursday October 8 plan, recalled October 9",
+          "attribute": "confirmed participant: Devon",
+          "accept": "Includes Devon among the agreed participants. First/second person or an unambiguous group description counts.",
+          "insufficient": "Presents Devon only as invited, undecided or mentioned in passing.",
+          "contradicts": "Excludes Devon or represents their attendance as declined.",
+          "anchors": [
+            {
+              "source_id": "message-97ba71ffbdb8556ad27cf59e",
+              "quote": "Our regular game is Wednesdays at 8 pm at my place. This week only, Thursday October 8 instead? Back to Wednesdays after that."
+            },
+            {
+              "source_id": "message-36aee2517c3bc471bb4af0d4",
+              "quote": "Yes, the Thursday game with Maya at my place, 8. Tell him."
+            }
+          ]
+        },
+        {
+          "id": "fact-5",
+          "mode": "affirm",
+          "entity": "Devon, Maya and the user",
+          "event": "Thursday game at Devon’s home",
+          "target_time": "Thursday October 8 plan, recalled October 9",
+          "attribute": "confirmed participant: Maya",
+          "accept": "Includes Maya among the agreed participants. First/second person or an unambiguous group description counts.",
+          "insufficient": "Presents Maya only as invited, undecided or mentioned in passing.",
+          "contradicts": "Excludes Maya or represents their attendance as declined.",
+          "anchors": [
+            {
+              "source_id": "message-3693453a2dfb5082d6019c46",
+              "quote": "Same here."
+            },
+            {
+              "source_id": "message-36aee2517c3bc471bb4af0d4",
+              "quote": "Yes, the Thursday game with Maya at my place, 8. Tell him."
+            }
+          ]
+        },
+        {
+          "id": "fact-6",
+          "mode": "affirm",
+          "entity": "Devon, Maya and the user",
+          "event": "Thursday game at Devon’s home",
+          "target_time": "Thursday October 8 plan, recalled October 9",
+          "attribute": "confirmed participant: the user",
+          "accept": "Includes the user among the agreed participants. First/second person or an unambiguous group description counts.",
+          "insufficient": "Presents the user only as invited, undecided or mentioned in passing.",
+          "contradicts": "Excludes the user or represents their attendance as declined.",
+          "anchors": [
+            {
+              "source_id": "message-9e3d1184a60d95347d16ff0a",
+              "quote": "Thursday this week works."
+            }
+          ]
+        },
+        {
+          "id": "fact-7",
+          "mode": "affirm",
+          "entity": "Devon, Maya and the user",
+          "event": "Thursday game at Devon’s home",
+          "target_time": "Thursday October 8 plan, recalled October 9",
+          "attribute": "confirmed roster boundary",
+          "accept": "Communicates a complete confirmed roster confined to Devon, Maya and the user. An exhaustive list in answer to “who” counts. Invitees may be identified separately. Limit the assertion to recorded confirmations at this checkpoint.",
+          "insufficient": "A merely illustrative list or silence does not establish closure when additional guests remain plausible. If adjudication turns on whether an unmarked partial list exhausts the recorded confirmations and the question cannot resolve it, abstain.",
+          "contradicts": "Adds an outsider as a confirmed participant. A clearly tentative or declined guest does not expand the confirmed roster.",
+          "anchors": [
+            {
+              "source_id": "message-36aee2517c3bc471bb4af0d4",
+              "quote": "Yes, the Thursday game with Maya at my place, 8. Tell him."
+            },
+            {
+              "source_id": "message-f25dea69d38f4ed5fb2741c2",
+              "quote": "I’ll ask him; don’t count him until he answers."
+            }
+          ]
+        },
+        {
+          "id": "fact-8",
+          "mode": "affirm",
+          "entity": "Devon, Maya and the user",
+          "event": "Thursday game at Devon’s home",
+          "target_time": "Thursday October 8 plan, recalled October 9",
+          "attribute": "Alex Reed’s attendance",
+          "accept": "Permission to invite Alex Reed was given, but he has not confirmed.",
+          "insufficient": "Says only that Devon approved inviting Alex.",
+          "contradicts": "Counts Alex as attending or says he definitively declined.",
+          "anchors": [
+            {
+              "source_id": "message-e9b468ebb53cc7cd482f3c1e",
+              "quote": "Could Alex Reed join our game tonight?"
+            },
+            {
+              "source_id": "message-36aee2517c3bc471bb4af0d4",
+              "quote": "Yes, the Thursday game with Maya at my place, 8. Tell him."
+            },
+            {
+              "source_id": "message-f25dea69d38f4ed5fb2741c2",
+              "quote": "I’ll ask him; don’t count him until he answers."
+            }
+          ]
+        }
+      ]
+    },
     "friday-lunch-time": {
       "turn_sha256": "bcfc57815f1d815444bb5ad152c6c191658c69e6566ceea3b717446ad3827c79",
       "criteria": [
@@ -265,177 +1911,238 @@
         }
       ]
     },
-    "attendance-unknown": {
-      "turn_sha256": "f6423f4003a5a867d35dbb464f4b42b4172820c37993f56a89b14ae207ecb07b",
+    "saturday-dinner-time": {
+      "turn_sha256": "04832ef0cd051ab95bef674857257e16b5145764805fb88b9adf69546091ff9b",
       "criteria": [
         {
-          "id": "fact-1",
+          "id": "dinner-time",
           "mode": "affirm",
-          "entity": "user",
-          "event": "watercolor workshop",
-          "target_time": "attendance on October 6 as known October 7",
-          "attribute": "knowledge of attendance",
-          "accept": "Explicitly saying attendance is unconfirmed, including 'I don’t know whether you went'.",
-          "insufficient": "Reporting the booked time, acceptance or attendance of another person only.",
-          "contradicts": "A definite assertion that the user attended or missed it.",
-          "anchors": [
-            {
-              "source_id": "message-6e9e0b4be29598d444579b8d",
-              "quote": "Your watercolor workshop is Tuesday October 6, 10–11 am at MR Hall."
-            },
-            {
-              "source_id": "message-c91e33a76a40c50c6231a4dc",
-              "quote": "👍"
-            },
-            {
-              "source_id": "message-12b8cda76b4ec8edc1440046",
-              "quote": "Great, see you Tuesday."
-            }
-          ]
-        }
-      ]
-    },
-    "attendance-final": {
-      "turn_sha256": "fa029192024932b69cb4393860147d6c8e32f1c2c54893cbaf9efba7837d33c6",
-      "criteria": [
-        {
-          "id": "fact-1",
-          "mode": "affirm",
-          "entity": "user",
-          "event": "watercolor workshop",
-          "target_time": "attendance on October 6 as known October 12",
-          "attribute": "reported attendance",
-          "accept": "The user did not go or reported missing it. Recognizing the earlier plan is compatible.",
-          "insufficient": "Saying only that the user had planned to go or that other people attended.",
-          "contradicts": "Saying the user went to this workshop.",
-          "anchors": [
-            {
-              "source_id": "message-09de6538ff5bb038a0823c0d",
-              "quote": "I missed Tuesday’s watercolor workshop after all. Please send the notes."
-            }
-          ]
-        }
-      ]
-    },
-    "cancellation-before": {
-      "turn_sha256": "6a1dcc0cab8ad0ccca9857aa6bd05b48e7a20e0a3ea7dadecc85424d7f1b91a2",
-      "criteria": [
-        {
-          "id": "fact-1",
-          "mode": "affirm",
-          "entity": "user and Oak studio",
-          "event": "pottery and framing bookings",
-          "target_time": "October 6 morning, before the clarification",
-          "attribute": "which booking the cancellation identifies",
-          "accept": "Convey that the cancellation message leaves which booking unresolved.",
-          "insufficient": "Repeating one booking without addressing whether its identity is known.",
-          "contradicts": "Definitively naming one or both bookings as cancelled at this point.",
-          "anchors": [
-            {
-              "source_id": "message-ae385732cd2ce9b54980bbd3",
-              "quote": "Your bookings: pottery Wednesday October 7 at 10 am; framing Thursday October 8 at 10 am, both at our Oak studio."
-            },
-            {
-              "source_id": "message-62da634d42cbdd5aab31a837",
-              "quote": "Sorry, that appointment is cancelled."
-            }
-          ]
-        }
-      ]
-    },
-    "cancellation-after": {
-      "turn_sha256": "2564b038d7ed06efe206006fc32bb8861f2ac64eb0a2251c33f1fac9af9332d2",
-      "criteria": [
-        {
-          "id": "fact-1",
-          "mode": "affirm",
-          "entity": "user and Oak studio",
-          "event": "pottery booking",
-          "target_time": "October 7 as known at the question",
-          "attribute": "booking status",
-          "accept": "Pottery is off, including a clear contrast with still-booked framing.",
-          "insufficient": "A guest declining, without saying the booking is off.",
-          "contradicts": "Saying pottery is still booked or that neither booking was cancelled.",
-          "anchors": [
-            {
-              "source_id": "message-62da634d42cbdd5aab31a837",
-              "quote": "Sorry, that appointment is cancelled."
-            },
-            {
-              "source_id": "message-4017cc672959d2c262ac5ecb",
-              "quote": "Sorry, I meant the Wednesday pottery booking. Thursday framing is still booked."
-            }
-          ]
-        },
-        {
-          "id": "fact-2",
-          "mode": "affirm",
-          "entity": "user and Oak studio",
-          "event": "framing booking",
-          "target_time": "October 8 as known at the question",
-          "attribute": "booking status",
-          "accept": "The framing booking is still on or was unaffected by the pottery cancellation.",
-          "insufficient": "A participant's decline or availability alone says nothing about the reservation.",
-          "contradicts": "Cancelling the framing reservation or both studio bookings.",
-          "anchors": [
-            {
-              "source_id": "message-4017cc672959d2c262ac5ecb",
-              "quote": "Sorry, I meant the Wednesday pottery booking. Thursday framing is still booked."
-            }
-          ]
-        },
-        {
-          "id": "fact-3",
-          "mode": "affirm",
-          "entity": "user and Oak studio",
-          "event": "framing booking",
-          "target_time": "October 8 as known at the question",
-          "attribute": "date",
-          "accept": "Thursday or October 8 as the framing date with a unique reference.",
-          "insufficient": "Wednesday for pottery only.",
-          "contradicts": "Putting the framing appointment on a different date.",
-          "anchors": [
-            {
-              "source_id": "message-ae385732cd2ce9b54980bbd3",
-              "quote": "Your bookings: pottery Wednesday October 7 at 10 am; framing Thursday October 8 at 10 am, both at our Oak studio."
-            },
-            {
-              "source_id": "message-4017cc672959d2c262ac5ecb",
-              "quote": "Sorry, I meant the Wednesday pottery booking. Thursday framing is still booked."
-            }
-          ]
-        },
-        {
-          "id": "fact-4",
-          "mode": "affirm",
-          "entity": "user and Oak studio",
-          "event": "framing booking",
-          "target_time": "October 8 as known at the question",
+          "entity": "Ben and the user",
+          "event": "dinner with Ben",
+          "target_time": "final Saturday October 10 dinner arrangement as known at cutoff",
           "attribute": "start time",
-          "accept": "Ten in the morning tied to framing, including a shared 10 am for both appointments.",
-          "insufficient": "10 am stated only for pottery.",
-          "contradicts": "A different framing start time.",
+          "accept": "Conveys 7 pm as the start time of dinner with Ben. Equivalent expressions and a uniquely scoped answer to the question count.",
+          "insufficient": "Leaves the start time of dinner with Ben unspecified, or supplies the value only for the Sunday drill return or a superseded Thursday-only plan.",
+          "contradicts": "Assigns an incompatible start time to dinner with Ben in this scope.",
           "anchors": [
             {
-              "source_id": "message-ae385732cd2ce9b54980bbd3",
-              "quote": "Your bookings: pottery Wednesday October 7 at 10 am; framing Thursday October 8 at 10 am, both at our Oak studio."
+              "source_id": "message-b3529fb0881dc977a1303a65",
+              "quote": "Dinner Thursday October 8 at 7 pm at Juniper Cafe?"
+            },
+            {
+              "source_id": "message-0a0b9d9e87a648dfdc742ac7",
+              "quote": "Could we move dinner to Saturday October 10? Same time and place."
             }
           ]
         },
         {
-          "id": "fact-5",
+          "id": "dinner-venue",
           "mode": "affirm",
-          "entity": "user and Oak studio",
-          "event": "framing booking",
-          "target_time": "October 8 as known at the question",
+          "entity": "Ben and the user",
+          "event": "dinner with Ben",
+          "target_time": "final Saturday October 10 dinner arrangement as known at cutoff",
           "attribute": "venue",
-          "accept": "Oak studio tied to framing, including an explicit shared venue.",
-          "insufficient": "Oak given only as the pottery venue.",
-          "contradicts": "Giving a different site for framing.",
+          "accept": "Conveys Juniper Cafe (Juniper suffices) as the venue of dinner with Ben. Equivalent expressions and a uniquely scoped answer to the question count.",
+          "insufficient": "Leaves the venue of dinner with Ben unspecified, or supplies the value only for a future suggestion for North Cafe.",
+          "contradicts": "Assigns an incompatible venue to dinner with Ben in this scope.",
           "anchors": [
             {
-              "source_id": "message-ae385732cd2ce9b54980bbd3",
-              "quote": "Your bookings: pottery Wednesday October 7 at 10 am; framing Thursday October 8 at 10 am, both at our Oak studio."
+              "source_id": "message-6e5997a6f7c2077ace849405",
+              "quote": "Thursday at 7 at Juniper works."
+            },
+            {
+              "source_id": "message-0a0b9d9e87a648dfdc742ac7",
+              "quote": "Could we move dinner to Saturday October 10? Same time and place."
+            }
+          ]
+        }
+      ]
+    },
+    "assistant-weekend-after": {
+      "turn_sha256": "9294f7731fc91735edc8bf044a7933eea7f09c045fb801d702d290b99e1c7a69",
+      "criteria": [
+        {
+          "id": "dinner-date",
+          "mode": "affirm",
+          "entity": "Ben and the user",
+          "event": "dinner with Ben",
+          "target_time": "final Saturday October 10 dinner arrangement as known at cutoff",
+          "attribute": "agreed date",
+          "accept": "Conveys Saturday October 10 as the agreed date of dinner with Ben. Equivalent expressions and a uniquely scoped answer to the question count.",
+          "insufficient": "Leaves the agreed date of dinner with Ben unspecified, or supplies the value only for the original Thursday or a rejected Friday proposal.",
+          "contradicts": "Assigns an incompatible agreed date to dinner with Ben in this scope.",
+          "anchors": [
+            {
+              "source_id": "message-0a0b9d9e87a648dfdc742ac7",
+              "quote": "Could we move dinner to Saturday October 10? Same time and place."
+            },
+            {
+              "source_id": "message-a6e3e58fcbde96b5456484cf",
+              "quote": "Yes, Saturday instead."
+            },
+            {
+              "source_id": "message-cfc5215a1df308d00d93488d",
+              "quote": "Not Friday. Saturday is still good."
+            }
+          ]
+        },
+        {
+          "id": "dinner-time",
+          "mode": "affirm",
+          "entity": "Ben and the user",
+          "event": "dinner with Ben",
+          "target_time": "final Saturday October 10 dinner arrangement as known at cutoff",
+          "attribute": "start time",
+          "accept": "Conveys 7 pm as the start time of dinner with Ben. Equivalent expressions and a uniquely scoped answer to the question count.",
+          "insufficient": "Leaves the start time of dinner with Ben unspecified, or supplies the value only for the Sunday drill return or a superseded Thursday-only plan.",
+          "contradicts": "Assigns an incompatible start time to dinner with Ben in this scope.",
+          "anchors": [
+            {
+              "source_id": "message-b3529fb0881dc977a1303a65",
+              "quote": "Dinner Thursday October 8 at 7 pm at Juniper Cafe?"
+            },
+            {
+              "source_id": "message-0a0b9d9e87a648dfdc742ac7",
+              "quote": "Could we move dinner to Saturday October 10? Same time and place."
+            }
+          ]
+        },
+        {
+          "id": "dinner-venue",
+          "mode": "affirm",
+          "entity": "Ben and the user",
+          "event": "dinner with Ben",
+          "target_time": "final Saturday October 10 dinner arrangement as known at cutoff",
+          "attribute": "venue",
+          "accept": "Conveys Juniper Cafe (Juniper suffices) as the venue of dinner with Ben. Equivalent expressions and a uniquely scoped answer to the question count.",
+          "insufficient": "Leaves the venue of dinner with Ben unspecified, or supplies the value only for a future suggestion for North Cafe.",
+          "contradicts": "Assigns an incompatible venue to dinner with Ben in this scope.",
+          "anchors": [
+            {
+              "source_id": "message-6e5997a6f7c2077ace849405",
+              "quote": "Thursday at 7 at Juniper works."
+            },
+            {
+              "source_id": "message-0a0b9d9e87a648dfdc742ac7",
+              "quote": "Could we move dinner to Saturday October 10? Same time and place."
+            }
+          ]
+        },
+        {
+          "id": "tasting-date",
+          "mode": "affirm",
+          "entity": "user and PizzaLab",
+          "event": "PizzaLab tasting",
+          "target_time": "Sunday October 11, 2026, as planned at the cutoff",
+          "attribute": "date",
+          "accept": "Conveys Sunday October 11 as the date of PizzaLab tasting. Equivalent expressions and a uniquely scoped answer to the question count.",
+          "insufficient": "Leaves the date of PizzaLab tasting unspecified, or supplies the value only for a different weekend activity.",
+          "contradicts": "Assigns an incompatible date to PizzaLab tasting in this scope.",
+          "anchors": [
+            {
+              "source_id": "message-bbc539a4447e14fece98267d",
+              "quote": "I’ve decided: I will attend the PizzaLab tasting Sunday October 11, 2–2:30 pm. Want to join?"
+            }
+          ]
+        },
+        {
+          "id": "tasting-time",
+          "mode": "affirm",
+          "entity": "user and PizzaLab",
+          "event": "PizzaLab tasting",
+          "target_time": "Sunday October 11, 2026, as planned at the cutoff",
+          "attribute": "time interval",
+          "accept": "Gives a 2–2:30 pm interval, including a 2 pm start with an unambiguous half-hour duration.",
+          "insufficient": "Only one endpoint, with no duration or other way to determine the interval.",
+          "contradicts": "Gives an incompatible endpoint or duration.",
+          "anchors": [
+            {
+              "source_id": "message-bbc539a4447e14fece98267d",
+              "quote": "I’ve decided: I will attend the PizzaLab tasting Sunday October 11, 2–2:30 pm. Want to join?"
+            }
+          ]
+        },
+        {
+          "id": "drill-return-date",
+          "mode": "affirm",
+          "entity": "Ben and the user",
+          "event": "Ben returning the drill",
+          "target_time": "Sunday October 11, 2026",
+          "attribute": "date",
+          "accept": "Conveys Sunday October 11 as the date of Ben returning the drill. Equivalent expressions and a uniquely scoped answer to the question count.",
+          "insufficient": "Leaves the date of Ben returning the drill unspecified, or supplies the value only for Saturday dinner.",
+          "contradicts": "Assigns an incompatible date to Ben returning the drill in this scope.",
+          "anchors": [
+            {
+              "source_id": "message-63a773936f7b411216273849",
+              "quote": "Hi! Could I bring your drill back Sunday, October 11, at 3 pm, and leave it at your door? That’s separate from Saturday dinner, of course."
+            },
+            {
+              "source_id": "message-171369e3e0cebb95b3ba6c13",
+              "quote": "Yes, Sunday, October 11, at 3 pm at my door works perfectly."
+            }
+          ]
+        },
+        {
+          "id": "drill-return-time",
+          "mode": "affirm",
+          "entity": "Ben and the user",
+          "event": "Ben returning the drill",
+          "target_time": "Sunday October 11, 2026",
+          "attribute": "time",
+          "accept": "Conveys 3 pm as the time of Ben returning the drill. Equivalent expressions and a uniquely scoped answer to the question count.",
+          "insufficient": "Leaves the time of Ben returning the drill unspecified, or supplies the value only for dinner with Ben.",
+          "contradicts": "Assigns an incompatible time to Ben returning the drill in this scope.",
+          "anchors": [
+            {
+              "source_id": "message-63a773936f7b411216273849",
+              "quote": "Hi! Could I bring your drill back Sunday, October 11, at 3 pm, and leave it at your door? That’s separate from Saturday dinner, of course."
+            },
+            {
+              "source_id": "message-171369e3e0cebb95b3ba6c13",
+              "quote": "Yes, Sunday, October 11, at 3 pm at my door works perfectly."
+            }
+          ]
+        },
+        {
+          "id": "drill-return-location",
+          "mode": "affirm",
+          "entity": "Ben and the user",
+          "event": "Ben returning the drill",
+          "target_time": "Sunday October 11, 2026",
+          "attribute": "drop-off location",
+          "accept": "Conveys the user’s door as the drop-off location of Ben returning the drill. Equivalent expressions and a uniquely scoped answer to the question count.",
+          "insufficient": "Leaves the drop-off location of Ben returning the drill unspecified, or supplies the value only for the dinner venue.",
+          "contradicts": "Assigns an incompatible drop-off location to Ben returning the drill in this scope.",
+          "anchors": [
+            {
+              "source_id": "message-63a773936f7b411216273849",
+              "quote": "Hi! Could I bring your drill back Sunday, October 11, at 3 pm, and leave it at your door? That’s separate from Saturday dinner, of course."
+            },
+            {
+              "source_id": "message-171369e3e0cebb95b3ba6c13",
+              "quote": "Yes, Sunday, October 11, at 3 pm at my door works perfectly."
+            }
+          ]
+        },
+        {
+          "id": "drill-separate",
+          "mode": "affirm",
+          "entity": "Ben and the user",
+          "event": "Ben returning the drill",
+          "target_time": "Sunday October 11, 2026",
+          "attribute": "relationship to dinner",
+          "accept": "The drill return and dinner are distinct arrangements; separate entries with the correct events clearly assigned can convey this.",
+          "insufficient": "Mentions Ben without distinguishing the errand from the dinner.",
+          "contradicts": "Makes the drill return part of dinner or replaces the dinner with the return.",
+          "anchors": [
+            {
+              "source_id": "message-63a773936f7b411216273849",
+              "quote": "Hi! Could I bring your drill back Sunday, October 11, at 3 pm, and leave it at your door? That’s separate from Saturday dinner, of course."
+            },
+            {
+              "source_id": "message-171369e3e0cebb95b3ba6c13",
+              "quote": "Yes, Sunday, October 11, at 3 pm at my door works perfectly."
             }
           ]
         }
@@ -463,6 +2170,155 @@
         }
       ]
     },
+    "visit-mid": {
+      "turn_sha256": "0446e2e27af6cfc3f6f10f15fe8b29763f4c55a2c2aed573b523dde4a7218b8a",
+      "criteria": [
+        {
+          "id": "fact-1",
+          "mode": "affirm",
+          "entity": "Morgan and the user",
+          "event": "Morgan’s stay",
+          "target_time": "as of October 10 morning",
+          "attribute": "lodging",
+          "accept": "Conveys the user’s home or guest room as the lodging of Morgan’s stay. Equivalent expressions and a uniquely scoped answer to the question count.",
+          "insufficient": "Leaves the lodging of Morgan’s stay unspecified, or supplies the value only for a museum visited during the stay.",
+          "contradicts": "Assigns an incompatible lodging to Morgan’s stay in this scope.",
+          "anchors": [
+            {
+              "source_id": "message-f8537d8a8c37e7aa6b273eec",
+              "quote": "Can I stay with you Friday October 9 through Monday October 12? Arrive about 4 pm Friday, leave 9 am Monday."
+            },
+            {
+              "source_id": "message-228ba90053a70685a27af315",
+              "quote": "Yes, guest room is yours. I have meals out but you can let yourself in."
+            },
+            {
+              "source_id": "message-6d22975b096aa2acf6ad153d",
+              "quote": "Settled into your guest room, thanks. Tomorrow I’m leaving at 8 for a museum, back about 5. My bag stays here."
+            }
+          ]
+        },
+        {
+          "id": "fact-2",
+          "mode": "affirm",
+          "entity": "Morgan and the user",
+          "event": "Morgan’s stay",
+          "target_time": "as of October 10 morning",
+          "attribute": "agreed departure date",
+          "accept": "Conveys Monday October 12 as the agreed departure date of Morgan’s stay. Equivalent expressions and a uniquely scoped answer to the question count.",
+          "insufficient": "Leaves the agreed departure date of Morgan’s stay unspecified, or supplies the value only for a museum excursion.",
+          "contradicts": "Assigns an incompatible agreed departure date to Morgan’s stay in this scope.",
+          "anchors": [
+            {
+              "source_id": "message-f8537d8a8c37e7aa6b273eec",
+              "quote": "Can I stay with you Friday October 9 through Monday October 12? Arrive about 4 pm Friday, leave 9 am Monday."
+            },
+            {
+              "source_id": "message-228ba90053a70685a27af315",
+              "quote": "Yes, guest room is yours. I have meals out but you can let yourself in."
+            }
+          ]
+        },
+        {
+          "id": "fact-3",
+          "mode": "affirm",
+          "entity": "Morgan and the user",
+          "event": "Morgan’s stay",
+          "target_time": "as of October 10 morning",
+          "attribute": "agreed departure time",
+          "accept": "Conveys 9 am as the agreed departure time of Morgan’s stay. Equivalent expressions and a uniquely scoped answer to the question count.",
+          "insufficient": "Leaves the agreed departure time of Morgan’s stay unspecified, or supplies the value only for a museum excursion.",
+          "contradicts": "Assigns an incompatible agreed departure time to Morgan’s stay in this scope.",
+          "anchors": [
+            {
+              "source_id": "message-f8537d8a8c37e7aa6b273eec",
+              "quote": "Can I stay with you Friday October 9 through Monday October 12? Arrive about 4 pm Friday, leave 9 am Monday."
+            },
+            {
+              "source_id": "message-228ba90053a70685a27af315",
+              "quote": "Yes, guest room is yours. I have meals out but you can let yourself in."
+            }
+          ]
+        }
+      ]
+    },
+    "assistant-bored": {
+      "turn_sha256": "b8990fa0842465c32ba87910b5162458a543ee0aefa85f04b2639e340646301a",
+      "criteria": [
+        {
+          "id": "fact-1",
+          "mode": "affirm",
+          "entity": "user and Jen",
+          "event": "Roxy matinee invitation",
+          "target_time": "Saturday October 10 as an option for today",
+          "attribute": "date",
+          "accept": "Conveys Saturday October 10; offering this outing for “today” resolves the day as the date of Roxy matinee invitation. Equivalent expressions and a uniquely scoped answer to the question count.",
+          "insufficient": "Leaves the date of Roxy matinee invitation unspecified, or supplies the value only for another movie or day.",
+          "contradicts": "Assigns an incompatible date to Roxy matinee invitation in this scope.",
+          "anchors": [
+            {
+              "source_id": "message-5b921de23adbdcf35cc2e39a",
+              "quote": "Might catch the 2pm matinee at the Roxy on Saturday if you're bored. No tickets yet, just seeing who's around."
+            }
+          ]
+        },
+        {
+          "id": "fact-2",
+          "mode": "affirm",
+          "entity": "user and Jen",
+          "event": "Roxy matinee invitation",
+          "target_time": "Saturday October 10 as an option for today",
+          "attribute": "time",
+          "accept": "Conveys 2 pm as the time of Roxy matinee invitation. Equivalent expressions and a uniquely scoped answer to the question count.",
+          "insufficient": "Leaves the time of Roxy matinee invitation unspecified, or supplies the value only for a different movie.",
+          "contradicts": "Assigns an incompatible time to Roxy matinee invitation in this scope.",
+          "anchors": [
+            {
+              "source_id": "message-5b921de23adbdcf35cc2e39a",
+              "quote": "Might catch the 2pm matinee at the Roxy on Saturday if you're bored. No tickets yet, just seeing who's around."
+            }
+          ]
+        },
+        {
+          "id": "fact-3",
+          "mode": "affirm",
+          "entity": "user and Jen",
+          "event": "Roxy matinee invitation",
+          "target_time": "Saturday October 10 as an option for today",
+          "attribute": "invitation status",
+          "accept": "Presents the Roxy matinee as a still-available invitation or option from Jen.",
+          "insufficient": "Mentions a film without tying it to the open invitation.",
+          "contradicts": "Reports the invitation has expired or was withdrawn.",
+          "anchors": [
+            {
+              "source_id": "message-5b921de23adbdcf35cc2e39a",
+              "quote": "Might catch the 2pm matinee at the Roxy on Saturday if you're bored. No tickets yet, just seeing who's around."
+            },
+            {
+              "source_id": "message-d9668812be193a21e345b105",
+              "quote": "I still haven’t bought tickets for the Roxy, so my matinee invite’s open if you’re interested. Have you seen anything good lately?"
+            }
+          ]
+        },
+        {
+          "id": "fact-4",
+          "mode": "affirm",
+          "entity": "user and Jen",
+          "event": "Roxy matinee invitation",
+          "target_time": "Saturday October 10 as an option for today",
+          "attribute": "user’s acceptance",
+          "accept": "Conveys that the user has not accepted the Roxy outing, for example by presenting a still-open choice for the user to accept. The ground truth concerns absence of an acceptance in the released exchange. The separate movie remark alone cannot establish an RSVP.",
+          "insufficient": "A general movie preference, a ticketing fact, or uncertainty about a different mystery film alone does not answer whether the user accepted. Abstain if the decision depends on treating that movie remark as a Roxy RSVP.",
+          "contradicts": "Reports that the user accepted or booked the Roxy outing.",
+          "anchors": [
+            {
+              "source_id": "message-e740d6faf5101b6910a5ffca",
+              "quote": "Not much lately. I’ve been meaning to see the new mystery one, but I’m not sure yet."
+            }
+          ]
+        }
+      ]
+    },
     "weekend-persistence": {
       "turn_sha256": "9ef02434222e3e2a583c8252c8d7f7081b697960c6900657c8fc1aea14754879",
       "criteria": [
@@ -480,6 +2336,1437 @@
             {
               "source_id": "turn/weekend-correction",
               "quote": "Actually, I should have been more specific. When I ask for my weekend rundown, I mean Saturday only. Call that my porch list."
+            }
+          ]
+        }
+      ]
+    },
+    "pizza-final": {
+      "turn_sha256": "9ca25903d716dae809f940bad9cb1e089df38e7c29d22b8fbea1c669c012a0db",
+      "criteria": [
+        {
+          "id": "fact-1",
+          "mode": "affirm",
+          "entity": "user and Friday lunch group",
+          "event": "Friday pizza lunch with Maya",
+          "target_time": "October 9, 2026, as agreed at the question cutoff",
+          "attribute": "confirmed participant: the user",
+          "accept": "Includes the user among the agreed participants. First/second person or an unambiguous group description counts.",
+          "insufficient": "Presents the user only as invited, undecided or mentioned in passing.",
+          "contradicts": "Excludes the user or represents their attendance as declined.",
+          "anchors": [
+            {
+              "source_id": "message-1efe7b0b5b7e0bc8183de054",
+              "quote": "Yes, Friday works for me."
+            },
+            {
+              "source_id": "message-a002577d0a7104788a02ccc2",
+              "quote": "Yes, just the two of us."
+            }
+          ]
+        },
+        {
+          "id": "fact-2",
+          "mode": "affirm",
+          "entity": "user and Friday lunch group",
+          "event": "Friday pizza lunch with Maya",
+          "target_time": "October 9, 2026, as agreed at the question cutoff",
+          "attribute": "confirmed participant: Maya",
+          "accept": "Includes Maya among the agreed participants. First/second person or an unambiguous group description counts.",
+          "insufficient": "Presents Maya only as invited, undecided or mentioned in passing.",
+          "contradicts": "Excludes Maya or represents their attendance as declined.",
+          "anchors": [
+            {
+              "source_id": "message-84165f4026ea26e5089b1074",
+              "quote": "Pizza Friday at 1, Rosa's on Oak Street? Leo, Tess, want in?"
+            },
+            {
+              "source_id": "message-e7a2f911d8fa36506339f31c",
+              "quote": "Nora just cancelled with me too. Then it’s just you and me for lunch now."
+            }
+          ]
+        },
+        {
+          "id": "fact-3",
+          "mode": "affirm",
+          "entity": "user and Friday lunch group",
+          "event": "Friday pizza lunch with Maya",
+          "target_time": "October 9, 2026, as agreed at the question cutoff",
+          "attribute": "confirmed roster boundary",
+          "accept": "Communicates a complete confirmed roster confined to the user and Maya. An exhaustive list in answer to “who” counts. Invitees may be identified separately.",
+          "insufficient": "An open-ended example, silence about the roster, or an undifferentiated list of possible guests does not establish its boundary.",
+          "contradicts": "Adds an outsider as a confirmed participant. A clearly tentative or declined guest does not expand the confirmed roster.",
+          "anchors": [
+            {
+              "source_id": "message-e7a2f911d8fa36506339f31c",
+              "quote": "Nora just cancelled with me too. Then it’s just you and me for lunch now."
+            },
+            {
+              "source_id": "message-a002577d0a7104788a02ccc2",
+              "quote": "Yes, just the two of us."
+            }
+          ]
+        },
+        {
+          "id": "fact-4",
+          "mode": "affirm",
+          "entity": "user and Friday lunch group",
+          "event": "Friday pizza lunch with Maya",
+          "target_time": "October 9, 2026, as agreed at the question cutoff",
+          "attribute": "start time",
+          "accept": "Conveys 12:30 pm as the start time of Friday pizza lunch with Maya. Equivalent expressions and a uniquely scoped answer to the question count.",
+          "insufficient": "Leaves the start time of Friday pizza lunch with Maya unspecified, or supplies the value only for the earlier 1 pm or noon plan.",
+          "contradicts": "Assigns an incompatible start time to Friday pizza lunch with Maya in this scope.",
+          "anchors": [
+            {
+              "source_id": "message-70eaf4efec7abbe141b4813e",
+              "quote": "Actually 12:30 Friday would be better. Same place we agreed yesterday."
+            },
+            {
+              "source_id": "message-ab675ac72b9a466e09a4a91a",
+              "quote": "12:30 works."
+            }
+          ]
+        },
+        {
+          "id": "fact-5",
+          "mode": "affirm",
+          "entity": "user and Friday lunch group",
+          "event": "Friday pizza lunch with Maya",
+          "target_time": "October 9, 2026, as agreed at the question cutoff",
+          "attribute": "venue",
+          "accept": "Conveys Mario’s as the venue of Friday pizza lunch with Maya. Equivalent expressions and a uniquely scoped answer to the question count.",
+          "insufficient": "Leaves the venue of Friday pizza lunch with Maya unspecified, or supplies the value only for Rosa’s or the evening venue.",
+          "contradicts": "Assigns an incompatible venue to Friday pizza lunch with Maya in this scope.",
+          "anchors": [
+            {
+              "source_id": "message-ed996546e0d2b3eed33e0e72",
+              "quote": "Rosa's is closed Friday. Same lunch, can we switch to Mario's on Pine Street?"
+            },
+            {
+              "source_id": "message-5a337fa38bda7dc3b087f1ad",
+              "quote": "Yes, Mario's."
+            },
+            {
+              "source_id": "message-e7a2f911d8fa36506339f31c",
+              "quote": "Nora just cancelled with me too. Then it’s just you and me for lunch now."
+            }
+          ]
+        },
+        {
+          "id": "fact-6",
+          "mode": "affirm",
+          "entity": "user and Friday lunch group",
+          "event": "Friday pizza lunch with Maya",
+          "target_time": "October 9, 2026, as agreed at the question cutoff",
+          "attribute": "street",
+          "accept": "Conveys Pine Street as the street of Friday pizza lunch with Maya. Equivalent expressions and a uniquely scoped answer to the question count.",
+          "insufficient": "Leaves the street of Friday pizza lunch with Maya unspecified, or supplies the value only for the evening venue’s street.",
+          "contradicts": "Assigns an incompatible street to Friday pizza lunch with Maya in this scope.",
+          "anchors": [
+            {
+              "source_id": "message-ed996546e0d2b3eed33e0e72",
+              "quote": "Rosa's is closed Friday. Same lunch, can we switch to Mario's on Pine Street?"
+            }
+          ]
+        },
+        {
+          "id": "fact-7",
+          "mode": "affirm",
+          "entity": "user and Devon",
+          "event": "Friday evening pizza",
+          "target_time": "October 9, as agreed",
+          "attribute": "confirmed participant: the user",
+          "accept": "Includes the user among the agreed participants. First/second person or an unambiguous group description counts.",
+          "insufficient": "Presents the user only as invited, undecided or mentioned in passing.",
+          "contradicts": "Excludes the user or represents their attendance as declined.",
+          "anchors": [
+            {
+              "source_id": "message-b557c3bb938054b11bc6e4d7",
+              "quote": "Want to do pizza Friday? Luigi’s on 5th around 6?"
+            },
+            {
+              "source_id": "message-13bb3e3cb59c783d95abfd24",
+              "quote": "Yep, just you and me."
+            }
+          ]
+        },
+        {
+          "id": "fact-8",
+          "mode": "affirm",
+          "entity": "user and Devon",
+          "event": "Friday evening pizza",
+          "target_time": "October 9, as agreed",
+          "attribute": "confirmed participant: Devon",
+          "accept": "Includes Devon among the agreed participants. First/second person or an unambiguous group description counts.",
+          "insufficient": "Presents Devon only as invited, undecided or mentioned in passing.",
+          "contradicts": "Excludes Devon or represents their attendance as declined.",
+          "anchors": [
+            {
+              "source_id": "message-4180509c0f5fb703223f661d",
+              "quote": "Yeah, that works. Just us?"
+            },
+            {
+              "source_id": "message-994d96364ed242d4117bba74",
+              "quote": "Perfect. I tried making crust at home this weekend, and it actually came out pretty good."
+            }
+          ]
+        },
+        {
+          "id": "fact-9",
+          "mode": "affirm",
+          "entity": "user and Devon",
+          "event": "Friday evening pizza",
+          "target_time": "October 9, as agreed",
+          "attribute": "confirmed roster boundary",
+          "accept": "Communicates a complete confirmed roster confined to the user and Devon. An exhaustive list in answer to “who” counts. Invitees may be identified separately.",
+          "insufficient": "An open-ended example, silence about the roster, or an undifferentiated list of possible guests does not establish its boundary.",
+          "contradicts": "Adds an outsider as a confirmed participant. A clearly tentative or declined guest does not expand the confirmed roster.",
+          "anchors": [
+            {
+              "source_id": "message-4180509c0f5fb703223f661d",
+              "quote": "Yeah, that works. Just us?"
+            },
+            {
+              "source_id": "message-13bb3e3cb59c783d95abfd24",
+              "quote": "Yep, just you and me."
+            }
+          ]
+        },
+        {
+          "id": "fact-10",
+          "mode": "affirm",
+          "entity": "user and Devon",
+          "event": "Friday evening pizza",
+          "target_time": "October 9, as agreed",
+          "attribute": "start time",
+          "accept": "Conveys 6 pm, including around six in the evening as the start time of Friday evening pizza. Equivalent expressions and a uniquely scoped answer to the question count.",
+          "insufficient": "Leaves the start time of Friday evening pizza unspecified, or supplies the value only for Friday lunch.",
+          "contradicts": "Assigns an incompatible start time to Friday evening pizza in this scope.",
+          "anchors": [
+            {
+              "source_id": "message-b557c3bb938054b11bc6e4d7",
+              "quote": "Want to do pizza Friday? Luigi’s on 5th around 6?"
+            },
+            {
+              "source_id": "message-4180509c0f5fb703223f661d",
+              "quote": "Yeah, that works. Just us?"
+            }
+          ]
+        },
+        {
+          "id": "fact-11",
+          "mode": "affirm",
+          "entity": "user and Devon",
+          "event": "Friday evening pizza",
+          "target_time": "October 9, as agreed",
+          "attribute": "venue",
+          "accept": "Conveys Luigi’s as the venue of Friday evening pizza. Equivalent expressions and a uniquely scoped answer to the question count.",
+          "insufficient": "Leaves the venue of Friday evening pizza unspecified, or supplies the value only for the lunch venue.",
+          "contradicts": "Assigns an incompatible venue to Friday evening pizza in this scope.",
+          "anchors": [
+            {
+              "source_id": "message-b557c3bb938054b11bc6e4d7",
+              "quote": "Want to do pizza Friday? Luigi’s on 5th around 6?"
+            }
+          ]
+        },
+        {
+          "id": "fact-12",
+          "mode": "affirm",
+          "entity": "user and Devon",
+          "event": "Friday evening pizza",
+          "target_time": "October 9, as agreed",
+          "attribute": "street",
+          "accept": "Conveys 5th or Fifth Street as the street of Friday evening pizza. Equivalent expressions and a uniquely scoped answer to the question count.",
+          "insufficient": "Leaves the street of Friday evening pizza unspecified, or supplies the value only for the lunch venue’s street.",
+          "contradicts": "Assigns an incompatible street to Friday evening pizza in this scope.",
+          "anchors": [
+            {
+              "source_id": "message-b557c3bb938054b11bc6e4d7",
+              "quote": "Want to do pizza Friday? Luigi’s on 5th around 6?"
+            }
+          ]
+        },
+        {
+          "id": "fact-13",
+          "mode": "affirm",
+          "entity": "user",
+          "event": "the user’s agreed pizza outings",
+          "target_time": "Friday October 9 only",
+          "attribute": "number of agreed outings",
+          "accept": "Presents lunch and evening pizza as the full set of the user’s agreed outings that day. An exhaustive two-item answer can convey this.",
+          "insufficient": "An illustrative or open-ended list does not delimit the day’s plans. If there is no reliable way to decide whether the list purports to exhaust the user’s Friday plans, distinguish ambiguous wording from an unjudgeable contract.",
+          "contradicts": "Adds the tasting, the following Friday, Nora’s separate party or another outing to the user’s agreed October 9 schedule.",
+          "anchors": [
+            {
+              "source_id": "message-84165f4026ea26e5089b1074",
+              "quote": "Pizza Friday at 1, Rosa's on Oak Street? Leo, Tess, want in?"
+            },
+            {
+              "source_id": "message-1efe7b0b5b7e0bc8183de054",
+              "quote": "Yes, Friday works for me."
+            },
+            {
+              "source_id": "message-b557c3bb938054b11bc6e4d7",
+              "quote": "Want to do pizza Friday? Luigi’s on 5th around 6?"
+            },
+            {
+              "source_id": "message-4180509c0f5fb703223f661d",
+              "quote": "Yeah, that works. Just us?"
+            },
+            {
+              "source_id": "message-13bb3e3cb59c783d95abfd24",
+              "quote": "Yep, just you and me."
+            },
+            {
+              "source_id": "message-bbc539a4447e14fece98267d",
+              "quote": "I’ve decided: I will attend the PizzaLab tasting Sunday October 11, 2–2:30 pm. Want to join?"
+            },
+            {
+              "source_id": "message-ab33f88b437c68bcea152c4f",
+              "quote": "Pizza Friday October 16 at 1 at Mario's on Pine Street, just us?"
+            },
+            {
+              "source_id": "message-74c44eaaf83d295d72c84622",
+              "quote": "Nora booked Luigi’s on 5th for Friday October 9 at 6 too. Her guest list was just herself and her flatmates Eli and Jo."
+            }
+          ]
+        }
+      ]
+    },
+    "lunch-history": {
+      "turn_sha256": "68437c6af4af42d00645678fd05c1ce92c29b060e2c186ec021692f434786bc0",
+      "criteria": [
+        {
+          "id": "fact-1",
+          "mode": "affirm",
+          "entity": "user and Friday lunch group",
+          "event": "Friday pizza lunch with Maya",
+          "target_time": "October 9, 2026, as agreed at the question cutoff",
+          "attribute": "original start time",
+          "accept": "Conveys 1 pm as the original start time of Friday pizza lunch with Maya. Equivalent expressions and a uniquely scoped answer to the question count.",
+          "insufficient": "Leaves the original start time of Friday pizza lunch with Maya unspecified, or supplies the value only for the interim or final plan.",
+          "contradicts": "Assigns an incompatible start time to Friday pizza lunch with Maya in this scope.",
+          "anchors": [
+            {
+              "source_id": "message-84165f4026ea26e5089b1074",
+              "quote": "Pizza Friday at 1, Rosa's on Oak Street? Leo, Tess, want in?"
+            }
+          ]
+        },
+        {
+          "id": "fact-2",
+          "mode": "affirm",
+          "entity": "user and Friday lunch group",
+          "event": "Friday pizza lunch with Maya",
+          "target_time": "October 9, 2026, as agreed at the question cutoff",
+          "attribute": "intermediate start time",
+          "accept": "Conveys noon as the intermediate start time of Friday pizza lunch with Maya. Equivalent expressions and a uniquely scoped answer to the question count.",
+          "insufficient": "Leaves the intermediate start time of Friday pizza lunch with Maya unspecified, or supplies the value only for the original or final plan.",
+          "contradicts": "Assigns an incompatible start time to Friday pizza lunch with Maya in this scope.",
+          "anchors": [
+            {
+              "source_id": "message-2bf558cd8ee5b5204f8392a2",
+              "quote": "Could Friday lunch be noon instead?"
+            },
+            {
+              "source_id": "message-f48f97255f44fd842cf8d6d6",
+              "quote": "Noon works. I’ll tell the others."
+            }
+          ]
+        },
+        {
+          "id": "fact-3",
+          "mode": "affirm",
+          "entity": "user and Friday lunch group",
+          "event": "Friday pizza lunch with Maya",
+          "target_time": "October 9, 2026, as agreed at the question cutoff",
+          "attribute": "final start time",
+          "accept": "Conveys 12:30 pm as the final start time of Friday pizza lunch with Maya. Equivalent expressions and a uniquely scoped answer to the question count.",
+          "insufficient": "Leaves the final start time of Friday pizza lunch with Maya unspecified, or supplies the value only for a prior proposal.",
+          "contradicts": "Assigns an incompatible start time to Friday pizza lunch with Maya in this scope.",
+          "anchors": [
+            {
+              "source_id": "message-70eaf4efec7abbe141b4813e",
+              "quote": "Actually 12:30 Friday would be better. Same place we agreed yesterday."
+            },
+            {
+              "source_id": "message-ab675ac72b9a466e09a4a91a",
+              "quote": "12:30 works."
+            }
+          ]
+        },
+        {
+          "id": "fact-4",
+          "mode": "affirm",
+          "entity": "user and Friday lunch group",
+          "event": "Friday pizza lunch with Maya",
+          "target_time": "October 9, 2026, as agreed at the question cutoff",
+          "attribute": "original venue",
+          "accept": "Conveys Rosa’s as the original venue of Friday pizza lunch with Maya. Equivalent expressions and a uniquely scoped answer to the question count.",
+          "insufficient": "Leaves the original venue of Friday pizza lunch with Maya unspecified, or supplies the value only for the final lunch venue.",
+          "contradicts": "Assigns an incompatible venue to Friday pizza lunch with Maya in this scope.",
+          "anchors": [
+            {
+              "source_id": "message-84165f4026ea26e5089b1074",
+              "quote": "Pizza Friday at 1, Rosa's on Oak Street? Leo, Tess, want in?"
+            }
+          ]
+        },
+        {
+          "id": "fact-5",
+          "mode": "affirm",
+          "entity": "user and Friday lunch group",
+          "event": "Friday pizza lunch with Maya",
+          "target_time": "October 9, 2026, as agreed at the question cutoff",
+          "attribute": "original street",
+          "accept": "Conveys Oak Street as the original street of Friday pizza lunch with Maya. Equivalent expressions and a uniquely scoped answer to the question count.",
+          "insufficient": "Leaves the original street of Friday pizza lunch with Maya unspecified, or supplies the value only for the location of the final venue.",
+          "contradicts": "Assigns an incompatible street to Friday pizza lunch with Maya in this scope.",
+          "anchors": [
+            {
+              "source_id": "message-84165f4026ea26e5089b1074",
+              "quote": "Pizza Friday at 1, Rosa's on Oak Street? Leo, Tess, want in?"
+            }
+          ]
+        },
+        {
+          "id": "fact-6",
+          "mode": "affirm",
+          "entity": "user and Friday lunch group",
+          "event": "Friday pizza lunch with Maya",
+          "target_time": "October 9, 2026, as agreed at the question cutoff",
+          "attribute": "final venue",
+          "accept": "Conveys Mario’s as the final venue of Friday pizza lunch with Maya. Equivalent expressions and a uniquely scoped answer to the question count.",
+          "insufficient": "Leaves the final venue of Friday pizza lunch with Maya unspecified, or supplies the value only for the former lunch venue.",
+          "contradicts": "Assigns an incompatible venue to Friday pizza lunch with Maya in this scope.",
+          "anchors": [
+            {
+              "source_id": "message-ed996546e0d2b3eed33e0e72",
+              "quote": "Rosa's is closed Friday. Same lunch, can we switch to Mario's on Pine Street?"
+            },
+            {
+              "source_id": "message-5a337fa38bda7dc3b087f1ad",
+              "quote": "Yes, Mario's."
+            }
+          ]
+        },
+        {
+          "id": "fact-7",
+          "mode": "affirm",
+          "entity": "user and Friday lunch group",
+          "event": "Friday pizza lunch with Maya",
+          "target_time": "October 9, 2026, as agreed at the question cutoff",
+          "attribute": "final street",
+          "accept": "Conveys Pine Street as the final street of Friday pizza lunch with Maya. Equivalent expressions and a uniquely scoped answer to the question count.",
+          "insufficient": "Leaves the final street of Friday pizza lunch with Maya unspecified, or supplies the value only for the location of the former venue.",
+          "contradicts": "Assigns an incompatible street to Friday pizza lunch with Maya in this scope.",
+          "anchors": [
+            {
+              "source_id": "message-ed996546e0d2b3eed33e0e72",
+              "quote": "Rosa's is closed Friday. Same lunch, can we switch to Mario's on Pine Street?"
+            }
+          ]
+        }
+      ]
+    },
+    "ben-final": {
+      "turn_sha256": "f6c870c90a45703d1e37abade90ae6d9c8ce2088f0e6385b535088adcf81cb50",
+      "criteria": [
+        {
+          "id": "fact-1",
+          "mode": "affirm",
+          "entity": "Ben and the user",
+          "event": "dinner with Ben",
+          "target_time": "final Saturday October 10 dinner arrangement as known at cutoff",
+          "attribute": "agreed date",
+          "accept": "Conveys Saturday October 10 as the agreed date of dinner with Ben. Equivalent expressions and a uniquely scoped answer to the question count.",
+          "insufficient": "Leaves the agreed date of dinner with Ben unspecified, or supplies the value only for the original Thursday or a rejected Friday proposal.",
+          "contradicts": "Assigns an incompatible agreed date to dinner with Ben in this scope.",
+          "anchors": [
+            {
+              "source_id": "message-0a0b9d9e87a648dfdc742ac7",
+              "quote": "Could we move dinner to Saturday October 10? Same time and place."
+            },
+            {
+              "source_id": "message-a6e3e58fcbde96b5456484cf",
+              "quote": "Yes, Saturday instead."
+            }
+          ]
+        },
+        {
+          "id": "fact-2",
+          "mode": "affirm",
+          "entity": "Ben and the user",
+          "event": "dinner with Ben",
+          "target_time": "final Saturday October 10 dinner arrangement as known at cutoff",
+          "attribute": "start time",
+          "accept": "Conveys 7 pm as the start time of dinner with Ben. Equivalent expressions and a uniquely scoped answer to the question count.",
+          "insufficient": "Leaves the start time of dinner with Ben unspecified, or supplies the value only for the Sunday drill return or a superseded Thursday-only plan.",
+          "contradicts": "Assigns an incompatible start time to dinner with Ben in this scope.",
+          "anchors": [
+            {
+              "source_id": "message-b3529fb0881dc977a1303a65",
+              "quote": "Dinner Thursday October 8 at 7 pm at Juniper Cafe?"
+            },
+            {
+              "source_id": "message-0a0b9d9e87a648dfdc742ac7",
+              "quote": "Could we move dinner to Saturday October 10? Same time and place."
+            }
+          ]
+        },
+        {
+          "id": "fact-3",
+          "mode": "affirm",
+          "entity": "Ben and the user",
+          "event": "dinner with Ben",
+          "target_time": "final Saturday October 10 dinner arrangement as known at cutoff",
+          "attribute": "venue",
+          "accept": "Conveys Juniper Cafe (Juniper suffices) as the venue of dinner with Ben. Equivalent expressions and a uniquely scoped answer to the question count.",
+          "insufficient": "Leaves the venue of dinner with Ben unspecified, or supplies the value only for a future suggestion for North Cafe.",
+          "contradicts": "Assigns an incompatible venue to dinner with Ben in this scope.",
+          "anchors": [
+            {
+              "source_id": "message-6e5997a6f7c2077ace849405",
+              "quote": "Thursday at 7 at Juniper works."
+            },
+            {
+              "source_id": "message-0a0b9d9e87a648dfdc742ac7",
+              "quote": "Could we move dinner to Saturday October 10? Same time and place."
+            }
+          ]
+        }
+      ]
+    },
+    "ben-mail-separate": {
+      "turn_sha256": "339a0fedd8c6f3ae01102ac49c98ec45fe2805f329fd4a3c1ac047e28ec01bd9",
+      "criteria": [
+        {
+          "id": "fact-1",
+          "mode": "affirm",
+          "entity": "Ben and the user",
+          "event": "dinner with Ben",
+          "target_time": "final Saturday October 10 dinner arrangement as known at cutoff",
+          "attribute": "agreed date",
+          "accept": "Conveys Saturday October 10 as the agreed date of dinner with Ben. Equivalent expressions and a uniquely scoped answer to the question count.",
+          "insufficient": "Leaves the agreed date of dinner with Ben unspecified, or supplies the value only for the original Thursday or a rejected Friday proposal.",
+          "contradicts": "Assigns an incompatible agreed date to dinner with Ben in this scope.",
+          "anchors": [
+            {
+              "source_id": "message-0a0b9d9e87a648dfdc742ac7",
+              "quote": "Could we move dinner to Saturday October 10? Same time and place."
+            },
+            {
+              "source_id": "message-a6e3e58fcbde96b5456484cf",
+              "quote": "Yes, Saturday instead."
+            }
+          ]
+        },
+        {
+          "id": "fact-2",
+          "mode": "affirm",
+          "entity": "Ben and the user",
+          "event": "dinner with Ben",
+          "target_time": "final Saturday October 10 dinner arrangement as known at cutoff",
+          "attribute": "start time",
+          "accept": "Conveys 7 pm as the start time of dinner with Ben. Equivalent expressions and a uniquely scoped answer to the question count.",
+          "insufficient": "Leaves the start time of dinner with Ben unspecified, or supplies the value only for the Sunday drill return or a superseded Thursday-only plan.",
+          "contradicts": "Assigns an incompatible start time to dinner with Ben in this scope.",
+          "anchors": [
+            {
+              "source_id": "message-b3529fb0881dc977a1303a65",
+              "quote": "Dinner Thursday October 8 at 7 pm at Juniper Cafe?"
+            },
+            {
+              "source_id": "message-0a0b9d9e87a648dfdc742ac7",
+              "quote": "Could we move dinner to Saturday October 10? Same time and place."
+            }
+          ]
+        },
+        {
+          "id": "fact-3",
+          "mode": "affirm",
+          "entity": "Ben and the user",
+          "event": "dinner with Ben",
+          "target_time": "final Saturday October 10 dinner arrangement as known at cutoff",
+          "attribute": "venue",
+          "accept": "Conveys Juniper Cafe (Juniper suffices) as the venue of dinner with Ben. Equivalent expressions and a uniquely scoped answer to the question count.",
+          "insufficient": "Leaves the venue of dinner with Ben unspecified, or supplies the value only for a future suggestion for North Cafe.",
+          "contradicts": "Assigns an incompatible venue to dinner with Ben in this scope.",
+          "anchors": [
+            {
+              "source_id": "message-6e5997a6f7c2077ace849405",
+              "quote": "Thursday at 7 at Juniper works."
+            },
+            {
+              "source_id": "message-0a0b9d9e87a648dfdc742ac7",
+              "quote": "Could we move dinner to Saturday October 10? Same time and place."
+            }
+          ]
+        },
+        {
+          "id": "fact-4",
+          "mode": "affirm",
+          "entity": "Ben and the user",
+          "event": "Ben returning the drill",
+          "target_time": "Sunday October 11, 2026",
+          "attribute": "date",
+          "accept": "Conveys Sunday October 11 as the date of Ben returning the drill. Equivalent expressions and a uniquely scoped answer to the question count.",
+          "insufficient": "Leaves the date of Ben returning the drill unspecified, or supplies the value only for Saturday dinner.",
+          "contradicts": "Assigns an incompatible date to Ben returning the drill in this scope.",
+          "anchors": [
+            {
+              "source_id": "message-63a773936f7b411216273849",
+              "quote": "Hi! Could I bring your drill back Sunday, October 11, at 3 pm, and leave it at your door? That’s separate from Saturday dinner, of course."
+            },
+            {
+              "source_id": "message-171369e3e0cebb95b3ba6c13",
+              "quote": "Yes, Sunday, October 11, at 3 pm at my door works perfectly."
+            }
+          ]
+        },
+        {
+          "id": "fact-5",
+          "mode": "affirm",
+          "entity": "Ben and the user",
+          "event": "Ben returning the drill",
+          "target_time": "Sunday October 11, 2026",
+          "attribute": "time",
+          "accept": "Conveys 3 pm as the time of Ben returning the drill. Equivalent expressions and a uniquely scoped answer to the question count.",
+          "insufficient": "Leaves the time of Ben returning the drill unspecified, or supplies the value only for dinner with Ben.",
+          "contradicts": "Assigns an incompatible time to Ben returning the drill in this scope.",
+          "anchors": [
+            {
+              "source_id": "message-63a773936f7b411216273849",
+              "quote": "Hi! Could I bring your drill back Sunday, October 11, at 3 pm, and leave it at your door? That’s separate from Saturday dinner, of course."
+            },
+            {
+              "source_id": "message-171369e3e0cebb95b3ba6c13",
+              "quote": "Yes, Sunday, October 11, at 3 pm at my door works perfectly."
+            }
+          ]
+        },
+        {
+          "id": "fact-6",
+          "mode": "affirm",
+          "entity": "Ben and the user",
+          "event": "Ben returning the drill",
+          "target_time": "Sunday October 11, 2026",
+          "attribute": "drop-off location",
+          "accept": "Conveys the user’s door as the drop-off location of Ben returning the drill. Equivalent expressions and a uniquely scoped answer to the question count.",
+          "insufficient": "Leaves the drop-off location of Ben returning the drill unspecified, or supplies the value only for the dinner venue.",
+          "contradicts": "Assigns an incompatible drop-off location to Ben returning the drill in this scope.",
+          "anchors": [
+            {
+              "source_id": "message-63a773936f7b411216273849",
+              "quote": "Hi! Could I bring your drill back Sunday, October 11, at 3 pm, and leave it at your door? That’s separate from Saturday dinner, of course."
+            },
+            {
+              "source_id": "message-171369e3e0cebb95b3ba6c13",
+              "quote": "Yes, Sunday, October 11, at 3 pm at my door works perfectly."
+            }
+          ]
+        }
+      ]
+    },
+    "ben-uptake": {
+      "turn_sha256": "b76e5f8aec40f60e9ce4149a01cf35e26aae1277536744d60f90c9eeeaf46d97",
+      "criteria": [
+        {
+          "id": "heading",
+          "mode": "affirm",
+          "entity": "user",
+          "event": "filing the dinner reminder",
+          "target_time": "after the October 12 reminder correction",
+          "attribute": "reminder heading",
+          "accept": "Conveys outings as the reminder heading of filing the dinner reminder. Equivalent expressions and a uniquely scoped answer to the question count.",
+          "insufficient": "Leaves the reminder heading of filing the dinner reminder unspecified, or supplies the value only for the drill-return heading.",
+          "contradicts": "Assigns an incompatible reminder heading to filing the dinner reminder in this scope.",
+          "anchors": [
+            {
+              "source_id": "turn/ben-correction",
+              "quote": "Sorry, I meant how to file my reminders. Use ‘outings’ for the dinner reminder and ‘home’ for the errand."
+            }
+          ]
+        }
+      ]
+    },
+    "roles": {
+      "turn_sha256": "2b9cf7ba1561e4b28e8111d584ef7e99bcf7102c3709887d8243de650418ccea",
+      "criteria": [
+        {
+          "id": "fact-1",
+          "mode": "affirm",
+          "entity": "user, Rae and possible companions",
+          "event": "Rae’s concert",
+          "target_time": "October 11; last recorded plans as of October 12",
+          "attribute": "date",
+          "accept": "Conveys Sunday October 11 as the date of Rae’s concert. Equivalent expressions and a uniquely scoped answer to the question count.",
+          "insufficient": "Leaves the date of Rae’s concert unspecified, or supplies the value only for the invitation date rather than performance date.",
+          "contradicts": "Assigns an incompatible date to Rae’s concert in this scope.",
+          "anchors": [
+            {
+              "source_id": "message-cc12595edab973fb502f8811",
+              "quote": "You’re invited: Rae performs Sunday October 11 at 8 pm. Location shown after RSVP."
+            }
+          ]
+        },
+        {
+          "id": "fact-2",
+          "mode": "affirm",
+          "entity": "user, Rae and possible companions",
+          "event": "Rae’s concert",
+          "target_time": "October 11; last recorded plans as of October 12",
+          "attribute": "time",
+          "accept": "Conveys 8 pm as the time of Rae’s concert. Equivalent expressions and a uniquely scoped answer to the question count.",
+          "insufficient": "Leaves the time of Rae’s concert unspecified, or supplies the value only for a different Sunday activity.",
+          "contradicts": "Assigns an incompatible time to Rae’s concert in this scope.",
+          "anchors": [
+            {
+              "source_id": "message-afca8dfe756fddf732c7b50d",
+              "quote": "Venue announcement: Rae’s Sunday October 11 concert will be at Foundry Theatre, 8 pm."
+            }
+          ]
+        },
+        {
+          "id": "fact-3",
+          "mode": "affirm",
+          "entity": "user, Rae and possible companions",
+          "event": "Rae’s concert",
+          "target_time": "October 11; last recorded plans as of October 12",
+          "attribute": "venue",
+          "accept": "Conveys Foundry Theatre as the venue of Rae’s concert. Equivalent expressions and a uniquely scoped answer to the question count.",
+          "insufficient": "Leaves the venue of Rae’s concert unspecified, or supplies the value only for the invitation’s earlier location placeholder.",
+          "contradicts": "Assigns an incompatible venue to Rae’s concert in this scope.",
+          "anchors": [
+            {
+              "source_id": "message-afca8dfe756fddf732c7b50d",
+              "quote": "Venue announcement: Rae’s Sunday October 11 concert will be at Foundry Theatre, 8 pm."
+            }
+          ]
+        },
+        {
+          "id": "fact-4",
+          "mode": "affirm",
+          "entity": "user, Rae and possible companions",
+          "event": "Rae’s concert",
+          "target_time": "October 11; last recorded plans as of October 12",
+          "attribute": "user’s attendance",
+          "accept": "The user had not confirmed attending. This is a plan status and does not establish who actually went.",
+          "insufficient": "Mentions interest or an invitation alone without conveying remaining uncertainty.",
+          "contradicts": "Counts the user as definitely attending or definitely declining.",
+          "anchors": [
+            {
+              "source_id": "message-b5d0fba69b918e89fe8133af",
+              "quote": "I’m thinking about going to Rae’s concert Sunday. Would you be interested in coming?"
+            },
+            {
+              "source_id": "message-65a016d30477625b09311e15",
+              "quote": "That makes sense. I haven’t decided for sure yet either, so we can see how it looks closer to then."
+            }
+          ]
+        },
+        {
+          "id": "fact-5",
+          "mode": "affirm",
+          "entity": "user, Rae and possible companions",
+          "event": "Rae’s concert",
+          "target_time": "October 11; last recorded plans as of October 12",
+          "attribute": "Devon’s attendance",
+          "accept": "Devon might go if his shift ends early.",
+          "insufficient": "Reports only a generic possibility without the shift condition.",
+          "contradicts": "Reports an unconditional yes or no, or a different condition.",
+          "anchors": [
+            {
+              "source_id": "message-9b1e8ca31d53c369a8b02c17",
+              "quote": "Maybe! I’d like to, but I’m working Sunday. I can only make it if my shift ends early."
+            },
+            {
+              "source_id": "message-efa2dad726615c608765e796",
+              "quote": "Yeah, let’s keep it as a maybe. I’ll know more about my shift later."
+            }
+          ]
+        },
+        {
+          "id": "fact-6",
+          "mode": "affirm",
+          "entity": "user, Rae and possible companions",
+          "event": "Rae’s concert",
+          "target_time": "October 11; last recorded plans as of October 12",
+          "attribute": "confirmed companion",
+          "accept": "Conveys that nobody is confirmed to go with the user; describing all potential companions as tentative can convey this. This addresses the last recorded plans, without a claim about actual attendance.",
+          "insufficient": "Names Devon without making clear whether any companion is confirmed.",
+          "contradicts": "Presents someone as a confirmed companion.",
+          "anchors": [
+            {
+              "source_id": "message-b5d0fba69b918e89fe8133af",
+              "quote": "I’m thinking about going to Rae’s concert Sunday. Would you be interested in coming?"
+            },
+            {
+              "source_id": "message-9b1e8ca31d53c369a8b02c17",
+              "quote": "Maybe! I’d like to, but I’m working Sunday. I can only make it if my shift ends early."
+            },
+            {
+              "source_id": "message-65a016d30477625b09311e15",
+              "quote": "That makes sense. I haven’t decided for sure yet either, so we can see how it looks closer to then."
+            },
+            {
+              "source_id": "message-efa2dad726615c608765e796",
+              "quote": "Yeah, let’s keep it as a maybe. I’ll know more about my shift later."
+            }
+          ]
+        }
+      ]
+    },
+    "series-final": {
+      "turn_sha256": "177cfae77a9e6954caa9c2436e597923e4a7da34ede3b269d43fe5c1d671b4a2",
+      "criteria": [
+        {
+          "id": "fact-1",
+          "mode": "affirm",
+          "entity": "user and weekly game group",
+          "event": "weekly game on the coming Wednesday",
+          "target_time": "Wednesday October 14, as of October 12",
+          "attribute": "agreed game status",
+          "accept": "There is no agreed Wednesday game; the ended series includes this date.",
+          "insufficient": "Recites the earlier weekly pattern without resolving the coming Wednesday.",
+          "contradicts": "Reports an agreed game on the strength of the earlier recurrence.",
+          "anchors": [
+            {
+              "source_id": "message-ac5ba9891860c982d5e4f7c4",
+              "quote": "I can’t host the weekly games anymore. Let’s end the series now, including October 14."
+            },
+            {
+              "source_id": "message-8701927d88856d63d023b4b3",
+              "quote": "Understood, no more weekly game bookings."
+            },
+            {
+              "source_id": "message-89a9e61d25c135a77c318cae",
+              "quote": "Understood too."
+            }
+          ]
+        }
+      ]
+    },
+    "attendance-final": {
+      "turn_sha256": "fa029192024932b69cb4393860147d6c8e32f1c2c54893cbaf9efba7837d33c6",
+      "criteria": [
+        {
+          "id": "fact-1",
+          "mode": "affirm",
+          "entity": "user",
+          "event": "watercolor workshop",
+          "target_time": "attendance on October 6 as known October 12",
+          "attribute": "reported attendance",
+          "accept": "The user did not go or reported missing it. Recognizing the earlier plan is compatible.",
+          "insufficient": "Saying only that the user had planned to go or that other people attended.",
+          "contradicts": "Saying the user went to this workshop.",
+          "anchors": [
+            {
+              "source_id": "message-09de6538ff5bb038a0823c0d",
+              "quote": "I missed Tuesday’s watercolor workshop after all. Please send the notes."
+            }
+          ]
+        }
+      ]
+    },
+    "visit-final": {
+      "turn_sha256": "a01d6953efee3cfa54ccc890f7fe71ee45d5477fa9062e69037fb2ad97c0d0da",
+      "criteria": [
+        {
+          "id": "fact-1",
+          "mode": "affirm",
+          "entity": "Morgan and the user",
+          "event": "Morgan’s visit",
+          "target_time": "final agreed October visit itinerary",
+          "attribute": "arrival date",
+          "accept": "Conveys Friday October 9 as the arrival date of Morgan’s visit. Equivalent expressions and a uniquely scoped answer to the question count.",
+          "insufficient": "Leaves the arrival date of Morgan’s visit unspecified, or supplies the value only for a museum excursion or the end of the stay.",
+          "contradicts": "Assigns an incompatible arrival date to Morgan’s visit in this scope.",
+          "anchors": [
+            {
+              "source_id": "message-f8537d8a8c37e7aa6b273eec",
+              "quote": "Can I stay with you Friday October 9 through Monday October 12? Arrive about 4 pm Friday, leave 9 am Monday."
+            }
+          ]
+        },
+        {
+          "id": "fact-2",
+          "mode": "affirm",
+          "entity": "Morgan and the user",
+          "event": "Morgan’s visit",
+          "target_time": "final agreed October visit itinerary",
+          "attribute": "planned arrival time",
+          "accept": "Conveys around 4 pm; 4 pm as the scheduled time is sufficient as the planned arrival time of Morgan’s visit. Equivalent expressions and a uniquely scoped answer to the question count.",
+          "insufficient": "Leaves the planned arrival time of Morgan’s visit unspecified, or supplies the value only for Morgan leaving for the museum.",
+          "contradicts": "Assigns an incompatible planned arrival time to Morgan’s visit in this scope.",
+          "anchors": [
+            {
+              "source_id": "message-f8537d8a8c37e7aa6b273eec",
+              "quote": "Can I stay with you Friday October 9 through Monday October 12? Arrive about 4 pm Friday, leave 9 am Monday."
+            }
+          ]
+        },
+        {
+          "id": "fact-3",
+          "mode": "affirm",
+          "entity": "Morgan and the user",
+          "event": "Morgan’s visit",
+          "target_time": "final agreed October visit itinerary",
+          "attribute": "departure date",
+          "accept": "Conveys Sunday October 11 as the departure date of Morgan’s visit. Equivalent expressions and a uniquely scoped answer to the question count.",
+          "insufficient": "Leaves the departure date of Morgan’s visit unspecified, or supplies the value only for the original Monday plan.",
+          "contradicts": "Assigns an incompatible departure date to Morgan’s visit in this scope.",
+          "anchors": [
+            {
+              "source_id": "message-d9e58051e0667d1bbb6c0d7f",
+              "quote": "Back from the museum. Train changed: I’ll finish my stay Sunday October 11 at 10 am instead of Monday."
+            },
+            {
+              "source_id": "message-f5ee7dfe8c15a1356d23c7b8",
+              "quote": "Okay, Sunday at 10 then."
+            }
+          ]
+        },
+        {
+          "id": "fact-4",
+          "mode": "affirm",
+          "entity": "Morgan and the user",
+          "event": "Morgan’s visit",
+          "target_time": "final agreed October visit itinerary",
+          "attribute": "departure time",
+          "accept": "Conveys 10 am as the departure time of Morgan’s visit. Equivalent expressions and a uniquely scoped answer to the question count.",
+          "insufficient": "Leaves the departure time of Morgan’s visit unspecified, or supplies the value only for the old 9 am departure or the museum excursion.",
+          "contradicts": "Assigns an incompatible departure time to Morgan’s visit in this scope.",
+          "anchors": [
+            {
+              "source_id": "message-d9e58051e0667d1bbb6c0d7f",
+              "quote": "Back from the museum. Train changed: I’ll finish my stay Sunday October 11 at 10 am instead of Monday."
+            },
+            {
+              "source_id": "message-f5ee7dfe8c15a1356d23c7b8",
+              "quote": "Okay, Sunday at 10 then."
+            }
+          ]
+        }
+      ]
+    },
+    "dates": {
+      "turn_sha256": "18aca8a2e2a4a7e6777ad9615eb1a8541e916ea2b06447027a8daec0006e296f",
+      "criteria": [
+        {
+          "id": "fact-1",
+          "mode": "affirm",
+          "entity": "Jen and the user",
+          "event": "interview-prep call",
+          "target_time": "upcoming call as of October 12",
+          "attribute": "date",
+          "accept": "Conveys Thursday October 15 as the date of interview-prep call. Equivalent expressions and a uniquely scoped answer to the question count.",
+          "insufficient": "Leaves the date of interview-prep call unspecified, or supplies the value only for the certificate or another workshop.",
+          "contradicts": "Assigns an incompatible date to interview-prep call in this scope.",
+          "anchors": [
+            {
+              "source_id": "message-88baf5046b724fd7b26c64b9",
+              "quote": "For interview prep, can we call next Thursday—October 15—at 10 am?"
+            },
+            {
+              "source_id": "message-4738f0ddde8def90e332f451",
+              "quote": "Yes, October 15 at 10 works."
+            }
+          ]
+        },
+        {
+          "id": "fact-2",
+          "mode": "affirm",
+          "entity": "Jen and the user",
+          "event": "interview-prep call",
+          "target_time": "upcoming call as of October 12",
+          "attribute": "start time",
+          "accept": "Conveys 10 am as the start time of interview-prep call. Equivalent expressions and a uniquely scoped answer to the question count.",
+          "insufficient": "Leaves the start time of interview-prep call unspecified, or supplies the value only for the workshop.",
+          "contradicts": "Assigns an incompatible start time to interview-prep call in this scope.",
+          "anchors": [
+            {
+              "source_id": "message-88baf5046b724fd7b26c64b9",
+              "quote": "For interview prep, can we call next Thursday—October 15—at 10 am?"
+            },
+            {
+              "source_id": "message-4738f0ddde8def90e332f451",
+              "quote": "Yes, October 15 at 10 works."
+            }
+          ]
+        },
+        {
+          "id": "fact-3",
+          "mode": "affirm",
+          "entity": "Jen",
+          "event": "workshop documented by the certificate",
+          "target_time": "past workshop referenced in October correspondence",
+          "attribute": "workshop date",
+          "accept": "Conveys January 2, 2024 as the workshop date of workshop documented by the certificate. Equivalent expressions and a uniquely scoped answer to the question count.",
+          "insufficient": "Leaves the workshop date of workshop documented by the certificate unspecified, or supplies the value only for the day the certificate was found or the upcoming call.",
+          "contradicts": "Assigns an incompatible workshop date to workshop documented by the certificate in this scope.",
+          "anchors": [
+            {
+              "source_id": "message-bc219ba4addfbbcea3c6acb5",
+              "quote": "Found my certificate from the workshop on January 2, 2024."
+            }
+          ]
+        }
+      ]
+    },
+    "upcoming-small": {
+      "turn_sha256": "4574814af16a6370194da8db0293bcddfe987f9741bf29a3f6d8b594397fa540",
+      "criteria": [
+        {
+          "id": "fact-1",
+          "mode": "affirm",
+          "entity": "Alex Reed and the user",
+          "event": "before-class coffee",
+          "target_time": "Tuesday October 13 plan",
+          "attribute": "activity",
+          "accept": "Conveys coffee as the activity of before-class coffee. Equivalent expressions and a uniquely scoped answer to the question count.",
+          "insufficient": "Leaves the activity of before-class coffee unspecified, or supplies the value only for Alex Chen’s invitation.",
+          "contradicts": "Assigns an incompatible activity to before-class coffee in this scope.",
+          "anchors": [
+            {
+              "source_id": "message-479d50bb98c4d8f6ec363c57",
+              "quote": "Coffee at Birch on Tuesday before class? 8 in the morning?"
+            },
+            {
+              "source_id": "message-89936086d84e565af90aa7a2",
+              "quote": "Yeah, that works. I could use the caffeine before ceramics."
+            }
+          ]
+        },
+        {
+          "id": "fact-2",
+          "mode": "affirm",
+          "entity": "Alex Reed and the user",
+          "event": "before-class coffee",
+          "target_time": "Tuesday October 13 plan",
+          "attribute": "date",
+          "accept": "Conveys Tuesday October 13 as the date of before-class coffee. Equivalent expressions and a uniquely scoped answer to the question count.",
+          "insufficient": "Leaves the date of before-class coffee unspecified, or supplies the value only for the climbing invitation.",
+          "contradicts": "Assigns an incompatible date to before-class coffee in this scope.",
+          "anchors": [
+            {
+              "source_id": "message-479d50bb98c4d8f6ec363c57",
+              "quote": "Coffee at Birch on Tuesday before class? 8 in the morning?"
+            },
+            {
+              "source_id": "message-89936086d84e565af90aa7a2",
+              "quote": "Yeah, that works. I could use the caffeine before ceramics."
+            }
+          ]
+        },
+        {
+          "id": "fact-3",
+          "mode": "affirm",
+          "entity": "Alex Reed and the user",
+          "event": "before-class coffee",
+          "target_time": "Tuesday October 13 plan",
+          "attribute": "time",
+          "accept": "Conveys 8 am as the time of before-class coffee. Equivalent expressions and a uniquely scoped answer to the question count.",
+          "insufficient": "Leaves the time of before-class coffee unspecified, or supplies the value only for the climbing invitation.",
+          "contradicts": "Assigns an incompatible time to before-class coffee in this scope.",
+          "anchors": [
+            {
+              "source_id": "message-479d50bb98c4d8f6ec363c57",
+              "quote": "Coffee at Birch on Tuesday before class? 8 in the morning?"
+            },
+            {
+              "source_id": "message-89936086d84e565af90aa7a2",
+              "quote": "Yeah, that works. I could use the caffeine before ceramics."
+            }
+          ]
+        },
+        {
+          "id": "fact-4",
+          "mode": "affirm",
+          "entity": "Alex Reed and the user",
+          "event": "before-class coffee",
+          "target_time": "Tuesday October 13 plan",
+          "attribute": "venue",
+          "accept": "Conveys Birch as the venue of before-class coffee. Equivalent expressions and a uniquely scoped answer to the question count.",
+          "insufficient": "Leaves the venue of before-class coffee unspecified, or supplies the value only for the climbing invitation.",
+          "contradicts": "Assigns an incompatible venue to before-class coffee in this scope.",
+          "anchors": [
+            {
+              "source_id": "message-479d50bb98c4d8f6ec363c57",
+              "quote": "Coffee at Birch on Tuesday before class? 8 in the morning?"
+            },
+            {
+              "source_id": "message-89936086d84e565af90aa7a2",
+              "quote": "Yeah, that works. I could use the caffeine before ceramics."
+            }
+          ]
+        },
+        {
+          "id": "fact-5",
+          "mode": "affirm",
+          "entity": "Alex Reed and the user",
+          "event": "before-class coffee",
+          "target_time": "Tuesday October 13 plan",
+          "attribute": "agreement",
+          "accept": "Presents coffee with Alex Reed as agreed; listing it as a firm appointment suffices.",
+          "insufficient": "Mentions a possible coffee or an unanswered invitation.",
+          "contradicts": "Says Alex Reed declined, or that the plan is still pending.",
+          "anchors": [
+            {
+              "source_id": "message-89936086d84e565af90aa7a2",
+              "quote": "Yeah, that works. I could use the caffeine before ceramics."
+            },
+            {
+              "source_id": "message-563dd1c7d8dfec7acb67f95d",
+              "quote": "Great, see you Tuesday morning."
+            }
+          ]
+        },
+        {
+          "id": "fact-6",
+          "mode": "affirm",
+          "entity": "Alex Chen and the user",
+          "event": "invitation from Alex Chen",
+          "target_time": "Wednesday October 14 proposal",
+          "attribute": "invited activity",
+          "accept": "Conveys climbing or trying the climbing wall as the invited activity of invitation from Alex Chen. Equivalent expressions and a uniquely scoped answer to the question count.",
+          "insufficient": "Leaves the invited activity of invitation from Alex Chen unspecified, or supplies the value only for Alex Reed’s coffee.",
+          "contradicts": "Assigns an incompatible invited activity to invitation from Alex Chen in this scope.",
+          "anchors": [
+            {
+              "source_id": "message-4930671ef6f5aeeba2cac748",
+              "quote": "Want to try the climbing wall Wednesday October 14 at 6 pm? No rush to answer."
+            }
+          ]
+        },
+        {
+          "id": "fact-7",
+          "mode": "affirm",
+          "entity": "Alex Chen and the user",
+          "event": "invitation from Alex Chen",
+          "target_time": "Wednesday October 14 proposal",
+          "attribute": "date",
+          "accept": "Conveys Wednesday October 14 as the date of invitation from Alex Chen. Equivalent expressions and a uniquely scoped answer to the question count.",
+          "insufficient": "Leaves the date of invitation from Alex Chen unspecified, or supplies the value only for the coffee arrangement.",
+          "contradicts": "Assigns an incompatible date to invitation from Alex Chen in this scope.",
+          "anchors": [
+            {
+              "source_id": "message-4930671ef6f5aeeba2cac748",
+              "quote": "Want to try the climbing wall Wednesday October 14 at 6 pm? No rush to answer."
+            }
+          ]
+        },
+        {
+          "id": "fact-8",
+          "mode": "affirm",
+          "entity": "Alex Chen and the user",
+          "event": "invitation from Alex Chen",
+          "target_time": "Wednesday October 14 proposal",
+          "attribute": "time",
+          "accept": "Conveys 6 pm as the time of invitation from Alex Chen. Equivalent expressions and a uniquely scoped answer to the question count.",
+          "insufficient": "Leaves the time of invitation from Alex Chen unspecified, or supplies the value only for the coffee arrangement.",
+          "contradicts": "Assigns an incompatible time to invitation from Alex Chen in this scope.",
+          "anchors": [
+            {
+              "source_id": "message-4930671ef6f5aeeba2cac748",
+              "quote": "Want to try the climbing wall Wednesday October 14 at 6 pm? No rush to answer."
+            }
+          ]
+        },
+        {
+          "id": "fact-9",
+          "mode": "affirm",
+          "entity": "Alex Chen and the user",
+          "event": "invitation from Alex Chen",
+          "target_time": "Wednesday October 14 proposal",
+          "attribute": "user reply",
+          "accept": "Makes clear the climbing invitation has not been answered. The existence of an unanswered invitation is sufficient; the answer need not speculate about attendance.",
+          "insufficient": "Restates the invitation without conveying its response status.",
+          "contradicts": "Says the user accepted or declined.",
+          "anchors": [
+            {
+              "source_id": "message-4930671ef6f5aeeba2cac748",
+              "quote": "Want to try the climbing wall Wednesday October 14 at 6 pm? No rush to answer."
+            }
+          ]
+        }
+      ]
+    },
+    "namesakes": {
+      "turn_sha256": "7fc253ad118958249ccb2c5a2481c6abb7458389c61ae0d3b608202ad6ecce61",
+      "criteria": [
+        {
+          "id": "fact-1",
+          "mode": "affirm",
+          "entity": "Alex Chen",
+          "event": "work friend’s initials and pizza preferences",
+          "target_time": "current at the question cutoff",
+          "attribute": "identity of AC",
+          "accept": "Conveys Alex Chen as the identity of AC of work friend’s initials and pizza preferences. Equivalent expressions and a uniquely scoped answer to the question count.",
+          "insufficient": "Leaves the identity of AC of work friend’s initials and pizza preferences unspecified, or supplies the value only for the ceramics friend Alex Reed.",
+          "contradicts": "Assigns an incompatible identity of AC to work friend’s initials and pizza preferences in this scope.",
+          "anchors": [
+            {
+              "source_id": "message-33d581418a76773d65ed1d63",
+              "quote": "I was trying to remember your food preferences from lunch, office friend—AC avoids dairy, but mushrooms are okay, right?"
+            },
+            {
+              "source_id": "message-ffca1d68b3a11804b344cb13",
+              "quote": "Yep, exactly. I avoid dairy, but mushrooms are totally fine."
+            }
+          ]
+        },
+        {
+          "id": "fact-2",
+          "mode": "affirm",
+          "entity": "Alex Chen",
+          "event": "work friend’s initials and pizza preferences",
+          "target_time": "current at the question cutoff",
+          "attribute": "dairy preference",
+          "accept": "Conveys avoids dairy as the dairy preference of work friend’s initials and pizza preferences. Equivalent expressions and a uniquely scoped answer to the question count.",
+          "insufficient": "Leaves the dairy preference of work friend’s initials and pizza preferences unspecified, or supplies the value only for Alex Reed or the user.",
+          "contradicts": "Assigns an incompatible dairy preference to work friend’s initials and pizza preferences in this scope.",
+          "anchors": [
+            {
+              "source_id": "message-ffca1d68b3a11804b344cb13",
+              "quote": "Yep, exactly. I avoid dairy, but mushrooms are totally fine."
+            }
+          ]
+        },
+        {
+          "id": "fact-3",
+          "mode": "affirm",
+          "entity": "Alex Chen",
+          "event": "work friend’s initials and pizza preferences",
+          "target_time": "current at the question cutoff",
+          "attribute": "mushroom preference",
+          "accept": "Conveys accepts mushrooms as the mushroom preference of work friend’s initials and pizza preferences. Equivalent expressions and a uniquely scoped answer to the question count.",
+          "insufficient": "Leaves the mushroom preference of work friend’s initials and pizza preferences unspecified, or supplies the value only for Alex Reed or the user.",
+          "contradicts": "Assigns an incompatible mushroom preference to work friend’s initials and pizza preferences in this scope.",
+          "anchors": [
+            {
+              "source_id": "message-ffca1d68b3a11804b344cb13",
+              "quote": "Yep, exactly. I avoid dairy, but mushrooms are totally fine."
+            }
+          ]
+        },
+        {
+          "id": "fact-4",
+          "mode": "affirm",
+          "entity": "Alex Reed",
+          "event": "ceramics friend’s food preferences",
+          "target_time": "current at the question cutoff",
+          "attribute": "mushroom preference",
+          "accept": "Conveys avoids mushrooms as the mushroom preference of ceramics friend’s food preferences. Equivalent expressions and a uniquely scoped answer to the question count.",
+          "insufficient": "Leaves the mushroom preference of ceramics friend’s food preferences unspecified, or supplies the value only for Alex Chen or the user.",
+          "contradicts": "Assigns an incompatible mushroom preference to ceramics friend’s food preferences in this scope.",
+          "anchors": [
+            {
+              "source_id": "message-e82539b517ceacb0b7fbc1ae",
+              "quote": "Pretty simple. I avoid mushrooms, but cheese is absolutely fine."
+            }
+          ]
+        },
+        {
+          "id": "fact-5",
+          "mode": "affirm",
+          "entity": "Alex Reed",
+          "event": "ceramics friend’s food preferences",
+          "target_time": "current at the question cutoff",
+          "attribute": "dairy preference",
+          "accept": "Conveys eats dairy; cheese is fine as the dairy preference of ceramics friend’s food preferences. Equivalent expressions and a uniquely scoped answer to the question count.",
+          "insufficient": "Leaves the dairy preference of ceramics friend’s food preferences unspecified, or supplies the value only for Alex Chen or the user.",
+          "contradicts": "Assigns an incompatible dairy preference to ceramics friend’s food preferences in this scope.",
+          "anchors": [
+            {
+              "source_id": "message-e82539b517ceacb0b7fbc1ae",
+              "quote": "Pretty simple. I avoid mushrooms, but cheese is absolutely fine."
+            }
+          ]
+        },
+        {
+          "id": "fact-6",
+          "mode": "affirm",
+          "entity": "the user",
+          "event": "the user’s corrected pizza preferences",
+          "target_time": "current at the question cutoff",
+          "attribute": "dairy preference",
+          "accept": "Conveys avoids dairy as the dairy preference of the user’s corrected pizza preferences. Equivalent expressions and a uniquely scoped answer to the question count.",
+          "insufficient": "Leaves the dairy preference of the user’s corrected pizza preferences unspecified, or supplies the value only for an old note quoted later or a namesake.",
+          "contradicts": "Assigns an incompatible dairy preference to the user’s corrected pizza preferences in this scope.",
+          "anchors": [
+            {
+              "source_id": "message-47d2b77139d1e94ac504c42a",
+              "quote": "Correction to what I said Monday: mushrooms are fine now. Please avoid dairy for me from now on."
+            }
+          ]
+        },
+        {
+          "id": "fact-7",
+          "mode": "affirm",
+          "entity": "the user",
+          "event": "the user’s corrected pizza preferences",
+          "target_time": "current at the question cutoff",
+          "attribute": "mushroom preference",
+          "accept": "Conveys accepts mushrooms as the mushroom preference of the user’s corrected pizza preferences. Equivalent expressions and a uniquely scoped answer to the question count.",
+          "insufficient": "Leaves the mushroom preference of the user’s corrected pizza preferences unspecified, or supplies the value only for an old note quoted later or a namesake.",
+          "contradicts": "Assigns an incompatible mushroom preference to the user’s corrected pizza preferences in this scope.",
+          "anchors": [
+            {
+              "source_id": "message-47d2b77139d1e94ac504c42a",
+              "quote": "Correction to what I said Monday: mushrooms are fine now. Please avoid dairy for me from now on."
+            }
+          ]
+        }
+      ]
+    },
+    "tasks-final": {
+      "turn_sha256": "ddaed4bf248062f5525b51a1f7a27e803454d2c47d04b7531282de81af829720",
+      "criteria": [
+        {
+          "id": "fact-1",
+          "mode": "affirm",
+          "entity": "Jen and the user",
+          "event": "application preparations with Jen",
+          "target_time": "state at the question cutoff",
+          "attribute": "revised checklist obligation",
+          "accept": "Conveys that Jen delivered the complete revised checklist and the obligation is closed.",
+          "insufficient": "Mentions an earlier draft or a promise.",
+          "contradicts": "Lists the revised checklist as outstanding.",
+          "anchors": [
+            {
+              "source_id": "message-3fa940c34e4ddcb4e3ebb06d",
+              "quote": "Here’s the revised checklist: ID, printed portfolio, two references. That’s the complete new version."
+            },
+            {
+              "source_id": "message-bb4f03c08e0220aae864999b",
+              "quote": "Received, thanks."
+            }
+          ]
+        },
+        {
+          "id": "fact-2",
+          "mode": "affirm",
+          "entity": "Jen and the user",
+          "event": "application preparations with Jen",
+          "target_time": "state at the question cutoff",
+          "attribute": "interview room obligation",
+          "accept": "Says the room question is settled; supplying Jen’s Room 204 answer in context suffices.",
+          "insufficient": "Names another completed task alone.",
+          "contradicts": "Reports the room is still unknown or unanswered.",
+          "anchors": [
+            {
+              "source_id": "message-c39c497072e70e0570aeb9fc",
+              "quote": "Room 204. I’m still revising the checklist, so I’ll send it when it’s ready."
+            },
+            {
+              "source_id": "message-82b05e256f8daaec3ce37f8a",
+              "quote": "Thanks, that helps."
+            }
+          ]
+        },
+        {
+          "id": "fact-3",
+          "mode": "affirm",
+          "entity": "Jen and the user",
+          "event": "application preparations with Jen",
+          "target_time": "state at the question cutoff",
+          "attribute": "user’s proofreading obligation",
+          "accept": "The user finished the review or sent Jen the cover-letter feedback.",
+          "insufficient": "Says only that someone found an error without identifying completion of the review.",
+          "contradicts": "Says the user still owes the promised proofreading.",
+          "anchors": [
+            {
+              "source_id": "message-462fe0bfb7e6d41f786740ec",
+              "quote": "Finished proofreading your cover letter. The only fix I spotted is the company name in paragraph two—it still has the old one."
+            },
+            {
+              "source_id": "message-cce67f1aa046cd80a4634345",
+              "quote": "Thanks, got your feedback. Good catch."
+            }
+          ]
+        },
+        {
+          "id": "fact-4",
+          "mode": "affirm",
+          "entity": "Jen and the user",
+          "event": "application preparations with Jen",
+          "target_time": "state at the question cutoff",
+          "attribute": "Jen’s correction of company name",
+          "accept": "There is no confirmation Jen made the edit. This is separate from the completed proofreading.",
+          "insufficient": "Says only that feedback was received or an error was found.",
+          "contradicts": "States the edit was definitely made or definitely remains undone.",
+          "anchors": [
+            {
+              "source_id": "message-462fe0bfb7e6d41f786740ec",
+              "quote": "Finished proofreading your cover letter. The only fix I spotted is the company name in paragraph two—it still has the old one."
+            },
+            {
+              "source_id": "message-cce67f1aa046cd80a4634345",
+              "quote": "Thanks, got your feedback. Good catch."
+            }
+          ]
+        }
+      ]
+    },
+    "hall-alias": {
+      "turn_sha256": "2b67401bcf2ec042fb397e3cf343a985f0def43329ae13dd647f5bca8c53ba3e",
+      "criteria": [
+        {
+          "id": "fact-1",
+          "mode": "affirm",
+          "entity": "tutor and user",
+          "event": "room labels in the handout",
+          "target_time": "as of October 12",
+          "attribute": "expansion of MR Hall",
+          "accept": "Conveys Maple Ridge Hall as the expansion of MR Hall of room labels in the handout. Equivalent expressions and a uniquely scoped answer to the question count.",
+          "insufficient": "Leaves the expansion of MR Hall of room labels in the handout unspecified, or supplies the value only for the other label ZX Annex.",
+          "contradicts": "Assigns an incompatible expansion of MR Hall to room labels in the handout in this scope.",
+          "anchors": [
+            {
+              "source_id": "message-a7d9c0796d0f0664b96f6799",
+              "quote": "MR Hall is Maple Ridge Hall. The old handout also lists a room over at ZX Annex."
+            }
+          ]
+        },
+        {
+          "id": "fact-2",
+          "mode": "affirm",
+          "entity": "tutor and user",
+          "event": "room labels in the handout",
+          "target_time": "as of October 12",
+          "attribute": "expansion of ZX Annex",
+          "accept": "ZX Annex is named but its expansion is not established.",
+          "insufficient": "Simply repeats the label without indicating its meaning is unknown.",
+          "contradicts": "Supplies an expansion for ZX as established.",
+          "anchors": [
+            {
+              "source_id": "message-a7d9c0796d0f0664b96f6799",
+              "quote": "MR Hall is Maple Ridge Hall. The old handout also lists a room over at ZX Annex."
+            }
+          ]
+        }
+      ]
+    },
+    "link-final": {
+      "turn_sha256": "5fb820e6669fa88a486d4f85165ef50ca6783e6c488d74c1f7953780683c9ac3",
+      "criteria": [
+        {
+          "id": "fact-1",
+          "mode": "affirm",
+          "entity": "user and Courier",
+          "event": "parcel-support video call",
+          "target_time": "Friday October 9 call as identified at cutoff",
+          "attribute": "support-call URL",
+          "accept": "Identifies https://example.org/parcel381 as the link; ordinary link markup or surrounding punctuation is immaterial.",
+          "insufficient": "Promises to find a link or supplies only a parcel number.",
+          "contradicts": "Identifies another URL, including the driver recruitment link, as the support-call URL.",
+          "anchors": [
+            {
+              "source_id": "message-7d1790ba60e15a85e60c5b90",
+              "quote": "Here’s your parcel-support call link for tomorrow at 9: https://example.org/parcel381 ."
             }
           ]
         }
@@ -654,6 +3941,97 @@
             {
               "source_id": "message-7d9afd009c897a46256bcc06",
               "quote": "Still not sure whether I’ll keep avoiding dairy after tonight."
+            }
+          ]
+        }
+      ]
+    },
+    "refund": {
+      "turn_sha256": "73c1e0de1119de27dbeff019ed63a4be467a112f6f9395c95a5ad5d9f2c929ed",
+      "criteria": [
+        {
+          "id": "fact-1",
+          "mode": "affirm",
+          "entity": "user and pottery studio",
+          "event": "refund for the cancelled pottery class",
+          "target_time": "latest report as of October 12",
+          "attribute": "refund status",
+          "accept": "Reports the refund was issued; the user need not have confirmed receipt of funds.",
+          "insufficient": "Only recalls that the class was cancelled.",
+          "contradicts": "Says the refund is pending or refused.",
+          "anchors": [
+            {
+              "source_id": "message-2bdf115e8eb602900aba9851",
+              "quote": "Your refund for the pottery class cancelled Wednesday October 7 has been issued."
+            }
+          ]
+        }
+      ]
+    },
+    "third-party-collision": {
+      "turn_sha256": "9c450a5a83187bd8e15e359cf9be1edf5b257217b5942837a715143848509ad7",
+      "criteria": [
+        {
+          "id": "fact-1",
+          "mode": "affirm",
+          "entity": "user and Devon",
+          "event": "the user’s Friday evening pizza outing",
+          "target_time": "Friday October 9, evening",
+          "attribute": "confirmed participant: Devon",
+          "accept": "Includes Devon among the agreed participants. First/second person or an unambiguous group description counts.",
+          "insufficient": "Presents Devon only as invited, undecided or mentioned in passing.",
+          "contradicts": "Excludes Devon or represents their attendance as declined.",
+          "anchors": [
+            {
+              "source_id": "message-b557c3bb938054b11bc6e4d7",
+              "quote": "Want to do pizza Friday? Luigi’s on 5th around 6?"
+            },
+            {
+              "source_id": "message-4180509c0f5fb703223f661d",
+              "quote": "Yeah, that works. Just us?"
+            }
+          ]
+        },
+        {
+          "id": "fact-2",
+          "mode": "affirm",
+          "entity": "user and Devon",
+          "event": "the user’s Friday evening pizza outing",
+          "target_time": "Friday October 9, evening",
+          "attribute": "confirmed roster boundary",
+          "accept": "Communicates a complete confirmed roster confined to the user and Devon. An exhaustive list in answer to “who” counts. Invitees may be identified separately.",
+          "insufficient": "An open-ended example, silence about the roster, or an undifferentiated list of possible guests does not establish its boundary.",
+          "contradicts": "Adds an outsider as a confirmed participant. A clearly tentative or declined guest does not expand the confirmed roster.",
+          "anchors": [
+            {
+              "source_id": "message-4180509c0f5fb703223f661d",
+              "quote": "Yeah, that works. Just us?"
+            },
+            {
+              "source_id": "message-13bb3e3cb59c783d95abfd24",
+              "quote": "Yep, just you and me."
+            }
+          ]
+        }
+      ]
+    },
+    "ben-persistence": {
+      "turn_sha256": "77d8b392381a8a79f0b7d87c85e0a0e160e9ba6f0f0dd6c283e0efa4d2cffb09",
+      "criteria": [
+        {
+          "id": "heading",
+          "mode": "affirm",
+          "entity": "user",
+          "event": "filing the drill errand reminder",
+          "target_time": "after the October 12 correction, in a later session",
+          "attribute": "reminder heading",
+          "accept": "Conveys home as the reminder heading of filing the drill errand reminder. Equivalent expressions and a uniquely scoped answer to the question count.",
+          "insufficient": "Leaves the reminder heading of filing the drill errand reminder unspecified, or supplies the value only for the dinner reminder.",
+          "contradicts": "Assigns an incompatible reminder heading to filing the drill errand reminder in this scope.",
+          "anchors": [
+            {
+              "source_id": "turn/ben-correction",
+              "quote": "Sorry, I meant how to file my reminders. Use ‘outings’ for the dinner reminder and ‘home’ for the errand."
             }
           ]
         }

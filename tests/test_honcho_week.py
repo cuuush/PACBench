@@ -280,3 +280,18 @@ def test_authored_chat_close_observes_only_its_manager():
     assert not _closed_manager(selected, 'other')
     assert not _closed_manager({**selected, 'native_drain': {'status': 'running'}}, 'selected')
     assert not _closed_manager({**selected, 'providers': [{**provider, 'writer_queue': 1}]}, 'selected')
+
+
+def test_deferred_chat_requires_a_matching_native_ineligible_batch():
+    from pacbench.honcho_week_capture import deferred_batch_evidence
+
+    item = dict(unit='owned-chat', type='representation', claim=None)
+    batch = dict(unit='owned-chat', type='representation', pending_count=2,
+                 total_tokens=511, oldest_created_at='2026-11-23T19:39:01+00:00', eligible=False)
+    assert deferred_batch_evidence([item, item], [batch]) == [batch]
+    assert deferred_batch_evidence([], [batch]) == []
+    assert deferred_batch_evidence([item, item], []) is None
+    assert deferred_batch_evidence([item, item], [batch, batch]) is None
+    assert deferred_batch_evidence([item, {**item, 'claim': 'active'}], [batch]) is None
+    for changed in ({'eligible': True}, {'pending_count': 1}, {'type': 'summary'}, {'unit': 'other'}):
+        assert deferred_batch_evidence([item, item], [{**batch, **changed}]) is None

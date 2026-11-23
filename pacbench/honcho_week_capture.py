@@ -1,6 +1,6 @@
 """Bind stock post-turn appends and their paid worker jobs to the Hermes transcript."""
 from contextlib import closing
-from collections import defaultdict
+from collections import Counter, defaultdict
 from hashlib import sha256
 import json
 from pathlib import Path
@@ -68,6 +68,7 @@ def snapshot(scope):
     space, source=native['host']['workspace'],week.capture_session_name(scope['session'])
     return json.loads(sql(cid,'postgres',f"""
         SELECT json_build_object(
+          'observed_at',now(),
           'messages', (SELECT coalesce(json_agg(json_build_object(
              'public_id',m.public_id,'local_id',m.id,'session',m.session_name,'session_id',s.id,
              'peer',m.peer_name,'at',m.created_at,'seq',m.seq_in_session,
@@ -90,7 +91,9 @@ def snapshot(scope):
             FROM queue q LEFT JOIN active_queue_sessions a ON a.work_unit_key=q.work_unit_key
              AND a.tenant_id IS NOT DISTINCT FROM q.tenant_id WHERE q.workspace_name='{space}'),
           'units',(SELECT coalesce(json_agg(json_build_object(
-            'unit',b.work_unit_key,'type',b.task_type,'eligible', b.task_type<>'representation'
+            'unit',b.work_unit_key,'type',b.task_type,'pending_count',b.pending_count,
+            'total_tokens',b.total_tokens,'oldest_created_at',b.oldest_created_at,
+            'eligible', b.task_type<>'representation'
                OR b.total_tokens>=settings.target OR b.oldest_created_at<=now()-make_interval(secs=>settings.max_age))),'[]'::json)
             FROM queue_item_batches b CROSS JOIN (SELECT 512 AS target,1800 AS max_age) settings
              WHERE split_part(b.work_unit_key,':',2)='{space}'))
@@ -174,6 +177,19 @@ def native_batch(scope,native,telemetry,batch,unit,claim):
         queue_ids=qids,claim=claim,trace=telemetry.trace_id)
 
 
+def deferred_batch_evidence(pending, units):
+    """Only a matching native batch row can establish that queued work is ineligible."""
+    counts = Counter((row['unit'], row['type']) for row in pending)
+    keys = {key for key, _ in counts}
+    observed = [row for row in units if row['unit'] in keys]
+    if (any(row['claim'] for row in pending) or len(observed) != len(keys)
+            or {(row['unit'], row['type']) for row in observed} != counts.keys()
+            or any(row['eligible'] is not False or row['pending_count'] != counts[row['unit'], row['type']]
+                   for row in observed)):
+        return None
+    return sorted(observed, key=lambda row: row['unit'])
+
+
 def barrier(scope,owner,ledger,*,captures):
     """Fence open-chat writes and eligible work while preserving stock age-gated work."""
     from .honcho_first_answer import check_stops
@@ -210,15 +226,16 @@ def barrier(scope,owner,ledger,*,captures):
         if any(q['failed'] for q in current['queue']) or any(m['embeddings'][2] for m in rows.values()):
             raise OwnershipConflict('Honcho recorded a native indexing or worker failure')
         pending=[q for q in tasks if not q['processed']]
-        due={u['unit'] for u in current['units'] if u['eligible']}
-        if (len(saved)!=captures or len(rows)!=expected or any(q['claim'] or q['unit'] in due for q in pending)
+        deferred=deferred_batch_evidence(pending,current['units'])
+        if (len(saved)!=captures or len(rows)!=expected or deferred is None
                 or set(rows)!={q['message_id'] for q in tasks if q['type']=='representation'}
                 or any(not m['embeddings'][0] or m['embeddings'][0]!=m['embeddings'][1] for m in rows.values())):
             time.sleep(.25)
             continue
         return dict(gateway_identity=[witness['pid'],witness['start_time']],pending_native_writes=0,
                     inflight_requests=0,native_errors=[],readback=dict(captures=captures,messages=list(rows.values()),
-                    deferred_queue_ids=[q['id'] for q in pending],gateway_observer_monotonic_ns=sample['observed_monotonic_ns']))
+                    deferred_queue_ids=[q['id'] for q in pending],deferred_queue_batches=deferred,
+                    queue_observed_at=current['observed_at'],gateway_observer_monotonic_ns=sample['observed_monotonic_ns']))
     raise TimeoutError('Stock Honcho chat capture or eligible native work did not reach the open-session fence')
 
 

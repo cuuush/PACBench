@@ -25,6 +25,7 @@ DAILY_FILES = 'seven-daily-files-v1'
 DAILY_PROJECTIONS = frozenset((DAILY_FILES, NORMALIZED_DAILY))
 HONCHO_WEEK = 'honcho-seven-daily-single-hermes-week-v1'
 HONCHO_ADMISSION = 'honcho-seven-daily-documents-v1'
+SUPERMEMORY_ADMISSION = 'supermemory-stock-document-week-v1'
 ADMISSIONS = {
     'memcal': MEMCAL_SCOPE,
     'mem0': 'mem0-native-oss-document-week-v1',
@@ -33,7 +34,6 @@ ADMISSIONS = {
     'reme': 'reme-native-watched-resource-week-v1',
     'cognee': 'cognee-native-permanent-document-week-v1',
     'memos': MEMOS_OSS_ADMISSION,
-    'supermemory': 'supermemory-stock-document-week-v1',
 }
 
 
@@ -196,10 +196,11 @@ def verify_scope(progress, identity, directory, projection, supplied=None, expec
     if sha != bound.get('sha256') or (supplied is not None and sha != supplied):
         raise ValueError('workflow-scope.json SHA-256 differs')
     admission = scope.get('admission')
+    expected_scope = SUPERMEMORY_ADMISSION if projection == NORMALIZED_DAILY else ADMISSIONS.get(provider)
     if (scope.get('root') != str(directory.parent) or scope.get('provider') != provider
             or scope.get('run_id') != directory.parent.parent.name or scope.get('protocol') != WEEK
             or not isinstance(admission, str) or not admission
-            or (projection != DAILY_FILES and admission != ADMISSIONS.get(provider))
+            or (projection != DAILY_FILES and admission != expected_scope)
             or (expected_admission is not None and admission != expected_admission)
             or scope.get('canary') is not identity['canary']
             or scope.get('spec_sha256') != identity['spec_sha256']

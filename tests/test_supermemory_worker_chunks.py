@@ -47,24 +47,34 @@ def pinned_chunk_code(binary):
     start = data.index(b'function hv5(')
     end = data.index(b'async function Mv5(', start)
     reference = data.index(b'.map((p)=>p.documentId)', end)
+    projection = b'($)=>({id:$.id,position:$.position,content:$.content})'
+    assert data.count(projection) == 1 and projection in data[data.index(b'async function Fv5(', start):end]
     prefix = data[data.rfind(b'\n', 0, start) + 1:start]
     line = 2999 - data[start:reference].count(b'\n')
     col = len(prefix.decode().encode('utf-16-le')) // 2
     tag = data.index(b'function iH0(')
     tag_end = data.index(b'function Zn8(', tag)
-    header = '\n'.join([
-        '(function(){',
-        data[tag:tag_end].decode(),
-        'const kI = iH0({});',
-        '',
-    ])
-    pieces = [
-        header + '\n' * (line - 2 - header.count('\n')),
-        ' ' * col + data[start:end].decode(),
+    transform = data.index(rb'.replace(/\\u(?:', tag, tag_end)
+    tag_line = 1534 - data[tag:transform].count(b'\n')
+    tag_column = len(data[data.rfind(b'\n', 0, tag) + 1:tag].decode().encode('utf-16-le')) // 2
+    call = data.index(b'S=hv5(') + 2
+    call_column = len(data[data.rfind(b'\n', 0, call) + 1:call].decode().encode('utf-16-le')) // 2
+
+    def place(source, content, lineno, column):
+        lines = lineno - source.count('\n') - 1
+        used = 0 if lines else len(source.rsplit('\n', 1)[-1])
+        assert lines >= 0 and column >= used
+        return source + '\n' * lines + ' ' * (column - used) + content
+
+    source = place("'use strict';\n(function(){", data[tag:tag_end].decode(), tag_line, tag_column)
+    header = '\nconst kI = iH0({});\nconst render = z => {'
+    assignment = 'const result = '
+    source = place(source + header, assignment + 'hv5(z); return result; };', 2956, call_column - len(assignment))
+    return '\n'.join([
+        place(source, data[start:end].decode(), line, col),
         stock_fragments(binary),
-        'return {Uv5,Fv5,hv5,ei8,rb8};})()',
-    ]
-    return '\n'.join(pieces)
+        'return {Uv5,Fv5,hv5,render,ei8,rb8};})()',
+    ])
 
 
 def native_fixture(tmp_path, pg_bin):
@@ -131,7 +141,14 @@ storage.run(token, async () => {
   // Publication after the opening SQL returns cannot change those returned bytes.
   if (!before && !ambiguous) publish(1);
   console.log(`[Workflow] Document ${doc} starting memory agent (${opened.totalChunks} chunks)`);
-  const prompt = stock.hv5({title:'Conversation',initialChunks:opened.chunks,totalChunks:opened.totalChunks,profileBuckets:[]});
+  const promptInput = {title:'Conversation',initialChunks:opened.chunks,totalChunks:opened.totalChunks,profileBuckets:[]};
+  if (process.env.WRONG_PROMPT_CALLSITE === '1') {
+    stock.hv5(promptInput);
+    assert.equal(context.active.chunkTrace.preview,true);
+    assert.equal(capture.exports.chunkWitness(),null);
+    process.exit(0);
+  }
+  const prompt = stock.render(promptInput);
   assert.ok(capture.exports.chunkWitness(), JSON.stringify(context.active));
   const original = [{role:'system',content:'Stock worker.'},{role:'user',content:[{type:'text',text:prompt}]}];
   const toolName = 'readChunks', toolCallId = 'call-a', input = {positions:[ambiguous ? 0 : 1]};
@@ -179,6 +196,9 @@ def pg_socket(tmp_path):
 
 def test_pinned_worker_observes_both_publication_orders(tmp_path, monkeypatch, pg_socket):
     env = native_fixture(tmp_path, pg_socket or {})
+    drifted = subprocess.run([BINARY], cwd=tmp_path, env=dict(env, WRONG_PROMPT_CALLSITE='1'),
+                             capture_output=True, text=True, timeout=15)
+    assert drifted.returncode == 0, drifted.stderr
     payloads = []
     for before in (False, True):
         result = subprocess.run([BINARY], cwd=tmp_path, env=dict(env, UPDATE_FIRST=str(int(before))),

@@ -95,15 +95,16 @@ Array.prototype.map = function(callback, ...args) {
   if (observeChunks && Array.isArray(this) && (!this.length || Number.isInteger(first?.position))
       && typeof callback === 'function') {
     const callbackText = Function.prototype.toString.call(callback);
+    // This projection occurs only in readChunks in the SHA-pinned executable.
+    // Bun can omit the async SQL helper's tail frame.
     const toolRead = callbackText === '($)=>({id:$.id,position:$.position,content:$.content})';
     const preview = callbackText.startsWith('(V)=>`<chunk position=');
     if (toolRead || preview) {
       try {
-        const stack = String(new Error().stack);
         const trace = activeContext()?.active?.chunkTrace;
-        if (trace && toolRead && stack.includes(`Fv5 (${stockFrame}2999:`)) {
+        if (trace?.prompt && toolRead) {
           trace.pending.push({...chunkRead(this), result_sha256: sha(JSON.stringify({chunks: mapped}))});
-        } else if (trace && preview && stack.includes(`hv5 (${stockFrame}2993:`)) {
+        } else if (trace && preview && String(new Error().stack).includes(`hv5 (${stockFrame}2993:`)) {
           const expected = trace.opening?.chunks.slice(0, 8);
           trace.preview = trace.preview === null && !!expected && this.length === expected.length && this.every((row, n) =>
             row.position === expected[n].position && sha(row.content) === expected[n].sha256);
@@ -156,14 +157,16 @@ if (observeChunks) {
     return sliced;
   };
 
-  // The final stock Bun template transform returns the exact user prompt,
-  // including its document metadata and the independently matched preview.
+  // In the SHA-pinned executable the tag's final replace is called directly
+  // from the memory agent's prompt callsite. Match both bundled locations.
   const replace = String.prototype.replace;
   const bunEscapes = /\\u(?:\{([\da-fA-F]{1,6})\}|([\da-fA-F]{4}))/g.source;
   String.prototype.replace = function(pattern, replacement) {
     const rendered = replace.apply(this, arguments);
-    if (pattern instanceof RegExp && pattern.source === bunEscapes &&
-        String(new Error().stack).includes(`hv5 (${stockFrame}2956:`)) {
+    if (pattern instanceof RegExp && pattern.source === bunEscapes) {
+      const [, , transform, caller] = String(new Error().stack).split('\n', 4);
+      if (!transform?.endsWith(`(${stockFrame}1534:390)`) || !caller?.endsWith(`(${stockFrame}2956:114410)`))
+        return rendered;
       try {
         const trace = activeContext()?.active?.chunkTrace;
         if (trace) trace.prompt = trace.preview && trace.prompt === null ? sha(rendered) : false;

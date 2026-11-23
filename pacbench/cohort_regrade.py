@@ -217,6 +217,9 @@ def _arm(entry):
     meta, sha = retained.read_json(manifest)
     if sha != expected_sha:
         raise ValueError('stale run manifest digest')
+    if provider == 'honcho' and manifest.name == 'workflow-scope.json' and meta.get('week_schedule'):
+        root = manifest.parent
+        return root, retained.honcho_checkpoint(root, meta, sha, entry.expected_admission, entry.projection)
     scope_sha = None
     if manifest.name in ('workflow-scope.json', 'result.json'):
         directory = manifest.parent/'workflow'
@@ -275,12 +278,13 @@ def _make_items(entry, data, revision):
         if turn.id not in saved:
             continue
         surface, activity = saved[turn.id]
-        options, cutoff = retained.verify_surface(turn, surface, previous.get(turn.session), data.documents,
+        chat = 'one-continuing-hermes-session' if binding.get('single_native_session') else turn.session
+        options, cutoff = retained.verify_surface(turn, surface, previous.get(chat), data.documents,
                                                   qualified_memcal='memcal_product' in binding)
         sid = surface['session_id']
-        if native_sessions.setdefault(sid, turn.session) != turn.session:
+        if native_sessions.setdefault(sid, chat) != chat:
             raise ValueError('native session was reused for a different logical chat')
-        previous[turn.session] = surface
+        previous[chat] = surface
         if cutoff and collection_input:
             collection = collections.get(cutoff)
             if collection is None or instant(collection['ready_at']) > instant(turn.at):

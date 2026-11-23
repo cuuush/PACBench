@@ -3,14 +3,16 @@ from collections import defaultdict
 from dataclasses import asdict, dataclass
 from functools import lru_cache
 import hashlib
+from io import StringIO
 import json
 from pathlib import Path
 
 from .provider_versions import MEMCAL_WEEK_VERSION
 from .workflow_capability import MEMCAL_SCOPE, MEMOS_OSS_ADMISSION, _memcal_schedule
 from .workflow_document_progress import PROTOCOL as DOCUMENT_PROGRESS, PROVIDERS
+from .workflow_daily_documents import LAYOUT as NORMALIZED_DAILY, compile_daily_week
 from .workflow_memcal_tools import manifest as memcal_product, verify_captured_driver
-from .workflow_runner import judge_options
+from .workflow_runner import Condition, captured_turn, inspect_source_cutoff, judge_options
 from .workflow_source_plan import SourcePlan
 from .workflow_spec import Document, SPEC, Turn, compile_week, instant
 from .workflow_stream import fingerprint
@@ -20,6 +22,9 @@ WEEK = 'pizza-week-conversation-v2'
 THREAD_FILES = 'nightly-thread-files-v2'
 CONNECTOR = 'native-connector-v2'
 DAILY_FILES = 'seven-daily-files-v1'
+DAILY_PROJECTIONS = frozenset((DAILY_FILES, NORMALIZED_DAILY))
+HONCHO_WEEK = 'honcho-seven-daily-single-hermes-week-v1'
+HONCHO_ADMISSION = 'honcho-seven-daily-documents-v1'
 ADMISSIONS = {
     'memcal': MEMCAL_SCOPE,
     'mem0': 'mem0-native-oss-document-week-v1',
@@ -28,6 +33,7 @@ ADMISSIONS = {
     'reme': 'reme-native-watched-resource-week-v1',
     'cognee': 'cognee-native-permanent-document-week-v1',
     'memos': MEMOS_OSS_ADMISSION,
+    'supermemory': 'supermemory-stock-document-week-v1',
 }
 
 
@@ -140,12 +146,17 @@ def week_plan(spec_sha, source_basis, condition, canary, *, projection=None, eve
     default_projection = CONNECTOR if track == 'first-party-connector' else THREAD_FILES
     projection = projection or default_projection
     clock = 'v2-nightly-cutoff'
-    if projection == DAILY_FILES:
+    if projection in DAILY_PROJECTIONS:
         if track != 'nightly-document' or canary or not turns or condition['state'] != 'continuing-account':
             raise ValueError('seven-daily-files requires a complete continuing document condition')
         spec, _ = read_json(SPEC)
         dataset_manifest = SPEC.parents[1] / spec['dataset'] / 'manifest.json'
-        documents, clock = _daily_documents(documents, dataset_manifest, manifest_sha, events)
+        if projection == NORMALIZED_DAILY:
+            _, documents, daily_turns, daily_basis, _ = compile_daily_week()
+            if (daily_turns, daily_basis) != (turns, basis):
+                raise ValueError('normalized daily projection changed the frozen questions')
+        else:
+            documents, clock = _daily_documents(documents, dataset_manifest, manifest_sha, events)
     elif projection != default_projection:
         raise ValueError('input projection differs from its original ingestion track')
     return documents, turns, {
@@ -195,6 +206,9 @@ def verify_scope(progress, identity, directory, projection, supplied=None, expec
             or scope.get('frozen_inputs') != identity['source_basis']):
         raise ValueError('original workflow scope, ingestion protocol or source manifest differs')
     select_projection(projection, scope.get('input_projection'))
+    if projection == NORMALIZED_DAILY and (provider != 'supermemory'
+            or scope.get('contract') != compile_daily_week()[4]):
+        raise ValueError('original Supermemory scope lacks the canonical daily document contract')
     if provider == 'memcal':
         contract, plan_sha, *_ = _memcal_schedule(identity['spec_sha256'], identity['canary'])
         if (scope.get('account') != identity.get('account') or scope.get('store') != identity.get('store')
@@ -217,7 +231,7 @@ def verify_progress(progress, identity, saved_turns, directory, scope_sha=None, 
     projection = select_projection(projection, identity.get('input_projection'),
                                    events[0].get('input_projection') if events else None)
     if protocol == DOCUMENT_PROGRESS:
-        allowed = PROVIDERS | {'honcho', 'supermemory'} if projection == DAILY_FILES else PROVIDERS
+        allowed = PROVIDERS | {'honcho', 'supermemory'} if projection in DAILY_PROJECTIONS else PROVIDERS
         if provider not in allowed or condition['track'] != 'nightly-document':
             raise ValueError('document progress has the wrong provider or ingestion track')
     elif protocol == MEMCAL_PROGRESS:
@@ -426,6 +440,148 @@ def verify_surface(turn, surface, prior, documents, *, qualified_memcal=False):
         for request in requests:
             verify_captured_driver(request)
     return judge_options(turn, surface), prefix[-1].cutoff if prefix else None
+
+
+def bound_json(path, proof):
+    value, sha = read_json(path)
+    if proof != {'path': str(path), 'sha256': sha}:
+        raise ValueError('retained Honcho file differs from its original binding')
+    return value
+
+
+def _honcho_releases(root, scope, documents, rows):
+    """Check the exact daily file, stock upload record, and settled completion."""
+    ready_bindings, native_ids, queue_ids = [], set(), set()
+    for index, (doc, entry) in enumerate(zip(documents, scope['plan'], strict=True), 1):
+        path = root/'frozen-documents'/doc.filename
+        cutoff = dict(at=doc.cutoff, path=str(path), sha256=doc.sha256, source_ids=list(doc.source_ids))
+        raw, sha = read_bytes(path)
+        intent, _ = read_json(root/f'honcho-daily-{index}-intent.json')
+        if entry != cutoff or intent != cutoff or sha != doc.sha256 or raw != doc.text.encode():
+            raise ValueError('Honcho release file or chronology differs from the frozen daily source')
+        ready_file = root/f'honcho-daily-{index}-ready.json'
+        ready, ready_sha = read_json(ready_file)
+        sealed = bound_json(root/f'honcho-daily-{index}-sealed.json', ready['release'])
+        source = sealed['file']
+        attempt = rows[ready['attempt']]
+        slot = attempt['workflow_slot']
+        receipt = attempt.get('billing_receipt') or {}
+        receipt_path = root/'billing-receipts'/Path(receipt.get('relative_path', '')).name
+        proof, receipt_sha = read_json(receipt_path)
+        if (sealed['at'] != doc.cutoff or source['sha256'] != doc.sha256
+                or source['file']['filename'] != doc.filename or source['meta'] != {'filename': doc.filename}
+                or source['session'] != scope['session']
+                or source['public_id'] in native_ids or sealed['queue_id'] in queue_ids
+                or slot.get('honcho_daily_release') != ready['release'] or slot.get('at') != doc.cutoff
+                or slot.get('kind') != 'ingest' or attempt['state'] != 'settled' or attempt['http_status'] != 200
+                or receipt.get('relative_path') != str(receipt_path.relative_to(root))
+                or receipt_sha != receipt.get('sha256') or proof.get('attempt_id') != attempt['id']
+                or proof.get('generation_id') != attempt.get('upstream_request_id')
+                or 'cost' not in proof.get('usage', {})):
+            raise ValueError('Honcho native readiness is outside the original file or settled ingest attempt')
+        native_ids.add(source['public_id'])
+        queue_ids.add(sealed['queue_id'])
+        ready_bindings.append({'path': str(ready_file), 'sha256': ready_sha})
+    return ready_bindings
+
+
+def honcho_checkpoint(root, scope, scope_sha, expected_admission, projection):
+    """Read the native Honcho Week seal without opening its service or provider state."""
+    from .observational_receipts import replay_attempts
+    from .openrouter_route import validate_request
+    from .workflow_tracks import HERMES_TOOLS
+
+    if (scope['root'] != str(root) or scope['run_id'] != root.parent.name
+            or scope['provider'] != 'honcho' or scope['protocol'] != WEEK
+            or scope['admission'] != HONCHO_ADMISSION or expected_admission not in (None, HONCHO_ADMISSION)
+            or projection not in (None, NORMALIZED_DAILY)):
+        raise ValueError('foreign or unsupported Honcho Week scope')
+    _, documents, turns, basis, canonical = compile_daily_week()
+    spec_sha = read_bytes(SPEC)[1]
+    if scope['spec_sha256'] != spec_sha:
+        raise ValueError('Honcho scope uses a different frozen workflow')
+    manifest = bound_json(root/'frozen-documents/manifest.json', scope['manifest'])
+    planned = bound_json(root/'ordered-questions.json', scope['week_schedule'])
+    schedule = [dict(index=i, id=turn.id, at=turn.at, authored_session=turn.session, measure=turn.measure,
+                     after=turn.after, prompt_sha256=hashlib.sha256(turn.prompt.encode()).hexdigest(),
+                     ready_files=[doc.filename for doc in documents if instant(doc.cutoff) <= instant(turn.at)])
+                for i, turn in enumerate(turns, 1)]
+    expected = dict(protocol=HONCHO_WEEK, session='one continuing Hermes session', corpus=basis,
+                    document_index_sha256=canonical['normalized_index_sha256'],
+                    gradable_turns=sum(bool(turn.claims) for turn in turns),
+                    criteria=sum(len(turn.claims) for turn in turns), turns=schedule)
+    result, result_sha = read_json(root/'result.json')
+    if (manifest != canonical or planned != expected or result['protocol'] != HONCHO_WEEK
+            or result['state'] != 'stock-week-answers-complete' or result['cleanup'] != 'owned-services-stopped'
+            or result['ordered_schedule_sha256'] != scope['week_schedule']['sha256']
+            or result['canonical_manifest_sha256'] != scope['manifest']['sha256']
+            or result['document_index_sha256'] != canonical['normalized_index_sha256']
+            or (result['documents_verified'], result['source_records'], result['answers_received'],
+                result['scheduled_turns'], result['scheduled_criteria'], result['last_question'])
+            != (7, 142, len(turns), len(turns), expected['criteria'], turns[-1].id)):
+        raise ValueError('Honcho completion differs from its frozen source and ordered questions')
+    raw, receipts_sha = read_bytes(root/'receipts.jsonl')
+    if not raw.endswith(b'\n'):
+        raise ValueError('Honcho receipt journal is incomplete')
+    rows = replay_attempts(StringIO(raw.decode()))
+    ready = _honcho_releases(root, scope, documents, rows)
+    startup, startup_sha = read_json(root/'startup.json')
+    if startup['controller'] != scope['controller'] or startup['source_ready'] != result['source_ready']:
+        raise ValueError('Honcho gateway startup does not match the owned run and source')
+    pins = startup['pins']
+    condition = Condition('honcho', 'nightly-document', 'continuing-account', 'Hermes ' + pins['hermes'],
+                          'openai/gpt-6-luna', 'amazon-bedrock/global', HONCHO_WEEK, '3.6.1 / SDK 2.9.0',
+                          pins['hermes_isolation_sha256'], 'Physical Honcho server, bounded authored Hermes checkpoints',
+                          HERMES_TOOLS['honcho'])
+    answers, ids, turn_bindings = {}, set(), []
+    prior = None
+    folder = root/'week-turns'
+    sealed = sorted(folder.glob('*-verified.json'))
+    if sealed != [folder/f'{i:02}-verified.json' for i in range(1, len(turns)+1)]:
+        raise ValueError('Honcho sealed turn inventory differs from the full ordered Week')
+    for path, turn, listed in zip(sealed, turns, schedule, strict=True):
+        index = listed['index']
+        verified, verified_sha = read_json(path)
+        intent = bound_json(folder/f'{index:02}-intent.json', verified['intent'])
+        surface = bound_json(folder/f'{index:02}-surface.private.json', verified['surface'])
+        prefix = listed['ready_files']
+        if (verified['index'] != index or verified['question'] != turn.id
+                or intent['index'] != index-1 or intent['question'] != turn.id or intent['ready'] != ready[:len(prefix)]
+                or intent['prior'] != (turn_bindings[-1] if turn_bindings else None)
+                or intent['controller'] != scope['controller'] or intent['gateway']['pid'] != startup['gateway']
+                or intent['session_id'] != (prior['session_id'] if prior else None)):
+            raise ValueError('Honcho turn seal lost its chronological, release or session binding')
+        captured_turn(surface, turn, prior, condition, prefix)
+        requests = surface['model_requests']
+        turn_ids = {request['request_id'] for request in requests}
+        if len(turn_ids) != len(requests) or ids.intersection(turn_ids):
+            raise ValueError('Honcho captured driver request was reused')
+        for request in requests:
+            validate_request(request['request'], profile='luna-bedrock-global')
+            row = rows[request['request_id']]
+            slot = row['workflow_slot']
+            if (row['state'] != 'settled' or row['http_status'] != 200 or
+                    slot.get('kind') != 'answer' or slot.get('question_id') != turn.id):
+                raise ValueError('Honcho captured request differs from its settled driver operation')
+        ids.update(turn_ids)
+        inspect_source_cutoff({'model_requests': [r['request'] for r in requests], 'prefetch': surface['prefetch']},
+                              documents, prefix, [t.prompt for t in turns[:index]])
+        surface = {**surface, 'conversation_times': [t.at for t in turns[:index]]}
+        turn_bindings.append({'path': str(path), 'sha256': verified_sha})
+        answers[turn.id] = (surface, {'retained_turn_sha256': verified_sha})
+        prior = surface
+    close, close_sha = read_json(root/'native-chat-close.json')
+    if close['native_failures'] or result['driver_requests'] != len(ids):
+        raise ValueError('Honcho shutdown or driver request count differs from its original completion')
+    condition = json.loads(json.dumps(asdict(condition)))
+    _, _, binding = week_plan(spec_sha, basis, condition, False, projection=NORMALIZED_DAILY)
+    binding.update(protocol=HONCHO_WEEK, ingestion_protocol=HONCHO_ADMISSION, scope_sha256=scope_sha,
+                   result_sha256=result_sha, ordered_native_schedule_sha256=scope['week_schedule']['sha256'],
+                   wire_receipts_sha256=receipts_sha, startup_sha256=startup_sha, close_sha256=close_sha,
+                   single_native_session=True, run_key=fingerprint([scope_sha, result_sha]))
+    provenance = dict(kind='native-honcho-daily-file-readback', ready_documents=len(ready),
+                      ready_releases=len(ready), readiness_sha256=fingerprint(ready))
+    return RetainedArm(documents, turns, condition, binding, provenance, answers, {}, True, [])
 
 
 def legacy_journal(events, document_sha, torn, *, projection=None, expected_admission=None):

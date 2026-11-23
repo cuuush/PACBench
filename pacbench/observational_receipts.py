@@ -204,7 +204,11 @@ class ObservedBudget:
   return {'id':row['id'],'request':request}
 
  def check_prepared(self,rows,row):
-  """Optional scope-specific admission under the journal lock."""
+  """Scope-specific validation under the journal lock."""
+
+ def outcome_evidence(self,row,frames,outcome):
+  """Additional scope-specific evidence from the same received response."""
+  return {}
 
  def mark_dispatch_possible(self,ident,*,sender=None):
   from .live_dispatch import mark_possible
@@ -233,7 +237,8 @@ class ObservedBudget:
   from .direct_accounting import now,response_validation,stop_measured_admission
   raw=data.encode() if isinstance(data,str) else data;frames=read_frames(raw);events,errors=frames.events,frames.errors
   validation=response_validation(events,body_complete)
-  validation['wire_parse_errors']=errors
+  validation['wire_parse_errors']=frames.errors
+  validation['sse_done_observed']=frames.sse_done_observed
   validation['envelope_errors']=[{'code': error.get('code')} for error in validation['envelope_errors']]
   previous=None
   for event in events:
@@ -276,6 +281,7 @@ class ObservedBudget:
       billing_receipt={'relative_path':str(dest.relative_to(self.path.parent)),'sha256':digest,'protocol':value['protocol'],'cost_source':'response.usage.cost'})
      for k,src in [('input_tokens','prompt_tokens'),('output_tokens','completion_tokens')]:patch[k]=safe.get('usage',{}).get(src)
      if row.get('settled_charge_usd') not in (None,cost):patch.update(state='receipt_conflict',error_label='conflicting_receipts')
+   patch.update(self.outcome_evidence(row,frames,patch))
    append('outcome',ident,patch)
   if status in (401,403):
    stop_cohort('openrouter_access_refused',ident)

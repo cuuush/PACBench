@@ -34,6 +34,21 @@ def start(root, env, model, base, key, *, resume=False):
     runtime=Path(__file__).resolve().parents[1]/'vendor/supermemory-local'
     binary=runtime/'supermemory-server-linux-x64'
     if not binary.exists():raise RuntimeError('Install verified Supermemory local server first')
+    stock_source = os.environ.get('PACBENCH_SUPERMEMORY_STOCK_SOURCE') == '1'
+    namespace = 'supermemory-data-'+root.parent.name+'-'+root.name
+    if stock_source:
+        from pacbench.canary_capability import sha
+        from pacbench.supermemory_source_admission import BINARY_SHA, SCOPE
+        from pacbench.supermemory_question_admission import SCOPE as QUESTION_SCOPE, verify_restored_snapshot
+        from pacbench.workflow_capability import SM_WEEK_ADMISSION, load
+        scope = load()
+        if Path(scope['root']) != root or sha(binary) != BINARY_SHA:
+            raise ValueError('Expected the pinned stock binary and the owned workflow root')
+        if resume and scope['admission'] == QUESTION_SCOPE:
+            verify_restored_snapshot(scope)
+            namespace = scope['namespace']
+        elif resume or scope['admission'] not in (SCOPE, SM_WEEK_ADMISSION):
+            raise ValueError('Expected a fresh stock scope or the exact first-question snapshot')
     with socket.socket() as s:
         s.bind(('127.0.0.1',0));port=s.getsockname()[1]
     directory=root/'supermemory-data'
@@ -59,6 +74,8 @@ def start(root, env, model, base, key, *, resume=False):
     process=subprocess.Popen([str(binary)],cwd=root,env=child,stdin=subprocess.DEVNULL,
                              stdout=log,stderr=log);log.close()
     def stop():
+        if stock_source:
+            atexit.unregister(stop)
         owned,_=scan(root,'supermemory-native-stop')
         if process.poll() is None:
             process.terminate()
@@ -93,16 +110,23 @@ def start(root, env, model, base, key, *, resume=False):
         'readiness':'Authenticated native document inventory; TCP listening alone is insufficient',
         'embedding':'local Ollama nomic-embed-text','starter_facts':False,'resumed_store':resume,
         'network':'Run-owned endpoint in the private execution environment; no public port published'}
+    if stock_source:
+        from pacbench.live_dispatch import process_identity
+        from pacbench.supermemory_source_effect import BOUNDARY
+        receipt.update(dispatch_operation_boundary=BOUNDARY, process_identity=process_identity(process.pid))
     save(root/'native-server-setup.json',receipt)
-    save(root/'document-ingestion-config.json',{
+    save(root/'document-ingestion-config.json',({
+        'dreaming':'native default', 'route':'Native SDK add without processing overrides',
+        'native_default':'dynamic', 'model_processing_overrides':False,
+    } if stock_source else {
         'dreaming':'instant',
         'route':'Native SDK documents.add documented per-document processing mode',
         'reason':'Each document already contains a complete nightly batch; do not defer it for dynamic cross-document grouping',
-        'native_default':'dynamic','model_processing_overrides':False})
+        'native_default':'dynamic','model_processing_overrides':False}))
     if not native_key:
         stop();raise RuntimeError('Supermemory startup did not produce its native API key; inspect private log')
     # README manual endpoint first, then the key emitted by real first boot.
-    save(root/'hermes-home/supermemory.json',{'base_url':endpoint,'container_tag':directory.name+'-'+root.parent.name+'-'+root.name})
+    save(root/'hermes-home/supermemory.json',{'base_url':endpoint,'container_tag':namespace})
     from pacbench.prefetch_provenance import VERSION
     declaration={'protocol':VERSION,'provider':'supermemory','state':'unverified',
         'reason':'Native v5 default hybrid retrieval can return document chunks; the plugin formatter merges chunk and memory text and omits their type. Independent passage provenance is pending.'}

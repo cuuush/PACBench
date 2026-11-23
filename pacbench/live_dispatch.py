@@ -93,6 +93,11 @@ def operation_id(row):
     if (slot.get('provider')=='hindsight' and row.get('workflow_slot') and slot.get('native_work')
             and row.get('accounting_role')=='memory_provider'):
         scope['native_work'] = slot['native_work']
+    if (slot.get('provider') == 'supermemory' and slot.get('stock_source_effect')
+            and row.get('accounting_role') == 'memory_provider'):
+        scope['stock_source_effect'] = slot['stock_source_effect']
+        if slot.get('worker_round'):
+            scope['worker_round'] = slot['worker_round']['ordinal']
     return hashlib.sha256(json.dumps({'request':row['request_sha256'],'scope':scope},sort_keys=True).encode()).hexdigest()
 
 
@@ -158,6 +163,14 @@ def mark_possible(row, at, sender=None):
     elif slot.get('kind') == 'judge' and slot.get('checkpoint_effect'):
         from .workflow_capability import confirm_workflow_judge_sender
         confirm_workflow_judge_sender(row)
+    elif slot.get('supermemory_first_question'):
+        from .supermemory_question_admission import confirm_sender
+        from .workflow_capability import load
+        if slot.get('supermemory_week_claim'):
+            from .supermemory_week_admission import answer_slot
+            confirm_sender(row, load(), slot_factory=answer_slot)
+        else:
+            confirm_sender(row, load())
     if row['dispatch_execution'] != 'prepared':
         raise OwnershipConflict('Dispatch already possible; no automatic send replay')
     row['dispatch_events'].append({'kind': 'dispatch_possible', 'at': at})

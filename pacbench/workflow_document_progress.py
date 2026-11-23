@@ -8,7 +8,7 @@ from .workflow_progress import WorkflowProgress
 from .workflow_stream import fingerprint
 
 PROTOCOL = 'pizza-week-native-document-progress-v1'
-PROVIDERS = frozenset(('mem0', 'hindsight', 'openviking', 'reme', 'cognee', 'memos'))
+PROVIDERS = frozenset(('mem0', 'hindsight', 'openviking', 'reme', 'cognee', 'memos', 'supermemory'))
 
 
 def run(condition, account, docs, turns, directory, spec, spec_digest, basis, all_docs, judge, canary, *, resume=False, daily_manifest=None):

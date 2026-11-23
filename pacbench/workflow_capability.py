@@ -133,6 +133,10 @@ def load():
         from .cohort_regrade_live import validate
         validate(c, bound)
         return c
+    if c.get('admission') == 'pizza-week-honcho-authored-chats-luna-v4-v1':
+        from .honcho_regrade_live import validate
+        validate(c, bound)
+        return c
     if c.get('admission') == 'pizza-day-wrong-answer-judge-v1':
         from .pizza_day_control import validate
         validate(c, bound)
@@ -225,7 +229,7 @@ def budget(*, project=None, profile=None):
     if c.get('admission') == 'luna-judge-development-ab-v1':
         from .judge_development_live import JudgeJournal
         return JudgeJournal(path)
-    if c.get('admission') == 'pizza-week-luna-explicit-overlay-v1':
+    if c.get('admission') in ('pizza-week-luna-explicit-overlay-v1', 'pizza-week-honcho-authored-chats-luna-v4-v1'):
         from .cohort_regrade_live import OverlayJournal
         return OverlayJournal(path)
     if c.get('admission') == 'supermemory-stock-source-qualification-v1':
@@ -320,6 +324,9 @@ def admission(project, profile, body):
         return admit(c, project, body)
     if c.get('admission') == 'pizza-week-luna-explicit-overlay-v1':
         from .cohort_regrade_live import admit
+        return admit(c, project, body)
+    if c.get('admission') == 'pizza-week-honcho-authored-chats-luna-v4-v1':
+        from .honcho_regrade_live import admit
         return admit(c, project, body)
     if c.get('admission') == 'pizza-day-wrong-answer-judge-v1':
         from .pizza_day_control import admit

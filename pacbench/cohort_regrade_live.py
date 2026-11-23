@@ -125,10 +125,10 @@ def _matches(row, cell):
 
 class OverlayJournal(RunReceiptJournal):
     def prepare(self, project, body, **kwargs):
-        from .workflow_capability import load
+        from .workflow_capability import admission
 
         # Refuse changes to the caller's body even when transport would normalize them.
-        admit(load(), project, body)
+        admission(project, PROFILE, body)
         return super().prepare(project, body, **kwargs)
 
     def check_prepared(self, rows, row):
@@ -174,14 +174,15 @@ def _write_new(path, value):
         os.fsync(stream.fileno())
 
 
-def _grade(root, scope, overlay, plan, wire):
+def _grade(root, scope, overlay, plan, wire, *, stop_on_invalid=False):
     from .gateway_client import client_settings
     from .model_calls import ModelClient
     from .workflow_capability import budget
     from .workflow_memcal_live import run_environment
 
     journal = budget()
-    _, marker = client_settings(PROJECT)
+    project = scope['projects'][scope['provider']]['judge']
+    _, marker = client_settings(project)
     total, seen = Decimal(0), set()
     with (root/'observations.jsonl').open('x') as stream:
         for index, (item, cell) in enumerate(zip(plan['items'], wire['cells'], strict=True), 1):
@@ -210,14 +211,14 @@ def _grade(root, scope, overlay, plan, wire):
             stream.flush()
             os.fsync(stream.fileno())
             overlay.import_response(record)
+            report = overlay.report() if stop_on_invalid or index == 1 or index % 47 == 0 else None
             if index == 1 or index % 47 == 0:
-                report = overlay.report()
                 arm = report['providers'][item['arm']]
                 print(json.dumps({'settled_cells': index, 'arm': item['arm'], 'graded_criteria': arm['regraded_criteria'],
                                   'correct': arm['regrade_correct'], 'actual_usd': str(total)}), flush=True)
                 _write_new(root/f'checkpoint-{index:03}.json', report)
-                if index == 1 and report['states'][cell['id']] != 'parsed-offline':
-                    raise RuntimeError('first settled judge response did not parse as frozen criteria')
+            if (stop_on_invalid or index == 1) and report['states'][cell['id']] != 'parsed-offline':
+                raise RuntimeError('settled judge response did not parse as frozen criteria')
         billing = receipt_summary(root, rows, scope['run_id'])
         if (billing['generations'] != len(wire['cells']) or billing['missing_attempt_ids']
                 or Decimal(billing['complete_cost_usd']) != total):

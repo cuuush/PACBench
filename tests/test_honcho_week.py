@@ -222,3 +222,16 @@ def test_honcho_stock_capture_inventory_is_bound_per_durable_session(tmp_path, m
     rows[-1]['session_id'] = 9
     with pytest.raises(OwnershipConflict, match='foreign'):
         capture.inventory({}, {'messages': rows})
+
+
+def test_authored_chat_close_observes_only_its_manager():
+    from pacbench.honcho_week_capture import _closed_manager
+
+    provider = dict(name='honcho', session_key='selected', pending=0, writer_queue=0, active_flushes=0,
+                    workers=['honcho-async-writer'], clean=False)
+    selected = dict(shutdown_returned=True, pending_futures=0, native_drain={'status': 'drained'},
+                    providers=[provider], clean=False)
+    assert _closed_manager(selected, 'selected')
+    assert not _closed_manager(selected, 'other')
+    assert not _closed_manager({**selected, 'native_drain': {'status': 'running'}}, 'selected')
+    assert not _closed_manager({**selected, 'providers': [{**provider, 'writer_queue': 1}]}, 'selected')

@@ -669,6 +669,7 @@ def _summarize_tool_result(event: dict, limit: int = 2000) -> dict:
     tool_error = isinstance(decoded, dict) and "error" in decoded
     return {
         "tool": event.get("tool") or event.get("name") or "",
+        **({"tool_call_id": event["tool_call_id"]} if "tool_call_id" in event else {}),
         "success": bool(event.get("success", event.get("error") is None))
                    and not event.get("is_error", False) and not policy_blocked and not tool_error,
         "policy_blocked": policy_blocked,

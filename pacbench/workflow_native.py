@@ -44,6 +44,22 @@ def appended_rows(path, position):
             yield json.loads(line)
 
 
+def capture_tool_results(native_results, stream_results):
+    """Bind stream status and the answer-visible native value by tool-call ID."""
+    by_id = {event.get('tool_call_id'): event for event in stream_results}
+    native_ids = {row['tool_call_id'] for row in native_results}
+    if (None in by_id or '' in by_id or len(by_id) != len(stream_results)
+            or len(native_ids) != len(native_results) or by_id.keys() != native_ids):
+        raise ValueError('incomplete or duplicate native tool-result identity')
+    results = []
+    for row in native_results:
+        event = by_id[row['tool_call_id']]
+        if event['tool'] != row['tool_name']:
+            raise ValueError('native tool-result name differs from the captured stream')
+        results.append({**event, 'text': row.get('api_content') or row['content']})
+    return results
+
+
 def tool_provenance(calls, results):
     """Record explicit native operations separately from automatic memory delivery."""
     from .followups import tool_category
@@ -195,11 +211,7 @@ class WarmHermes:
                                    delivered_text=sent_users[-1].get('content') if sent_users else None)
         delta = records[max(i for i,r in enumerate(records) if r['role']=='user')+1:]
         native_results = [r for r in delta if r['role']=='tool']
-        if len(native_results) != len(turn.tool_results):
-            raise RuntimeError('incomplete native tool-result capture')
-        results = [{**event, 'text':r.get('api_content') or r['content'],
-                    'tool_call_id':r['tool_call_id'], 'tool':r['tool_name']}
-                   for r,event in zip(native_results,turn.tool_results,strict=True)]
+        results = capture_tool_results(native_results, turn.tool_results)
         return {'answer':turn.answer,'session_id':sid,'history':records,'question_at':at,
                 'gateway_identity':gateway,
                 'clock_evidence':clock_receipt,'context_isolation':isolation,'model_requests':requests,

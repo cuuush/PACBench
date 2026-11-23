@@ -132,3 +132,16 @@ def test_parallel_tool_provenance_uses_call_id_instead_of_return_order():
     results[1]['tool_call_id'] = 'b'
     with pytest.raises(ValueError, match='one result'):
         tool_provenance(calls, results)
+
+
+def test_tool_status_is_joined_to_the_actual_native_row_before_provenance():
+    from pacbench.workflow_native import capture_tool_results
+
+    native = [_result('a'), _result('b')]
+    events = [{'tool_call_id': 'b', 'tool': 'lookup', 'success': False, 'text': 'preview'},
+              {'tool_call_id': 'a', 'tool': 'lookup', 'success': True, 'text': 'preview'}]
+    saved = capture_tool_results(native, events)
+    assert [(row['text'], row['success']) for row in saved] == [('result a', True), ('result b', False)]
+    events[0]['tool_call_id'] = 'foreign'
+    with pytest.raises(ValueError, match='native tool-result identity'):
+        capture_tool_results(native, events)

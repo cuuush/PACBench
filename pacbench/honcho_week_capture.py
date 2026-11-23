@@ -222,6 +222,15 @@ def barrier(scope,owner,ledger,*,captures):
     raise TimeoutError('Stock Honcho chat capture or eligible native work did not reach the open-session fence')
 
 
+def _closed_manager(row, session_id):
+    """Honor the scoped drain; the observer's worker list is process-wide."""
+    return (row['shutdown_returned'] and row['pending_futures'] == 0
+            and row['native_drain'].get('status') == 'drained' and row['providers']
+            and all(p['name'] == 'honcho' and p['session_key'] == session_id
+                    and p['pending'] == p['writer_queue'] == p['active_flushes'] == 0
+                    for p in row['providers']))
+
+
 def closed_chat(scope, owner, ledger, session_id, *, captures):
     """Read back this native chat's closure while other chats stay open."""
     from .gateway_reuse import PROTOCOL
@@ -239,7 +248,7 @@ def closed_chat(scope, owner, ledger, session_id, *, captures):
         with closing(sqlite3.connect((owner.home/'state.db').as_uri() + '?mode=ro', uri=True)) as db:
             ended = db.execute('SELECT ended_at,end_reason FROM sessions WHERE id=?', (session_id,)).fetchone()
         if (ended and ended[0] and ended[1] == 'cli_close' and matches
-                and all(row['shutdown_returned'] and row['clean'] for row in matches)):
+                and all(_closed_manager(row, session_id) for row in matches)):
             return dict(session_id=session_id, ended_at=ended[0], end_reason=ended[1],
                         gateway_identity=durable['gateway_identity'], captures=captures)
         time.sleep(.1)

@@ -9,7 +9,7 @@ from .context_isolation import memory_delivery
 from .observation_adapters import native_source
 from .workflow_runner import Condition, captured_turn
 from .workflow_tracks import HERMES_TOOLS, PROVIDERS
-from .workflow_native import tool_provenance
+from .workflow_native import capture_tool_results, tool_provenance
 
 
 def answer_and_verify(root,progress,env,turn,doc,plan,ledger):
@@ -47,8 +47,7 @@ def answer_and_verify(root,progress,env,turn,doc,plan,ledger):
         history=[dict(r) for r in db.execute('SELECT role,content,api_content,tool_name,tool_call_id,tool_calls FROM messages WHERE session_id=? ORDER BY id',(sid,))]
     requests=[r for r in map(json.loads,(root/'api-inputs.jsonl').read_text().splitlines()) if r['request_id'] in response.clock_context['actor_api_input_ids']]
     native_results=[r for r in history if r['role']=='tool']
-    results=[{**event,'text':r.get('api_content') or r['content'],'tool_call_id':r['tool_call_id'],'tool':r['tool_name']}
-             for event,r in zip(response.tool_results,native_results,strict=True)]
+    results = capture_tool_results(native_results, response.tool_results)
     ids={r['request_id'] for r in requests}
     attempts=[dict(id=r['id'],parent=r.get('retry_of'),operation=r['dispatch_context']['operation_id'],origin='unknown')
               for r in ledger.snapshot() if r['id'] in ids]

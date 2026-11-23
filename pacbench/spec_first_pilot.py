@@ -53,6 +53,59 @@ class RoleQuestion:
         return f'Did {self.actor} accept the {self.required.role} shift at {self.event}?'
 
 
+@dataclass(frozen=True)
+class VolunteerForm:
+    """One direct reply. Abilities, offers and declines are separate authored fields."""
+    id: str
+    actor: str
+    recipient: str
+    event: str
+    written_at: str
+    received_at: str
+    reported_unable: frozenset[str] = frozenset()
+    offered: frozenset[str] = frozenset()
+    declined: frozenset[str] = frozenset()
+
+
+@dataclass(frozen=True)
+class DeclinedEveryRole:
+    """A communicated decision covering an explicitly exhaustive list of jobs."""
+    actor: str
+    recipient: str
+    event: str
+    roles: tuple[str, ...]
+    as_of: str
+    source_id: str
+
+    @property
+    def prompt(self):
+        return f'What did {self.actor} tell {self.recipient} about helping with {self.event}?'
+
+    @property
+    def claim(self):
+        statement = (f'{self.actor} told {self.recipient} they declined every job for {self.event} '
+                     f'({", ".join(self.roles)}).')
+        return ContractClaim('all-roles-declined', statement, (self.source_id,))
+
+    def check_source(self, form: VolunteerForm):
+        roles = set(self.roles)
+        if not roles or len(roles) != len(self.roles) or any(not role.strip() for role in roles):
+            raise ValueError('the question must enumerate distinct named jobs')
+        received = instant(form.received_at)
+        if instant(form.written_at) > received:
+            raise ValueError('a reply cannot arrive before it was written')
+        if ((form.id, form.actor, form.recipient, form.event) !=
+                (self.source_id, self.actor, self.recipient, self.event) or received > instant(self.as_of)):
+            return 'insufficient'
+        if not (form.reported_unable | form.offered | form.declined) <= roles or form.offered & form.declined:
+            raise ValueError('reply contains an unlisted job or conflicting decisions for one job')
+        if form.offered:
+            return 'contradicted'
+        if form.declined == roles:
+            return 'supported'
+        return 'insufficient'
+
+
 def _require_record(records, question, scope, value_field, expected, citation):
     """Verify the cited form entry is the current explicit value at the cutoff."""
     cutoff = instant(question.as_of)

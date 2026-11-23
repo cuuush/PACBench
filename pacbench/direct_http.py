@@ -19,7 +19,7 @@ _httpx_wrappers=WeakSet()
 _MAX_RESPONSE=32*1024*1024
 
 
-def admitted(url,headers,body,*,wait=True):
+def admitted(url,headers,body,*,wait=True,method=None):
     if os.environ.get('PACBENCH_DIRECT')!='1':return None
     parsed=urlsplit(str(url))
     if parsed.hostname!='openrouter.ai':
@@ -39,9 +39,17 @@ def admitted(url,headers,body,*,wait=True):
     auth='Bearer '+os.environ['PACBENCH_DIRECT_UPSTREAM_KEY']
     if not body and parsed.path in {'/api/v1/models','/api/v1/key','/api/v1/credits'}:
         return {'headers':{**dict(headers),'Authorization':auth},'free':True}
+    if parsed.path=='/api/alpha/decisions' and body and os.environ.get('PACBENCH_WORKFLOW_SCOPE'):
+        from .decisions_admission import admit_decisions
+        identifier, budget = admit_decisions(project, method, str(url), body)
+        return {'headers':{'Authorization':auth,'Content-Type':'application/json',
+                           'Accept-Encoding':'identity','Content-Length':str(len(body))},
+                'body':body,'id':identifier,'budget':budget}
     if parsed.path!='/api/v1/chat/completions' or not body:
         raise RuntimeError('Unsupported direct model endpoint')
     budget=live_budget(project=project)
+    check_wire=getattr(budget,'check_wire',None)
+    if check_wire:check_wire(method,body)
     receipt=budget.reserve(project,json.loads(body),wait=False) if not wait else budget.reserve(project,json.loads(body))
     from .api_input_trace import record as record_api_input
     record_api_input(project,receipt)
@@ -49,7 +57,7 @@ def admitted(url,headers,body,*,wait=True):
     record_memory(project,receipt)
     head={k:v for k,v in dict(headers).items() if k.lower() not in {'authorization','content-length'}}
     head['Authorization']=auth
-    data=json.dumps(receipt['request'],ensure_ascii=False).encode()
+    data=body if check_wire else json.dumps(receipt['request'],ensure_ascii=False).encode()
     head['Content-Length']=str(len(data))
     return {'headers':head,'body':data,'id':receipt['id'],'budget':budget}
 
@@ -133,7 +141,8 @@ def install():
     original=urllib.request.OpenerDirector.open
     def opened(self,fullurl,data=None,timeout=__import__('socket')._GLOBAL_DEFAULT_TIMEOUT):
         request=fullurl if isinstance(fullurl,urllib.request.Request) else urllib.request.Request(fullurl,data=data)
-        receipt=admitted(request.full_url,dict(request.header_items()),request.data if data is None else data)
+        receipt=admitted(request.full_url,dict(request.header_items()),request.data if data is None else data,
+                         method=request.get_method())
         if receipt is None:return original(self,fullurl,data,timeout)
         target=urllib.request.Request(request.full_url,data=receipt.get('body'),headers=receipt['headers'],method=request.get_method())
         before_send(receipt)
@@ -191,7 +200,7 @@ def _install_httpx(httpx):
             finally:self.capture.finish()
     send=httpx.Client.send;asend=httpx.AsyncClient.send
     def prepared(request,body,*,wait=True):
-        receipt=admitted(request.url,request.headers,body,wait=wait)
+        receipt=admitted(request.url,request.headers,body,wait=wait,method=request.method)
         if receipt is None:return request,None
         fresh=httpx.Request(request.method,request.url,headers=receipt['headers'],
             content=receipt.get('body'),extensions=request.extensions)

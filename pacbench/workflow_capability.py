@@ -115,6 +115,10 @@ def load():
         from .judge_development_live import validate
         validate(c, bound)
         return c
+    if c.get('admission') == 'luna-judge-development-challenge-v2':
+        from .judge_calibration_live import validate
+        validate(c, bound)
+        return c
     if c.get('admission') == 'pizza-day-wrong-answer-judge-v1':
         from .pizza_day_control import validate
         validate(c, bound)
@@ -203,6 +207,9 @@ def budget(*, project=None, profile=None):
     if c.get('admission') == 'luna-judge-development-ab-v1':
         from .judge_development_live import JudgeJournal
         return JudgeJournal(path)
+    if c.get('admission') == 'luna-judge-development-challenge-v2':
+        from .judge_calibration_live import ChatJournal
+        return ChatJournal(path)
     if c['provider'] == 'memcal':
         from .observational_receipts import IndexedRunReceiptJournal
         return IndexedRunReceiptJournal(path)
@@ -260,6 +267,9 @@ def admission(project, profile, body):
         return admit(c, project, body)
     if c.get('admission') == 'luna-judge-development-ab-v1':
         from .judge_development_live import admit
+        return admit(c, project, body)
+    if c.get('admission') == 'luna-judge-development-challenge-v2':
+        from .judge_calibration_live import admit
         return admit(c, project, body)
     if c.get('admission') == 'pizza-day-wrong-answer-judge-v1':
         from .pizza_day_control import admit

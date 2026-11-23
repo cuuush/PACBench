@@ -220,15 +220,16 @@ def paired_errors(seed, observations):
             raise ValueError('Unknown, duplicate or unnormalized calibration verdict')
         observed[ident] = verdict
     reference = challenge._frozen(challenge.REFERENCE, challenge.REFERENCE_SHA256)['families']
-    labels = []
+    labels = {}
     for cell in challenge._blinded_cells(seed):
         family = cell.family['id']
-        labels.append((cell.id, family, reference[family]['cases'][cell.key]['verdict']))
+        key = reference[family]['cases'][cell.key]
+        labels[cell.id] = (family, key['verdict'], key['reason'])
     by_arm = {}
     paired = {}
     for arm in ARMS:
         families = {}
-        for ident, family, gold in labels:
+        for ident, (family, gold, _) in labels.items():
             verdict = observed.get(ident + ':' + arm)
             status = 'missing' if verdict is None else verdict.choice or verdict.status
             families.setdefault(family, Counter())[f'{gold}->{status}'] += 1
@@ -241,25 +242,47 @@ def paired_errors(seed, observations):
                for status in ('invalid', 'abstained', 'missing')},
             by_family=families,
         )
-    for candidate in ROUTES:
-        for baseline in ('v4', 'explicit'):
-            counts = Counter()
-            families = {}
-            changes = []
-            for ident, family, gold in labels:
-                old = observed.get(ident + ':' + baseline)
-                new = observed.get(ident + ':' + candidate)
-                if old is None or new is None or old.status != 'valid' or new.status != 'valid':
-                    transition = 'unpaired'
-                else:
-                    transition = {
-                        (False, True): 'resolved_error', (True, False): 'new_error',
-                        (True, True): 'both_correct', (False, False): 'both_wrong',
-                    }[(old.choice == gold, new.choice == gold)]
-                    if old.choice != new.choice:
-                        changes.append(dict(id=ident, family=family, gold=gold, baseline=old.choice,
-                                            candidate=new.choice, transition=transition))
-                counts[transition] += 1
-                families.setdefault(family, Counter())[transition] += 1
-            paired[f'{candidate}_vs_{baseline}'] = dict(counts=counts, by_family=families, changes=changes)
+    comparisons = [('explicit', 'v4'), *((candidate, baseline)
+                   for candidate in ROUTES for baseline in ('v4', 'explicit'))]
+    for candidate, baseline in comparisons:
+        paired[f'{candidate}_vs_{baseline}'] = _comparison(labels, observed, candidate, baseline)
     return dict(protocol=PROTOCOL, manifest_sha256=plan.digest, cases=len(labels), arms=by_arm, comparisons=paired)
+
+
+def _comparison(labels, observed, candidate, baseline):
+    counts, families, changes, false_accepts = Counter(), {}, [], []
+    for ident, (family, gold, reason) in labels.items():
+        old = observed.get(ident + ':' + baseline)
+        new = observed.get(ident + ':' + candidate)
+        if new and new.choice == 'correct' and gold != 'correct' and (not old or old.choice != 'correct'):
+            false_accepts.append(ident)
+        if old is None or new is None or old.status != 'valid' or new.status != 'valid':
+            transition = 'unpaired'
+        else:
+            transition = {
+                (False, True): 'resolved_error', (True, False): 'new_error',
+                (True, True): 'both_correct', (False, False): 'both_wrong',
+            }[(old.choice == gold, new.choice == gold)]
+            if old.choice != new.choice:
+                changes.append(dict(id=ident, family=family, gold=gold, baseline=old.choice,
+                                    candidate=new.choice, transition=transition, reference_reason=reason))
+        counts[transition] += 1
+        families.setdefault(family, Counter())[transition] += 1
+    # Same preregistered thresholds as compare() in the frozen challenge.
+    delta = {family: row['resolved_error'] - row['new_error'] for family, row in families.items()}
+    checks = {
+        'complete_family_with_semantic_gain': any(
+            delta[family] > 0 and row['unpaired'] == 0 for family, row in families.items()),
+        'no_paired_family_regression': all(value >= 0 for value in delta.values()),
+        'no_new_or_unverified_false_accepts': not false_accepts,
+        'all_candidate_outputs_usable': all(
+            (verdict := observed.get(ident + ':' + candidate)) is not None and verdict.status == 'valid'
+            for ident in labels),
+        'all_baseline_outputs_observed': all(ident + ':' + baseline in observed for ident in labels),
+    }
+    complete = all(ident + ':' + arm in observed for ident in labels for arm in (baseline, candidate))
+    result = 'incomplete'
+    if complete:
+        result = 'candidate-development-improvement' if all(checks.values()) else 'no-winner'
+    return dict(counts=counts, by_family=families, changes=changes, new_or_unverified_false_accepts=false_accepts,
+                complete=complete, comparison_checks=checks, comparison=result)

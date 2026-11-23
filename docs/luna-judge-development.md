@@ -78,16 +78,21 @@ documents ordinary OpenRouter Bearer API-key authentication.
 [Luna endpoint catalog](https://openrouter.ai/api/v1/models/openai/gpt-6-luna-decisions/endpoints)
 [Jev endpoint catalog](https://openrouter.ai/api/v1/models/typesafe/jev-1.14/endpoints)
 
-`DecisionsAdmission` rehearses the 48 Decisions requests using the existing
-prepaid verifier and shared executor lock. The caller supplies the independently
-reviewed manifest hash. Each cell has one possible send, and a complete response
-must prove the pinned served model, provider, unique generation ID and numeric
-billed cost before another cell can proceed. A settled refusal or invalid
-verdict remains separately visible. Reproduce the offline checks with
-`python -m pytest -q tests/test_decisions_calibration.py tests/test_judge_development_challenge.py`.
+The live scope holds one shared executor lock and verifies the installed
+prepaid account. It saves the 48 Chat Completions judgments before checking
+the account-filtered Decisions inventory. The Decisions transport admits
+the 48 reviewed bodies after the complete verified Chat Completions prefix.
+Each cell has one possible send, and a complete response must prove the pinned
+served model, provider, unique generation ID and numeric billed cost before
+another cell can proceed. A settled refusal or invalid verdict remains visible
+in the report. This development comparison has no effect on provider grades.
 
-The current Chat Completions sender refuses the Decisions endpoint. Live
-calibration still requires integration through the guarded transport, reviewed
-admission of the new Chat Completions cells, and a fresh check of the account's
-eligibility for both pinned routes. This development comparison has no effect
-on provider grades.
+The synthetic launcher rehearsal uses the same entry point and dispatch hooks.
+
+```sh
+python -m pytest -q tests/test_judge_calibration_live.py tests/test_decisions_calibration.py
+```
+
+On the authorized executor, the single-use live entry point is
+`PACBENCH_OPENROUTER_PROFILE=luna-bedrock-global python -m pacbench.judge_calibration_live`.
+The isolated result includes the preregistered semantic and coverage checks.

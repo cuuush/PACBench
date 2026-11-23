@@ -1,5 +1,6 @@
 """Render or interpret development-only paired judge requests from the released Pizza Week."""
 import argparse
+from . import question_judge_spans as spans
 import json
 from pathlib import Path
 
@@ -20,7 +21,8 @@ def _json(path):
 
 
 class Week:
-    def __init__(self):
+    def __init__(self, *, candidate=PROTOCOL):
+        self.candidate = candidate
         spec, documents, self.turns, _ = compile_week('continuing-account')
         self.by_id = {t.id: t for t in self.turns}
         manifest = json.loads(checked_file(DATA, 'manifest.json', MANIFEST))
@@ -111,7 +113,7 @@ class Week:
         authored = self._authored_sources()
         counts = {turn.id: len(assertions(turn, self.entries[turn.id], authored)[0])
                   for turn in self.turns if turn.claims}
-        return dict(protocol=PROTOCOL, dataset_sha256=self.dataset_sha256,
+        return dict(protocol=self.candidate, dataset_sha256=self.dataset_sha256,
                     contract_file_sha256=self.contract_sha256, migrated=counts, pending=[],
                     total_criteria=sum(counts.values()), ungraded=[t.id for t in self.turns if not t.claims],
                     frozen_evidence=self.audit_projection(self.documents))
@@ -174,21 +176,23 @@ class Week:
                     at=correction.at, session=correction.session, content=correction.prompt)):
                 raise ValueError('correction delivery differs from original public user turn')
             sources[key] = self._correction(correction)
-        return build_pair(turn, self.entries[ident], sources, case['answer'], history)
+        return build_pair(turn, self.entries[ident], sources, case['answer'], history, candidate=self.candidate)
 
 
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     commands = parser.add_subparsers(dest='command', required=True)
-    commands.add_parser('inventory', help='validate all migrated assertions and enumerate omissions')
+    inv = commands.add_parser('inventory', help='validate all migrated assertions and enumerate omissions')
     plan = commands.add_parser('plan', help='print paired requests, without dispatch')
     plan.add_argument('case', type=Path)
     score = commands.add_parser('interpret', help='score a supplied local reply against its request')
     score.add_argument('case', type=Path)
-    score.add_argument('arm', choices=(BASELINE, PROTOCOL))
+    score.add_argument('arm', choices=(BASELINE, PROTOCOL, spans.PROTOCOL))
     score.add_argument('reply', type=Path)
+    for sub in (inv, plan, score):
+        sub.add_argument('--candidate', choices=(PROTOCOL, spans.PROTOCOL), default=PROTOCOL)
     args = parser.parse_args(argv)
-    week = Week()
+    week = Week(candidate=args.candidate)
     if args.command == 'inventory':
         result = week.inventory()
     else:

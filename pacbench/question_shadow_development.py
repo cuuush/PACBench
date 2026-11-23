@@ -4,6 +4,8 @@ import json
 from pathlib import Path
 
 from .question_judge import BASELINE, PROTOCOL, fingerprint, interpret
+from . import question_judge_spans as spans
+from .question_judge_week import Week
 from .question_judge_batch import new_private_file, prepare
 
 REVIEWED = '5cb8865d2388dad8ded501b2a6340b3171260d91'
@@ -48,47 +50,84 @@ REFERENCE = {
 }
 
 
+# Predeclared independently of responses to the span-format requests.
+SPAN_REFERENCE = {case: dict(REFERENCE[case]) for case in (
+    'memcal/rsvp-after', 'memcal/withdrawal', 'memcal/assistant-friday-plans',
+    'memos/assistant-friday-plans', 'memcal/friday-lunch-time')}
+SPAN_REFERENCE['memcal/assistant-friday-plans'].update({
+    'lunch-date': ('correct', 'The Friday Oct 9 agenda heading scopes the lunch with Maya.'),
+    'pizza-date': ('correct', 'The same heading scopes the separate pizza with Devon bullet.'),
+})
+CONTROL_ANSWER = '12:30 p.m.'
+SPAN_REFERENCE.update({
+    'control/assistant-friday-plans': {'lunch-time': (
+        'missed', 'A bare time in the broad agenda does not identify which event it describes.')},
+    'control/friday-lunch-time': {'lunch-time': (
+        'correct', 'The direct question supplies the lunch referent for the identical bare time.')},
+})
+
+
 def wire(body):
     return json.dumps(body, sort_keys=True, ensure_ascii=False).encode()
 
 
-def render(directory):
+def render(directory, *, candidate=PROTOCOL):
+    if candidate not in (PROTOCOL, spans.PROTOCOL):
+        raise ValueError('Unknown named regression')
+    version_two = candidate == spans.PROTOCOL
+    reference = SPAN_REFERENCE if version_two else REFERENCE
     by_id = {}
     for arm, digest in EXPORTS.items():
-        manifest, pairs = prepare(directory / (arm + '.jsonl'), digest, 'logical')
+        manifest, pairs = prepare(directory / (arm + '.jsonl'), digest, 'logical', candidate=candidate)
         origin = manifest['retained_origin']
         if origin['arm'] != arm or origin['cohort_manifest_sha256'] != INVENTORY:
             raise ValueError('Unexpected retained source')
         by_id.update({f'{arm}/{p.turn.id}': p for p in pairs})
 
+    if version_two:
+        week = Week(candidate=candidate)
+        for ident in ('assistant-friday-plans', 'friday-lunch-time'):
+            original = by_id['memcal/' + ident]
+            by_id['control/' + ident] = week.prepare(dict(turn_id=ident, answer_state='received',
+                answer=CONTROL_ANSWER, prior_public_dialogue=original.history, delivered_corrections={}))
     cells, cases = [], []
-    for index, (case, expected) in enumerate(REFERENCE.items()):
+    for index, (case, expected) in enumerate(reference.items()):
         pair = by_id[case]
         if expected.keys() - {rule['id'] for rule in pair.rules}:
             raise ValueError('Expected criterion absent from the original turn')
         cases.append(dict(case=case, at=pair.turn.at, **pair.manifest()))
-        for arm in ((BASELINE, PROTOCOL) if index % 2 == 0 else (PROTOCOL, BASELINE)):
+        for arm in ((BASELINE, candidate) if index % 2 == 0 else (candidate, BASELINE)):
             body = pair.requests[arm]
             cells.append(dict(id=case + '/' + arm, case=case, arm=arm, body=body,
                               body_sha256=hashlib.sha256(wire(body)).hexdigest()))
+    if version_two and len(cells) != 14:
+        raise ValueError('Expected seven pairs in the named span regression')
     if len(cells) > 24 or len({c['body_sha256'] for c in cells}) != len(cells):
         raise ValueError('Duplicate or excessive development requests')
     manifest = dict(version='question-contract-development-shadow-v1', revision=REVIEWED,
                     exports=EXPORTS, cohort_manifest=INVENTORY, historical_overlay=AUDIT_REPORT,
-                    reference=REFERENCE, cases=cases,
+                    reference=reference, cases=cases,
                     cells=[{k: v for k, v in c.items() if k != 'body'} for c in cells])
-    return manifest, cells, {case: by_id[case] for case in REFERENCE}
+    if version_two:
+        manifest.update(version='question-contract-span-development-regression-v2',
+                        revision='96e0ac78f0de4c9724ca4dd755f413bafd360f9d',
+                        synthetic_controls=['control/assistant-friday-plans', 'control/friday-lunch-time'])
+    return manifest, cells, {case: by_id[case] for case in reference}
 
 
-def compare(cases, replies):
+def compare(cases, replies, *, reference=REFERENCE):
     results = {}
-    for case, targets in REFERENCE.items():
+    for case, targets in reference.items():
         sides = {}
-        for arm in (BASELINE, PROTOCOL):
+        for arm in (BASELINE, cases[case].candidate):
             parsed = interpret(cases[case], arm, replies.get(case + '/' + arm))
             slots = {row['id']: row['verdict'] for row in parsed['rows']}
             sides[arm] = dict(state=parsed['state'], graded=parsed['graded'],
                               targets={key: slots.get(key) for key in targets})
+            if cases[case].candidate == spans.PROTOCOL:
+                sides[arm].update(planned=parsed['planned'], quarantined=[
+                    row['id'] for row in parsed['rows'] if row.get('state') == 'ungraded'],
+                    abstained=[row['id'] for row in parsed['rows'] if row.get('state') == 'abstained'])
         results[case] = sides
     return results
 

@@ -3,7 +3,7 @@ import random
 from collections import Counter
 from statistics import fmean
 
-from .question_judge import BASELINE, PROTOCOL, fields, fingerprint, interpret, nonblank
+from .question_judge import BASELINE, fields, fingerprint, interpret, nonblank
 
 GOLD = {'correct', 'missed', 'misrepresented', 'reviewers_unresolved'}
 
@@ -38,10 +38,14 @@ def comparison_plan(cases):
         groups.setdefault(scenario, []).append((key, binding))
     if not groups:
         raise ValueError('comparison has no scenarios')
+    candidates = {pair.candidate for _, pair in cases.values()}
+    if len(candidates) != 1:
+        raise ValueError('one candidate version per paired comparison required')
+    candidate = candidates.pop()
     order = sorted(groups, key=lambda s: fingerprint([1729, s]))
     cells = []
     for index, scenario in enumerate(order):
-        arms = (PROTOCOL, BASELINE) if index % 2 else (BASELINE, PROTOCOL)
+        arms = (candidate, BASELINE) if index % 2 else (BASELINE, candidate)
         for key, binding in sorted(groups[scenario]):
             cells.append(dict(case=key, scenario=scenario, pair_sha256=fingerprint(binding),
                               arms=[dict(arm=a, request_sha256=binding['requests'][a]) for a in arms]))
@@ -60,7 +64,8 @@ def compare(cases, responses, reference, *, plan_sha256, reference_sha256):
     if set(cases) != set(reference) or responses.keys() - cases.keys():
         raise ValueError('reference or response outside the planned cases')
     scenarios, errors, unresolved = {}, [], []
-    judge_states = {arm: Counter() for arm in (BASELINE, PROTOCOL)}
+    candidate = next(iter(cases.values()))[1].candidate
+    judge_states = {arm: Counter() for arm in (BASELINE, candidate)}
     relation_counts = Counter()
     semantic_errors = {a: dict(false_accepts=0, false_rejects=0, wrong_noncredit=0) for a in judge_states}
     protected_observed = set()
@@ -76,10 +81,10 @@ def compare(cases, responses, reference, *, plan_sha256, reference_sha256):
         if not isinstance(ref['criteria'], dict) or set(ref['criteria']) != set(keys):
             raise ValueError('reference must account for every planned criterion')
         replies = responses.get(case_id, {})
-        if not isinstance(replies, dict) or replies.keys() - {BASELINE, PROTOCOL}:
+        if not isinstance(replies, dict) or replies.keys() - {BASELINE, candidate}:
             raise ValueError('unrecognized comparison arm')
         outcomes = {}
-        for arm in (BASELINE, PROTOCOL):
+        for arm in (BASELINE, candidate):
             result = interpret(pair, arm, replies.get(arm))
             judge_states[arm][result['state']] += 1
             outcomes[arm] = {row['id']: row for row in result['rows']}
@@ -92,7 +97,7 @@ def compare(cases, responses, reference, *, plan_sha256, reference_sha256):
             if not isinstance(label, str) or label not in GOLD or cell['control'] not in (None, 'time', 'scope', 'state'):
                 raise ValueError('invalid human label or protected flag')
             old = outcomes[BASELINE].get(key, {}).get('verdict')
-            new_row = outcomes[PROTOCOL].get(key, {})
+            new_row = outcomes[candidate].get(key, {})
             new = new_row.get('verdict')
             relation_counts[new_row.get('relation', 'ungraded_response')] += 1
             stats['planned'] += 1
@@ -104,7 +109,7 @@ def compare(cases, responses, reference, *, plan_sha256, reference_sha256):
             if cell['control'] and label != 'correct':
                 protected_observed.add(cell['control'])
                 incomplete_controls += old is None or new is None
-            for arm, observed in ((BASELINE, old), (PROTOCOL, new)):
+            for arm, observed in ((BASELINE, old), (candidate, new)):
                 if observed is not None and observed != label:
                     if observed == 'correct':
                         semantic_errors[arm]['false_accepts'] += 1

@@ -73,14 +73,14 @@ def file_sha(path):
         return hashlib.file_digest(stream, 'sha256').hexdigest()
 
 
-def prepare(export, expected_sha, layout):
+def prepare(export, expected_sha, layout, *, candidate=None):
     from pacbench.judge_format_review import DECODER
     from pacbench.question_judge import canonical, fingerprint, nonblank
     from pacbench.workflow_stream import fingerprint as schedule_fingerprint
     from types import SimpleNamespace
     from pacbench.question_judge_week import Week
 
-    week = Week()
+    week = Week() if candidate is None else Week(candidate=candidate)
     sessions, logical_bindings, corrections, pairs = {}, {}, {}, []
     provenance = None
     projection = {'state': 'offline-unverified-export'}
@@ -165,9 +165,13 @@ def batch(args):
     from pacbench.judge_format_review import DECODER
     from pacbench.question_judge import BASELINE, PROTOCOL, fields, fingerprint, interpret
 
-    manifest, pairs = prepare(args.export, args.sha256, args.session_layout)
+    from pacbench.question_judge_spans import PROTOCOL as span_protocol
+    candidate = getattr(args, 'candidate', None) or PROTOCOL
+    if candidate not in (PROTOCOL, span_protocol):
+        raise ValueError('Unknown versioned candidate')
+    manifest, pairs = prepare(args.export, args.sha256, args.session_layout, candidate=candidate)
     ordered = [(pair, arm) for i, pair in enumerate(pairs)
-               for arm in ((BASELINE, PROTOCOL) if i % 2 == 0 else (PROTOCOL, BASELINE))]
+               for arm in ((BASELINE, candidate) if i % 2 == 0 else (candidate, BASELINE))]
     manifest['cell_order'] = [dict(turn=p.turn.id, arm=arm, request_sha256=fingerprint(p.requests[arm]))
                               for p, arm in ordered]
     plan_sha = fingerprint(manifest)
@@ -182,7 +186,7 @@ def batch(args):
         if (replies['plan_sha256'] != plan_sha or not isinstance(by_turn, dict)
                 or by_turn.keys() - {p.turn.id for p in pairs}):
             raise ValueError('reply collection outside the pinned plan')
-        summaries = {arm: dict(planned=192, graded=0, credited=0) for arm in (BASELINE, PROTOCOL)}
+        summaries = {arm: dict(planned=192, graded=0, credited=0) for arm in (BASELINE, candidate)}
         judgments = []
         for pair in pairs:
             cells = by_turn.get(pair.turn.id, {})
@@ -208,6 +212,7 @@ def main(argv=None):
     native.add_argument('--arm', required=True)
     for cmd in ('plan', 'interpret'):
         sub = commands.add_parser(cmd)
+        sub.add_argument('--candidate', help='versioned question-scoped judge protocol')
         sub.add_argument('export', type=Path)
         sub.add_argument('--session-layout', required=True, choices=('single','logical'))
         sub.add_argument('--sha256', required=True, help='expected private JSONL export digest')

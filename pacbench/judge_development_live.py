@@ -1,7 +1,6 @@
 """Run the single frozen Luna A/B batch through PACBench's prepaid judge transport."""
 import argparse
 from contextlib import contextmanager
-from contextvars import ContextVar
 from decimal import Decimal
 import fcntl
 import hashlib
@@ -18,14 +17,14 @@ from .observational_receipts import COHORT_STOP, ENV as JOURNAL, RunReceiptJourn
 from .workflow_receipts import receipt_summary
 
 SCOPE = 'luna-judge-development-ab-v1'
-NAME = 'luna-judge-development-v1'
+# Preserve the zero-dispatch launch in its original single-use directory.
+NAME = 'luna-judge-development-v1-lock-fix'
 PROJECT = 'pacbench-luna-development-ab-judge'
 REVISION = '73fcf99f557b20effd6cdb5f54e28e1964ddafe8'
 MANIFEST_SHA = 'db5b743ca618f2aa053de021a714e1659eee81498a3d64b6610ee024b57880d0'
 PROFILE = 'luna-bedrock-global'
 CAMPAIGN = Path('/workspace/scratch/pizza-v2-live-20261121')
 CHECKPOINT = CAMPAIGN.parent/'pizza-v2-handoff/billing-resume'
-LOCK = ContextVar('luna_development_account_lock', default=None)
 
 
 def frozen_requests():
@@ -49,24 +48,25 @@ def check_checkout():
     frozen_requests()
 
 
-def check_lock():
+def check_lock(fd):
     from .workflow_capability import _has_flock
-    fd = LOCK.get()
-    target = (CAMPAIGN/'execution.lock').stat()
-    if fd is None or not os.path.samestat(os.fstat(fd), target) or not _has_flock(os.getpid(), fd):
-        raise RuntimeError('A/B requires the shared execution lock')
+
+    if type(fd) is int and fd >= 0:
+        try:
+            target = (CAMPAIGN/'execution.lock').stat()
+            if os.path.samestat(os.fstat(fd), target) and _has_flock(os.getpid(), fd):
+                return
+        except OSError:
+            pass  # A closed descriptor or missing lock file cannot establish ownership.
+    raise RuntimeError('A/B requires the shared execution lock')
 
 
 @contextmanager
 def account_lock():
     with os.fdopen(os.open(CAMPAIGN/'execution.lock', os.O_RDWR | os.O_NOFOLLOW), 'r+') as stream:
         fcntl.flock(stream, fcntl.LOCK_EX | fcntl.LOCK_NB)
-        token = LOCK.set(stream.fileno())
-        try:
-            check_lock()
-            yield
-        finally:
-            LOCK.reset(token)
+        check_lock(stream.fileno())
+        yield stream.fileno()
 
 
 def check_stops(root):
@@ -92,7 +92,7 @@ def validate(scope, bound):
             or os.environ.get('PACBENCH_STOP_FILE') != str(root/'STOP')
             or os.environ.get('PACBENCH_DISPATCH_TRACKING') != CONDITION):
         raise ValueError('Unbound Luna development judge scope')
-    check_lock()
+    check_lock(scope.get('execution_lock_fd'))
     check_stops(root)
     proof = scope['auto_recharge_evidence']
     if Path(proof['path']) != CHECKPOINT/'operator-confirmation.json':
@@ -239,7 +239,7 @@ def run():
             'PACBENCH_JUDGE_OUTPUT_RECOVERY', JOURNAL)):
         raise ValueError('Fresh standalone Luna Bedrock Global judge environment required')
     cells = frozen_requests()
-    with account_lock():
+    with account_lock() as lock_fd:
         check_stops(root)
         key = os.environ['OPENROUTER_API_KEY']
         require_checkpoint_key(key)
@@ -259,7 +259,7 @@ def run():
         scope = dict(root=str(root), admission=SCOPE, provider=NAME, run_id=CAMPAIGN.name,
                      reviewed_commit=REVISION, manifest_sha256=MANIFEST_SHA, projects={NAME: {'judge': PROJECT}},
                      controller=process_identity(), prepaid=verify_prepaid(root, key, proof),
-                     auto_recharge_evidence=proof)
+                     auto_recharge_evidence=proof, execution_lock_fd=lock_fd)
         path = root/'workflow-scope.json'
         with path.open('x') as stream:
             json.dump(scope, stream)

@@ -25,7 +25,10 @@ def exports():
 
 
 @pytest.mark.parametrize('fault', [None, 'missing-cost', 'duplicate', 'account-stop'])
-def test_shadow_entry(tmp_path, monkeypatch, exports, fault):
+@pytest.mark.parametrize('scope_id', [live.SCOPE, live.SPAN_SCOPE])
+def test_shadow_entry(tmp_path, monkeypatch, exports, fault, scope_id):
+    spec = live.FROZEN[scope_id]
+    argv = [str(exports)] if scope_id == live.SCOPE else ['--spans-v2', str(exports)]
     campaign = tmp_path / 'campaign'
     campaign.mkdir()
     (campaign / 'execution.lock').touch()
@@ -43,8 +46,8 @@ def test_shadow_entry(tmp_path, monkeypatch, exports, fault):
     monkeypatch.setattr(direct_http, '_install_httpx', lambda _: None)
     metadata = Upstream.__new__(Upstream)
     metadata.identity, metadata.key = identity, key
-    manifest, cells, pairs = render(exports)
-    assert live.fingerprint(manifest) == live.MANIFEST
+    manifest, cells, pairs = render(exports, candidate=spec.candidate)
+    assert live.fingerprint(manifest) == spec.manifest
     attempts = []
 
     def synthetic_http(opener, req, data=None, timeout=None):
@@ -63,13 +66,21 @@ def test_shadow_entry(tmp_path, monkeypatch, exports, fault):
         tampered = copy.deepcopy(cell['body'])
         tampered['provider']['allow_fallbacks'] = True
         with pytest.raises(ValueError):
-            live.admit(scope, live.PROJECT, tampered)
+            live.admit(scope, spec.project, tampered)
+        with pytest.raises(ValueError):
+            live.admit(scope, 'other-scope', cell['body'])
         attempts.append(cell['id'])
         rules = pairs[cell['case']].rules
         response = [{'id': r['id'], 'reason': 'offline rehearsal', 'verdict': 'missed'}
                     if cell['arm'] == BASELINE else
                     {'id': r['id'], 'relation': 'absent', 'answer_quote': None, 'reason': 'offline rehearsal'}
                     for r in rules]
+        if cell['arm'] == live.spans.PROTOCOL:
+            for r in response:
+                del r['answer_quote']
+                r['answer_spans'] = []
+            if cell['case'] == 'memcal/assistant-friday-plans':
+                response[0].update(relation='entailed', answer_spans=['invented composite'])
         gen = 1 if fault == 'duplicate' else len(attempts)
         event = {'id': f'gen-synthetic-{gen}', 'model': live.MODEL, 'provider': 'Amazon Bedrock',
                  'choices': [{'index': 0, 'delta': {'content': json.dumps({'verdicts': response})},
@@ -84,19 +95,25 @@ def test_shadow_entry(tmp_path, monkeypatch, exports, fault):
     if fault == 'account-stop':
         (campaign/'ACCOUNT_STOP').touch()
     if fault is None:
-        assert live.main([str(exports)]) == 0
-        result = json.loads((campaign / live.SCOPE / 'result.json').read_bytes())
-        assert len(attempts) == result['billing']['generations'] == 16
-        assert result['billing']['complete_cost_usd'] == '0.000192'
+        assert live.main(argv) == 0
+        result = json.loads((campaign / spec.scope / 'result.json').read_bytes())
+        assert len(attempts) == result['billing']['generations'] == len(cells)
+        assert result['billing']['complete_cost_usd'] == ('0.000192' if scope_id == live.SCOPE else '0.000168')
         assert result['billing']['retried_attempts'] == 0
-        for case in REFERENCE:
-            for arm in (BASELINE, PROTOCOL):
-                assert result['results'][case][arm]['state'] == 'graded'
+        for case in pairs:
+            for arm in (BASELINE, spec.candidate):
+                stats = result['results'][case][arm]
+                if case == 'memcal/assistant-friday-plans' and arm == live.spans.PROTOCOL:
+                    assert stats['state'] == 'partial_judge_response'
+                    assert stats['planned'] == stats['graded'] + 1 == 12
+                    assert len(stats['quarantined']) == 1
+                else:
+                    assert stats['state'] == 'graded'
     else:
         with pytest.raises((ValueError, RuntimeError)):
-            live.main([str(exports)])
+            live.main(argv)
         assert len(attempts) == {'account-stop': 0, 'missing-cost': 1, 'duplicate': 2}[fault]
     previous = len(attempts)
     with pytest.raises(RuntimeError, match='exists|stop is active'):
-        live.main([str(exports)])
+        live.main(argv)
     assert len(attempts) == previous

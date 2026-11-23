@@ -1,5 +1,6 @@
 """Single-use paid admission for the frozen, inspected-answer development regression."""
 import argparse
+from dataclasses import dataclass
 from decimal import Decimal
 import json
 import os
@@ -13,6 +14,7 @@ from .model_calls import ModelClient
 from .openrouter_direct import direct_environment
 from .openrouter_route import CHAT_COMPLETIONS_URL, MODEL, PROFILE_NAME
 from .openrouter_run import fetch_catalog
+from .question_judge import PROTOCOL, spans
 from .question_shadow_development import REVIEWED, compare, fingerprint, render, save, wire
 from .workflow_memcal_live import run_environment
 
@@ -22,41 +24,74 @@ MANIFEST = '7cb8395727307ea7f65c7f4a5c0a70e6dbf9e39ce11ea449b56c4a3072271695'
 REQUESTS = 'b6ed09faa5ec80bc7eba601417233b70bf9681e4781f718b1a0066b859897b1f'
 
 
-def frozen_cells():
-    path = prepaid.CAMPAIGN / SCOPE / 'requests.json'
+SPAN_SCOPE = 'pizza-week-question-contract-span-regression-v2'
+SPAN_PROJECT = 'pacbench-week-question-contract-span-regression-judge'
+SPAN_MANIFEST = '3d131f6aab22cae39b31014ac625af722b4c26d3c99ce5edb4e97d750d72043b'
+SPAN_REQUESTS = '794cb45515756b83779dd15198c9148137d444ee6c538a29123fd818bc7f468f'
+
+
+@dataclass(frozen=True)
+class Regression:
+    scope: str
+    project: str
+    revision: str
+    candidate: str
+    manifest: str
+    requests: str
+
+
+FROZEN = {
+    SCOPE: Regression(SCOPE, PROJECT, REVIEWED, PROTOCOL, MANIFEST, REQUESTS),
+    SPAN_SCOPE: Regression(SPAN_SCOPE, SPAN_PROJECT, 'd3b5d8ae04b8ed191f80cbe5041481c676853ccd',
+                           spans.PROTOCOL, SPAN_MANIFEST, SPAN_REQUESTS),
+}
+
+
+def frozen_cells(scope_id=SCOPE):
+    spec = FROZEN[scope_id]
+    path = prepaid.CAMPAIGN / spec.scope / 'requests.json'
     if path.resolve() != path:
         raise ValueError('Foreign request manifest path')
     cells = json.loads(path.read_bytes())
-    if fingerprint(cells) != REQUESTS:
+    if fingerprint(cells) != spec.requests:
         raise ValueError('Shadow request manifest differs')
     return cells
 
 
 def validate(scope, bound):
-    prepaid.validate_standalone(scope, bound, admission=SCOPE, name=SCOPE, project=PROJECT,
-                               revision=REVIEWED, manifest_sha=MANIFEST)
+    spec = FROZEN[scope['admission']]
+    prepaid.validate_standalone(scope, bound, admission=spec.scope, name=spec.scope, project=spec.project,
+                               revision=spec.revision, manifest_sha=spec.manifest)
 
 
 def admit(scope, project, body):
-    return prepaid.admit_frozen(scope, project, body, expected_project=PROJECT, cells=frozen_cells())
+    spec = FROZEN[scope['admission']]
+    return prepaid.admit_frozen(scope, project, body, expected_project=spec.project, cells=frozen_cells(spec.scope))
 
 
 class ShadowJournal(prepaid.JudgeJournal):
     project = PROJECT
+    scope_id = SCOPE
 
     def frozen_cells(self):
-        return frozen_cells()
+        return frozen_cells(self.scope_id)
 
     def check_wire(self, method, data):
-        if method != 'POST' or not any(wire(cell['body']) == data for cell in frozen_cells()):
+        if method != 'POST' or not any(wire(cell['body']) == data for cell in self.frozen_cells()):
             raise ValueError('Request bytes differ from the frozen development pair')
 
 
-def run(exports):
-    manifest, cells, cases = render(exports)
-    if fingerprint(manifest) != MANIFEST or fingerprint(cells) != REQUESTS:
+class SpanJournal(ShadowJournal):
+    project = SPAN_PROJECT
+    scope_id = SPAN_SCOPE
+
+
+def run(exports, *, scope_id=SCOPE):
+    spec = FROZEN[scope_id]
+    manifest, cells, cases = render(exports, candidate=spec.candidate)
+    if fingerprint(manifest) != spec.manifest or fingerprint(cells) != spec.requests:
         raise ValueError('Inputs, reference, settings or schedule differ from the frozen regression')
-    root = prepaid.CAMPAIGN / SCOPE
+    root = prepaid.CAMPAIGN / spec.scope
     if (PROFILE_NAME != prepaid.PROFILE or selected() is not None or any(os.environ.get(k) for k in (
             'PACBENCH_DIRECT', 'PACBENCH_DIRECT_UPSTREAM_KEY', 'PACBENCH_R2_LIVE_SCOPE',
             'PACBENCH_JUDGE_OUTPUT_RECOVERY', capability.ENV, prepaid.JOURNAL))):
@@ -75,8 +110,8 @@ def run(exports):
         root.mkdir(mode=0o700)
         save(root / 'manifest.json', manifest)
         save(root / 'requests.json', cells)
-        scope = dict(root=str(root), admission=SCOPE, provider=SCOPE, run_id=prepaid.CAMPAIGN.name,
-                     reviewed_commit=REVIEWED, manifest_sha256=MANIFEST, projects={SCOPE: {'judge': PROJECT}},
+        scope = dict(root=str(root), admission=spec.scope, provider=spec.scope, run_id=prepaid.CAMPAIGN.name,
+                     reviewed_commit=spec.revision, manifest_sha256=spec.manifest, projects={spec.scope: {'judge': spec.project}},
                      controller=prepaid.process_identity(), prepaid=prepaid.verify_prepaid(root, key, proof),
                      auto_recharge_evidence=proof, execution_lock_fd=lock, chat_catalog=catalog_proof)
         save(root / 'workflow-scope.json', scope)
@@ -89,8 +124,8 @@ def run(exports):
                     'PACBENCH_EFFECTIVE_OUTPUT_TOKENS': '32768'}
         replies = {}
         with run_environment(settings), direct_environment(key):
-            journal = capability.budget(project=PROJECT)
-            _, marker = client_settings(PROJECT)
+            journal = capability.budget(project=spec.project)
+            _, marker = client_settings(spec.project)
             client = ModelClient(key=marker, model=MODEL, record_dir=root/'model-calls', url=CHAT_COMPLETIONS_URL,
                                  max_attempts=1, timeout_s=180)
             for index, cell in enumerate(cells, 1):
@@ -111,8 +146,8 @@ def run(exports):
                 save(root / f'observation-{index:02}.json', dict(cell=cell['id'], reply=reply,
                      attempt_id=rows[-1]['id'], receipt_sha256=rows[-1]['billing_receipt']['sha256']))
                 replies[cell['id']] = reply
-        result = dict(manifest_sha256=MANIFEST, requests_sha256=REQUESTS, billing=billing,
-                      results=compare(cases, replies))
+        result = dict(manifest_sha256=spec.manifest, requests_sha256=spec.requests, billing=billing,
+                      results=compare(cases, replies, reference=manifest['reference']))
         save(root / 'result.json', result)
         return result
 
@@ -120,9 +155,10 @@ def run(exports):
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('exports', type=Path)
+    parser.add_argument('--spans-v2', action='store_true', help='run the frozen 14-request span regression')
     args = parser.parse_args(argv)
-    result = run(args.exports)
-    print(json.dumps({'manifest_sha256': MANIFEST, 'billing': result['billing']}))
+    result = run(args.exports, scope_id=SPAN_SCOPE if args.spans_v2 else SCOPE)
+    print(json.dumps({'manifest_sha256': result['manifest_sha256'], 'billing': result['billing']}))
     return 0
 
 

@@ -246,3 +246,28 @@ criterion outcomes, false accepts, false rejects, missing and abstained grades,
 and the preregistered numeric checks. Human-label custody, sufficient power
 and receipt provenance are external validation requirements. The comparison
 code has no deployment or dispatch path.
+
+### Exact answer spans in candidate v2
+
+Select `--candidate question-scoped-assertions-spans-v2` on both the offline
+plan and interpret commands to use this version. For each criterion, the judge
+can return up to four separate answer spans of at most 320 Unicode code points
+each. A quoted string must occur exactly once. To identify a repeated string,
+supply its exact text and zero-based, half-open start and end offsets. The
+parser verifies the original answer bytes as decoded to text, including
+punctuation and line breaks. A heading and a distant bullet can support one
+assertion. Each must match separately.
+
+Results are keyed by the frozen criterion IDs. A missing or duplicated ID,
+invalid relation, or invalid span leaves that criterion ungraded. Valid
+siblings retain their verdicts. The parser reports foreign or unidentified
+rows separately. A malformed envelope, an envelope with zero identifiable
+planned IDs, or an incomplete generation yields zero graded criteria.
+Coverage uses every planned criterion as its denominator. A judge abstention
+has its own state. All authored scoring rules come from the same frozen Week
+contract used by candidate v1.
+
+The named development regression freezes five saved answers and two
+synthetic controls. The same bare time is presented in a direct lunch
+question and in a broad agenda question. The regression manifest records
+the human labels separately from the requests.

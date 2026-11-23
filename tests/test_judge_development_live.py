@@ -1,13 +1,33 @@
 import copy
+from contextlib import contextmanager
+import fcntl
 import hashlib
 import json
 import os
+from pathlib import Path
+import subprocess
+import sys
+from unittest.mock import patch
 
 import pytest
 
 from pacbench import judge_development_live as pilot, workflow_capability as cap
 from pacbench.canary_capability import binding
 from pacbench.direct_accounting import live_budget
+from pacbench.observational_receipts import replay_attempts
+
+
+def synthetic_checkpoint(checkpoint):
+    checkpoint.mkdir(parents=True)
+    key = 'synthetic-execution-key'
+    (checkpoint/'execution-key-fingerprint.private.txt').write_text(hashlib.sha256(key.encode()).hexdigest())
+    confirmation = checkpoint/'operator-confirmation.json'
+    confirmation.write_text(json.dumps(dict(auto_recharge='off', confirmed_by='offline-test',
+                                            confirmed_at='2026-11-22T00:00:00+00:00')))
+    identity = {field: None for field in ('label','organization_id','workspace_id','creator_user_id',
+                                         'is_management_key','is_provisioning_key','expires_at')}
+    (checkpoint/'key.private.json').write_text(json.dumps(dict(data=identity)))
+    return key, confirmation, identity
 
 
 @pytest.fixture
@@ -17,17 +37,9 @@ def scope(tmp_path, monkeypatch):
     root.mkdir(parents=True)
     (campaign/'execution.lock').touch()
     checkpoint = tmp_path/'checkpoint'
-    checkpoint.mkdir()
-    key = 'synthetic-execution-key'
-    (checkpoint/'execution-key-fingerprint.private.txt').write_text(hashlib.sha256(key.encode()).hexdigest())
-    confirmation = checkpoint/'operator-confirmation.json'
-    confirmation.write_text(json.dumps(dict(auto_recharge='off', confirmed_by='offline-test',
-                                            confirmed_at='2026-11-22T00:00:00+00:00')))
+    key, confirmation, identity = synthetic_checkpoint(checkpoint)
     monkeypatch.setattr(pilot, 'CAMPAIGN', campaign)
     monkeypatch.setattr(pilot, 'CHECKPOINT', checkpoint)
-    identity = {field: None for field in ('label','organization_id','workspace_id','creator_user_id',
-                                         'is_management_key','is_provisioning_key','expires_at')}
-    (checkpoint/'key.private.json').write_text(json.dumps(dict(data=identity)))
     status = {**identity, 'limit': '12', 'limit_remaining': '11', 'limit_reset': None}
     credits = {'total_credits': '13', 'total_usage': '1'}
 
@@ -73,10 +85,20 @@ def send(budget, cell, generation, *, cost=True, done=True):
     return ident
 
 
+@contextmanager
+def bound_lock(root):
+    path = root/'workflow-scope.json'
+    scope = json.loads(path.read_text())
+    with pilot.account_lock() as fd:
+        path.write_text(json.dumps({**scope, 'execution_lock_fd': fd}))
+        with patch.dict(os.environ, {cap.ENV: json.dumps(binding(path))}):
+            yield
+
+
 def test_twenty_ordered_attempts_and_cost(scope):
     root, *_ = scope
     cells = pilot.frozen_requests()
-    with pilot.account_lock():
+    with bound_lock(root):
         budget = live_budget(profile=pilot.PROFILE)
         for i, cell in enumerate(cells):
             send(budget, cell, f'gen-{i}')
@@ -91,7 +113,7 @@ def test_route_body_order_lock_and_account_stop(scope):
     cells = pilot.frozen_requests()
     with pytest.raises(RuntimeError, match='shared execution lock'):
         live_budget()
-    with pilot.account_lock():
+    with bound_lock(root):
         budget = cap.budget()
         with pytest.raises(BlockingIOError), pilot.account_lock():
             pytest.fail('second owner acquired the lock')
@@ -114,7 +136,7 @@ def test_route_body_order_lock_and_account_stop(scope):
 def test_ambiguous_or_invalid_receipt_stops_next_cell(scope, problem):
     root, *_ = scope
     cells = pilot.frozen_requests()
-    with pilot.account_lock():
+    with bound_lock(root):
         budget = cap.budget()
         index = 1
         if problem == 'unknown':
@@ -184,7 +206,7 @@ def test_normal_direct_model_client_uses_frozen_wire_and_receipt(scope, monkeypa
     monkeypatch.setenv('PACBENCH_TRANSPORT', 'openrouter')
     monkeypatch.setenv('PACBENCH_DIRECT_UPSTREAM_KEY', os.environ['OPENROUTER_API_KEY'])
     direct_http.install()
-    with pilot.account_lock():
+    with bound_lock(root):
         budget = live_budget(project=pilot.PROJECT)
         client = ModelClient(key='pbdirect-'+pilot.PROJECT, model=cell['body']['model'],
                              url=CHAT_COMPLETIONS_URL, record_dir=root/'model-calls', max_attempts=1)
@@ -192,3 +214,44 @@ def test_normal_direct_model_client_uses_frozen_wire_and_receipt(scope, monkeypa
         assert output.text == '{}'
         assert sends == [cell['body']]
         assert pilot.prefix_summary(root, budget.snapshot(), [cell])['complete_cost_usd'] == '0.000012'
+
+
+@pytest.mark.parametrize('mode', ['owned', 'unlocked', 'unsettled'])
+def test_production_cli_checks_the_real_shared_lock_and_receipts(tmp_path, mode):
+    campaign = tmp_path/'campaign'
+    prior = campaign/'luna-judge-development-v1'
+    prior.mkdir(parents=True)
+    previous_scope = prior/'workflow-scope.json'
+    previous_scope.write_text('{}')
+    lock_path = campaign/'execution.lock'
+    lock_path.touch()
+    key, _, _ = synthetic_checkpoint(tmp_path/'pizza-v2-handoff/billing-resume')
+    shim = Path(__file__).resolve().parent/'fixtures/judge_development_cli'
+    repo = Path(pilot.__file__).resolve().parents[1]
+    proc = subprocess.run([sys.executable, '-m', 'pacbench.judge_development_live'],
+                          cwd=repo, capture_output=True, text=True, timeout=20,
+                          env={**{k: os.environ[k] for k in ('PATH', 'HOME') if k in os.environ},
+                               'PYTHONPATH': str(shim), 'PYTHONDONTWRITEBYTECODE': '1',
+                               'PACBENCH_TEST_CAMPAIGN': str(campaign), 'PACBENCH_TEST_RESPONSE': mode,
+                               'PACBENCH_OPENROUTER_PROFILE': pilot.PROFILE, 'OPENROUTER_API_KEY': key})
+    root = campaign/pilot.NAME
+    assert previous_scope.read_text() == '{}'
+    with lock_path.open('rb') as stream:
+        fcntl.flock(stream, fcntl.LOCK_EX | fcntl.LOCK_NB)
+    wire = campaign/'wire.jsonl'
+    if mode == 'unlocked':
+        assert proc.returncode != 0 and 'A/B requires the shared execution lock' in proc.stderr
+        assert (root/'workflow-scope.json').is_file()
+        assert not wire.exists() and not (root/'receipts.jsonl').exists()
+    elif mode == 'unsettled':
+        assert proc.returncode != 0 and not (root/'result.json').exists()
+        assert [json.loads(line) for line in wire.read_text().splitlines()] == [pilot.frozen_requests()[0]['body_sha256']]
+        with (root/'receipts.jsonl').open() as stream:
+            only, = replay_attempts(stream).values()
+        assert only['state'] != 'settled' and only['dispatch_context']['attempt_number'] == 1
+    else:
+        assert proc.returncode == 0, proc.stderr
+        assert [json.loads(line) for line in wire.read_text().splitlines()] == [r['body_sha256'] for r in pilot.frozen_requests()]
+        result = json.loads((root/'result.json').read_text())
+        assert result['billing']['generations'] == 20 and result['billing']['complete_cost_usd'] == '0.000240'
+        assert result['missing_cells'] == []

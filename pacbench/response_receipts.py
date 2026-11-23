@@ -52,11 +52,21 @@ class EventReader:
     def __init__(self, callback=None):
         self.callback=callback;self.decoder=codecs.getincrementaldecoder('utf-8')()
         self.buffer='';self.lines=[];self.events=[];self.errors=0;self.sse=False
+        self.done_frames=0;self.data_after_done=False
 
-    def _event(self):
+    @property
+    def sse_done_observed(self):
+        return self.done_frames == 1 and not self.data_after_done
+
+    def _event(self, *, framed=False):
         if not self.lines:return
         text='\n'.join(self.lines);self.lines=[]
-        if not text.strip() or text.strip()=='[DONE]':return
+        if text.strip()=='[DONE]':
+            # HTTP EOF can flush a partial SSE frame. Only a frame with its
+            # actual blank-line delimiter proves a terminal marker on the wire.
+            self.done_frames += int(framed and text == '[DONE]')
+            return
+        if not text.strip():return
         try:
             event=loads(text)
             if not isinstance(event,dict):raise ValueError('Not an object')
@@ -70,8 +80,9 @@ class EventReader:
         while '\n' in self.buffer:
             line,self.buffer=self.buffer.split('\n',1);line=line.rstrip('\r')
             if line.startswith('data:'):
+                if self.done_frames:self.data_after_done=True
                 self.sse=True;self.lines.append(line[5:].lstrip(' '))
-            elif not line and self.sse:self._event()
+            elif not line and self.sse:self._event(framed=True)
             elif not line:continue
             elif line.startswith((':','event:','id:','retry:')):self.sse=True
             elif not self.sse:
@@ -82,7 +93,9 @@ class EventReader:
         try:self.buffer+=self.decoder.decode(b'',final=True)
         except UnicodeError:self.errors+=1
         if self.sse or self.buffer.startswith('data:'):
-            if self.buffer.startswith('data:'):self.lines.append(self.buffer[5:].strip())
+            if self.buffer.startswith('data:'):
+                if self.done_frames:self.data_after_done=True
+                self.lines.append(self.buffer[5:].strip())
             elif self.buffer.strip() and not self.buffer.startswith(':'):self.errors+=1
             self.buffer='';self._event()
         elif self.buffer.strip():
@@ -90,8 +103,12 @@ class EventReader:
         return self.events
 
 
+def read_frames(data):
+    reader=EventReader();reader.feed(data);reader.finish();return reader
+
+
 def parse(data):
-    reader=EventReader();reader.feed(data);return reader.finish(),reader.errors
+    reader=read_frames(data);return reader.events,reader.errors
 
 
 def receipt(identifier,event,*,status,body_sha256,complete):

@@ -1,9 +1,17 @@
 """Observe Honcho's native manager and workers after stock Hermes teardown."""
+import os
 import threading
 from . import memos_reuse_runtime
 
 
 def main():
+    if os.environ.get('PACBENCH_WORKFLOW_SCOPE'):
+        from ..honcho_daily_gate import CONDITION
+        from ..workflow_capability import load
+        scope = load()
+        if scope['admission'] == CONDITION and scope.get('first_question'):
+            from ..honcho_first_answer_peer import install_gateway
+            install_gateway()
     previous = memos_reuse_runtime.provider_state
 
     def state(provider):

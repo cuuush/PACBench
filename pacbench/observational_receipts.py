@@ -8,7 +8,7 @@ from pathlib import Path
 from contextlib import contextmanager
 from decimal import Decimal
 from .openrouter_route import with_route, PROFILES
-from .response_receipts import parse,sanitized,receipt
+from .response_receipts import read_frames,sanitized,receipt
 from .receipt_projection import IndexedAttempts, Projection, account_refused
 from .live_dispatch import sender_identity,operation_id,CONDITION,OwnershipConflict
 
@@ -154,18 +154,29 @@ class ObservedBudget:
    if refused:
     raise RuntimeError('Provider refusal; no further dispatch or retry')
    honcho_daily=row.get('workflow_slot',{}).get('honcho_daily_release')
+   honcho_answer=row.get('workflow_slot',{}).get('honcho_first_answer')
+   honcho_peer=row.get('workflow_slot',{}).get('honcho_peer_read')
    from .direct_http import _native_http_request
    original=_native_http_request.get()
    if honcho_daily:
     from .honcho_daily_gate import bind_attempt
     bind_attempt(row)
+   elif honcho_answer:
+    from .honcho_first_answer_admission import check_prepared,verify_receipts
+    verify_receipts(rows)
+    check_prepared(rows,row)
+   elif honcho_peer:
+    from .honcho_first_answer_admission import verify_receipts
+    from .honcho_first_answer_peer import bind_attempt
+    verify_receipts(rows)
+    bind_attempt(rows,row)
    elif original is not None and 'pacbench.honcho.daily-attempt' in original.extensions:
     raise OwnershipConflict('Native Honcho request outside its dedicated daily release')
    operation=row['dispatch_context']['operation_id']
    previous=(rows.previous(project,operation) if indexed else
              [r for r in rows.values() if r['project']==project and r.get('dispatch_context',{}).get('operation_id')==operation])
    if previous:
-    if honcho_daily:raise OwnershipConflict('No automatic replay of a Honcho daily representation')
+    if honcho_daily or honcho_answer or honcho_peer:raise OwnershipConflict('No automatic replay of a scoped Honcho request')
     grant=json.loads(os.environ.get('PACBENCH_JUDGE_OUTPUT_RECOVERY','{}'))
     lost_output=(project.endswith('-judge') and len(previous)==1 and grant.get('attempt_id')==previous[0]['id'] and previous[0].get('state')=='settled' and grant.get('reason')=='model_recorder_failed_before_saving_judgment')
     if not lost_output and (len(previous)>=3 or previous[-1].get('provider_rejection') not in ('openrouter_in_flight_budget','in_flight_budget_exhausted','upstream_provider_shared_pool_rate_limit')):raise OwnershipConflict('No automatic replay of a prepared request')
@@ -203,7 +214,7 @@ class ObservedBudget:
  def settle(self,ident,status,data=b'',*,headers=None,body_complete=False,sender=None):
   from .live_dispatch import record_end
   from .direct_accounting import now,response_validation,stop_measured_admission
-  raw=data.encode() if isinstance(data,str) else data;events,errors=parse(raw)
+  raw=data.encode() if isinstance(data,str) else data;frames=read_frames(raw);events,errors=frames.events,frames.errors
   validation=response_validation(events,body_complete)
   validation['wire_parse_errors']=errors
   validation['envelope_errors']=[{'code': error.get('code')} for error in validation['envelope_errors']]
@@ -216,6 +227,11 @@ class ObservedBudget:
    patch={'finished':now(),'http_status':status or None,'state':'receipt_missing','error_label':'actual_cost_unknown',
     'response_body_complete':body_complete,'response_validation':validation,
     'dispatch_execution':row['dispatch_execution'],'dispatch_events':row['dispatch_events']}
+   if row.get('workflow_slot',{}).get('honcho_first_answer'):
+    from .honcho_first_answer_admission import selected_tools
+    validation['sse_done_observed']=frames.sse_done_observed
+    if status==200 and (body_complete or frames.sse_done_observed) and not errors and not validation['envelope_errors']:
+     patch['honcho_selected_tools']=selected_tools(events)
    if raw and row['project'].endswith('-judge'):
     digest=hashlib.sha256(raw).hexdigest();folder=self.path.parent/'response-bodies';folder.mkdir(exist_ok=True)
     dest=folder/(digest+'.private.bin')
@@ -255,7 +271,8 @@ class ObservedBudget:
  def retry_delay(self,ident):
   with self.journal() as (rows,_):
    row=rows[ident];delay=row.get('retry_after_s');attempt=row.get('dispatch_context',{}).get('attempt_number',1)
-  if row.get('honcho_daily_attempt'):return None
+  if row.get('honcho_daily_attempt') or any(row.get('workflow_slot',{}).get(key)
+      for key in ('honcho_first_answer','honcho_peer_read')):return None
   if row.get('provider_rejection') in ('openrouter_in_flight_budget','in_flight_budget_exhausted','upstream_provider_shared_pool_rate_limit') and attempt<3 and delay is not None and 0<=delay<=30:return delay
   if row.get('provider_rejection')=='upstream_provider_shared_pool_rate_limit':
    from .direct_accounting import stop_measured_admission

@@ -123,13 +123,23 @@ def _project(root):
     return 'pacbench-' + sha256(str(root).encode()).hexdigest()[:12] + '-honcho-memory'
 
 
+def projects(root, first_question=False):
+    memory = _project(root)
+    roles = {'memory': memory}
+    if first_question:
+        prefix = memory.removesuffix('-memory')
+        roles.update(driver=prefix+'-driver', dialectic=prefix+'-dialectic-memory')
+    return {'honcho': roles}
+
+
 def _lock(scope):
     from .workflow_capability import _has_flock
 
     owner, proof = scope['controller'], scope['lock']
     path, fd = Path(proof['path']), proof['fd']
     st = path.stat()
-    if (path.name != LOCK or path != path.resolve() or path.is_relative_to(scope['root'])
+    expected = Path(scope['root']).parent.parent/'execution.lock' if scope.get('first_question') else path.parent/LOCK
+    if (path != expected or path != path.resolve() or path.is_relative_to(scope['root'])
             or proof['inode'] != [st.st_dev, st.st_ino] or process_identity(owner['pid']) != owner
             or Path(f"/proc/{owner['pid']}/fd/{fd}").resolve() != path or not _has_flock(owner['pid'], fd)):
         raise GateError('Shared execution lock is no longer held by its controller')
@@ -137,7 +147,7 @@ def _lock(scope):
 
 def create(root, *, execution_lock, session_id, canonical_manifest, manifest_sha256,
            prepaid, auto_recharge_evidence,
-           layout=('documents', 'cutoff', 'file', 'document_sha256', 'source_ids')):
+           layout=('documents', 'cutoff', 'file', 'document_sha256', 'source_ids'), first_question=False):
     """Bind the canonical producer's files and the already-held execution lock."""
     root = Path(root).resolve(strict=True)
     path = Path(canonical_manifest).absolute()
@@ -149,26 +159,32 @@ def create(root, *, execution_lock, session_id, canonical_manifest, manifest_sha
     if manifest['sha256'] != manifest_sha256:
         raise GateError('Canonical manifest SHA-256 differs from the pinned producer output')
     plan = _plan(manifest, layout)
+    if first_question and (first_question is not True or tuple(layout) != CANONICAL_LAYOUT):
+        raise GateError('Honcho first question requires the exact shared daily layout')
     for entry in plan:
         _payload(entry, layout)
     fd = execution_lock.fileno()
     st = os.fstat(fd)
     scope = dict(admission=CONDITION, protocol='pizza-week-conversation-v2', provider='honcho',
                  root=str(root), run_id=root.parent.name, controller=process_identity(), session=session_id,
-                 projects={'honcho': {'memory': _project(root)}}, spec_sha256=sha(SPEC),
+                 projects=projects(root,first_question), spec_sha256=sha(SPEC),
                  manifest=manifest, layout=list(layout), plan=plan, prepaid=prepaid,
                  auto_recharge_evidence=auto_recharge_evidence,
                  lock=dict(fd=fd, path=str(Path(f'/proc/self/fd/{fd}').resolve()), inode=[st.st_dev, st.st_ino]))
+    if first_question:
+        scope['first_question'] = 'rsvp-before'
     _lock(scope)
     return _write(root / 'workflow-scope.json', scope)
 
 
 def validate(scope, bound):
     root = Path(scope['root'])
+    first_question = 'first_question' in scope
     if (root != root.resolve() or root.name != 'honcho' or scope['provider'] != 'honcho'
             or scope['admission'] != CONDITION or scope['protocol'] != 'pizza-week-conversation-v2'
             or scope['run_id'] != root.parent.name or bound != binding(root / 'workflow-scope.json')
-            or scope['projects'] != {'honcho': {'memory': _project(root)}}
+            or scope['projects'] != projects(root,first_question)
+            or first_question and (scope['first_question'] != 'rsvp-before' or tuple(scope['layout']) != CANONICAL_LAYOUT)
             or scope['spec_sha256'] != sha(SPEC) or scope['plan'] != _plan(scope['manifest'], scope['layout'])
             or not re.fullmatch('[A-Za-z0-9_-]+', scope['session'])):
         raise GateError('Unbound Honcho daily document condition')
@@ -184,15 +200,26 @@ def controller(root):
     return scope
 
 
-def register(root, worker_pid):
+def register(root, worker_pid, *, api_pid=None, api_url=None):
     scope = controller(root)
-    worker = process_identity(worker_pid)
-    stat = Path(f'/proc/{worker_pid}/stat').read_text().rsplit(')', 1)[1].split()
-    if int(stat[1]) != scope['controller']['pid'] or worker['uid'] != scope['controller']['uid']:
-        raise GateError('Honcho deriver is not the controller child')
+
+    def owned(pid):
+        child = process_identity(pid)
+        stat = Path(f'/proc/{pid}/stat').read_text().rsplit(')', 1)[1].split()
+        if int(stat[1]) != scope['controller']['pid'] or child['uid'] != scope['controller']['uid']:
+            raise GateError('Honcho runtime is not the controller child')
+        return child
+
+    worker = owned(worker_pid)
     host = json.loads((root / 'hermes-home/honcho.json').read_bytes())['hosts']['hermes']
+    api = {}
+    if scope.get('first_question'):
+        if not api_pid or api_pid == worker_pid or not re.fullmatch(r'http://127\.0\.0\.1:[0-9]+',api_url or ''):
+            raise GateError('First question requires a distinct owned native loopback API')
+        (root/'peer-reads').mkdir(mode=0o700)
+        api = dict(api=owned(api_pid),api_url=api_url)
     return _write(root / RUNTIME, dict(worker=worker, host=host, scope=binding(root/'workflow-scope.json'),
-        store=binding(root/'native-container-ownership.json'), settings=binding(root/'native-processing-settings.json')))
+        store=binding(root/'native-container-ownership.json'), settings=binding(root/'native-processing-settings.json'),**api))
 
 
 def runtime(root):
@@ -336,7 +363,8 @@ def begin(root, at):
     scope = controller(root)
     completed, pending = _progress(root, scope)
     index = len(completed)+1
-    if pending or index > len(scope['plan']) or at != scope['plan'][index-1]['at']:
+    limit = 1 if scope.get('first_question') else len(scope['plan'])
+    if pending or index > limit or at != scope['plan'][index-1]['at']:
         raise GateError('Next exact daily release required, with no upload replay')
     _require_receipts(root, scope, completed)
     _inventory(root, scope, runtime(root), completed)
@@ -402,6 +430,7 @@ def _check_release(root, scope, native, *, complete=False):
 
 def _successful(scope, row, release, queue_id):
     from .live_dispatch import operation_id
+    from .honcho_first_answer_admission import settled
 
     slot = row.get('workflow_slot', {})
     return (row.get('workflow_root') == scope['root'] and row.get('project') == scope['projects']['honcho']['memory']
@@ -410,7 +439,7 @@ def _successful(scope, row, release, queue_id):
             and row.get('honcho_daily_attempt', {}).get('queue_id') == queue_id
             and row.get('dispatch_context', {}).get('operation_id') == operation_id(row)
             and row.get('dispatch_execution') == 'response_ended' and row.get('http_status') == 200
-            and bool(row.get('finished')))
+            and bool(row.get('finished')) and (not scope.get('first_question') or settled(row)))
 
 
 def _require_receipts(root, scope, completed):
@@ -447,6 +476,7 @@ def followup_ready(root, turn_id):
     turn = next((t for t in schedule()[1] if t.id == turn_id), None)
     completed, pending = _progress(root, scope)
     if (turn is None or pending is not None
+            or scope.get('first_question') not in (None,turn_id)
             or [s['at'] for s in completed] != [e['at'] for e in scope['plan'] if instant(e['at']) <= instant(turn.at)]):
         raise GateError('Frozen follow-up does not match the verified release prefix')
     _require_receipts(root, scope, completed)
@@ -539,7 +569,14 @@ def admission(scope, project, profile, body):
     from .openrouter_route import validate_request
     from .workflow_capability import ENV, PROFILE
 
-    if project != scope['projects']['honcho']['memory'] or profile != PROFILE:
+    roles = scope['projects']['honcho']
+    if scope.get('first_question') and project == roles.get('driver') and profile == PROFILE:
+        from .honcho_first_answer_admission import permit
+        return permit(scope, project, body)
+    if scope.get('first_question') and project == roles.get('dialectic') and profile == PROFILE:
+        from .honcho_first_answer_peer import permit
+        return permit(scope, project, body)
+    if project != roles['memory'] or profile != PROFILE:
         raise GateError('Only the exact Honcho daily representation role is enabled')
     validate_request(body, profile=PROFILE)
     slot, _ = _live(scope)

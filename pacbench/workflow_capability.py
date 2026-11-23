@@ -229,6 +229,11 @@ def owner(env, home, checkpoint, provider, clock):
                 or process_identity() != c['controller']):
             raise ValueError('MemCal gateway lacks the bound owner, Luna route or exclusive native tool set')
     tools = MEMOS_OSS_TOOLS if provider == 'memos' else HERMES_TOOLS[provider]
+    if provider == 'honcho' and c['admission'] == 'honcho-seven-daily-documents-v1' and (
+            not c.get('first_question') or process_identity() != c['controller']
+            or env.get('PACBENCH_TOOL_ALLOWLIST') != ','.join(tools)
+            or env.get('PACBENCH_OPENROUTER_PROFILE') != PROFILE or env.get('PACBENCH_OFFLINE_CONFORMANCE')):
+        raise ValueError('Honcho gateway requires its scoped controller, stock toolkit and Luna route')
     if provider in ('mem0','hindsight','openviking','reme','cognee','memos') and (
             env.get('PACBENCH_TOOL_ALLOWLIST') != ','.join(tools)
             or env.get('PACBENCH_OPENROUTER_PROFILE') != PROFILE

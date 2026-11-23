@@ -162,6 +162,7 @@ def child_environment(inherited, env, overrides, model):
 
 def start(root,env,model,base,key,*,resume=False,simulated_at=None,checkpoint=None,daily_documents=False):
     check_operator_condition(root)
+    peer_key = None
     if daily_documents:
         from pacbench.direct_accounting import MARKER
         from pacbench.honcho_daily_gate import controller
@@ -169,13 +170,19 @@ def start(root,env,model,base,key,*,resume=False,simulated_at=None,checkpoint=No
         from pacbench.openrouter_direct import active
         from pacbench.workflow_capability import ENV, PROFILE, budget
 
-        project = controller(root.resolve())['projects']['honcho']['memory']
+        roles = controller(root.resolve())['projects']['honcho']
+        project = roles['memory']
         if (resume or checkpoint is not None or not active() or not enabled() or key != MARKER+project
                 or any(env.get(name, os.environ.get(name)) != os.environ.get(name)
                        for name in (ENV, TRACKING, 'PACBENCH_DIRECT', 'PACBENCH_RECEIPT_JOURNAL',
                                     'PACBENCH_LUNA_COMPATIBILITY', 'PACBENCH_EFFECTIVE_OUTPUT_TOKENS'))):
             raise ValueError('Fresh Honcho daily document scope and receipt ownership required')
         budget(project=project, profile=PROFILE)
+        if 'dialectic' in roles:
+            if simulated_at is not None:
+                raise ValueError('Honcho first-question qualification requires the natural server clock')
+            budget(project=roles['dialectic'], profile=PROFILE)
+            peer_key = MARKER+roles['dialectic']
     validate_route(base,key)
     source=Path(__file__).resolve().parents[1]/'vendor/honcho-local'
     python=source/'.venv/bin/python'
@@ -365,10 +372,13 @@ print(json.dumps({'native_defaults_verified':deriver_limit is None and deriver_t
     native_processes = {}
     deriver = (['-m','pacbench.honcho_daily_gate','src.deriver',str(source)]
                if daily_documents else ['-m','src.deriver'])
-    for label,args in [('api',['-m','uvicorn','src.main:app','--host','127.0.0.1','--port',str(api_port)]),
-                       ('deriver',deriver)]:
+    api = (['-m','pacbench.honcho_first_answer_peer',str(source),str(api_port)] if peer_key else
+           ['-m','uvicorn','src.main:app','--host','127.0.0.1','--port',str(api_port)])
+    for label,args in [('api',api),('deriver',deriver)]:
         log=(root/f'honcho-{label}.log').open('ab')
         native_env={**child,**({'PACBENCH_PYTHON_CLOCK_ROLE':label} if clock else {})}
+        if label == 'api' and peer_key:
+            native_env.update(PACBENCH_MEMORY_API_KEY=peer_key,LLM_OPENAI_API_KEY=peer_key)
         processes.append(subprocess.Popen([str(python),*args],cwd=root,env=native_env,
             start_new_session=bool(clock), stdin=subprocess.DEVNULL,stdout=log,stderr=log))
         native_processes[label] = processes[-1]
@@ -418,7 +428,7 @@ print(json.dumps({'native_defaults_verified':deriver_limit is None and deriver_t
     if daily_documents:
         from pacbench.honcho_daily_gate import register
         try:
-            register(root.resolve(), native_processes['deriver'].pid)
+            register(root.resolve(), native_processes['deriver'].pid,api_pid=native_processes['api'].pid,api_url=endpoint)
         except Exception:
             stop()
             raise

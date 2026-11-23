@@ -67,6 +67,23 @@ def owns_fresh_effect(progress, claim):
 
 def operation_id(row):
     slot = row.get('workflow_slot') or row.get('checkpoint_full_run_slot') or row.get('checkpoint_canary_slot') or {}
+    if slot.get('honcho_daily_release'):
+        # Exactly one representation first send for an immutable daily release,
+        # including a reissued request with a changed body or SDK trace.
+        release = (row['workflow_capability']['sha256'], slot['honcho_daily_release']['sha256'])
+        return hashlib.sha256(json.dumps(release).encode()).hexdigest()
+    if slot.get('honcho_first_answer'):
+        witness = slot['honcho_first_answer']
+        turn = row['workflow_capability']['sha256'], witness['native_request_id'], len(witness['tool_rounds'])
+        return hashlib.sha256(json.dumps(turn).encode()).hexdigest()
+    if slot.get('honcho_peer_read'):
+        witness = slot['honcho_peer_read']
+        step = row['workflow_capability']['sha256'], witness['operation'], witness['step']
+        return hashlib.sha256(json.dumps(step).encode()).hexdigest()
+    if slot.get('honcho_chat_work'):
+        witness = slot['honcho_chat_work']
+        work = row['workflow_capability']['sha256'],witness['purpose'],witness['queue_ids']
+        return hashlib.sha256(json.dumps(work).encode()).hexdigest()
     scope = {k:slot[k] for k in ('kind','provider','group_id','batch_id','question_id') if k in slot}
     effect = slot.get('checkpoint_effect')
     if effect is not None and slot.get('provider') == 'memcal' and row.get('workflow_slot'):
@@ -123,7 +140,16 @@ def mark_possible(row, at, sender=None):
     if not check_owner(row, sender):
         return
     slot = row.get('workflow_slot') or {}
-    if slot.get('provider') == 'memcal' and slot.get('checkpoint_effect'):
+    if slot.get('honcho_daily_release') or slot.get('honcho_chat_work'):
+        from .honcho_daily_gate import confirm_sender
+        confirm_sender(row)
+    elif slot.get('honcho_first_answer'):
+        from .honcho_first_answer_admission import confirm_sender
+        confirm_sender(row)
+    elif slot.get('honcho_peer_read'):
+        from .honcho_first_answer_peer import confirm_sender
+        confirm_sender(row)
+    elif slot.get('provider') == 'memcal' and slot.get('checkpoint_effect'):
         from .workflow_capability import confirm_memcal_sender
         confirm_memcal_sender(row)
     elif slot.get('provider') in ('mem0','hindsight','openviking','reme','cognee','memos') and slot.get('journal_stage_sha256'):

@@ -127,6 +127,10 @@ def load():
         from .pizza_day_controller import validate_scope
         validate_scope(c, bound)
         return c
+    if c.get('admission') == 'honcho-seven-daily-documents-v1':
+        from .honcho_daily_gate import validate
+        validate(c, bound)
+        return c
     if (root != root.resolve() or root/'workflow-scope.json' != Path(bound['path'])
             or c['run_id'] != root.parent.name or c['provider'] != root.name
             or c['provider'] not in ('reme','memcal','mem0','hindsight','openviking','cognee','memos') or c['protocol'] != 'pizza-week-conversation-v2'
@@ -239,6 +243,11 @@ def owner(env, home, checkpoint, provider, clock):
                 or process_identity() != c['controller']):
             raise ValueError('MemCal gateway lacks the bound owner, Luna route or exclusive native tool set')
     tools = MEMOS_OSS_TOOLS if provider == 'memos' else HERMES_TOOLS[provider]
+    if provider == 'honcho' and c['admission'] == 'honcho-seven-daily-documents-v1' and (
+            not (c.get('first_question') or c.get('week_schedule')) or process_identity() != c['controller']
+            or env.get('PACBENCH_TOOL_ALLOWLIST') != ','.join(tools)
+            or env.get('PACBENCH_OPENROUTER_PROFILE') != PROFILE or env.get('PACBENCH_OFFLINE_CONFORMANCE')):
+        raise ValueError('Honcho gateway requires its scoped controller, stock toolkit and Luna route')
     if provider in ('mem0','hindsight','openviking','reme','cognee','memos') and (
             env.get('PACBENCH_TOOL_ALLOWLIST') != ','.join(tools)
             or env.get('PACBENCH_OPENROUTER_PROFILE') != PROFILE
@@ -274,6 +283,9 @@ def admission(project, profile, body):
     if c.get('admission') == 'pizza-day-wrong-answer-judge-v1':
         from .pizza_day_control import admit
         return admit(c, project, body)
+    if c.get('admission') == 'honcho-seven-daily-documents-v1':
+        from .honcho_daily_gate import admission as honcho_admission
+        return honcho_admission(c, project, profile, body)
     if provider == 'memcal':
         return _memcal_admission(c, project, body)
     if provider in ('mem0','hindsight','openviking','reme','cognee','memos'):

@@ -36,16 +36,17 @@ def observation_epoch(path, real, env):
                           allow_ceiling=bounded)/1_000_000_000
 
 
-def descriptor(*,validate_clock=True):
-    pointer=Path(os.environ[ENV]);state=json.loads(pointer.read_text())
+def descriptor(*,validate_clock=True,pointer=None,home=None):
+    explicit=pointer is not None
+    pointer=Path(pointer if explicit else os.environ[ENV]);state=json.loads(pointer.read_text())
     if state['protocol']!=VERSION:raise RuntimeError('Unknown persistent clock condition')
     if not re.fullmatch('[0-9a-f]{32}',state.get('nonce','')):raise RuntimeError('Invalid question clock nonce')
     path=pointer.parent/('preludes' if state.get('prelude') is True else 'questions')/(state['nonce']+'.json');raw=path.read_bytes()
     if hashlib.sha256(raw).hexdigest()!=state['sha256']:raise RuntimeError('Question clock descriptor changed')
     value=json.loads(raw)
-    if value['protocol']!=VERSION or value['home']!=os.environ['HERMES_HOME']:raise RuntimeError('Question clock scope differs')
+    if value['protocol']!=VERSION or value['home']!=str(home if explicit else os.environ['HERMES_HOME']):raise RuntimeError('Question clock scope differs')
     if not re.fullmatch('[0-9a-f]{64}',value.get('question_sha256','')):raise RuntimeError('Invalid question digest')
-    offset=Path(os.environ['PACBENCH_PYTHON_CLOCK_FILE'])
+    offset=pointer.parent/'offset' if explicit else Path(os.environ['PACBENCH_PYTHON_CLOCK_FILE'])
     if offset.resolve()!=pointer.parent/'offset' or validate_clock and hashlib.sha256(offset.read_bytes()).hexdigest()!=value['offset_sha256']:
         raise RuntimeError('Question observation clock changed while active')
     return value
@@ -231,7 +232,7 @@ def marker_time(home,python,env):
     return datetime.fromtimestamp(values['wall'],timezone.utc)
 
 
-def audit_question(folder,d,turn,witness):
+def audit_question(folder,d,turn,witness,*,remote_runtime=False):
     """Offline audit of a complete native admission chain, distinct from v5."""
     folder=Path(folder);binding=json.loads((folder/'bindings'/(d['nonce']+'.json')).read_text())
     rows=[json.loads(line) for line in (folder/'submissions'/(d['nonce']+'.jsonl')).read_text().splitlines()]
@@ -254,8 +255,8 @@ def audit_question(folder,d,turn,witness):
     if (cli['pid']==process['pid'] or cli['process_start_ticks']!=rows[0]['process_start_ticks'] or
         cli['turn_nonce']!=process['turn_nonce'] or cli['role']!='hermes-cli' or process['role']!='hermes-gateway'):
         raise RuntimeError('Persistent process adoption differs from native request roles')
-    from .python_provider_clock import package_metadata,VERSION as PYTHON_VERSION
-    metadata=package_metadata()
+    from .python_provider_clock import expected_metadata,package_metadata,VERSION as PYTHON_VERSION
+    metadata=expected_metadata(process['abi']) if remote_runtime else package_metadata()
     for row in [cli,process]:
         if any(row.get(k)!=v for k,v in {**metadata,'protocol':PYTHON_VERSION,'home':d['home'],
             'clock_file':str(folder/'offset'),'os_clock':'real','tls_clock':'real'}.items()):

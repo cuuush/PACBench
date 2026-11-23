@@ -118,6 +118,7 @@ def response_validation(events, body_complete):
         'envelope_errors':errors,'assistant_text_characters':len(content),
         'assistant_nonwhitespace_characters':len(content.strip()),
         'assistant_text_sha256':hashlib.sha256(content.encode()).hexdigest(),
+        'assistant_trimmed_text_sha256':hashlib.sha256(content.strip().encode()).hexdigest(),
         'tool_call_fragments':tools,'finish_reasons':reasons,
         'scope':'Content lengths and fingerprint only; reasoning text is not captured.'}
 

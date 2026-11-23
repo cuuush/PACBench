@@ -27,6 +27,14 @@ PACKAGE_C_SHA256 = {
 _controller = None
 
 
+def expected_metadata(abi):
+    if abi not in PACKAGE_C_SHA256:
+        raise RuntimeError('Unknown provider clock ABI')
+    return {'package':'time-machine','version':PACKAGE_VERSION,'python_sha256':PACKAGE_PY_SHA256,
+        'extension_sha256':PACKAGE_C_SHA256[abi],'abi':abi,
+        'bootstrap_sha256':hashlib.sha256(Path(__file__).read_bytes()).hexdigest()}
+
+
 def package_metadata():
     import time_machine
     import _time_machine
@@ -36,9 +44,7 @@ def package_metadata():
     if (version != PACKAGE_VERSION or python_hash != PACKAGE_PY_SHA256 or
             c_hash != PACKAGE_C_SHA256.get(sys.implementation.cache_tag)):
         raise RuntimeError('Python provider clock runtime differs from verified wheels')
-    return {'package':'time-machine','version':version,'python_sha256':python_hash,
-        'extension_sha256':c_hash,'abi':sys.implementation.cache_tag,
-        'bootstrap_sha256':hashlib.sha256(Path(__file__).read_bytes()).hexdigest()}
+    return expected_metadata(sys.implementation.cache_tag)
 
 
 def offset_ns(raw):

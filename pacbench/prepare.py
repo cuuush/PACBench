@@ -150,11 +150,13 @@ def resolve_spec(spec: dict, root: Path, *, week_start=None) -> tuple[list[Scene
             raise ValueError("test_scene_id does not identify a scene")
     else:
         eligible = [s for s in scenes if s.facts or s.test_intent.strip()]
-        if not eligible and spec.get('checks'):
-            eligible=[scenes[-1]]
-        if len(eligible) != 1:
+        if len(eligible) == 1:
+            target = eligible[0]
+        elif spec.get('checks'):
+            # Independent checks supply their own evaluation expectations.
+            target = scenes[-1]
+        else:
             raise ValueError("choose one test scene when multiple scenes have facts or intent")
-        target = eligible[0]
     if not target.facts and not target.test_intent.strip() and not spec.get('checks'):
         raise ValueError("test scene needs required facts or test intent")
     life_id = spec.get("id") or root.name
@@ -314,9 +316,11 @@ def normalize_week(spec, week_start=None):
     if set(cast)-({p for row in scenes for p in row['participants']} |
                   {p for channel in channels.values() for p in channel['participants']}):
         raise ValueError('Cast names must refer to source participants; cast is not membership authority')
+    target = spec.get('test_scene_id') or next(
+        (scene['id'] for scene in reversed(scenes) if scene.get('facts')), scenes[-1]['id'])
     return {**{k:v for k,v in spec.items() if k not in ('days','weeks','channels','cast')},'week':True,
         'week_start':monday.isoformat(),'scenes':scenes,'checks':checks,'question_at':checks[0]['at'],
-        'test_scene_id':next((s['id'] for s in reversed(scenes) if s.get('facts')),scenes[-1]['id'])}
+        'test_scene_id':target}
 
 
 def generation_spec(plan):

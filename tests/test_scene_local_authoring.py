@@ -14,7 +14,7 @@ import pytest
 
 from pacbench.authoring import (AuthoringError, ScenePlan, build_scene_observations,
     judge_scene, realize_scene, scene_prompt, scene_spec)
-from pacbench.prepare import (WEEKDAYS, realization_binding, resolve_spec, reuse_realization)
+from pacbench.prepare import (WEEKDAYS, normalize_week, realization_binding, resolve_spec, reuse_realization)
 from pacbench.followups import save
 from pacbench.preparation_audit import audit_scenes
 
@@ -39,6 +39,47 @@ def forbidden(*a,**kw):
 def built(plan):
     return [o.public() for o in build_scene_observations('local-authoring',plan,
         [(m['sender'],m['text']) for m in plan.messages])]
+
+
+@pytest.mark.parametrize('shape', ['days', 'weeks'])
+def test_calendar_spec_keeps_explicit_source_only_target(tmp_path, shape):
+    spec = week([exact(), {
+        'id': 'two', 'thread': 'friends', 'time': '7 pm',
+        'scene': 'Two friends make lunch plans.',
+        'facts': ['They agree to meet Friday at noon.'],
+    }])
+    prefix = ''
+    if shape == 'weeks':
+        spec['weeks'] = [spec.pop('days')]
+        prefix = 'w1-'
+    assert resolve_spec(spec, tmp_path)[1].id == prefix + 'two'
+
+    spec['test_scene_id'] = prefix + 'one'
+    _, target, resolved = resolve_spec(spec, tmp_path)
+    assert target.id == resolved['test_scene_id'] == prefix + 'one'
+    assert target.source_review == 'author-source-v1'
+    assert resolved['checks'][0]['expect'] == 'Report only agreed plans.'
+
+    spec['test_scene_id'] = prefix + 'missing'
+    with pytest.raises(ValueError, match='test_scene_id does not identify a scene'):
+        resolve_spec(spec, tmp_path)
+
+
+def test_flat_spec_with_checks_can_have_multiple_fact_bearing_scenes(tmp_path):
+    spec = normalize_week(week([
+        exact(facts=['Sam says hello.']),
+        exact(id='two', time='7 pm', facts=['Sam checks in.'],
+              messages=[{'sender': 'Sam', 'text': 'How is it going?'}]),
+        exact(id='three', time='8 pm', messages=[{'sender': 'Sam', 'text': 'Good night.'}]),
+    ]))
+    del spec['test_scene_id']
+    _, target, resolved = resolve_spec(spec, tmp_path)
+    assert target.id == resolved['test_scene_id'] == 'three'
+    assert resolved['checks'][0]['expect'] == 'Report only agreed plans.'
+
+    del spec['checks']
+    with pytest.raises(ValueError, match='choose one test scene'):
+        resolve_spec(spec, tmp_path)
 
 
 def test_exact_appearance_silent_members_and_later_generated_roster(tmp_path):

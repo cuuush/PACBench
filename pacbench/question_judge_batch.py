@@ -9,6 +9,17 @@ from pathlib import Path
 import sys
 import tempfile
 
+REVIEWED_READER_PAIRS = (
+    (
+        '8b4b19155fffe6c1fe5014484bd256b9b69ee1de4e3ac3cef766033ef591d80e',
+        '50fff4fc4ccc3ed937697df3237026f314eaef6d6e7159ef04a3a7474d32a8b9',
+    ),
+    (
+        '590b75770aac728f51e8608a541dc7508433d5de1c68615d2b7f044a2df8ab66',
+        'e252c6b764e5d3a12237909c6a82e0e29755155652d90e699375454e88eef72e',
+    ),
+)
+
 
 def new_private_file(destination, chunks):
     """Publish a complete private local artifact once, even with competing writers."""
@@ -21,12 +32,11 @@ def new_private_file(destination, chunks):
 
 
 def export_retained(args):
-    """Run under the separately reviewed retained-reader checkout, without a transport."""
+    """Export through an exact reviewed retained reader without a transport."""
     from pacbench import cohort_regrade as reader
 
-    expected = {reader.__file__: '8b4b19155fffe6c1fe5014484bd256b9b69ee1de4e3ac3cef766033ef591d80e',
-                reader.retained.__file__: '50fff4fc4ccc3ed937697df3237026f314eaef6d6e7159ef04a3a7474d32a8b9'}
-    if any(hashlib.sha256(Path(p).read_bytes()).hexdigest() != sha for p, sha in expected.items()):
+    actual = (file_sha(Path(reader.__file__)), file_sha(Path(reader.retained.__file__)))
+    if actual not in REVIEWED_READER_PAIRS:
         raise ValueError('retained reader differs from reviewed implementation')
     entries, sha = reader.discover(args.manifest)
     if sha != args.sha256:

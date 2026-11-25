@@ -39,7 +39,7 @@ These are candidate interfaces documented at the reviewed versions. The [capabil
 | Hindsight 1.2.1 | Bank retain_files upload, with operation/readback evidence | No verified historical source connector. |
 | OpenViking 0.5.4.1 | Native temporary upload and resource creation, with indexing evidence | The email bot receives chat requests. Historical Inbox/Sent ingestion is unverified. |
 | Supermemory local server 0.0.9, SDK 5.0.1 | Native document add using its default processing mode | Hosted Gmail sync is email-only and needs an eligible plan and label grants. The local binary establishes no hosted version or compatibility. |
-| Honcho 3.6.1, SDK 2.9.0 | Attributed peer messages are a distinct interface; no ordinary document upload verified | Official Gmail importer, email-only. Requires a synthetic OAuth grant and observed thread/peer mapping. |
+| Honcho 3.6.1, SDK 2.9.0 | Native session file upload as one attributed daily document, with exact readback, representation completion and synced source embeddings | Official Gmail importer, email-only. Requires a synthetic OAuth grant and observed thread/peer mapping. |
 | ReMe 0.4.2.2 | Publish the complete file into the native watched resource directory and witness card/index completion | No verified source connector. The reviewed Hermes integration supplies automatic recall. |
 | Cognee 1.6.8, Hermes integration 1.4.3 | Native permanent remember uploader with the per-thread text and dataset scope | Official incremental Gmail sync, email-only. Requires an installed connector, source grant and actual cursor. |
 | MemOS local 2.0.21 | Excluded. The reviewed route restored memory backups and repaired embeddings | No verified ordinary mixed-document upload or qualifying connector. |

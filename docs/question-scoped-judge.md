@@ -213,18 +213,15 @@ python -m pacbench.question_judge_batch --help
 python -m pytest -q tests/test_question_judge_batch.py
 ```
 
-For a later descriptive shadow, start in the reviewed retained-reader checkout
-at `41c89fb59ed5181e2a44c41d6a85be0430914f33`. The cohort manifest supplies
-the local run paths. Set `CONTRACT_TREE` to this experimental worktree and
-choose unused output paths outside the retained run. The first command prints
-the export digest and the observed session layout. Supply those values to both
-subsequent commands, running them in the contract worktree.
+For a later descriptive shadow, the cohort manifest supplies the original local
+run paths. Run these commands from the same checkout and use fresh output
+paths outside the retained run. The first command prints the export digest
+and observed session layout. Supply those values to both subsequent commands.
 
 ```sh
-PYTHONPATH=. python "$CONTRACT_TREE/pacbench/question_judge_batch.py" export-retained "$COHORT" --arm "$ARM" --sha256 "$COHORT_SHA" --output "$EXPORT"
-cd "$CONTRACT_TREE"
-python -m pacbench.question_judge_batch plan "$EXPORT" --sha256 "$EXPORT_SHA" --session-layout "$LAYOUT" --output "$PLAN"
-python -m pacbench.question_judge_batch interpret "$EXPORT" --sha256 "$EXPORT_SHA" --session-layout "$LAYOUT" --replies "$REPLIES" --output "$REPORT"
+python -m pacbench.question_judge_batch export-retained "$COHORT" --arm "$ARM" --sha256 "$COHORT_SHA" --output "$EXPORT"
+python -m pacbench.question_judge_batch plan "$EXPORT" --sha256 "$EXPORT_SHA" --session-layout "$LAYOUT" --candidate question-scoped-assertions-spans-v2 --output "$PLAN"
+python -m pacbench.question_judge_batch interpret "$EXPORT" --sha256 "$EXPORT_SHA" --session-layout "$LAYOUT" --candidate question-scoped-assertions-spans-v2 --replies "$REPLIES" --output "$REPORT"
 ```
 
 `interpret` accepts a JSON object with `plan_sha256` and `responses`. Replies

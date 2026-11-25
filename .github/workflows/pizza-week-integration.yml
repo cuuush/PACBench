@@ -14,7 +14,9 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - run: python -m pip install -r requirements-dev.txt httpx==0.28.1
+      - run: >-
+          python -m pip install -r requirements-dev.txt httpx==0.28.1
+          starlette==1.6.0 honcho-ai==2.9.0 supermemory==5.0.1 openai==2.36.0
       - name: Verify combined provider guards and frozen results
         run: >-
           python -m pytest -q
@@ -29,6 +31,28 @@ jobs:
           tests/test_workflow_cognee_capture_window.py
           tests/test_workflow_realism.py
           tests/test_observational_receipts.py
+          tests/test_http_error_capture.py
+          tests/test_pizza_week_reliability.py
+          tests/test_workflow_daily_documents.py
+          tests/test_honcho_daily_gate.py
+          tests/test_honcho_first_answer.py
+          tests/test_honcho_week.py
+          tests/test_honcho_regrade_live.py
+          tests/test_supermemory_batch_processing.py
+          tests/test_supermemory_explicit_store.py
+          tests/test_supermemory_week.py
+          tests/test_supermemory_worker_chunks.py
+          tests/test_supermemory_worker_rounds.py
+          tests/test_cohort_regrade.py
+          tests/test_cohort_regrade_live.py
+          tests/test_question_judge_batch.py
+          tests/test_question_judge_spans.py
+          tests/test_question_shadow_live.py
+          tests/test_judge_development_live.py
+          tests/test_judge_calibration_live.py
+          tests/test_decisions_calibration.py
+          tests/test_week_spec_audit.py
+          tests/test_prose_judge_controls.py
       - run: python -m compileall -q pacbench provider_adapters
       - run: python -m pacbench.specs
       - run: node --check explorer/dashboard.js && node --check explorer/timeline.js

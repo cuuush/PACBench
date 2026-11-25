@@ -18,7 +18,10 @@ def test_urllib_http_error_preserves_body_and_only_read_completion_proves_eof(ow
  monkeypatch.setattr(urllib.request.OpenerDirector,'open',original)
  monkeypatch.setattr(direct_http,'_installed',False)
  monkeypatch.setattr(direct_http,'_install_httpx',lambda m:None)
- monkeypatch.setattr(direct_http,'admitted',lambda *a:{'headers':{},'body':b'{}','budget':b,'id':r['id']})
+ def admit(url, headers, data, *, method):
+  assert method == 'POST' and data == b'{}'
+  return {'headers':{},'body':data,'budget':b,'id':r['id']}
+ monkeypatch.setattr(direct_http,'admitted',admit)
  direct_http.install()
  with pytest.raises(urllib.error.HTTPError) as caught:urllib.request.OpenerDirector().open(urllib.request.Request('https://openrouter.ai/api/v1/chat/completions',data=b'{}'))
  error=caught.value

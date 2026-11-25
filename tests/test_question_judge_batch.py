@@ -186,13 +186,12 @@ def test_verified_reader_projection_and_no_implied_legacy_binding(tmp_path):
 
 
 def test_reviewed_native_bridge_on_sealed_synthetic_checkpoint(tmp_path):
-    """Opt-in integration with the code-only retained reader prior to its integration on this branch."""
+    """Exercise the native reader and paired planner from the integrated checkout."""
     import os
     from pathlib import Path
 
-    reader = os.environ.get('PACBENCH_RETAINED_READER')
-    if not reader:
-        pytest.skip('set PACBENCH_RETAINED_READER to the reviewed retained-reader checkout')
+    root = Path(__file__).resolve().parents[1]
+    reader = Path(os.environ.get('PACBENCH_RETAINED_READER', root)).resolve()
     cohort = tmp_path/'cohort.json'
     make = """from pathlib import Path
 import sys
@@ -202,11 +201,11 @@ fixture.root = Path(sys.argv[1])
 fixture.cohort([fixture.make_run('cognee',count=49,seal=True)])
 """
     subprocess.run([sys.executable,'-c',make,str(tmp_path)],cwd=reader,check=True)
-    module = Path(__file__).resolve().parents[1]/'pacbench/question_judge_batch.py'
+    module = root/'pacbench/question_judge_batch.py'
     export = tmp_path/'native.private.jsonl'
     proc = subprocess.run([sys.executable,str(module),'export-retained',str(cohort),
                            '--arm','cognee','--sha256',hashlib.sha256(cohort.read_bytes()).hexdigest(),
-                           '--output',str(export)],cwd=reader,env=dict(os.environ,PYTHONPATH=str(Path(reader).resolve())),
+                           '--output',str(export)],cwd=reader,env=dict(os.environ,PYTHONPATH=str(reader)),
                            text=True,capture_output=True)
     assert proc.returncode == 0, proc.stderr
     summary = json.loads(proc.stdout)
@@ -219,3 +218,14 @@ fixture.cohort([fixture.make_run('cognee',count=49,seal=True)])
     assert result['manifest']['retained_origin']['arm'] == 'cognee'
     assert result['manifest']['retained_origin']['cohort_manifest_sha256'] == hashlib.sha256(cohort.read_bytes()).hexdigest()
     assert result['manifest']['retained_origin']['entry_manifest_sha256'] == json.loads(cohort.read_text())['runs'][0]['sha256']
+
+
+def test_export_refuses_an_unreviewed_reader_before_opening_input(tmp_path, monkeypatch):
+    from types import SimpleNamespace
+    from pacbench import cohort_regrade, question_judge_batch
+
+    changed = tmp_path/'changed_reader.py'
+    changed.write_text('# unreviewed reader\n')
+    monkeypatch.setattr(cohort_regrade.retained, '__file__', str(changed))
+    with pytest.raises(ValueError, match='retained reader differs'):
+        question_judge_batch.export_retained(SimpleNamespace())

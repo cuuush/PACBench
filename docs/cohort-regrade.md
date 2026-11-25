@@ -149,3 +149,27 @@ Use a unique `arm` when the same provider appears under two conditions. The
 optional `ingestion_protocol` pins the recorded arm admission identifier.
 The comparison reports conditions with their release clocks and question
 schedule hashes. It provides per-arm deltas without a cross-condition ranking.
+
+## Offline authoring and judge controls
+
+```sh
+python -m pacbench.week_spec_audit
+python -m pacbench.spec_first_pilot
+python -m pytest -q tests/test_cohort_regrade.py tests/test_week_spec_audit.py \
+  tests/test_spec_first_judge.py tests/test_spec_first_volunteer_evidence.py \
+  tests/test_prose_judge_controls.py tests/test_judge_development*.py
+```
+
+The Week audit checks the archived 49-turn, 192-criterion schedule and matches
+the authored fact lists to their scored tracks. It reports versioned scope
+exceptions and checks cited evidence against the archived release times.
+
+For the synthetic booking comparison, `pacbench.prose_judge_controls.prepare_cases()`
+provides each question, answer, ordered claims and references visible by the
+cutoff. The [expected verdicts](../tests/fixtures/prose_booking_key_v1.json) stay
+separate from judge inputs. The offline tests check rendering and comparison
+using synthetic responses. Semantic judge performance requires model responses.
+
+See [Luna judge development](luna-judge-development.md) for the ten-case pilot.
+Run `python -m pacbench.judge_development_challenge --help` for the 24-cell
+synthetic challenge's plan and comparison commands.

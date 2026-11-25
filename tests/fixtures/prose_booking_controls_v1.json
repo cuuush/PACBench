@@ -1,0 +1,32 @@
+{
+  "revision": "prose-booking-controls-v1",
+  "question": "Which room is listed for Thursday’s recording, and is the booking final?",
+  "question_at": "2026-06-10T16:00:00-04:00",
+  "required": ["room", "booking"],
+  "notices": [
+    {
+      "id": "desk-41",
+      "written_at": "2026-06-10T13:50:00-04:00",
+      "text": "Thursday’s recording sheet lists Bell Loft. Use the side entrance. The desk has placed a provisional hold and is waiting for final approval.",
+      "facts": {"room": "Bell Loft is the room listed for Thursday’s recording.", "booking": "Thursday’s recording has a provisional hold and still awaits final confirmation."}
+    },
+    {
+      "id": "desk-42",
+      "written_at": "2026-06-10T15:58:00-04:00",
+      "text": "Final approval just came through for Thursday’s recording. The booking is now confirmed.",
+      "facts": {"booking": "The booking for Thursday’s recording is confirmed."}
+    }
+  ],
+  "receipts": {
+    "a": {"desk-41": "2026-06-10T14:00:00-04:00", "desk-42": "2026-06-10T15:59:59-04:00"},
+    "b": {"desk-41": "2026-06-10T14:00:00-04:00", "desk-42": "2026-06-10T16:00:01-04:00"}
+  },
+  "cases": [
+    {"id": "p17", "receipts": "b", "answer": "Bell Loft is on the sheet. They’re holding it for now, pending sign-off."},
+    {"id": "p36", "receipts": "b", "answer": "Bell Loft is on the sheet. They’re holding it for now, pending sign-off. Use the side entrance."},
+    {"id": "p28", "receipts": "b", "answer": "Bell Loft is on the sheet for Thursday."},
+    {"id": "p54", "receipts": "b", "answer": "Wren Studio is on the sheet. They’re holding it for now, pending sign-off."},
+    {"id": "p63", "receipts": "b", "answer": "They’ve booked Bell Loft for Thursday’s recording."},
+    {"id": "p45", "receipts": "a", "answer": "They’ve booked Bell Loft for Thursday’s recording."}
+  ]
+}

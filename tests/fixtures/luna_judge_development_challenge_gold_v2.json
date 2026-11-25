@@ -1,0 +1,60 @@
+{
+  "revision": "luna-judge-development-challenge-v2",
+  "scope": "Authored synthetic development reference, frozen before any judging",
+  "families": {
+    "roster-completeness": {
+      "allowed_entailments": "A direct, closed confirmed list in response to 'who's on the confirmed list?' establishes exhaustive scope without 'only'. An explicitly open list does not establish exclusivity. A larger closed confirmed list is a conflict, regardless of whether both expected names appear.",
+      "cases": {
+        "clay": {"verdict": "missed", "reason": "'Include' leaves the confirmed list open after naming both people."},
+        "lilac": {"verdict": "correct", "reason": "The unqualified 'the confirmed guests ... are' presents Inez and Milo as the current list."},
+        "flint": {"verdict": "misrepresented", "reason": "The asserted closed list adds Noor as confirmed for this supper."},
+        "moss": {"verdict": "correct", "reason": "The wording explicitly closes the list after the two named guests."}
+      }
+    },
+    "communicated-decline": {
+      "allowed_entailments": "Directly hearing from the named attendee that they will not be there establishes a communicated decline. An attendee's private plan or inability does not establish communication. Explicitly saying the recipient has not been told conflicts with the claim that they have.",
+      "cases": {
+        "pearl": {"verdict": "correct", "reason": "Jun received Sol's reply directly; its content is Sol's nonattendance."},
+        "silt": {"verdict": "misrepresented", "reason": "The answer explicitly denies the claimed communication to Jun."},
+        "rust": {"verdict": "missed", "reason": "Sol's own knowledge establishes nonattendance; it is silent on whether Jun was told."},
+        "wren": {"verdict": "correct", "reason": "'Let Jun know' and 'can't make' jointly establish the recipient and the decline."}
+      }
+    },
+    "dietary-uncertainty": {
+      "allowed_entailments": "An answer can satisfy this criterion by conveying that the group is still unsure about the named ingredient for the current meal. A historical approval scoped to another meal is compatible with uncertainty but does not convey it. A definite current approval or restriction resolves the uncertainty and conflicts with the criterion.",
+      "cases": {
+        "pine": {"verdict": "missed", "reason": "The approval is explicitly scoped to the earlier lake outing and gives no current update."},
+        "fern": {"verdict": "misrepresented", "reason": "The asserted current approval directly contradicts the current uncertainty."},
+        "slate": {"verdict": "correct", "reason": "'Still unsure' conveys that the current sesame status remains unresolved."},
+        "jade": {"verdict": "correct", "reason": "'Remains open' explicitly leaves the sesame question unresolved for the current picnic."}
+      }
+    },
+    "next-recurrence": {
+      "allowed_entailments": "At the frozen Friday, October 16 clock, 'this coming Monday' denotes October 19. Returning to Mondays with the next meeting also fixes that occurrence after the one-off Thursday. Information solely about the October 15 meeting leaves the next date unstated. October 22 conflicts when asserted for the next occurrence.",
+      "cases": {
+        "reed": {"verdict": "correct", "reason": "The answer gives October 19 directly and identifies it as the next occurrence."},
+        "opal": {"verdict": "missed", "reason": "A detail about the just-finished Thursday meeting supplies no date for the next one."},
+        "dune": {"verdict": "misrepresented", "reason": "The answer assigns the following Thursday to the next occurrence."},
+        "lark": {"verdict": "correct", "reason": "The stated return to Mondays starts with the next meeting; the clock resolves it to October 19."}
+      }
+    },
+    "venue-cancellation": {
+      "allowed_entailments": "Calling off or dropping the whole party's reservation conveys cancellation of the target booking. A personal decline can coexist with either booking status and leaves that status unstated. Keeping the whole party's reservation conflicts with cancellation.",
+      "cases": {
+        "ochre": {"verdict": "misrepresented", "reason": "The answer says the specific supper reservation still stands for everyone."},
+        "coral": {"verdict": "correct", "reason": "The venue called off the full supper reservation."},
+        "brass": {"verdict": "missed", "reason": "Rafi's decline concerns a guest, with no claim about cancellation of the booking."},
+        "mica": {"verdict": "correct", "reason": "Dropping the reservation for the whole group conveys cancellation of that booking."}
+      }
+    },
+    "entity-venue": {
+      "allowed_entailments": "A booking statement or a destination instruction for the named tasting establishes its venue. The context scopes the host and event. Mentioning the expected venue for the other host's separate tasting neither establishes nor disputes the target venue. Assigning a different venue to the target event conflicts.",
+      "cases": {
+        "birch": {"verdict": "correct", "reason": "The booking binds Niko's tasting to Willow Loft."},
+        "ivory": {"verdict": "misrepresented", "reason": "The different venue is explicitly attached to Niko's own tasting."},
+        "amber": {"verdict": "correct", "reason": "The destination instruction binds Willow Loft to the requested tasting."},
+        "ash": {"verdict": "missed", "reason": "Only Bex's separate tasting is attached to Willow Loft; Niko's venue is unstated."}
+      }
+    }
+  }
+}

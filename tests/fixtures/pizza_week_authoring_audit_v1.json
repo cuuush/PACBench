@@ -1,0 +1,45 @@
+{
+  "revision": "pizza-week-authoring-audit-v1",
+  "fact_list_exceptions": {
+    "withdrawal": {
+      "revision": "pizza-week-existing-scope-v1",
+      "question_id": "withdrawal",
+      "scope_sha256": "0beb68227bd7ed2c918b37ad40d565ad30068e2dbe68486d4c4512a9f98aa121",
+      "reason": "The scored question asks who is still agreed. Its eighth claim ties the same four-person roster to this checkpoint. Preserve the historical closure wording."
+    },
+    "visit-final": {
+      "revision": "pizza-week-existing-scope-v1",
+      "question_id": "visit-final",
+      "scope_sha256": "7d3c1561ad86c43150cad9e25ec8922bcf6f3315f120dec52cc4d26eaed1f1c9",
+      "reason": "The scored question explicitly asks for dates as well as times. Both versions retain the same four arrival and departure facts."
+    },
+    "hall-alias": {
+      "revision": "pizza-week-existing-scope-v1",
+      "question_id": "hall-alias",
+      "scope_sha256": "1aafa2ea1028ffdd2f8cd5e3192001e91d81ec80911150c803e49426438bb50a",
+      "reason": "The scored question asks what the messages establish and what remains unexplained. Both versions retain the same two acronym claims."
+    }
+  },
+  "expect_contracts": {
+    "assistant-weekend-before": {
+      "scope_sha256": "917161743c8a191cc2bc9c61e55b097cfc23ed7dbdb19bd50b61654127190e38",
+      "reason": "The frozen seven claims cover dinner and the tasting. The authored guidance about tentative options and the unagreed drill return has no separate scored slot."
+    },
+    "assistant-friday-plans": {
+      "scope_sha256": "30abde42cf728ab19726915f05a67f351fc293b6a1ca1d51d69af10d8cb22507",
+      "reason": "The frozen twelve claims include exclusive rosters for lunch and pizza. The prose names the companions without requiring exclusivity. Morgan remains optional."
+    },
+    "assistant-next-pizza": {
+      "scope_sha256": "dca776ca1e162c4e028e2c5080ea19b521b0b8df19f3468259763462c9a654d5",
+      "reason": "The frozen two claims cover the agreed lunch and its time. The optional venue and the examples of wrong alternatives have no separate scored slots."
+    },
+    "assistant-weekend-after": {
+      "scope_sha256": "58a412906bc96e1256698d0a970b309dfd89e250be88603d2a621fbe6f507b6d",
+      "reason": "The nine frozen claims cover dinner, tasting and the separate drill return. The prose also gives guidance about optional or tentative plans."
+    },
+    "assistant-bored": {
+      "scope_sha256": "bfb7228017ff30073ca6aa48d8bf051ab46377bb51604044011d5164902ce524",
+      "reason": "The four frozen claims separate the date, time, open invitation and lack of acceptance. The prose also permits other suggestions and describes how to frame them."
+    }
+  }
+}

@@ -429,6 +429,66 @@ loopback networking and a writable temporary directory outside Git;
 and missing prerequisites. Passing offline tests establishes harness integrity,
 not provider accuracy.
 
+### Focused Pizza Week checks
+
+Set up the Python 3.12 environment from the [continuation guide](docs/pizza-week-continuation.md).
+Run the provider, saved-answer and judge checks locally.
+
+```sh
+python -m pytest -q \
+  tests/test_workflow_combined_admission.py \
+  tests/test_workflow_memcal_product.py \
+  tests/test_workflow_memcal_admission.py \
+  tests/test_pizza_week_results.py \
+  tests/test_pizza_week_workflow_dataset.py \
+  tests/test_workflow_hindsight_observation_clock.py \
+  tests/test_workflow_hindsight_documents.py \
+  tests/test_workflow_openviking_documents.py \
+  tests/test_workflow_cognee_capture_window.py \
+  tests/test_workflow_realism.py \
+  tests/test_observational_receipts.py \
+  tests/test_http_error_capture.py \
+  tests/test_pizza_week_reliability.py \
+  tests/test_workflow_daily_documents.py \
+  tests/test_honcho_daily_gate.py \
+  tests/test_honcho_first_answer.py \
+  tests/test_honcho_week.py \
+  tests/test_honcho_regrade_live.py \
+  tests/test_supermemory_batch_processing.py \
+  tests/test_supermemory_explicit_store.py \
+  tests/test_supermemory_week.py \
+  tests/test_supermemory_worker_chunks.py \
+  tests/test_supermemory_worker_rounds.py \
+  tests/test_cohort_regrade.py \
+  tests/test_cohort_regrade_live.py \
+  tests/test_question_judge_batch.py \
+  tests/test_question_judge_spans.py \
+  tests/test_question_shadow_live.py \
+  tests/test_judge_development_live.py \
+  tests/test_judge_calibration_live.py \
+  tests/test_decisions_calibration.py \
+  tests/test_week_spec_audit.py \
+  tests/test_prose_judge_controls.py
+python -m compileall -q pacbench provider_adapters
+python -m pacbench.specs
+node --check explorer/dashboard.js
+node --check explorer/timeline.js
+```
+
+Run the receipt and ownership checks with an empty local gateway state directory.
+
+```sh
+MUSE_GATEWAY_STATE="$(mktemp -d)" python -m pytest -q \
+  tests/test_receipt_costs.py \
+  tests/test_receipt_routes.py \
+  tests/test_receipt_metadata.py \
+  tests/test_phase_costs.py \
+  tests/test_dispatch_ownership.py \
+  tests/test_cost_review.py \
+  tests/test_usage_accounting.py \
+  tests/test_gateway_boundary.py
+```
+
 ## Submit a change
 
 Explain the problem, resulting behavior and relevant validation in the pull

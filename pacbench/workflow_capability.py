@@ -19,6 +19,8 @@ from .workflow_tracks import memcal_week_tools, HERMES_TOOLS, MEMOS_OSS_LUNA_COM
 ENV = 'PACBENCH_WORKFLOW_SCOPE'
 PROFILE = 'luna-bedrock-global'
 MEMOS_OSS_ADMISSION = 'memos-oss-native-file-document-week-v1'
+SM_QUESTION_ADMISSION = 'supermemory-stock-first-question-v1'
+SM_WEEK_ADMISSION = 'supermemory-stock-document-week-v1'
 
 
 @lru_cache(maxsize=2)
@@ -107,8 +109,41 @@ def load():
     bound = json.loads(os.environ[ENV])
     c = read(bound)
     root = Path(c['root'])
+    if c.get('admission') == 'supermemory-stock-source-qualification-v1':
+        from .supermemory_source_admission import validate
+        validate(c, bound)
+        return c
+    if c.get('admission') == SM_QUESTION_ADMISSION:
+        from .supermemory_question_admission import validate
+        validate(c, bound)
+        return c
+    if c.get('admission') == SM_WEEK_ADMISSION:
+        from .supermemory_week_admission import validate
+        validate(c, bound)
+        return c
     if c.get('admission') == 'pizza-day-native-document-v1':
         from .pizza_day_lineup import validate
+        validate(c, bound)
+        return c
+    if c.get('admission') == 'luna-judge-development-ab-v1':
+        from .judge_development_live import validate
+        validate(c, bound)
+        return c
+    if c.get('admission') == 'pizza-week-luna-explicit-overlay-v1':
+        from .cohort_regrade_live import validate
+        validate(c, bound)
+        return c
+    if c.get('admission') == 'pizza-week-honcho-authored-chats-luna-v4-v1':
+        from .honcho_regrade_live import validate
+        validate(c, bound)
+        return c
+    if c.get('admission') in ('pizza-week-question-contract-development-shadow-v1',
+                              'pizza-week-question-contract-span-regression-v2'):
+        from .question_shadow_live import validate
+        validate(c, bound)
+        return c
+    if c.get('admission') == 'luna-judge-development-challenge-v2':
+        from .judge_calibration_live import validate
         validate(c, bound)
         return c
     if c.get('admission') == 'pizza-day-wrong-answer-judge-v1':
@@ -118,6 +153,10 @@ def load():
     if c.get('admission') == 'pizza-day-synthetic-memcal-v1':
         from .pizza_day_controller import validate_scope
         validate_scope(c, bound)
+        return c
+    if c.get('admission') == 'honcho-seven-daily-documents-v1':
+        from .honcho_daily_gate import validate
+        validate(c, bound)
         return c
     if (root != root.resolve() or root/'workflow-scope.json' != Path(bound['path'])
             or c['run_id'] != root.parent.name or c['provider'] != root.name
@@ -196,6 +235,30 @@ def budget(*, project=None, profile=None):
         raise ValueError('prepaid receipt and recorded observation differ')
     if observed <= 0:
         raise ValueError('OpenRouter prepaid credit exhausted')
+    if c.get('admission') == 'luna-judge-development-ab-v1':
+        from .judge_development_live import JudgeJournal
+        return JudgeJournal(path)
+    if c.get('admission') in ('pizza-week-luna-explicit-overlay-v1', 'pizza-week-honcho-authored-chats-luna-v4-v1'):
+        from .cohort_regrade_live import OverlayJournal
+        return OverlayJournal(path)
+    if c.get('admission') == 'supermemory-stock-source-qualification-v1':
+        from .supermemory_source_admission import SourceJournal
+        return SourceJournal(path)
+    if c.get('admission') == SM_QUESTION_ADMISSION:
+        from .supermemory_question_admission import QuestionJournal
+        return QuestionJournal(path)
+    if c.get('admission') == SM_WEEK_ADMISSION:
+        from .supermemory_week_admission import WeekJournal
+        return WeekJournal(path)
+    if c.get('admission') == 'pizza-week-question-contract-development-shadow-v1':
+        from .question_shadow_live import ShadowJournal
+        return ShadowJournal(path)
+    if c.get('admission') == 'pizza-week-question-contract-span-regression-v2':
+        from .question_shadow_live import SpanJournal
+        return SpanJournal(path)
+    if c.get('admission') == 'luna-judge-development-challenge-v2':
+        from .judge_calibration_live import ChatJournal
+        return ChatJournal(path)
     if c['provider'] == 'memcal':
         from .observational_receipts import IndexedRunReceiptJournal
         return IndexedRunReceiptJournal(path)
@@ -225,12 +288,26 @@ def owner(env, home, checkpoint, provider, clock):
                 or process_identity() != c['controller']):
             raise ValueError('MemCal gateway lacks the bound owner, Luna route or exclusive native tool set')
     tools = MEMOS_OSS_TOOLS if provider == 'memos' else HERMES_TOOLS[provider]
+    if provider == 'honcho' and c['admission'] == 'honcho-seven-daily-documents-v1' and (
+            not (c.get('first_question') or c.get('week_schedule')) or process_identity() != c['controller']
+            or env.get('PACBENCH_TOOL_ALLOWLIST') != ','.join(tools)
+            or env.get('PACBENCH_OPENROUTER_PROFILE') != PROFILE or env.get('PACBENCH_OFFLINE_CONFORMANCE')):
+        raise ValueError('Honcho gateway requires its scoped controller, stock toolkit and Luna route')
     if provider in ('mem0','hindsight','openviking','reme','cognee','memos') and (
             env.get('PACBENCH_TOOL_ALLOWLIST') != ','.join(tools)
             or env.get('PACBENCH_OPENROUTER_PROFILE') != PROFILE
             or env.get('PACBENCH_ROLE_ROUTES') != 'luna-all-roles-v1'
             or env.get('PACBENCH_OFFLINE_CONFORMANCE') or process_identity() != c['controller']):
         raise ValueError('Document gateway lacks the bound owner, Luna route or exclusive native tool set')
+    if c.get('admission') in (SM_QUESTION_ADMISSION, SM_WEEK_ADMISSION):
+        if (env.get('PACBENCH_TOOL_ALLOWLIST') != ','.join(tools)
+                or env.get('PACBENCH_OPENROUTER_PROFILE') != PROFILE
+                or env.get('PACBENCH_ROLE_ROUTES') != 'luna-all-roles-v1'
+                or env.get('PACBENCH_OFFLINE_CONFORMANCE') or process_identity() != c['controller']):
+            raise ValueError('Supermemory gateway lacks its exact owner, route or stock tools')
+        if c['admission'] == SM_QUESTION_ADMISSION:
+            from .supermemory_question_admission import ready
+            ready(c)
     if provider == 'memos' and env.get('PACBENCH_MEMOS_OSS_CONFIG') != str(home/'memos-oss.json'):
         raise ValueError('MemOS OSS gateway does not bind its run-owned configuration')
     if provider == 'openviking' and env.get('PACBENCH_SOURCE_ARGUMENT_RULES') != '{}':
@@ -248,12 +325,40 @@ def admission(project, profile, body):
     roles = c['projects'][provider]
     if project not in roles.values() or profile != PROFILE or not isinstance(body, dict):
         raise ValueError('unexpected workflow role or model route')
+    if c.get('admission') == 'supermemory-stock-source-qualification-v1':
+        from .supermemory_source_admission import admit
+        return admit(c, project, body)
+    if c.get('admission') == SM_QUESTION_ADMISSION:
+        from .supermemory_question_admission import admit
+        return admit(c, project, body)
+    if c.get('admission') == SM_WEEK_ADMISSION:
+        from .supermemory_week_admission import admit
+        return admit(c, project, body)
     if c.get('admission') == 'pizza-day-native-document-v1':
         from .pizza_day_lineup import admit
+        return admit(c, project, body)
+    if c.get('admission') == 'luna-judge-development-ab-v1':
+        from .judge_development_live import admit
+        return admit(c, project, body)
+    if c.get('admission') == 'pizza-week-luna-explicit-overlay-v1':
+        from .cohort_regrade_live import admit
+        return admit(c, project, body)
+    if c.get('admission') == 'pizza-week-honcho-authored-chats-luna-v4-v1':
+        from .honcho_regrade_live import admit
+        return admit(c, project, body)
+    if c.get('admission') in ('pizza-week-question-contract-development-shadow-v1',
+                              'pizza-week-question-contract-span-regression-v2'):
+        from .question_shadow_live import admit
+        return admit(c, project, body)
+    if c.get('admission') == 'luna-judge-development-challenge-v2':
+        from .judge_calibration_live import admit
         return admit(c, project, body)
     if c.get('admission') == 'pizza-day-wrong-answer-judge-v1':
         from .pizza_day_control import admit
         return admit(c, project, body)
+    if c.get('admission') == 'honcho-seven-daily-documents-v1':
+        from .honcho_daily_gate import admission as honcho_admission
+        return honcho_admission(c, project, profile, body)
     if provider == 'memcal':
         return _memcal_admission(c, project, body)
     if provider in ('mem0','hindsight','openviking','reme','cognee','memos'):

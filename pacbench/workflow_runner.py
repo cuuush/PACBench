@@ -102,6 +102,35 @@ def _wire_tool_text(saved, sent):
             and saved.rstrip('\r\n') == sent and saved != sent and bool(sent))
 
 
+def _saved_calls(message):
+    calls = message.get('tool_calls') or []
+    return json.loads(calls) if isinstance(calls, str) else calls
+
+
+def _tool_rounds(history, last_user):
+    """Find the requests that could have produced this completed native turn."""
+    rounds, calls, outstanding = [], [], set()
+    for index, row in enumerate(history[last_user + 1:-1], last_user + 1):
+        if row['role'] == 'assistant':
+            group = _saved_calls(row)
+            if outstanding or not group:
+                raise ValueError('native tool group is incomplete or out of order')
+            rounds.append(index)
+            for call in group:
+                fn = call['function']
+                calls.append((call['id'], fn['name'], json.loads(fn['arguments'])))
+                outstanding.add(call['id'])
+        else:
+            call_id = row.get('tool_call_id')
+            if call_id not in outstanding:
+                raise ValueError('native tool group contains a result from another round')
+            outstanding.remove(call_id)
+    if outstanding or _saved_calls(history[-1]):
+        raise ValueError('native tool group did not finish before the final answer')
+    rounds.append(len(history) - 1)
+    return rounds, calls
+
+
 def captured_turn(surface, turn, prior, condition, expected_prefix):
     history = surface['history']
     previous = prior['history'] if prior else []
@@ -135,7 +164,8 @@ def captured_turn(surface, turn, prior, condition, expected_prefix):
     # Each request in a tool loop sees a prefix of the native conversation.
     expected = history[:-1]
     last_user = max(i for i, row in enumerate(expected) if row['role'] == 'user')
-    captured_prefixes = set()
+    round_prefixes, calls = _tool_rounds(history, last_user)
+    captured_prefixes = []
     wire_tool_newline_removed = set()
     for request in surface['model_requests']:
         if condition.provider == 'memcal' and condition.version == MEMCAL_WEEK_VERSION:
@@ -145,7 +175,8 @@ def captured_turn(surface, turn, prior, condition, expected_prefix):
                 request['model'] != condition.model):
             raise ValueError('incomplete model request or unexpected model/tool surface')
         wire = [row for row in request['messages'] if row['role'] != 'system']
-        captured_prefixes.add(len(wire))
+        if not captured_prefixes or captured_prefixes[-1] != len(wire):
+            captured_prefixes.append(len(wire))
         if not last_user < len(wire) <= len(expected):
             raise ValueError('wire request omitted user context or added messages')
         for index, (saved, sent) in enumerate(zip(expected, wire)):
@@ -164,25 +195,13 @@ def captured_turn(surface, turn, prior, condition, expected_prefix):
                 wire_tool_newline_removed.add(saved['tool_call_id'])
             if role == 'tool' and saved.get('tool_call_id') != sent.get('tool_call_id'):
                 raise ValueError('wire tool response changed call ID')
-            calls = saved.get('tool_calls') or []
-            if isinstance(calls, str):
-                calls = json.loads(calls)
-            if ([_tool_call_contract(call, stored=True) for call in calls] !=
+            if ([_tool_call_contract(call, stored=True) for call in _saved_calls(saved)] !=
                     [_tool_call_contract(call) for call in (sent.get('tool_calls') or [])]):
                 raise ValueError('wire assistant tool calls differ')
     if len(wire) != len(expected):
         raise ValueError('final wire request omitted native history')
-    calls = []
-    for index in range(last_user + 1, len(expected)):
-        row = expected[index]
-        native = row.get('tool_calls') or []
-        if isinstance(native, str):
-            native = json.loads(native)
-        if native and index not in captured_prefixes:
-            raise ValueError('missing model request that emitted a tool group')
-        for call in native:
-            fn = call['function']
-            calls.append((call['id'], fn['name'], json.loads(fn['arguments'])))
+    if captured_prefixes != round_prefixes:
+        raise ValueError('model requests do not follow the complete native tool groups')
     streamed = [(c['tool_call_id'], c['name'], c['input']) for c in surface['tool_calls']]
     if calls != streamed:
         raise ValueError('stream tool identity or arguments differ from native history')
@@ -191,7 +210,7 @@ def captured_turn(surface, turn, prior, condition, expected_prefix):
             (r['tool_call_id'], r['tool'], r['text']) for r in surface['tool_results']]:
         raise ValueError('tool result capture differs from answer-visible text')
     comparisons = {}
-    tool_wire = {r['tool_call_id']: r['content'] for r in wire if r['role'] == 'tool'}
+    tool_wire = {r['tool_call_id']: r['content'] for r in wire[last_user + 1:] if r['role'] == 'tool'}
     for result in surface['tool_results']:
         ident = result['tool_call_id']
         witness = surface.get('tool_boundaries', {}).get(ident, {})
@@ -339,11 +358,20 @@ def run_workflow(condition, account: BoundAccount, documents, turns, journal, *,
     if not account.identity or not spec_digest:
         raise ValueError('missing account or spec identity')
     turns, documents = list(turns), list(documents)
-    if {d.channel for d in documents} != set(condition.channels):
-        raise ValueError('source corpus does not match declared channel scope')
+    document_channels = {d.channel for d in documents}
+    if document_channels != set(condition.channels):
+        from .workflow_daily_documents import DAILY_CHANNEL, compile_daily_week
+
+        if (document_channels != {DAILY_CHANNEL} or condition.track != 'nightly-document'
+                or condition.state != 'continuing-account' or set(condition.channels) != {'email', 'imessage'}):
+            raise ValueError('source corpus does not match declared channel scope')
+        _, daily, frozen_turns, _, _ = compile_daily_week()
+        if documents != daily or turns != frozen_turns:
+            raise ValueError('seven daily files must match the frozen source and question schedule')
     if set(condition.channels) != {'email','imessage'} and turns:
         raise ValueError('partial connector coverage cannot answer mixed-channel Pizza Week questions')
-    if (any(instant(a.at) >= instant(b.at) for a,b in zip(turns,turns[1:]))
+    if (len({turn.id for turn in turns}) != len(turns)
+            or any(instant(a.at) >= instant(b.at) for a,b in zip(turns,turns[1:]))
             or any(instant(a.cutoff) > instant(b.cutoff) for a,b in zip(documents,documents[1:]))
             or len({d.filename for d in documents}) != len(documents)):
         raise ValueError('workflow events must have unique identities and chronological order')
@@ -492,7 +520,8 @@ def grade_turn(turn, surface, generate, directory, *, require_receipt=False):
     return grade
 
 
-def run_current_week(condition, account, directory, *, judge=None, canary=False, resume=False):
+def run_current_week(condition, account, directory, *, judge=None, canary=False, resume=False,
+                     seven_daily_documents=False):
     """Programmatic native entry point for a provisioned synthetic account.
 
     A partial connector only exercises source sync. It never gets the full
@@ -500,7 +529,16 @@ def run_current_week(condition, account, directory, *, judge=None, canary=False,
     """
     from .workflow_spec import SPEC, compile_week
 
-    spec, docs, turns, source_basis = compile_week(condition.state)
+    daily_manifest = None
+    if seven_daily_documents:
+        from .workflow_daily_documents import compile_daily_week
+
+        if (account.evidence_kind != 'recording-fake' or canary or condition.track != 'nightly-document'
+                or condition.state != 'continuing-account' or set(condition.channels) != {'email', 'imessage'}):
+            raise ValueError('seven daily files conformance requires the complete offline document condition')
+        spec, docs, turns, source_basis, daily_manifest = compile_daily_week()
+    else:
+        spec, docs, turns, source_basis = compile_week(condition.state)
     all_source_documents = docs
     if condition.provider == 'memcal' and condition.track == 'first-party-connector' and condition.state == 'continuing-account':
         from .workflow_memcal_contract import verify_contract
@@ -511,7 +549,8 @@ def run_current_week(condition, account, directory, *, judge=None, canary=False,
             raise ValueError('canary requires continuing-account schedule')
         from .workflow_capability import schedule
         docs, turns, _ = schedule(fingerprint, True)
-    docs = [d for d in docs if d.channel in condition.channels]
+    if daily_manifest is None:
+        docs = [d for d in docs if d.channel in condition.channels]
     if set(condition.channels) != {'email','imessage'}:
         turns = []
     if judge is not None and account.evidence_kind != 'native':
@@ -528,7 +567,8 @@ def run_current_week(condition, account, directory, *, judge=None, canary=False,
     if (condition.track == 'nightly-document' and condition.state == 'continuing-account'
             and condition.provider in workflow_document_progress.PROVIDERS and turns):
         return workflow_document_progress.run(condition, account, docs, turns, directory, spec,
-                                              fingerprint, source_basis, all_source_documents, judge, canary, resume=resume)
+                                              fingerprint, source_basis, all_source_documents, judge, canary,
+                                              resume=resume, daily_manifest=daily_manifest)
     if resume:
         raise ValueError('This account route has no verified incremental resume')
     summary = {}
@@ -538,6 +578,9 @@ def run_current_week(condition, account, directory, *, judge=None, canary=False,
         row['planned_turns'] += 1
         row['planned_criteria'] += len(t.claims)
     with Journal(directory) as journal:
+        if daily_manifest is not None:
+            journal.write('source-layout', layout=daily_manifest['source_layout'],
+                          document_index_sha256=daily_manifest['normalized_index_sha256'])
         journal.write('spec',version=spec['version'],canary=canary,sha256=fingerprint,source_basis=source_basis,
                       schedule=[{'id':t.id,'at':t.at,'chat':t.session,'measure':t.measure} for t in turns])
         snapshots = run_workflow(condition,account,docs,turns,journal,

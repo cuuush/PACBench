@@ -34,5 +34,5 @@ def test_native_full_read_fallback_is_source_evidence():
     for item,expected in [(raw,'source_summary'),(memory,'memory_detail'),
                           ({**raw,'fallback':'content/read'},'source_evidence'),
                           ({'results':[memory,{**raw,'level':'full'}]},'source_evidence')]:
-        result = [{'success':True,'text':json.dumps(item)}]
+        result = [{'tool_call_id':'lookup','tool':'viking_read','success':True,'text':json.dumps(item)}]
         assert tool_provenance(calls,result)[0]['category']==expected

@@ -4,6 +4,7 @@ No listener or forwarding connection exists. This process's original HTTP client
 connects to OpenRouter after a short durable reservation. Native streams are
 passed through as read; an interrupted stream retains its cost bound.
 """
+from contextvars import ContextVar
 import asyncio
 import json
 import os
@@ -14,12 +15,13 @@ from urllib.parse import urlsplit
 
 from .direct_accounting import live_budget, project_from_authorization, VERSION
 
+_native_http_request = ContextVar('pacbench_native_http_request', default=None)
 _installed=False
 _httpx_wrappers=WeakSet()
 _MAX_RESPONSE=32*1024*1024
 
 
-def admitted(url,headers,body,*,wait=True):
+def admitted(url,headers,body,*,wait=True,method=None):
     if os.environ.get('PACBENCH_DIRECT')!='1':return None
     parsed=urlsplit(str(url))
     if parsed.hostname!='openrouter.ai':
@@ -39,9 +41,23 @@ def admitted(url,headers,body,*,wait=True):
     auth='Bearer '+os.environ['PACBENCH_DIRECT_UPSTREAM_KEY']
     if not body and parsed.path in {'/api/v1/models','/api/v1/key','/api/v1/credits'}:
         return {'headers':{**dict(headers),'Authorization':auth},'free':True}
+    if parsed.path=='/api/alpha/decisions' and body and os.environ.get('PACBENCH_WORKFLOW_SCOPE'):
+        from .decisions_admission import admit_decisions
+        identifier, budget = admit_decisions(project, method, str(url), body)
+        return {'headers':{'Authorization':auth,'Content-Type':'application/json',
+                           'Accept-Encoding':'identity','Content-Length':str(len(body))},
+                'body':body,'id':identifier,'budget':budget}
     if parsed.path!='/api/v1/chat/completions' or not body:
         raise RuntimeError('Unsupported direct model endpoint')
     budget=live_budget(project=project)
+    native = _native_http_request.get()
+    honcho = native is not None and 'pacbench.honcho.daily-attempt' in native.extensions
+    if honcho:
+        from .observational_receipts import RunReceiptJournal
+        if not isinstance(budget, RunReceiptJournal):
+            raise RuntimeError('Honcho native evidence requires its run-owned receipt journal')
+    check_wire=getattr(budget,'check_wire',None)
+    if check_wire:check_wire(method,body)
     receipt=budget.reserve(project,json.loads(body),wait=False) if not wait else budget.reserve(project,json.loads(body))
     from .api_input_trace import record as record_api_input
     record_api_input(project,receipt)
@@ -49,9 +65,9 @@ def admitted(url,headers,body,*,wait=True):
     record_memory(project,receipt)
     head={k:v for k,v in dict(headers).items() if k.lower() not in {'authorization','content-length'}}
     head['Authorization']=auth
-    data=json.dumps(receipt['request'],ensure_ascii=False).encode()
+    data=body if check_wire else json.dumps(receipt['request'],ensure_ascii=False).encode()
     head['Content-Length']=str(len(data))
-    return {'headers':head,'body':data,'id':receipt['id'],'budget':budget}
+    return {'headers':head,'body':data,'id':receipt['id'],'budget':budget,'honcho_daily':honcho}
 
 
 class Capture:
@@ -122,7 +138,7 @@ class UrllibResponse:
 
 def before_send(receipt):
     from .live_dispatch import enabled
-    if receipt and not receipt.get('free') and enabled():
+    if receipt and not receipt.get('free') and (receipt.get('honcho_daily') or enabled()):
         receipt['budget'].mark_dispatch_possible(receipt['id'])
 
 
@@ -133,7 +149,8 @@ def install():
     original=urllib.request.OpenerDirector.open
     def opened(self,fullurl,data=None,timeout=__import__('socket')._GLOBAL_DEFAULT_TIMEOUT):
         request=fullurl if isinstance(fullurl,urllib.request.Request) else urllib.request.Request(fullurl,data=data)
-        receipt=admitted(request.full_url,dict(request.header_items()),request.data if data is None else data)
+        receipt=admitted(request.full_url,dict(request.header_items()),request.data if data is None else data,
+                         method=request.get_method())
         if receipt is None:return original(self,fullurl,data,timeout)
         target=urllib.request.Request(request.full_url,data=receipt.get('body'),headers=receipt['headers'],method=request.get_method())
         before_send(receipt)
@@ -191,8 +208,15 @@ def _install_httpx(httpx):
             finally:self.capture.finish()
     send=httpx.Client.send;asend=httpx.AsyncClient.send
     def prepared(request,body,*,wait=True):
-        receipt=admitted(request.url,request.headers,body,wait=wait)
-        if receipt is None:return request,None
+        token = _native_http_request.set(request)
+        try:
+            receipt=admitted(request.url,request.headers,body,wait=wait,method=request.method)
+        finally:
+            _native_http_request.reset(token)
+        if receipt is None:
+            if 'pacbench.honcho.daily-attempt' in request.extensions:
+                raise RuntimeError('Instrumented Honcho request without verified admission')
+            return request,None
         fresh=httpx.Request(request.method,request.url,headers=receipt['headers'],
             content=receipt.get('body'),extensions=request.extensions)
         return fresh,receipt
@@ -205,7 +229,12 @@ def _install_httpx(httpx):
             capture.encoding=response.headers.get('content-encoding','')
             response.stream=stream_class(response.stream,capture)
         return response
+    def guard_route(request):
+        if ('pacbench.honcho.daily-attempt' in request.extensions
+                and (request.method != 'POST' or str(request.url) != 'https://openrouter.ai/api/v1/chat/completions')):
+            raise RuntimeError('Honcho native request targeted a different transport')
     def sending(self,request,**kwargs):
+        guard_route(request)
         if request.url.host!='openrouter.ai':return send(self,request,**kwargs)
         fresh,receipt=prepared(request,request.read())
         kwargs['follow_redirects']=False
@@ -228,6 +257,7 @@ def _install_httpx(httpx):
             except BaseException:response.close();raise
         return response
     async def asending(self,request,**kwargs):
+        guard_route(request)
         if request.url.host!='openrouter.ai':return await asend(self,request,**kwargs)
         body=await request.aread()
         from .observational_receipts import enabled as observing

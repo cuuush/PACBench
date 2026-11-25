@@ -14,6 +14,7 @@ from .context_isolation import actual_context
 from .harness import _parse_turn, capture_prefetch_provenance
 from .hermes_gateway import _identity
 from .gateway_reuse import NATIVE_CHAT_CLOSE
+from .stop import communicate_until_stop
 from .workflow_delivery import submit_document
 
 
@@ -43,13 +44,36 @@ def appended_rows(path, position):
             yield json.loads(line)
 
 
+def capture_tool_results(native_results, stream_results):
+    """Bind stream status and the answer-visible native value by tool-call ID."""
+    by_id = {event.get('tool_call_id'): event for event in stream_results}
+    native_ids = {row['tool_call_id'] for row in native_results}
+    if (None in by_id or '' in by_id or len(by_id) != len(stream_results)
+            or len(native_ids) != len(native_results) or by_id.keys() != native_ids):
+        raise ValueError('incomplete or duplicate native tool-result identity')
+    results = []
+    for row in native_results:
+        event = by_id[row['tool_call_id']]
+        if event['tool'] != row['tool_name']:
+            raise ValueError('native tool-result name differs from the captured stream')
+        results.append({**event, 'text': row.get('api_content') or row['content']})
+    return results
+
+
 def tool_provenance(calls, results):
     """Record explicit native operations separately from automatic memory delivery."""
     from .followups import tool_category
     from .source_policy import viking_read_result_category
+    by_id = {row['tool_call_id']: row for row in results}
+    call_ids = {row['tool_call_id'] for row in calls}
+    if len(by_id) != len(results) or len(call_ids) != len(calls) or by_id.keys() != call_ids:
+        raise ValueError('tool provenance requires one result per unique tool call')
     observed = []
-    for call,result in zip(calls,results,strict=True):
+    for call in calls:
         name = call['name']
+        result = by_id[call['tool_call_id']]
+        if result['tool'] != name:
+            raise ValueError('tool provenance result does not match the selected tool')
         category = tool_category(name,call['input'])
         if name=='viking_read' and result['success']:
             category = viking_read_result_category(result['text'])
@@ -84,12 +108,13 @@ class WarmHermes:
     closes a conversation between its related turns. Per-provider readback of the
     write and source inventory belongs to the provisioned account binding.
     """
-    def __init__(self, owner, clock, observe_idle, *, chat_close_timeout_s=120):
+    def __init__(self, owner, clock, observe_idle, *, chat_close_timeout_s=120, watch_stop=False):
         self.owner = owner
         self.clock = clock
         self.clock_owner = OpenChatClockOwner(owner, observe_idle)
         self.starts = {}
         self.chat_close_timeout_s = chat_close_timeout_s
+        self.watch_stop = watch_stop
         if owner.env.get('PACBENCH_WORKFLOW_CAPTURE') != 'pizza-week-conversation-v2':
             raise ValueError('exact driver capture must be enabled at gateway startup')
 
@@ -125,7 +150,13 @@ class WarmHermes:
         hook_cursor = trace_position(trace_path)
         wire_cursor = trace_position(Path(env['PACBENCH_API_INPUT_TRACE']))
         started = time.monotonic()
-        proc = subprocess.run(cmd, cwd=owner.cwd, env=env, capture_output=True, text=True, timeout=240)
+        if self.watch_stop:
+            with subprocess.Popen(cmd, cwd=owner.cwd, env=env, stdout=subprocess.PIPE,
+                                  stderr=subprocess.PIPE, text=True) as child:
+                stdout, stderr = communicate_until_stop(child, timeout=240, env=env)
+                proc = subprocess.CompletedProcess(cmd, child.returncode, stdout, stderr)
+        else:
+            proc = subprocess.run(cmd, cwd=owner.cwd, env=env, capture_output=True, text=True, timeout=240)
         result_received = time.monotonic()
         raw = dict(stdout=proc.stdout, returncode=proc.returncode, cli_elapsed_s=result_received-started,
                    question_at=at, turn_nonce=desc['nonce'], hook_cursor=hook_cursor, wire_cursor=wire_cursor)
@@ -180,11 +211,7 @@ class WarmHermes:
                                    delivered_text=sent_users[-1].get('content') if sent_users else None)
         delta = records[max(i for i,r in enumerate(records) if r['role']=='user')+1:]
         native_results = [r for r in delta if r['role']=='tool']
-        if len(native_results) != len(turn.tool_results):
-            raise RuntimeError('incomplete native tool-result capture')
-        results = [{**event, 'text':r.get('api_content') or r['content'],
-                    'tool_call_id':r['tool_call_id'], 'tool':r['tool_name']}
-                   for r,event in zip(native_results,turn.tool_results,strict=True)]
+        results = capture_tool_results(native_results, turn.tool_results)
         return {'answer':turn.answer,'session_id':sid,'history':records,'question_at':at,
                 'gateway_identity':gateway,
                 'clock_evidence':clock_receipt,'context_isolation':isolation,'model_requests':requests,

@@ -16,6 +16,8 @@ def main(argv=None):
     parser.add_argument('action', choices=('plan','conform','preflight'))
     parser.add_argument('--state', choices=('continuing-account','isolated-control'), default='continuing-account')
     parser.add_argument('--track', choices=('nightly-document','first-party-connector'), required=True)
+    parser.add_argument('--seven-daily-documents', action='store_true',
+                        help='exercise the frozen one-document-per-creation-day layout offline')
     parser.add_argument('--provider', choices=tuple(PROVIDERS))
     parser.add_argument('--output', type=Path, help='new private evidence directory for conformance')
     parser.add_argument('--site', type=Path, help='explicit authorized synthetic MemCal site for preflight')
@@ -24,7 +26,15 @@ def main(argv=None):
         parser.error('--site is only used by preflight')
     if (args.action == 'conform') != (args.output is not None):
         parser.error('conform requires a new --output; plan writes only to stdout')
-    spec, docs, turns, frozen = compile_week(args.state)
+    daily_manifest = None
+    if args.seven_daily_documents:
+        if args.action == 'preflight' or (args.track, args.state) != ('nightly-document', 'continuing-account'):
+            parser.error('seven daily files require the continuing document plan or conformance')
+        from .workflow_daily_documents import compile_daily_week
+
+        spec, docs, turns, frozen, daily_manifest = compile_daily_week()
+    else:
+        spec, docs, turns, frozen = compile_week(args.state)
     if args.action == 'preflight':
         if (args.provider, args.track, args.state) != ('memcal', 'first-party-connector', 'continuing-account'):
             parser.error('preflight requires the continuing-account MemCal first-party connector')
@@ -39,6 +49,9 @@ def main(argv=None):
               'turns_by_measure':dict(Counter(t.measure for t in turns)),
               'criteria_by_measure':dict(sum_claims(turns)),
               'prompt_caching':'unmeasured','providers':{}}
+    if daily_manifest is not None:
+        result.update(source_layout=daily_manifest['source_layout'],
+                      document_index_sha256=daily_manifest['normalized_index_sha256'])
     if args.action == 'conform':
         args.output.mkdir(parents=True,mode=0o700,exist_ok=False)
     for provider in ([args.provider] if args.provider else PROVIDERS):
@@ -53,7 +66,8 @@ def main(argv=None):
         scoped = [d for d in docs if d.channel in covered]
         account = RecordingAccount(condition,scoped)
         try:
-            scores = run_current_week(condition, account, args.output/provider)
+            scores = run_current_week(condition, account, args.output/provider,
+                                      seven_daily_documents=args.seven_daily_documents)
             row.update(offline_recorded_turns=sum(r['answered'] for r in scores.values()),
                        recorded_files=len(account.files),
                        result='offline-conformance' if covered==BOTH else 'channel-only import conformance')

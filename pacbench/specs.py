@@ -9,11 +9,19 @@ from .prepare import read_spec, resolve_spec
 
 def inspect_spec(path, *, week_start=None):
     spec = read_spec(path)
-    if spec.get('version') == 'pizza-week-conversation-v2':
-        from .workflow_spec import compile_week
+    version = spec.get('version')
+    if version in ('pizza-week-conversation-v2', 'pizza-week-seven-daily-documents-v2'):
+        if version == 'pizza-week-conversation-v2':
+            from .workflow_spec import compile_week
 
-        _, documents, turns, _ = compile_week('continuing-account', path)
-        compile_week('isolated-control', path)
+            _, documents, turns, _ = compile_week('continuing-account', path)
+            compile_week('isolated-control', path)
+        else:
+            from .workflow_daily_documents import DAILY_SPEC, compile_daily_week
+
+            if spec != read_spec(DAILY_SPEC):
+                raise ValueError('Daily document layout differs from the frozen spec')
+            _, documents, turns, _, _ = compile_daily_week()
         start = documents[0].cutoff[:10]
         if week_start and week_start != start:
             raise ValueError(f'Workflow dates are frozen to the week starting {start}')

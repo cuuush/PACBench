@@ -1,0 +1,21 @@
+{
+  "version": "pizza-week-seven-daily-documents-v2",
+  "frozen_workflow_sha256": "fff48e923997739490ff4c00893548cbf3775288a337c14666acb23d853636c8",
+  "frozen_source_binding": "a27a6cac448ec525c57eda08b9095ce323de279c6a60d849623b809b8ae2a05a",
+  "normalized_document_index_sha256": "55e204958b1c38d0dc4177d47789bc78473c44b96f183a554f98390bb5b22ce9",
+  "layout": "exactly seven files, one per original simulated creation day, with iMessage and email together",
+  "order": "original written timestamp in the benchmark timezone, with frozen source identity breaking ties",
+  "release_order": "unchanged frozen nightly cutoffs; reject input if its creation day differs from its original release day",
+  "body": "preserve authored bytes, including literal quotations that survive the verified source projection; omit standalone prior-day records, backfill, context, summaries, generated annotations, and the one replayed email history suffix excluded by MemCal",
+  "memcal_ingestion_revision": "f9f8b96c72625febe6677cf73a94702e024d171d",
+  "verified_mail_history_exclusion": {
+    "source_id": "message-0a0b9d9e87a648dfdc742ac7",
+    "quoted_prior_source_id": "message-6e5997a6f7c2077ace849405",
+    "raw_body_sha256": "a863f50ba3d19b85b5042d1eae64403545e13355989d56025289237c1acaa147",
+    "native_archive_text_sha256": "57eba1cdaec0e5160362008b8d730149cee77eebf0ca847f724059c7dcfad32f",
+    "retained_authored_bytes": 65,
+    "projected_body_sha256": "9e9d6d0521ef2e02edf5e09f073566d9271bc23b6e94374e37847c2ae9a86432"
+  },
+  "metadata": "deterministic inline envelope of source identity, sender, time, and channel-specific fields supplied by the matching MemCal fixture; provider storage metadata is separate",
+  "questions_and_criteria": "unchanged frozen continuing-account schedule"
+}

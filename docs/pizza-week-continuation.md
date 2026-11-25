@@ -1,7 +1,6 @@
 # Continue Pizza Week
 
-Start from the public PACBench repository. Python 3.12 matches the integration
-checks.
+Start from the public PACBench repository. Use Python 3.12 for the local checks.
 
 ```sh
 git clone https://github.com/cuuush/PACBench.git
@@ -43,6 +42,9 @@ python -m pytest -q tests/test_pizza_week_reliability.py tests/test_workflow_dai
   tests/test_question_judge_batch.py tests/test_question_judge_spans.py \
   tests/test_week_spec_audit.py tests/test_prose_judge_controls.py
 ```
+
+The [local integration and receipt commands](../CONTRIBUTING.md#focused-pizza-week-checks)
+exercise the full focused set.
 
 On an authorized runner with the original private run directories, verify the
 [cohort manifest](cohort-regrade.md) before opening a fresh overlay. The same

@@ -56,3 +56,43 @@ finite nonresetting key limit. It requires the matching execution account,
 retained operator confirmation of Auto Recharge off, and no contrary live
 billing evidence. It never changes account settings. The conditional sizing
 figure above is reference arithmetic for the original offline proposal.
+
+## Harder development comparison
+
+The frozen synthetic challenge has 24 single-criterion cases across six
+families. `pacbench.decisions_calibration.render_plan(seed)` renders 96 requests
+in balanced order. Each blind case ID receives both existing Luna rubric
+prompts on Bedrock Global and the explicit rubric through two Decisions routes.
+The Decisions prompts use the typed choice output contract. The model-visible
+body contains the timed question, its answer, the prior public conversation
+and the criterion. Gold labels, reference rationales, family IDs and the
+blinding seed are excluded. The reference file is opened only for the offline
+comparison. `paired_errors` reports false accepts, false rejects, semantic
+gains and regressions by family, with separate invalid, refusal and missing
+counts.
+
+The Decisions routes are `openai/gpt-6-luna-decisions` through `openai` and
+`typesafe/jev-1.14` through `typesafe`. Both disable fallback. The endpoint
+documents ordinary OpenRouter Bearer API-key authentication.
+[Decisions API guide](https://openrouter.ai/docs/guides/features/decisions)
+[Luna endpoint catalog](https://openrouter.ai/api/v1/models/openai/gpt-6-luna-decisions/endpoints)
+[Jev endpoint catalog](https://openrouter.ai/api/v1/models/typesafe/jev-1.14/endpoints)
+
+The live scope holds one shared executor lock and verifies the installed
+prepaid account. It saves the 48 Chat Completions judgments before checking
+the account-filtered Decisions inventory. The Decisions transport admits
+the 48 reviewed bodies after the complete verified Chat Completions prefix.
+Each cell has one possible send, and a complete response must prove the pinned
+served model, provider, unique generation ID and numeric billed cost before
+another cell can proceed. A settled refusal or invalid verdict remains visible
+in the report. This development comparison has no effect on provider grades.
+
+The synthetic launcher rehearsal uses the same entry point and dispatch hooks.
+
+```sh
+python -m pytest -q tests/test_judge_calibration_live.py tests/test_decisions_calibration.py
+```
+
+On the authorized executor, the single-use live entry point is
+`PACBENCH_OPENROUTER_PROFILE=luna-bedrock-global python -m pacbench.judge_calibration_live`.
+The isolated result includes the preregistered semantic and coverage checks.

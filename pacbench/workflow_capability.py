@@ -137,6 +137,15 @@ def load():
         from .honcho_regrade_live import validate
         validate(c, bound)
         return c
+    if c.get('admission') in ('pizza-week-question-contract-development-shadow-v1',
+                              'pizza-week-question-contract-span-regression-v2'):
+        from .question_shadow_live import validate
+        validate(c, bound)
+        return c
+    if c.get('admission') == 'luna-judge-development-challenge-v2':
+        from .judge_calibration_live import validate
+        validate(c, bound)
+        return c
     if c.get('admission') == 'pizza-day-wrong-answer-judge-v1':
         from .pizza_day_control import validate
         validate(c, bound)
@@ -241,6 +250,15 @@ def budget(*, project=None, profile=None):
     if c.get('admission') == SM_WEEK_ADMISSION:
         from .supermemory_week_admission import WeekJournal
         return WeekJournal(path)
+    if c.get('admission') == 'pizza-week-question-contract-development-shadow-v1':
+        from .question_shadow_live import ShadowJournal
+        return ShadowJournal(path)
+    if c.get('admission') == 'pizza-week-question-contract-span-regression-v2':
+        from .question_shadow_live import SpanJournal
+        return SpanJournal(path)
+    if c.get('admission') == 'luna-judge-development-challenge-v2':
+        from .judge_calibration_live import ChatJournal
+        return ChatJournal(path)
     if c['provider'] == 'memcal':
         from .observational_receipts import IndexedRunReceiptJournal
         return IndexedRunReceiptJournal(path)
@@ -327,6 +345,13 @@ def admission(project, profile, body):
         return admit(c, project, body)
     if c.get('admission') == 'pizza-week-honcho-authored-chats-luna-v4-v1':
         from .honcho_regrade_live import admit
+        return admit(c, project, body)
+    if c.get('admission') in ('pizza-week-question-contract-development-shadow-v1',
+                              'pizza-week-question-contract-span-regression-v2'):
+        from .question_shadow_live import admit
+        return admit(c, project, body)
+    if c.get('admission') == 'luna-judge-development-challenge-v2':
+        from .judge_calibration_live import admit
         return admit(c, project, body)
     if c.get('admission') == 'pizza-day-wrong-answer-judge-v1':
         from .pizza_day_control import admit

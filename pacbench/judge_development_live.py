@@ -79,14 +79,19 @@ def check_stops(root):
 
 
 def validate(scope, bound):
+    return validate_standalone(scope, bound, admission=SCOPE, name=NAME, project=PROJECT,
+                               revision=REVISION, manifest_sha=MANIFEST_SHA)
+
+
+def validate_standalone(scope, bound, *, admission, name, project, revision, manifest_sha):
     from .workflow_capability import confirm_setting
-    root = CAMPAIGN/NAME
-    if (scope.get('admission') != SCOPE or scope.get('root') != str(root)
-            or root != root.resolve() or scope.get('provider') != NAME
+    root = CAMPAIGN/name
+    if (scope.get('admission') != admission or scope.get('root') != str(root)
+            or root != root.resolve() or scope.get('provider') != name
             or scope.get('run_id') != CAMPAIGN.name
-            or scope.get('reviewed_commit') != REVISION or scope.get('manifest_sha256') != MANIFEST_SHA
+            or scope.get('reviewed_commit') != revision or scope.get('manifest_sha256') != manifest_sha
             or Path(bound['path']) != root/'workflow-scope.json'
-            or scope.get('projects') != {NAME: {'judge': PROJECT}}
+            or scope.get('projects') != {name: {'judge': project}}
             or scope.get('controller') != process_identity()
             or os.environ.get(COHORT_STOP) != str(CAMPAIGN/'ACCOUNT_STOP')
             or os.environ.get('PACBENCH_STOP_FILE') != str(root/'STOP')
@@ -109,12 +114,16 @@ def require_checkpoint_key(key):
 
 
 def admit(scope, project, body):
+    return admit_frozen(scope, project, body, expected_project=PROJECT, cells=frozen_requests())
+
+
+def admit_frozen(scope, project, body, *, expected_project, cells):
     from .workflow_capability import ENV
-    cell = next((cell for cell in frozen_requests() if cell['body'] == body), None)
-    if project != PROJECT or cell is None:
+    cell = next((cell for cell in cells if cell['body'] == body), None)
+    if project != expected_project or cell is None:
         raise ValueError('Unreviewed Luna development request')
     return dict(root=scope['root'], capability=json.loads(os.environ[ENV]), run_id=scope['run_id'],
-                slot=dict(kind='judge', provider=NAME, question_id=cell['id']), projects=[PROJECT])
+                slot=dict(kind='judge', provider=scope['provider'], question_id=cell['id']), projects=[expected_project])
 
 
 def prefix_summary(root, rows, cells):
@@ -153,17 +162,23 @@ def verify_stream(root, row):
         raise ValueError('A/B response and billing generation differ')
     if served.get('provider') != 'Amazon Bedrock' or row.get('served_model') != PROFILES[PROFILE]['model']:
         raise ValueError('A/B receipt does not confirm the pinned served model and provider')
+    return served
 
 
 class JudgeJournal(RunReceiptJournal):
+    project = PROJECT
+
+    def frozen_cells(self):
+        return frozen_requests()
+
     def prepare(self, project, body, **kwargs):
         # Validate the original body too, before the shared transport applies its normalization.
-        if project != PROJECT or not any(cell['body'] == body for cell in frozen_requests()):
+        if project != self.project or not any(cell['body'] == body for cell in self.frozen_cells()):
             raise ValueError('Unreviewed Luna development request')
         return super().prepare(project, body, **kwargs)
 
     def check_prepared(self, rows, row):
-        cells = frozen_requests()
+        cells = self.frozen_cells()
         prefix = list(rows.values())
         prefix_summary(self.path.parent, prefix, cells)
         if len(prefix) == len(cells) or row['workflow_slot']['question_id'] != cells[len(prefix)]['id']:

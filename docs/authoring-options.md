@@ -101,6 +101,11 @@ Corpus review `source-realism-v11` uses all actual source for answerability whil
 exempting author-owned source from writing/naturalness/scene-fact judging.
 It does not endorse an authored expectation merely because its source was exact.
 
+Use `test_scene_id` to select a scene explicitly, including exact source with
+independent assistant checks. Use the compiled ID, such as `w1-invite` for a
+scene in a `weeks` array. Unknown IDs fail validation. Assistant checks still
+define their own expectations.
+
 For compatibility, explicitly supplied legacy scene `facts` (including `[]`)
 retain the original model-checking contract. Old compiled scenes, checker
 receipts and frozen artifacts keep their protocol. Remove that field only when
@@ -120,6 +125,12 @@ messages in this thread; the checker sees preceding cross-thread source context.
 Generated source retains normal independent scene review, bound to actual text,
 facts and context. Neither generated source nor exact source reaches providers
 with private author directions, facts or answer keys.
+
+When a scene depends on another thread, give the writer only the previously
+established context it needs in the scene description. Show how a participant
+who missed the earlier exchange learns about it. Check that relay against the
+actual earlier messages and keep scene facts focused on what this exchange
+establishes.
 
 This complete minimal example mixes exact and generated source. Three existing
 iMessage members (Me, Maya and Leo) gain a fourth, Sam, at Tuesday’s scene start.

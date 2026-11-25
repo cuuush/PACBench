@@ -70,3 +70,13 @@ Compare saved provider cohorts with matching release, chat and judge conditions
 and report coverage alongside any score. See the
 [paired validation plan](question-scoped-judge.md#compatibility-and-evaluation-plan-declare-before-any-calls)
 for the independent efficacy check.
+
+## Recover retired branch history
+
+PACBench keeps the exact historical tips under their original names in
+`refs/archive/pizza-week-20261125/`. Fetch them explicitly from a clone.
+
+```sh
+git fetch --no-tags origin 'refs/archive/pizza-week-20261125/*:refs/archive/pizza-week-20261125/*'
+git for-each-ref --format='%(objectname) %(refname)' refs/archive/pizza-week-20261125/
+```

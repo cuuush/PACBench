@@ -47,6 +47,8 @@ embedding, then stops. `--start-services` additionally leaves the verified runti
 ready at `127.0.0.1:11435`, checking its version, model identity and actual local
 embedding. Existing mismatched services are refused. No paid model requests or
 source ingestion occur.
+To reuse verified MiniLM assets on an existing machine, set
+`PACBENCH_MEMOS_MODEL_CACHE` to the directory containing `Xenova/all-MiniLM-L6-v2`.
 
 The separately authorized MemCal correction diagnostic selects
 `PACBENCH_MEMCAL_CONDITION=wiki-supersession-review-da58057-v1` and a clean
@@ -380,6 +382,11 @@ current; the observer neither resubmits source nor changes native processing.
 Cognee 1.6.8 runs in a private server environment with the unchanged 1.4.3 native
 HTTP integration. Its automatic local installer still selects 1.6.6; PACBench
 manually provisions the newer local server and records that distinction.
+Cognee loads `nomic-ai/nomic-embed-text-v1.5/tokenizer.json` on native startup.
+With Hugging Face access, it can populate the runtime user's Hub cache
+automatically. Offline startup needs the file in that cache, which defaults to
+`~/.cache/huggingface/hub` and can be set with `HF_HUB_CACHE`. The setup identity
+check does not populate the cache.
 ReMe uses stable v0.4.2.2, including its `core` extra, rather than development
 0.4.2.3. Install its shipped Hermes integration from the same release. Preserve
 its default resource watcher, extraction, indexing and result-hook witnesses.

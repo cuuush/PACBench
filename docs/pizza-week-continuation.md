@@ -1,18 +1,21 @@
 # Continue Pizza Week
 
-Start from the public PACBench repository. Use Python 3.12 for the local checks.
+Start from the public PACBench repository. To inspect the frozen Pizza Week
+inputs and run offline conformance, use Python 3.12. These commands use the
+standard library and need no provider services or API keys. The conformance
+command uses a local test double to record file releases and question turns.
 
 ```sh
 git clone https://github.com/cuuush/PACBench.git
 cd PACBench
-python3 -m venv .venv
-. .venv/bin/activate
-python -m pip install -r requirements-dev.txt httpx==0.28.1 \
-  starlette==1.6.0 honcho-ai==2.9.0 supermemory==5.0.1 openai==2.36.0
-python -m pacbench.specs
-python -m pacbench.workflow conform --track nightly-document --seven-daily-documents \
+python3 -m pacbench.specs
+python3 -m pacbench.workflow conform --track nightly-document --seven-daily-documents \
   --output "$(mktemp -d)/pizza-week-conformance"
 ```
+
+For a new live run, use `./scripts/setup` and follow the
+[live setup guide](../README.md#set-up-a-live-run). Continuing the historical run
+requires the original private files described below.
 
 The frozen r2 source has 142 synthetic records and seven releases at 21:00
 America/New_York. In the [seven-document condition](pizza-week-workflow.md),
@@ -34,9 +37,19 @@ Use these offline checks to inspect the frozen contracts and the saved-answer
 entry point.
 
 ```sh
-python -m pacbench.week_spec_audit
-python -m pacbench.spec_first_pilot
-python -m pacbench.question_judge_week inventory --candidate question-scoped-assertions-spans-v2
+python3 -m pacbench.week_spec_audit
+python3 -m pacbench.spec_first_pilot
+python3 -m pacbench.question_judge_week inventory --candidate question-scoped-assertions-spans-v2
+```
+
+For the focused test suite, install its pinned development and provider
+dependencies into a local virtual environment.
+
+```sh
+python3 -m venv .venv
+. .venv/bin/activate
+python -m pip install -r requirements-dev.txt httpx==0.28.1 \
+  starlette==1.6.0 honcho-ai==2.9.0 supermemory==5.0.1 openai==2.36.0
 python -m pytest -q tests/test_pizza_week_reliability.py tests/test_workflow_daily_documents.py \
   tests/test_honcho_week.py tests/test_supermemory_week.py tests/test_cohort_regrade.py \
   tests/test_question_judge_batch.py tests/test_question_judge_spans.py \
@@ -46,22 +59,25 @@ python -m pytest -q tests/test_pizza_week_reliability.py tests/test_workflow_dai
 The [local integration and receipt commands](../CONTRIBUTING.md#focused-pizza-week-checks)
 exercise the full focused set.
 
-On an authorized runner with the original private run directories, verify the
-[cohort manifest](cohort-regrade.md) before opening a fresh overlay. The same
-command can import recorded replies by supplying a verified response journal,
-its SHA-256 and the judge ID.
+## Regrade saved answers
+
+A fresh clone contains the public corpus, source, fixtures and aggregate results.
+The machine that ran the original trials keeps the private run manifests,
+provider readbacks, saved answers and receipts. Keep the original directories
+together. Set `COHORT` to the [cohort manifest](cohort-regrade.md) that points
+to those runs and `NEW_OVERLAY` to a new private output directory. To import
+recorded judge replies, supply the response journal, its verified SHA-256 and
+the judge ID.
 
 ```sh
-python -m pacbench.cohort_regrade "$COHORT" --revision luna-context-v4-v1 --verify
-python -m pacbench.cohort_regrade "$COHORT" --revision luna-context-v4-v1 \
+python3 -m pacbench.cohort_regrade "$COHORT" --revision luna-context-v4-v1 --verify
+python3 -m pacbench.cohort_regrade "$COHORT" --revision luna-context-v4-v1 \
   --response-journal "$REPLIES" --journal-sha256 "$REPLY_SHA" \
   --judge "$JUDGE" --output "$NEW_OVERLAY"
 ```
 
-The original executor retains the private run manifests, native readbacks,
-saved answers and response receipts. A fresh clone contains the public corpus,
-source, fixtures and aggregate evidence. Runner-specific live launchers verify
-their own existing authorization, application state and receipt files.
+For a live continuation, the original launch commands still verify their
+existing authorization, provider state and receipt files.
 
 For the next comparison, freeze the six synthetic answers and expected
 decisions, then pair Luna v4 with the candidate on the same pinned route.

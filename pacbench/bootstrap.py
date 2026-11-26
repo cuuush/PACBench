@@ -9,20 +9,53 @@ import argparse
 import hashlib
 import json
 import os
+import platform
 import shutil
 import socket
 from pathlib import Path
 import subprocess
 import tarfile
+import tempfile
 import time
 import urllib.request
 
-from .provider_versions import MEMCAL_REVISION, memcal_source, verify_memos_package
+from .provider_versions import MEMCAL_REVISION, memcal_source, memos_model_cache, verify_memos_package
 from .reme_memos_setup import PINS as REME_PINS
 from .cognee_memobase_setup import PINS as COGNEE_PINS
 
 ROOT = Path(__file__).resolve().parents[1]
 COMPONENTS = ('hermes', 'hindsight', 'honcho', 'openviking', 'reme', 'cognee', 'memos', 'supermemory', 'clock', 'embeddings')
+INSTALL_TOOLS = {
+    'hermes': ('git', 'uv'),
+    'hindsight': ('uv',),
+    'honcho': ('git', 'uv'),
+    'openviking': ('uv',),
+    'reme': ('git', 'uv'),
+    'cognee': ('git', 'uv'),
+    'memos': ('node', 'npm', 'make', 'c++'),
+    'embeddings': ('tar', 'zstd'),
+}
+
+
+def install_blockers(components):
+    if platform.system() != 'Linux' or platform.machine() != 'x86_64':
+        return ['Native bootstrap requires Linux x86-64.']
+    build_clock = 'clock' in components and not (ROOT / 'vendor/libfaketime/runtime-v4/libfaketime.so.1').exists()
+    commands = dict.fromkeys(tool for name in components for tool in INSTALL_TOOLS.get(name, ()))
+    if build_clock:
+        commands.update(dict.fromkeys(('curl', 'sha256sum', 'docker')))
+    missing = [tool for tool in commands if shutil.which(tool) is None]
+    if missing:
+        return ['Required commands missing from PATH: ' + ', '.join(missing)]
+    if build_clock:
+        try:
+            daemon = subprocess.run(['docker', 'info'], env=environment(), timeout=10,
+                                    stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, check=False)
+        except (OSError, subprocess.TimeoutExpired):
+            return ['The clock build requires an accessible Docker daemon.']
+        if daemon.returncode:
+            return ['The clock build requires an accessible Docker daemon.']
+    return []
 
 
 def environment(root=ROOT):
@@ -35,6 +68,7 @@ def environment(root=ROOT):
     env.setdefault('UV_PYTHON_INSTALL_DIR', str(root / '.bootstrap-cache/python'))
     env.setdefault('UV_PYTHON_BIN_DIR', str(root / '.bootstrap-cache/bin'))
     env.setdefault('npm_config_cache', str(root / '.bootstrap-cache/npm'))
+    env.setdefault('XDG_CACHE_HOME', str(root / '.bootstrap-cache'))
     env['NODE_USE_ENV_PROXY'] = '1'
     return env
 
@@ -48,12 +82,23 @@ def output(args, cwd=ROOT):
 
 
 def source(url, revision, destination, *, patch=None):
-    if not destination.exists():
-        destination.mkdir(parents=True)
-        command(['git', 'init', destination])
-        command(['git', '-C', destination, 'remote', 'add', 'origin', url])
-        command(['git', '-C', destination, 'fetch', '--depth=1', 'origin', revision])
-        command(['git', '-C', destination, 'checkout', '--detach', 'FETCH_HEAD'])
+    if os.path.lexists(destination):
+        verify_source(revision, destination, patch)
+        return
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    with tempfile.TemporaryDirectory(prefix=f'.{destination.name}-', dir=destination.parent) as staging:
+        tree = Path(staging) / 'source'
+        command(['git', 'init', tree])
+        command(['git', '-C', tree, 'remote', 'add', 'origin', url])
+        command(['git', '-C', tree, 'fetch', '--depth=1', 'origin', revision])
+        command(['git', '-C', tree, 'checkout', '--detach', 'FETCH_HEAD'])
+        verify_source(revision, tree, patch)
+        if os.path.lexists(destination):
+            raise FileExistsError(f'{destination}: appeared during source setup')
+        tree.rename(destination)
+
+
+def verify_source(revision, destination, patch):
     actual = output(['git', '-C', destination, 'rev-parse', 'HEAD'])
     if actual != revision:
         raise RuntimeError(f'{destination}: revision differs; preserve/move the existing checkout before installing')
@@ -116,8 +161,9 @@ def verify_nomic(model_root, expected):
 def embeddings():
     pins = json.loads((ROOT / 'vendor/EMBEDDING_PINS.json').read_text())
     pin = pins['minilm']
+    model_cache = memos_model_cache(ROOT)
     for name, digest in pin['files'].items():
-        destination = ROOT.parent / 'shared/pacbench-memos-models' / pin['repository'] / name
+        destination = model_cache / pin['repository'] / name
         download(f"https://huggingface.co/{pin['repository']}/resolve/{pin['revision']}/{name}", destination, digest)
     runtime = ROOT / 'vendor/ollama'
     archive = runtime / ('release-' + pins['ollama']['version'] + '.tar.zst')
@@ -281,12 +327,8 @@ def install(name):
         if file_digest(lock)!=manifest['components']['memos']['sha256']:
             raise RuntimeError('Native MemOS npm dependency lock differs')
         shutil.copyfile(lock,root/'package/package-lock.json')
-        command(['npm', 'ci', '--omit=dev', '--omit=optional', '--legacy-peer-deps'], cwd=root / 'package')
-        # Transformers imports Sharp even for text embeddings. Its Linux CPU
-        # binaries are optional in npm metadata but required by this runtime.
-        command(['npm', 'install', '--no-save', '--package-lock=false', '--omit=dev',
-                 '--omit=optional', '--legacy-peer-deps', '@img/sharp-linux-x64@0.34.5',
-                 '@img/sharp-libvips-linux-x64@1.2.4'], cwd=root / 'package')
+        # Transformers needs the platform's Sharp addons already pinned in this lock.
+        command(['npm', 'ci', '--omit=dev', '--include=optional', '--legacy-peer-deps'], cwd=root / 'package')
         verify_memos_package(ROOT)
     elif name == 'supermemory':
         root = vendor / 'supermemory-local'
@@ -338,8 +380,8 @@ def verify(components):
                 if output(['git', '-C', tree, 'rev-parse', 'HEAD']) != revision or output(['git', '-C', tree, 'status', '--porcelain']):
                     raise RuntimeError('Provider integration source differs')
             elif name == 'memos':
-                detail['dependency_lock']=verify_memos_dependencies(ROOT/'vendor/memos-local-plugin/package')
                 _, detail = verify_memos_package(ROOT)
+                detail['dependency_lock']=verify_memos_dependencies(ROOT/'vendor/memos-local-plugin/package')
             elif name == 'supermemory':
                 if file_digest(ROOT / 'vendor/supermemory-local/supermemory-server-linux-x64') != 'd7987ecbf2b024c6de9d167becbcfcaabce447169b41d6f56db86f87d5187984':
                     raise RuntimeError('Supermemory binary differs')
@@ -349,10 +391,11 @@ def verify(components):
             elif name == 'embeddings':
                 pins = json.loads((ROOT / 'vendor/EMBEDDING_PINS.json').read_text())
                 model_root = ROOT / 'vendor/ollama/models'
+                model_cache = memos_model_cache(ROOT)
                 if file_digest(ROOT/'vendor/ollama/bin/ollama')!=pins['ollama']['binary_sha256']:raise RuntimeError('Ollama executable differs')
                 verify_nomic(model_root, pins['nomic']['manifest_sha256'])
                 for filename, digest in pins['minilm']['files'].items():
-                    if file_digest(ROOT.parent / 'shared/pacbench-memos-models' / pins['minilm']['repository'] / filename) != digest:
+                    if file_digest(model_cache / pins['minilm']['repository'] / filename) != digest:
                         raise RuntimeError('MiniLM asset differs')
                 # Exercise the actual native text embedder, with remote loading
                 # disabled, rather than treating file presence as readiness.
@@ -364,13 +407,19 @@ const v = await p.embed(['Local offline embedding readiness check.'], 'document'
   config: {model:'Xenova/all-MiniLM-L6-v2', local:{cacheDir:CACHE, offline:true}}, log});
 if(v.length !== 1 || v[0].length !== 384 || !v[0].every(Number.isFinite)) throw Error('Bad local embedding');
 await p.close();
-""".replace('CACHE', json.dumps(str(ROOT.parent / 'shared/pacbench-memos-models')))
+""".replace('CACHE', json.dumps(str(model_cache)))
                 subprocess.run(['node', '--input-type=module', '-e', program], cwd=ROOT,
                                env=environment(), check=True, timeout=120, capture_output=True)
                 detail['memos_offline_embedding_dimensions'] = 384
             checks.append({'component': name, 'state': 'pass', 'detail': detail})
         except (OSError, ValueError, RuntimeError, subprocess.SubprocessError) as exc:
-            checks.append({'component': name, 'state': 'blocked', 'error': type(exc).__name__})
+            blocked = {'component': name, 'state': 'blocked', 'error': type(exc).__name__}
+            if isinstance(exc, FileNotFoundError) and exc.filename:
+                blocked['missing_path'] = os.fsdecode(exc.filename)
+            if name == 'embeddings':
+                blocked['memos_model_cache'] = str(memos_model_cache(ROOT))
+                blocked['asset_pins'] = 'vendor/EMBEDDING_PINS.json'
+            checks.append(blocked)
     return {'state': 'pass' if all(x['state'] == 'pass' for x in checks) else 'blocked',
             'checks': checks, 'inference_calls': 0,
             'scope': 'Offline installed identity checks; no native processing or paid readiness claim.'}
@@ -415,26 +464,54 @@ def start_services():
 
 
 def main(argv=None):
-    parser = argparse.ArgumentParser(description=__doc__)
+    parser = argparse.ArgumentParser(description=__doc__,
+                                     epilog='See the README for the offline quick start without native runtimes.')
     parser.add_argument('--install', action='store_true', help='Install and verify; briefly starts local Ollama for a CPU embedding check, never paid inference')
     parser.add_argument('--start-services',action='store_true',help='Leave verified local Ollama running on port11435; no paid inference')
     parser.add_argument('--check', action='store_true', help='Offline verification of installed identities; no installation')
+    parser.add_argument('--check-live', action='store_true',
+                        help='Verify installed runtimes and the configured model route without inference')
     parser.add_argument('--components', nargs='+', choices=COMPONENTS, default=list(COMPONENTS))
     args = parser.parse_args(argv)
-    if args.start_services and not (args.install or args.check):parser.error('--start-services requires --install or --check')
-    if args.install and args.check:
-        parser.error('Choose --install or --check')
-    if args.check:
+    checking = args.check or args.check_live
+    if args.install and checking:
+        parser.error('--install cannot be combined with --check or --check-live')
+    if args.check_live and args.start_services:
+        parser.error('--check-live cannot be combined with --start-services')
+    if args.start_services and not (args.install or checking):
+        parser.error('--start-services requires --install or --check')
+    if checking:
         result = verify(args.components)
+        if result['state'] != 'pass':
+            blocked = [row['component'] for row in result.get('checks', ()) if row['state'] == 'blocked']
+            command = './scripts/setup --install'
+            if blocked:
+                command += ' --components ' + ' '.join(blocked)
+            result['next_step'] = f'Install or repair the blocked runtimes with `{command}`, then rerun the check.'
+        if args.check_live:
+            from .gateway_client import check_live_route
+
+            result['live_route'] = check_live_route()
+            result['runtime_state'] = result['state']
+            if result['live_route']['state'] != 'pass':
+                result['state'] = 'blocked'
+        else:
+            result['live_route'] = {'state': 'not-checked',
+                                    'detail': 'Use --check-live to check the configured route without model calls.'}
         if args.start_services and result['state']=='pass':result['services']=start_services()
         print(json.dumps(result, indent=2))
         return int(result['state'] != 'pass')
     if not args.install:
         print(json.dumps({'components': args.components, 'install': False, 'paid_calls': False,
-            'private_accounting': 'Restore original ledger.json and authorization.json securely; never recreate from summaries.',
-            'remaining_prerequisites': ['Docker daemon for clock build and Honcho', 'start installed local Ollama at 127.0.0.1:11435 before execution', 'restore original private accounting', 'native per-provider preflight and processing checks'],
+            'private_accounting': 'Installation needs no model credentials or accounting. Follow the configured route and campaign preflight for live execution.',
+            'remaining_prerequisites': ['Docker daemon for the clock build and the native Honcho service', 'start installed local Ollama at 127.0.0.1:11435 before execution', 'native per-provider preflight and processing checks'],
             'existing_installations': 'Mismatched or modified sources are preserved and rejected; move them aside explicitly before retrying.'}, indent=2))
         return 0
+    blockers = install_blockers(args.components)
+    if blockers:
+        print(json.dumps({'state': 'blocked', 'components': args.components, 'blockers': blockers,
+                          'inference_calls': 0}, indent=2))
+        return 1
     for name in dict.fromkeys(args.components):
         print(f'Installing {name}', flush=True)
         install(name)

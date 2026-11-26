@@ -1,0 +1,19 @@
+#!/bin/sh
+set -eu
+
+CDPATH= cd "$(dirname "$0")/.."
+if [ "$#" -eq 0 ]; then
+    set -- --help
+fi
+
+# Bootstrap uses the standard library and installs the pinned provider runtimes separately.
+for python in ./.venv/bin/python python3.12 python3; do
+    if command -v "$python" >/dev/null 2>&1 &&
+        "$python" -B -c 'import sys; sys.exit(sys.version_info < (3, 11))'; then
+        export PYTHONDONTWRITEBYTECODE=1
+        exec "$python" -m pacbench.bootstrap "$@"
+    fi
+done
+
+echo 'Python 3.11 or newer is required. Install Python 3.12 and retry ./scripts/setup.' >&2
+exit 1

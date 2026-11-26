@@ -19,6 +19,7 @@ MEMCAL_CONTEXT_CONDITION = 'wiki-context-review-dac7214-v1'
 MEMCAL_CONTEXT_REVISION = 'dac7214006b84ec364ecbcd9472daca7db588a25'
 MEMCAL_OPERATIONS_CONDITION = 'wiki-preference-operations-review-c19d216-v1'
 MEMCAL_OPERATIONS_REVISION = 'c19d216a7e5dd3913f69ab79c24d2d339bacef16'
+LEGACY_MEMOS_MODEL_CACHE = Path('/workspace/shared/pacbench-memos-models')
 
 
 def memcal_pin():
@@ -65,6 +66,15 @@ def verify_memcal_source(repo: Path) -> dict:
         raise RuntimeError('Selected Memcal native Hermes integration is missing')
     return {'revision': actual, 'version': version, 'source': str(root), 'working_tree_changes': False,
             'condition':condition}
+
+
+def memos_model_cache(repo: Path) -> Path:
+    override = os.environ.get('PACBENCH_MEMOS_MODEL_CACHE', '').strip()
+    if override:
+        return Path(override).expanduser().resolve()
+    if LEGACY_MEMOS_MODEL_CACHE.is_dir():
+        return LEGACY_MEMOS_MODEL_CACHE
+    return repo.parent / 'shared/pacbench-memos-models'
 
 
 def verify_memos_package(repo: Path) -> tuple[Path, dict]:

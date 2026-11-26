@@ -12,6 +12,7 @@ import time
 
 from pacbench.followups import save
 from pacbench.gateway_client import validate_route
+from pacbench.provider_versions import memos_model_cache
 from provider_adapters.reme_memos_documents import request
 
 REPO=Path(__file__).resolve().parents[1]
@@ -36,7 +37,7 @@ def plan_config(root,model,base,key):
         'model':model,'apiKey':key,'fallbackToHost':False},
         # L3/evolver inherit that same explicitly selected native LLM config.
         'embedding':{'provider':'local','model':'Xenova/all-MiniLM-L6-v2',
-            'local':{'cacheDir':'/workspace/shared/pacbench-memos-models','offline':True}},
+            'local':{'cacheDir':str(memos_model_cache(REPO)),'offline':True}},
         'hub':{'enabled':False},'telemetry':{'enabled':False}}
     condition=os.environ.get('PACBENCH_MEMOS_REASONING_CONDITION')
     if condition:

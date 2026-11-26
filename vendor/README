@@ -2,21 +2,41 @@
 
 ## Reproduce the current runtime
 
-From a checkout of this branch on Linux x86-64, run:
+Use Linux x86-64 with Git and Python 3.11 or newer. Run setup as your regular
+user, with a writable checkout and home directory and room for several GB of
+downloads plus the installed runtimes. Keep your existing HTTPS proxy and CA
+trust configuration.
+
+- Install uv for your user and verify it with `uv --version`.
+  [uv installation](https://docs.astral.sh/uv/getting-started/installation/)
+- Install Node.js 22.21 or newer with npm. Verify both with `node --version`
+  and `npm --version`. [Node.js downloads](https://nodejs.org/en/download)
+- Install Docker Engine, start the daemon, and confirm `docker info` succeeds
+  from the same account. [Docker Engine installation](https://docs.docker.com/engine/install/)
+- Use your distribution's package manager for `make` and a C++ compiler for
+  MemOS, curl and GNU coreutils for the clock build, and GNU tar and zstd for
+  embeddings. On Debian or Ubuntu the packages are `build-essential curl coreutils tar zstd`.
+
+From the repository root, run:
 
 ```sh
-python3 -m pacbench.bootstrap --install --start-services
+./scripts/setup --check
+./scripts/setup --install --start-services
 ```
 
-Requirements: Python 3.11+, `uv`, Git, GNU tar with `zstd`, Node 22.21+ with npm, and a working
-local Docker daemon. Keep the inherited HTTPS proxy and CA trust. Run as the
-normal user with writable workspace and home directories. Stock Ollama creates
-its native identity in `~/.ollama`; a sandbox that makes the home read-only
-needs a normal outside-sandbox setup invocation. The installer never reads,
-creates or replaces the task's private ledger or needs an inference API key.
+Ollama writes its local identity in `~/.ollama`. The setup script runs without
+`sudo`, and runtime installation needs no inference API key.
 
-The default invocation without `--install` prints a plan. `--components hermes
-honcho` selects a subset; `--check` verifies installed identities offline.
+`--check` verifies installed identities offline. `--install` provisions the
+runtime and stops the temporary embedding server after verification.
+`--install --start-services` leaves that server running. To check an existing
+model route as well, run `./scripts/setup --check-live` after the gateway is
+running. See the [README](../README.md#set-up-a-live-run) for gateway setup.
+Run `. vendor/venv-hermes-isolated/bin/activate` before live PACBench commands
+so the launcher can load the pinned provider plugin dependencies. The runner
+may fetch pinned plugin source into a trial's isolated Hermes home.
+For component-level debugging, `./scripts/setup --check --components hermes honcho`
+verifies only the selected subset.
 Pinned Hermes includes the Mem0 and other provider clients and the clean Memcal
 0.8.11 checkout. Separate environments install Hindsight, OpenViking, ReMe,
 Cognee and Honcho. MemOS and Supermemory assets are hash-verified. The clock
@@ -200,12 +220,11 @@ at the desired review commit:
 
 ```sh
 set -eu
-cd /workspace/PACBench
-python3 -m pacbench.bootstrap --install --start-services
-python3 -m pacbench.bootstrap --check
+./scripts/setup --install --start-services
+./scripts/setup --check
 ```
 
-Before paid execution, restore the **original** private directory
+For the retained OpenRouter campaign, restore the **original** private directory
 `/workspace/shared/pacbench-openrouter-pizza-day-20261112` using the environment's
 private persistence/handoff mechanism. It must contain `ledger.json` and
 `authorization.json`, including all historical unknowns, reservations and

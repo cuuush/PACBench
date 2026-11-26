@@ -64,12 +64,15 @@ Work on small, inspectable changes before expanding the benchmark:
 
 ## Run a new experiment
 
-For a fresh environment, run `python3 -m pacbench.bootstrap --install --start-services` from
-the repository root, then `python3 -m pacbench.bootstrap --check`. See the
-[runtime setup](vendor/README) for prerequisites and a copyable cloud setup
-snippet. This provisions pinned local components without paid inference.
-Private spending history must be restored separately before any paid run;
-installation does not recover the ledger or establish native recall readiness.
+For a fresh environment, run `./scripts/setup --install --start-services` from
+the repository root, then `./scripts/setup --check`. See the
+[runtime setup](vendor/README) for prerequisites. The script provisions pinned
+local components without paid inference. Start separately with the original
+private ledger for an existing experiment or follow the [new study setup](README.md#set-up-a-live-run).
+Once the gateway is running, use `./scripts/setup --check-live` to
+verify its spending boundary. Native recall readiness is checked during the trial.
+Run `. vendor/venv-hermes-isolated/bin/activate` before launching paid work to
+use the setup script's provider libraries.
 
 Parallel catalog installs can share a provisioned, pinned Hermes tool store via
 `HERMES_RUNTIME_DIR`. Give each arm its own Hermes home, provider data and
@@ -414,7 +417,7 @@ provider readiness, new grades or benchmark completion.
 
 The runtime bootstrap excludes development dependencies. After bootstrap, install
 the pinned test dependencies with
-`uv pip install --python vendor/venv-hermes-isolated/bin/python -r requirements-dev.txt`
+`uv pip install --python vendor/venv-hermes-isolated/bin/python --constraint vendor/runtime-locks/hermes.txt -r requirements-dev.txt`
 and activate that environment to run the suite. Node.js is needed for the
 JavaScript syntax checks. Run checks appropriate to your change:
 

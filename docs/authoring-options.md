@@ -243,6 +243,9 @@ For multiple weeks, replace `days` with a `weeks` array of complete Monday–Sun
 
 Concrete dates are assigned during preparation from the spec's `week_start` Monday. `--week-start` explicitly overrides it; update any prose containing concrete dates when moving a scenario. Legacy unpinned inputs can still prepare relative to the host week, but the inventory requires a fixed date. Eastern defaults to `America/New_York`, including daylight saving time. Dates and offsets are frozen in the compiled corpus.
 
+Use the activated Hermes Python environment and the model gateway from the
+[live setup](../README.md#set-up-a-live-run) for these commands.
+
 ```sh
 python -m pacbench generate specs/pizza_week.json --output artifacts/corpora/pizza-week
 python -m pacbench run artifacts/corpora/pizza-week --output runs/pizza-current

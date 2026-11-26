@@ -20,6 +20,27 @@ def test_memos_local_memory_keeps_selected_model_and_disables_other_host_inferen
     assert result['hub']['enabled'] is result['telemetry']['enabled'] is False
 
 
+def test_bootstrap_and_memos_share_model_cache_preserving_historical_location(tmp_path, monkeypatch):
+    from pacbench import bootstrap, provider_versions
+    from provider_adapters import memos_local
+
+    repo = tmp_path / 'checkout' / 'PACBench'
+    legacy = tmp_path / 'historical-cache'
+    monkeypatch.setattr(provider_versions, 'LEGACY_MEMOS_MODEL_CACHE', legacy)
+    monkeypatch.setattr(memos_local, 'REPO', repo)
+    monkeypatch.delenv('PACBENCH_MEMOS_MODEL_CACHE', raising=False)
+
+    def configured():
+        return plan_config(tmp_path, 'model', 'url', 'inert')['embedding']['local']['cacheDir']
+
+    assert configured() == str(bootstrap.memos_model_cache(repo)) == str(repo.parent / 'shared/pacbench-memos-models')
+    legacy.mkdir()
+    assert configured() == str(bootstrap.memos_model_cache(repo)) == str(legacy)
+    override = tmp_path / 'explicit-cache'
+    monkeypatch.setenv('PACBENCH_MEMOS_MODEL_CACHE', str(override))
+    assert configured() == str(bootstrap.memos_model_cache(repo)) == str(override)
+
+
 def test_memos_original_trace_search_is_source_access():
     assert tool_category('memos_search',{'query':'plan'})=='source_evidence'
     assert tool_category('memos_get',{'kind':'trace'})=='source_evidence'

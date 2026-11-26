@@ -14,51 +14,141 @@ inspect the method, explore the evidence and contribute. The scenarios,
 integrations and judging are still being tested; the saved runs are development
 evidence, not a calibrated leaderboard.
 
-## Explore the evidence
+## Try it offline
 
-You can inspect the saved runs locally with **Python 3.11 or newer**. No model
-credentials, provider services or package installation are needed for the explorer.
+You need Git and **Python 3.11 or newer**. From a terminal, clone the repo and
+plan a run using the checked-in Bike Pickup data. This needs no credentials,
+services or package installation.
 
 ```sh
 git clone https://github.com/cuuush/PACBench.git
 cd PACBench
-python3 serve_explorer.py
+python3 -m pacbench run runs/bike-pickup-native-clock-20261105/preparation \
+  --output "$(mktemp -d)/bike-plan" --plan
 ```
 
-This opens the explorer at [localhost:8137](http://127.0.0.1:8137/index.html).
-It reads the evidence in `runs/` directly and shows source conversations, nightly
-ingestion, agent tool calls, answers, judging criteria and observed costs.
-To choose another port, use `python3 serve_explorer.py 8138`.
+The command prints the path to `summary.json`. Expect nine selected memory systems,
+two source days, five questions and 15 grading criteria per provider. The plan
+verifies the inputs and shows what a live run would do.
 
-The saved [Pizza Month run](runs/pizza-month-local-20261105) contains 2,868
-messages, 30 nightly imports and 15 final questions. It is **incomplete**, and its
-[saved native audit](runs/pizza-month-local-20261105/native-audit.json) reports
-failure. Memcal, Mem0 and Hindsight completed ingestion but have some ungraded
-answers. Supermemory and Honcho stopped during ingestion and did not reach
-recall. These outcomes must remain distinct from wrong answers.
+## Set up a live run
 
-Public receipts support inspection of what happened. They do not include the
-private provider stores needed to repeat every native audit or resume an
-interrupted service.
+The **runner** is the machine where you run PACBench. A **provider** is one of
+the memory systems it tests. The **corpus** is the frozen set of conversations,
+questions and grading criteria shared by all providers. The **model gateway** is
+a local service that forwards model requests and records spending.
+
+On Linux x86-64, use the setup script to check your machine, install the pinned
+tools, and leave the local embedding service running. Installation downloads
+several GB and does not make paid model requests. See the exact prerequisites
+and setup modes in the [runtime guide](vendor/README). The first check on a
+fresh machine lists the missing components. Keep access to the plugin
+repositories available when running the providers.
+
+```sh
+./scripts/setup --check
+./scripts/setup --install --start-services
+./scripts/setup --check
+```
+
+For the default paid path, the operator needs a Meta credential authorized for
+Spark Contributor and the gateway's $10 UTC daily limit. Supply `META` through
+your local secret manager or managed environment and keep it out of Git and chat.
+In a separate terminal with that credential available, start the gateway from
+the repo root. This example creates private state for a genuinely new campaign.
+
+```sh
+mkdir -p "$HOME/.local/state"
+vendor/venv-hermes-isolated/bin/python -m pacbench.gateway \
+  --state "$HOME/.local/state/pacbench-gateway" \
+  --initialize-new-state
+```
+
+Leave the gateway running. For later starts, omit `--initialize-new-state` and
+use the same directory. To continue a prior paid campaign, use its original
+private ledger and authorization. The historical OpenRouter launchers use their
+own task-specific authorization and state.
+[Existing campaign setup](CONTRIBUTING.md#run-a-new-experiment)
 
 ## Run your own scenario
 
-Use an existing [author spec](docs/authoring-options.md) or write one in the
-same format. With the [native runtime and model route configured](vendor/README),
-run these two commands from the repository root.
+In the terminal where you will run PACBench, make `META` available and activate
+the Python environment installed by setup. It includes the libraries PACBench
+uses to load the provider plugins. Use an existing author spec or write one in
+the same format. [Scenario authoring](docs/authoring-options.md)
 
 ```sh
-python -m pacbench generate specs/pizza_week.json --output artifacts/corpora/pizza-week
-python -m pacbench run artifacts/corpora/pizza-week --output runs/pizza-current
+. vendor/venv-hermes-isolated/bin/activate
+export PACBENCH_GATEWAY_STATE="$HOME/.local/state/pacbench-gateway"
+export MODEL=muse-spark-1.3-contributor
+export TMPDIR=/var/tmp
+
+./scripts/setup --check-live &&
+python -m pacbench.specs specs/pizza_week.json &&
+python -m pacbench generate specs/pizza_week.json --output artifacts/corpora/pizza-week &&
+python -m pacbench run artifacts/corpora/pizza-week --output artifacts/runs/pizza-week-001
 ```
 
-Keep the corpus directory together. The run checks `week.json` and the files
-it binds before sending source to a provider. The same commands accept Pizza
-Month, Bike Pickup, and new author specs. `run` selects all nine active providers.
-Use `--providers memcal mem0` to select a subset, or `--plan` to check the
-corpus and view its schedule and frozen question counts without model or
-provider calls. Execution records provider availability and evidence in the
-run's `summary.json` and provider subdirectories.
+Successful preparation writes `week.json`. Keep its sibling files so you can
+use that exact corpus again without generating and reviewing the conversations
+again. `run` selects all nine active providers by default. Use
+`--providers memcal mem0` to choose a subset or `--plan` to check the frozen
+corpus offline before starting a live run. Each live run writes `summary.json`
+and per-provider evidence under `repeat-1/`. A `blocked` result means an execution
+prerequisite failed, such as gateway access or spending availability. Read the
+reported reason before retrying and use a new output directory.
+
+For multiple personas, put one spec per file in `specs/personas/`. Give a
+changed spec a fresh name, such as `maya-v2.json`, so its corpus stays distinct.
+Use the same activated terminal to run the batch below. It stops at a failed
+preparation or run. Use a fresh batch label when rerunning the same frozen corpora.
+
+```sh
+batch=batch-001
+for spec in specs/personas/*.json; do
+  [ -f "$spec" ] || continue
+  name=$(basename "$spec" .json)
+  corpus="artifacts/personas/$name/corpus"
+  run="artifacts/personas/$name/runs/$batch"
+  if [ ! -f "$corpus/week.json" ]; then
+    python -m pacbench.specs "$spec" || break
+    python -m pacbench generate "$spec" --output "$corpus" || break
+  fi
+  python -m pacbench run "$corpus" --output "$run" || break
+done
+```
+
+To try the same authored scenario without paying for preparation, download the
+original 80-message corpus as `week.json`. That archived manifest is self-contained.
+[Download the original Pizza Week corpus](https://raw.githubusercontent.com/cuuush/PACBench/825ad85e578c8e7d545c9e5fa3fa0713f912faaa/runs/pizza-week-natural-messages-all-20261012-r1/preparation/week.json)
+
+```sh
+python3 -m pacbench run week.json --output "$(mktemp -d)/pizza-week-plan" --plan
+```
+
+The plan covers six source days and 17 questions. After live setup, use the same
+`run` command with the activated `python`, a fresh output path, and no `--plan`.
+Pizza Week r2 has separate frozen data and a 49-turn conversation schedule.
+[Pizza Week r2 continuation and offline checks](docs/pizza-week-continuation.md)
+
+## Explore saved results
+
+Run the explorer from the checkout and open [localhost:8137](http://127.0.0.1:8137/index.html).
+
+```sh
+python3 serve_explorer.py
+```
+
+The explorer shows source conversations, nightly imports, agent tool calls,
+answers, grading criteria and observed costs. Use `python3 serve_explorer.py 8138`
+to choose another port.
+
+The saved Pizza Month run contains 2,868 messages, 30 nightly imports and 15
+final questions. Memcal, Mem0 and Hindsight completed ingestion and have some
+ungraded answers. Supermemory and Honcho stopped during ingestion. The public
+files contain the evidence available for inspection. Resuming a provider trial
+requires its original private store. [Pizza Month results](runs/pizza-month-local-20261105) ·
+[Native audit](runs/pizza-month-local-20261105/native-audit.json)
 
 ## How it works
 
@@ -115,11 +205,8 @@ for native delivery methods, configuration and known limitations.
 ByteRover is retired from the active benchmark at the user's direction. Its
 saved results and audit support remain available as historical evidence.
 
-Running a new trial requires separate provider services, pinned Hermes
-integrations, embeddings and model access. It is a self-hosted development
-workflow. PACBench's budget gateway runs from this repository; it requires the
-existing private ledger before any paid work. The [contribution guide](CONTRIBUTING.md)
-explains the prerequisites, validation commands and next steps.
+The [contribution guide](CONTRIBUTING.md) covers validation and provider-specific
+requirements.
 
 ## Contribute
 

@@ -193,7 +193,8 @@ def execute(root, preparation, confirmation):
         scope = dict(provider='memcal',admission=SCOPE,root=str(root), canary=False, account=str(root),store=str(store),
                      controller=process_identity(),protocol='pizza-week-conversation-v2',run_id=root.parent.name,
                      spec_sha256=SPEC,projects=roles,frozen_inputs=BASIS,plan_sha256=plan.digest,
-                     auto_recharge_evidence=binding(confirmation),prepaid=credit_snapshot())
+                     auto_recharge_evidence=binding(confirmation),prepaid=credit_snapshot(),
+                     campaign_stop=str(cap.campaign_stop(root)))
         with (root/'workflow-scope.json').open('x') as out:
             json.dump(scope,out)
         bound=binding(root/'workflow-scope.json')
@@ -251,6 +252,8 @@ def execute(root, preparation, confirmation):
 
 
 def main():
+    from . import workflow_capability as cap
+
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('action',choices=('preflight','run'))
     parser.add_argument('campaign',type=Path)
@@ -262,7 +265,7 @@ def main():
                   MEMCAL_IMESSAGE_BACKEND='chatdb',PACBENCH_OPENROUTER_PROFILE='luna-bedrock-global',
                   PACBENCH_RECEIPT_JOURNAL=str(root/'receipts.jsonl'),PACBENCH_ROLE_ROUTES='luna-all-roles-v1',
                   PACBENCH_LUNA_COMPATIBILITY='temperature-omitted-default-v1',PACBENCH_EFFECTIVE_OUTPUT_TOKENS='32768',
-                  PACBENCH_STOP_FILE=str(root/'STOP'),PACBENCH_OBSERVATIONAL_COHORT_STOP=str(root.parent/'ACCOUNT_STOP'),
+                  PACBENCH_STOP_FILE=str(root/'STOP'),PACBENCH_OBSERVATIONAL_COHORT_STOP=str(cap.campaign_stop(root)),
                   PACBENCH_MEMORY_API_INPUT_TRACE_ROOT=str(root/'memory-api-inputs'),PACBENCH_IMPORT_ROOT=str(root))
     from .live_dispatch import CONDITION
     settings['PACBENCH_DISPATCH_TRACKING']=CONDITION

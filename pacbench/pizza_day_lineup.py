@@ -167,13 +167,14 @@ def run(root, preparation, confirmation, *, retained=None):
     settings = dict(PACBENCH_RECEIPT_JOURNAL=str(root/'receipts.jsonl'),PACBENCH_ROLE_ROUTES='luna-all-roles-v1',
         PACBENCH_LUNA_COMPATIBILITY='temperature-omitted-default-v1', PACBENCH_EFFECTIVE_OUTPUT_TOKENS='32768',
         PACBENCH_DISPATCH_TRACKING=CONDITION,PACBENCH_STOP_FILE=str(root/'STOP'),PACBENCH_IMPORT_ROOT=str(root),
-        PACBENCH_OBSERVATIONAL_COHORT_STOP=str(root.parent/'ACCOUNT_STOP'),
+        PACBENCH_OBSERVATIONAL_COHORT_STOP=str(cap.campaign_stop(root)),
         PACBENCH_MEMORY_API_INPUT_TRACE_ROOT=str(root/'memory-api-inputs'))
     with run_environment(settings):
         fetch_catalog(profile=PROFILE_NAME)
         scope=dict(root=str(root),admission=SCOPE,provider=name,run_id=root.parent.name,frozen_inputs=BASIS,
                    protocol='pizza-week-conversation-v2',spec_sha256=SPEC,projects=projects(root),run_key=run_key,
-                   controller=process_identity(),prepaid=credit_snapshot(),auto_recharge_evidence=confirm)
+                   controller=process_identity(),prepaid=credit_snapshot(),auto_recharge_evidence=confirm,
+                   campaign_stop=str(cap.campaign_stop(root)))
         atomic(root/'workflow-scope.json',scope)
         bound=binding(root/'workflow-scope.json')
         with run_environment({cap.ENV:json.dumps(bound)}), SourcePlan(directory,[doc],[turn]) as plan, WorkflowProgress(directory,run_key,create=True) as p, p.account_owner():

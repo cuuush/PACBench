@@ -44,7 +44,7 @@ def test_mem0_scope_refuses_week_until_live_canary_is_verified(tmp_path, monkeyp
     monkeypatch.setenv(cap.ENV, json.dumps(bound))
     scope = cap.load()
     assert scope['canary'] is True
-    assert scope['projects'] == cap._mem0_projects(root)
+    assert scope['projects'] == cap._document_projects(root, 'mem0')
 
 
 def test_mem0_history_proves_new_writes_after_native_eviction(tmp_path):

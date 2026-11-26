@@ -261,16 +261,25 @@ def claimed_request(scope, project, body):
 
 def paid_batch(progress, directory, limit, *, resume_unsent_day=False):
     """Grade an interrupted run in place without opening its account or issuing a user turn."""
+    from .workflow_capability import PROFILE
+    from .workflow_memcal_live import run_environment
+
     # Route modules read this once at import. Reject mixed/legacy admission modes.
-    os.environ.setdefault('PACBENCH_OPENROUTER_PROFILE', 'luna-bedrock-global')
+    profile = os.environ.get('PACBENCH_OPENROUTER_PROFILE', PROFILE)
+    with run_environment({'PACBENCH_OPENROUTER_PROFILE': profile}):
+        return _paid_batch(progress, directory, limit, resume_unsent_day)
+
+
+def _paid_batch(progress, directory, limit, resume_unsent_day):
     from . import execution_capability, workflow_capability as cap
-    from .canary_capability import binding
+    from .canary_capability import binding, read
     from .gateway_client import client_settings
     from .live_dispatch import CONDITION
     from .model_calls import ModelClient
-    from .observational_receipts import credit_snapshot
+    from .observational_receipts import COHORT_STOP, credit_snapshot
     from .openrouter_direct import direct_environment
-    from .openrouter_route import PROFILE_NAME, MODEL, CHAT_COMPLETIONS_URL
+    from .openrouter_route import CHAT_COMPLETIONS_URL, MODEL, PROFILE_NAME
+    from .workflow_memcal_live import run_environment
     from .workflow_runner import Journal
 
     root = directory.parent
@@ -280,40 +289,39 @@ def paid_batch(progress, directory, limit, *, resume_unsent_day=False):
             or os.environ.get('PACBENCH_DIRECT_UPSTREAM_KEY') or os.environ.get('PACBENCH_JUDGE_OUTPUT_RECOVERY')
             or not (root/'receipts.jsonl').is_file() or (root/'receipts.jsonl').is_symlink()):
         raise ValueError('judge recovery requires the original receipt journal and a fresh Luna process')
-    os.environ.update({cap.ENV: json.dumps(bound), 'PACBENCH_RECEIPT_JOURNAL': str(root/'receipts.jsonl'),
+    stop = cap.scope_campaign_stop(read(bound))
+    settings = {cap.ENV: json.dumps(bound), 'PACBENCH_RECEIPT_JOURNAL': str(root/'receipts.jsonl'),
         'PACBENCH_DISPATCH_TRACKING': CONDITION, 'PACBENCH_ROLE_ROUTES': 'luna-all-roles-v1',
         'PACBENCH_LUNA_COMPATIBILITY': 'temperature-omitted-default-v1', 'PACBENCH_EFFECTIVE_OUTPUT_TOKENS':'32768',
-        'PACBENCH_STOP_FILE': str(root/'STOP'), 'PACBENCH_OBSERVATIONAL_COHORT_STOP': str(root.parent/'ACCOUNT_STOP')})
-    scope = cap.load()
-    # Verify the original billing setting and receipt. Check the current prepaid
-    # balance again before the first possible send. The transport retains its
-    # normal refusal/admission/unknown-receipt policy for every request.
-    with judge_only_owner(progress, scope):
-        budget = cap.budget()
-        unsent = None
-        if resume_unsent_day:
-            from .pizza_day_honcho import unsent_judge
-            unsent = unsent_judge(progress, scope, budget)
-            if limit != 1:
-                raise ValueError('only the single verified Pizza Day question can be recovered')
-        if not unsent and not progress.grade_states().get('ready'):
-            return 0
-        if (root/'STOP').exists() or (root.parent/'ACCOUNT_STOP').exists():
-            raise RuntimeError('original run is stopped')
-        offline_generations = (budget.has_offline_generations() if hasattr(budget, 'has_offline_generations')
-                               else any((r.get('upstream_request_id') or '').startswith('offline-native-')
-                                        for r in budget.snapshot()))
-        if offline_generations:
-            raise ValueError('loopback fixture answers cannot receive live judgments')
-        credit_snapshot()
-        from uuid import uuid4
-        journal_dir = directory/'judge-recovery'/uuid4().hex
-        with direct_environment(os.environ['OPENROUTER_API_KEY']), Journal(journal_dir) as journal:
-            project = scope['projects'][scope['provider']]['judge']
-            _, key = client_settings(project)
-            judge = ModelClient(key=key, model=MODEL, record_dir=directory/'model-calls',
-                                url=CHAT_COMPLETIONS_URL, json_mode=True, max_attempts=1)
-            return grade_verified(progress, judge, directory, journal, limit=limit, unsent_claim=unsent)
+        'PACBENCH_STOP_FILE': str(root/'STOP'), COHORT_STOP: str(stop)}
+    with run_environment(settings):
+        scope = cap.load()
+        with judge_only_owner(progress, scope):
+            if (root/'STOP').exists() or stop.exists():
+                raise RuntimeError('original run is stopped')
+            budget = cap.budget()
+            unsent = None
+            if resume_unsent_day:
+                from .pizza_day_honcho import unsent_judge
+                unsent = unsent_judge(progress, scope, budget)
+                if limit != 1:
+                    raise ValueError('only the single verified Pizza Day question can be recovered')
+            if not unsent and not progress.grade_states().get('ready'):
+                return 0
+            offline_generations = (budget.has_offline_generations() if hasattr(budget, 'has_offline_generations')
+                                   else any((r.get('upstream_request_id') or '').startswith('offline-native-')
+                                            for r in budget.snapshot()))
+            if offline_generations:
+                raise ValueError('loopback fixture answers cannot receive live judgments')
+            credit_snapshot()
+            from uuid import uuid4
+            journal_dir = directory/'judge-recovery'/uuid4().hex
+            with direct_environment(os.environ['OPENROUTER_API_KEY']), Journal(journal_dir) as journal:
+                project = scope['projects'][scope['provider']]['judge']
+                _, key = client_settings(project)
+                judge = ModelClient(key=key, model=MODEL, record_dir=directory/'model-calls',
+                                    url=CHAT_COMPLETIONS_URL, json_mode=True, max_attempts=1)
+                return grade_verified(progress, judge, directory, journal, limit=limit, unsent_claim=unsent)
 
 
 def main(argv=None):

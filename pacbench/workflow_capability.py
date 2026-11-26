@@ -3,11 +3,13 @@ from contextlib import contextmanager
 from datetime import datetime
 from decimal import Decimal
 from functools import lru_cache
+from importlib import import_module
 from itertools import islice
 import hashlib
 import json
 import os
 from pathlib import Path
+from typing import NamedTuple
 
 from .canary_capability import binding, digest, read, sha
 from .live_dispatch import process_identity
@@ -21,6 +23,44 @@ PROFILE = 'luna-bedrock-global'
 MEMOS_OSS_ADMISSION = 'memos-oss-native-file-document-week-v1'
 SM_QUESTION_ADMISSION = 'supermemory-stock-first-question-v1'
 SM_WEEK_ADMISSION = 'supermemory-stock-document-week-v1'
+MEMCAL_SCOPE = 'memcal-source-operation-v1'
+
+
+class _DocumentArm(NamedTuple):
+    admission: str
+    canary_module: str
+    store: str
+
+
+DOCUMENT_ARMS = {
+    'mem0': _DocumentArm('mem0-native-oss-document-week-v1', '.workflow_mem0', 'mem0-state'),
+    'hindsight': _DocumentArm('hindsight-native-file-document-week-v1', '.workflow_hindsight', 'fallback-home'),
+    'openviking': _DocumentArm('openviking-native-file-document-week-v1', '.workflow_openviking', 'openviking-data'),
+    'reme': _DocumentArm('reme-native-watched-resource-week-v1', '.workflow_reme', 'reme-workspace'),
+    'cognee': _DocumentArm('cognee-native-permanent-document-week-v1', '.workflow_cognee', 'cognee-data'),
+    'memos': _DocumentArm(MEMOS_OSS_ADMISSION, '.workflow_memos_oss', 'memos-oss-service'),
+}
+
+
+def campaign_stop(root, *, nested_run=False):
+    # Document canaries and Week arms share the stop file above their run directories.
+    campaign = root.parent.parent if nested_run else root.parent
+    return campaign / 'ACCOUNT_STOP'
+
+
+def scope_campaign_stop(scope):
+    root = Path(scope['root'])
+    admission = scope.get('admission')
+    if admission in (MEMCAL_SCOPE, 'pizza-day-native-document-v1', 'pizza-day-synthetic-memcal-v1'):
+        stop = campaign_stop(root)
+    elif (admission in (SM_QUESTION_ADMISSION, SM_WEEK_ADMISSION)
+          or (scope['protocol'] == 'pizza-week-conversation-v2' and scope['provider'] in DOCUMENT_ARMS)):
+        stop = campaign_stop(root, nested_run=True)
+    else:
+        raise ValueError('unsupported workflow campaign stop scope')
+    if scope.get('campaign_stop', str(stop)) != str(stop):
+        raise ValueError('workflow campaign stop differs from the original run layout')
+    return stop
 
 
 @lru_cache(maxsize=2)
@@ -36,69 +76,26 @@ def schedule(spec_sha, canary):
 
 def create(root, provider, *, canary, prepaid, auto_recharge_evidence, qualification=None):
     root = Path(root).resolve()
-    if root.name != provider or provider not in ('reme', 'mem0', 'hindsight', 'openviking','cognee','memos'):
+    if root.name != provider or provider not in DOCUMENT_ARMS:
         raise ValueError('no qualified continuing-account binding for this provider')
-    if provider == 'mem0' and not canary and qualification is None:
-        raise ValueError('Mem0 Week requires a separately verified live canary')
-    if provider == 'hindsight' and not canary and qualification is None:
-        raise ValueError('Hindsight Week requires a separately verified live canary')
-    if provider == 'openviking' and not canary and qualification is None:
-        raise ValueError('OpenViking Week requires a separately verified live canary')
-    if provider == 'reme' and not canary and qualification is None:
-        raise ValueError('ReMe Week requires a separately verified live canary')
-    if provider == 'cognee' and not canary and qualification is None:
-        raise ValueError('Cognee Week requires a separately verified live canary')
-    if provider == 'memos' and not canary and qualification is None:
-        raise ValueError('MemOS OSS Week requires a separately verified live canary')
-    if qualification is not None and (provider not in ('mem0','hindsight','openviking','reme','cognee','memos') or canary is not False):
-        raise ValueError('unexpected live qualification binding')
+    arm = DOCUMENT_ARMS[provider]
+    if not canary and qualification is None:
+        raise ValueError(f'{provider} Week requires a separately verified live canary')
     if qualification is not None:
-        if provider == 'mem0':
-            from .workflow_mem0 import check_canary
-        elif provider == 'hindsight':
-            from .workflow_hindsight import check_canary
-        elif provider == 'openviking':
-            from .workflow_openviking import check_canary
-        elif provider == 'reme':
-            from .workflow_reme import check_canary
-        elif provider == 'memos':
-            from .workflow_memos_oss import check_canary
-        else:
-            from .workflow_cognee import check_canary
+        if canary is not False:
+            raise ValueError('unexpected live qualification binding')
         canary_root = Path(qualification['result']['path']).parent
-        if canary_root == root or check_canary(canary_root) != qualification:
+        if canary_root == root or import_module(arm.canary_module, __package__).check_canary(canary_root) != qualification:
             raise ValueError('Week requires the exact retained canary bindings')
     spec_sha = sha(SPEC)
     _, _, frozen = schedule(spec_sha, canary)
-    prefix = 'pacbench-' + hashlib.sha256(str(root).encode()).hexdigest()[:12] + '-' + provider
-    roles = {role:prefix+'-'+role for role in ('memory','driver','judge')}
     record = dict(protocol='pizza-week-conversation-v2', run_id=root.parent.name, root=str(root),
-                  provider=provider, controller=process_identity(), projects={provider:roles}, spec_sha256=spec_sha, frozen_inputs=frozen,
-                  canary=canary, prepaid=prepaid, auto_recharge_evidence=auto_recharge_evidence)
-    if provider == 'mem0':
-        record['admission'] = 'mem0-native-oss-document-week-v1'
-        if qualification is not None:
-            record['qualification'] = qualification
-    if provider == 'hindsight':
-        record['admission'] = 'hindsight-native-file-document-week-v1'
-        if qualification is not None:
-            record['qualification'] = qualification
-    if provider == 'openviking':
-        record['admission'] = 'openviking-native-file-document-week-v1'
-        if qualification is not None:
-            record['qualification'] = qualification
-    if provider == 'reme':
-        record['admission'] = 'reme-native-watched-resource-week-v1'
-        if qualification is not None:
-            record['qualification'] = qualification
-    if provider == 'cognee':
-        record['admission'] = 'cognee-native-permanent-document-week-v1'
-        if qualification is not None:
-            record['qualification'] = qualification
-    if provider == 'memos':
-        record['admission'] = MEMOS_OSS_ADMISSION
-        if qualification is not None:
-            record['qualification'] = qualification
+                  provider=provider, admission=arm.admission, controller=process_identity(),
+                  projects=_document_projects(root, provider), spec_sha256=spec_sha, frozen_inputs=frozen,
+                  canary=canary, prepaid=prepaid, auto_recharge_evidence=auto_recharge_evidence,
+                  campaign_stop=str(campaign_stop(root, nested_run=True)))
+    if qualification is not None:
+        record['qualification'] = qualification
     path = root/'workflow-scope.json'
     with path.open('x') as stream:
         json.dump(record, stream, sort_keys=True)
@@ -124,6 +121,7 @@ def load():
     if c.get('admission') == 'pizza-day-native-document-v1':
         from .pizza_day_lineup import validate
         validate(c, bound)
+        scope_campaign_stop(c)
         return c
     if c.get('admission') == 'luna-judge-development-ab-v1':
         from .judge_development_live import validate
@@ -153,58 +151,51 @@ def load():
     if c.get('admission') == 'pizza-day-synthetic-memcal-v1':
         from .pizza_day_controller import validate_scope
         validate_scope(c, bound)
+        scope_campaign_stop(c)
         return c
     if c.get('admission') == 'honcho-seven-daily-documents-v1':
         from .honcho_daily_gate import validate
         validate(c, bound)
         return c
+    provider = c['provider']
     if (root != root.resolve() or root/'workflow-scope.json' != Path(bound['path'])
-            or c['run_id'] != root.parent.name or c['provider'] != root.name
-            or c['provider'] not in ('reme','memcal','mem0','hindsight','openviking','cognee','memos') or c['protocol'] != 'pizza-week-conversation-v2'
-            or type(c['canary']) is not bool or c['spec_sha256'] != sha(SPEC)
-            or c['frozen_inputs'] != schedule(c['spec_sha256'], c['canary'])[2]):
+            or c['run_id'] != root.parent.name or provider != root.name
+            or (provider != 'memcal' and provider not in DOCUMENT_ARMS)
+            or c['protocol'] != 'pizza-week-conversation-v2' or type(c['canary']) is not bool
+            or c['spec_sha256'] != sha(SPEC) or c['frozen_inputs'] != schedule(c['spec_sha256'], c['canary'])[2]):
         raise ValueError('unbound v2 account or dataset')
-    if c['provider'] == 'mem0' and (c.get('admission') != 'mem0-native-oss-document-week-v1'
-            or c['projects'] != _mem0_projects(root)):
-        raise ValueError('unbound native Mem0 continuing-account canary scope')
-    if c['provider'] in ('mem0','hindsight','openviking','reme','cognee','memos') and not c['canary']:
-        qualification = c['qualification']
-        result = read(qualification['result'])
-        canary = read(qualification['scope'])
-        canary_root = Path(canary['root'])
-        qualified = (result['state'],result['cleanup'])==('live-canary-complete','complete')
-        if c['provider']=='hindsight' and qualification.get('cleanup'):
-            cleanup = read(qualification['cleanup'])
-            qualified = (result['state']=='incomplete' and result['cleanup']=='unverified'
-                         and Path(qualification['cleanup']['path'])==canary_root/'service-shutdown-reconciliation.json'
-                         and cleanup['state']=='verified-after-exit' and cleanup['result']==qualification['result'])
-        if (not result['canary'] or not qualified
-                or Path(qualification['scope']['path'])!=canary_root/'workflow-scope.json'
-                or Path(qualification['result']['path'])!=canary_root/'result.json'
-                or canary_root==root or canary['provider']!=c['provider'] or not canary['canary']
-                or canary['frozen_inputs']!=c['frozen_inputs'] or canary['spec_sha256']!=c['spec_sha256']):
-            raise ValueError('Week does not bind a distinct completed canary')
-    if c['provider']=='hindsight' and (c.get('admission')!='hindsight-native-file-document-week-v1'
-            or c['projects']!=_document_projects(root,'hindsight')):
-        raise ValueError('unbound native Hindsight continuing-account scope')
-    if c['provider']=='openviking' and (c.get('admission')!='openviking-native-file-document-week-v1'
-            or c['projects']!=_document_projects(root,'openviking')):
-        raise ValueError('unbound native OpenViking continuing-account scope')
-    if c['provider']=='reme' and (c.get('admission')!='reme-native-watched-resource-week-v1'
-            or c['projects']!=_document_projects(root,'reme')):
-        raise ValueError('unbound native ReMe continuing-account scope')
-    if c['provider']=='cognee' and (c.get('admission')!='cognee-native-permanent-document-week-v1'
-            or c['projects']!=_document_projects(root,'cognee')):
-        raise ValueError('unbound native Cognee continuing-account scope')
-    if c['provider']=='memos' and (c.get('admission')!=MEMOS_OSS_ADMISSION
-            or c['projects']!=_document_projects(root,'memos')):
-        raise ValueError('unbound MemoryOS OSS document scope')
+    if provider in DOCUMENT_ARMS:
+        arm = DOCUMENT_ARMS[provider]
+        if c.get('admission') != arm.admission or c['projects'] != _document_projects(root, provider):
+            raise ValueError(f'unbound native {provider} continuing-account scope')
+        if not c['canary']:
+            _validate_document_qualification(c, root)
     if c['provider'] == 'memcal':
         contract, plan, *_ = _memcal_schedule(c['spec_sha256'], c['canary'])
         if (c.get('admission') != MEMCAL_SCOPE or c.get('contract') != contract or c.get('plan_sha256') != plan
                 or c['projects'] != _projects(root)):
             raise ValueError('MemCal capability differs from the frozen release or role binding')
+    scope_campaign_stop(c)
     return c
+
+
+def _validate_document_qualification(scope, root):
+    qualification = scope['qualification']
+    result = read(qualification['result'])
+    canary = read(qualification['scope'])
+    canary_root = Path(canary['root'])
+    qualified = (result['state'], result['cleanup']) == ('live-canary-complete', 'complete')
+    if scope['provider'] == 'hindsight' and qualification.get('cleanup'):
+        cleanup = read(qualification['cleanup'])
+        qualified = ((result['state'], result['cleanup']) == ('incomplete', 'unverified')
+                     and Path(qualification['cleanup']['path']) == canary_root/'service-shutdown-reconciliation.json'
+                     and cleanup['state'] == 'verified-after-exit' and cleanup['result'] == qualification['result'])
+    if (not result['canary'] or not qualified
+            or Path(qualification['scope']['path']) != canary_root/'workflow-scope.json'
+            or Path(qualification['result']['path']) != canary_root/'result.json'
+            or canary_root == root or canary['provider'] != scope['provider'] or not canary['canary']
+            or canary['frozen_inputs'] != scope['frozen_inputs'] or canary['spec_sha256'] != scope['spec_sha256']):
+        raise ValueError('Week does not bind a distinct completed canary')
 
 
 def confirm_setting(record):
@@ -293,7 +284,7 @@ def owner(env, home, checkpoint, provider, clock):
             or env.get('PACBENCH_TOOL_ALLOWLIST') != ','.join(tools)
             or env.get('PACBENCH_OPENROUTER_PROFILE') != PROFILE or env.get('PACBENCH_OFFLINE_CONFORMANCE')):
         raise ValueError('Honcho gateway requires its scoped controller, stock toolkit and Luna route')
-    if provider in ('mem0','hindsight','openviking','reme','cognee','memos') and (
+    if provider in DOCUMENT_ARMS and (
             env.get('PACBENCH_TOOL_ALLOWLIST') != ','.join(tools)
             or env.get('PACBENCH_OPENROUTER_PROFILE') != PROFILE
             or env.get('PACBENCH_ROLE_ROUTES') != 'luna-all-roles-v1'
@@ -361,7 +352,7 @@ def admission(project, profile, body):
         return honcho_admission(c, project, profile, body)
     if provider == 'memcal':
         return _memcal_admission(c, project, body)
-    if provider in ('mem0','hindsight','openviking','reme','cognee','memos'):
+    if provider in DOCUMENT_ARMS:
         from .openrouter_route import validate_request
         validate_request(body, profile=PROFILE)
     root = Path(c['root'])
@@ -382,8 +373,7 @@ def admission(project, profile, body):
     condition = Condition(**deployment['condition'])
     record = deployment['deployment_witness']
     validate_native_deployment(condition, record)
-    store = {'reme':'reme-workspace','mem0':'mem0-state','hindsight':'fallback-home',
-             'openviking':'openviking-data','cognee':'cognee-data','memos':'memos-oss-service'}[provider]
+    store = DOCUMENT_ARMS[provider].store
     if (condition.provider != provider or condition.track != 'nightly-document'
             or condition.state != 'continuing-account'
             or provider == 'memos' and condition.version != MEMOS_OSS_VERSION
@@ -470,7 +460,7 @@ def admission(project, profile, body):
         slot = dict(kind='judge', question_id=event['question'])
     else:
         raise ValueError('workflow stage does not permit this request')
-    if provider in ('mem0','hindsight','openviking','reme','cognee','memos'):
+    if provider in DOCUMENT_ARMS:
         slot['journal_stage_sha256'] = digest(event)
     if provider == 'hindsight' and role == 'memory':
         work = hindsight_consolidation_call(root)
@@ -478,10 +468,6 @@ def admission(project, profile, body):
             slot['native_work'] = work
     return dict(root=c['root'], capability=json.loads(os.environ[ENV]), run_id=c['run_id'],
                 slot={**slot,'provider':provider},projects=[project])
-
-
-def _mem0_projects(root):
-    return _document_projects(root,'mem0')
 
 
 def _document_projects(root,provider):
@@ -520,7 +506,7 @@ def confirm_document_sender(row):
     bound = json.loads(os.environ[ENV])
     root = Path(scope['root'])
     journal = root/'workflow/workflow.jsonl'
-    if (scope['provider'] not in ('mem0','hindsight','openviking','reme','cognee','memos') or scope['provider']!=row['workflow_slot']['provider']
+    if (scope['provider'] not in DOCUMENT_ARMS or scope['provider']!=row['workflow_slot']['provider']
             or row['workflow_root']!=str(root)
             or row['workflow_capability']!=bound or journal!=journal.resolve()):
         raise ValueError('Document dispatch no longer belongs to its active scope')
@@ -545,9 +531,6 @@ def hindsight_consolidation_call(root):
 
     bank = json.loads((root/'hermes-home/hindsight/config.json').read_text())['bank_id']
     return native_consolidation_call(bank)
-
-
-MEMCAL_SCOPE = 'memcal-source-operation-v1'
 
 
 def _projects(root):
@@ -613,7 +596,8 @@ def create_memcal_scope(root, site, *, canary, prepaid, auto_recharge_evidence):
                   spec_sha256=spec_sha, frozen_inputs=schedule(spec_sha, canary)[2], contract=contract,
                   plan_sha256=plan, site_sha256=digest(asdict(site)), account=site.account,
                   store=str(Path(site.memcal_home).resolve()), imessage_backend=site.imessage_backend,
-                  access=actual, canary=canary, prepaid=prepaid, auto_recharge_evidence=auto_recharge_evidence)
+                  access=actual, canary=canary, prepaid=prepaid, auto_recharge_evidence=auto_recharge_evidence,
+                  campaign_stop=str(campaign_stop(root)))
     path = root/'workflow-scope.json'
     with path.open('x') as stream:
         os.fchmod(stream.fileno(), 0o600)

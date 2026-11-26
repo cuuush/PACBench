@@ -134,8 +134,8 @@ def _plan(spec, condition):
     return {t.id:(t.measure,len(t.claims)) for t in frozen}
 
 
-def summarize(path):
-    """Read legacy journals once, retaining compact metrics instead of full histories."""
+def summarize(path, *, events=None):
+    """Read a legacy journal once, optionally collecting the decoded audit events."""
     if not path.is_file():
         return None
     spec, plan, pending_answer = {}, None, None
@@ -147,12 +147,14 @@ def summarize(path):
     with path.open('rb') as stream:
         for line in stream:
             try:
-                event = json.loads(line)
+                event = json.loads(line if events is None else line.decode('utf-8'))
             except (UnicodeDecodeError, json.JSONDecodeError):
                 if line.endswith(b'\n'):
                     raise
                 incomplete_tail = {'offset': stream.tell() - len(line), 'bytes': len(line)}
                 break
+            if events is not None:
+                events.append(event)
             phase, elapsed = event['phase'], event['elapsed_s']
             if phase == 'spec':
                 spec = event

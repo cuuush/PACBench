@@ -149,7 +149,7 @@ def _run(campaign, site, open_account, billing_confirmation, canary):
     settings = dict(PACBENCH_RECEIPT_JOURNAL=str(root/'receipts.jsonl'), PACBENCH_DISPATCH_TRACKING=CONDITION,
                     PACBENCH_ROLE_ROUTES='luna-all-roles-v1', PACBENCH_LUNA_COMPATIBILITY='temperature-omitted-default-v1',
                     PACBENCH_EFFECTIVE_OUTPUT_TOKENS='32768', PACBENCH_STOP_FILE=str(root/'STOP'),
-                    PACBENCH_OBSERVATIONAL_COHORT_STOP=str(campaign/'ACCOUNT_STOP'),
+                    PACBENCH_OBSERVATIONAL_COHORT_STOP=str(cap.campaign_stop(root)),
                     PACBENCH_MEMORY_API_INPUT_TRACE_ROOT=str(root/'memory-api-inputs'), PACBENCH_IMPORT_ROOT=str(root))
     with run_environment(settings):
         atomic(root/'verified-setting.json', confirmation)

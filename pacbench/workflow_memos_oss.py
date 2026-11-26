@@ -336,140 +336,34 @@ def open_account(root, scope, ledger, source, qualification):
 
 def check_canary(root):
     """Recheck the retained, separately receipted MemOS OSS qualification."""
-    import socket
-
-    from .canary_capability import binding, read, sha
-    from .observational_receipts import RunReceiptJournal
-    from .workflow_capability import MEMOS_OSS_ADMISSION, schedule
-    from .workflow_metrics import summarize
-    from .workflow_receipts import receipt_summary
-    from .workflow_runner import Condition
-    from .workflow_spec import SPEC
-
-    root=Path(root).resolve(strict=True)
-    bindings={kind:binding(root/name) for kind,name in
-              (('scope','workflow-scope.json'),('result','result.json'))}
-    scope,result=read(bindings['scope']),read(bindings['result'])
-    journal=root/'workflow/workflow.jsonl'
-    events=[json.loads(line) for line in journal.read_text().splitlines()]
-    condition=Condition(**events[1]['condition'])
-    deployment=events[1]['deployment_witness']
-    validate_native_deployment(condition,deployment)
-    setup=json.loads((root/'native-server-setup.json').read_text())
-    shutdown=json.loads((root/'native-service-stop.json').read_text())
     from provider_adapters.memos_oss_service import REVISION
-    report=summarize(journal)
-    rows=RunReceiptJournal(root/'receipts.jsonl').snapshot()
-    billed=receipt_summary(root,rows,scope['run_id'])
-    docs,turns,frozen=schedule(sha(SPEC),True)
-    visible=[event for event in events if event['phase']=='answer-visible']
-    readbacks=[event['evidence'] for event in events if event['phase']=='readback']
-    coverage=report['coverage']
-    roles={row['accounting_role'] for row in rows if row.get('upstream_request_id')}
-    if (root.name!='memos' or scope['root']!=str(root) or scope['admission']!=MEMOS_OSS_ADMISSION
-            or scope['frozen_inputs']!=frozen or scope['canary'] is not True or scope['spec_sha256']!=sha(SPEC)
-            or result['provider']!='memos' or result['canary'] is not True or result['state']!='live-canary-complete'
-            or result['cleanup']!='complete' or condition.version!=MEMOS_OSS_VERSION
-            or setup['revision']!=REVISION or setup['process']!=deployment['native_processes']['memory']
-            or shutdown!={'state':'verified-after-exit','process':setup['process']}
-            or result['billing']!=billed or result['workflow']!=report or billed['complete_cost_usd'] is None
-            or roles!={'memory_provider','hermes','judge'} or events[-1]['phase']!='completion'
-            or any(r['accounting_role']=='memory_provider' and (
-                r.get('native_request_compatibility')!=MEMOS_OSS_LUNA_COMPAT or r['http_status']!=200) for r in rows)
-            or (coverage['verified_turns'],coverage['graded_criteria'])!=(4,12)
-            or [e['question'] for e in visible]!=[turn.id for turn in turns]
-            or visible[0]['surface']['session_id']!=visible[3]['surface']['session_id']
-            or len([e for e in events if e['phase']=='chat-closed'])!=3
-            or [(r['native_id'],r['submitted_sha256'],r['ready'],r['readback']['source_payload_physically_verified'])
-                for r in readbacks]!=[(d.filename,d.sha256,True,True) for d in docs]
-            or any(t['driver_attempt_coverage']['coverage']!='complete' for t in report['turns'])):
-        raise ValueError('MemOS OSS requires a complete native warm canary and matched receipts')
-    from urllib.parse import urlsplit
-    endpoint=urlsplit(setup['endpoint'])
-    if endpoint.scheme!='http' or endpoint.hostname!='127.0.0.1' or not endpoint.port:
-        raise ValueError('Unexpected MemOS OSS service endpoint')
-    try:
-        connection=socket.create_connection((endpoint.hostname,endpoint.port),timeout=2)
-    except ConnectionRefusedError:
-        pass
-    else:
-        connection.close()
-        raise ValueError('MemOS OSS canary listener remains active')
-    return bindings
+
+    from .workflow_document_canary import audit_document_canary, verify_listener_stopped
+
+    audit = audit_document_canary(root, 'memos')
+    root = audit.root
+    setup = json.loads((root/'native-server-setup.json').read_text())
+    shutdown = json.loads((root/'native-service-stop.json').read_text())
+    if (audit.condition['version'] != MEMOS_OSS_VERSION
+            or setup['revision'] != REVISION or setup['process'] != audit.deployment['native_processes']['memory']
+            or shutdown != {'state': 'verified-after-exit', 'process': setup['process']}
+            or any(row['accounting_role'] == 'memory_provider' and (
+                row.get('native_request_compatibility') != MEMOS_OSS_LUNA_COMPAT or row['http_status'] != 200)
+                for row in audit.receipts)
+            or any(row['evidence']['readback']['source_payload_physically_verified'] != True
+                   for row in audit.events if row['phase'] == 'readback')):
+        raise ValueError('MemOS OSS canary lacks its native payload or shutdown proof')
+    verify_listener_stopped(setup['endpoint'], 'MemOS OSS')
+    return audit.bindings
 
 
 def run(root, confirmation, source, qualification, *, canary, after_canary=None):
-    import os
+    from .workflow_document_lifecycle import run_document_week
 
-    from . import workflow_capability as cap
-    from .canary_capability import binding, read
-    from .context_isolation import validate_recall_environment
-    from .gateway_client import client_settings
-    from .live_dispatch import CONDITION
-    from .model_calls import ModelClient
-    from .observational_receipts import check_cohort_stop, credit_snapshot
-    from .openrouter_direct import direct_environment
-    from .openrouter_route import CHAT_COMPLETIONS_URL, MODEL, PROFILE_NAME
-    from .openrouter_run import fetch_catalog
-    from .workflow_memcal_contract import verify_contract
-    from .workflow_memcal_live import run_environment
-    from .workflow_metrics import summarize
-    from .workflow_receipts import receipt_summary
-    from .workflow_runner import run_current_week
-    from .workflow_spec import compile_week
+    def open_native_account(root, scope, ledger):
+        return open_account(root, scope, ledger, source, qualification)
 
-    root=Path(root).absolute()
-    if (root.name!='memos' or root!=root.resolve() or PROFILE_NAME!=cap.PROFILE
-            or os.environ.get(cap.ENV) or canary==(after_canary is not None)):
-        raise ValueError('Expected a fresh MemoryOS OSS Luna account')
-    prior=check_canary(after_canary) if after_canary is not None else None
-    auth=binding(confirmation)
-    cap.confirm_setting(read(auth))
-    validate_recall_environment()
-    _,docs,turns,frozen=compile_week('continuing-account')
-    verify_contract(docs,turns,frozen)
-    root.mkdir(mode=0o700,parents=True,exist_ok=False)
-    settings=dict(PACBENCH_RECEIPT_JOURNAL=str(root/'receipts.jsonl'),PACBENCH_DISPATCH_TRACKING=CONDITION,
-        PACBENCH_ROLE_ROUTES='luna-all-roles-v1',PACBENCH_LUNA_COMPATIBILITY='temperature-omitted-default-v1',
-        PACBENCH_MEMOS_OSS_LUNA_COMPAT=MEMOS_OSS_LUNA_COMPAT,
-        PACBENCH_EFFECTIVE_OUTPUT_TOKENS='32768',PACBENCH_STOP_FILE=str(root/'STOP'),
-        PACBENCH_OBSERVATIONAL_COHORT_STOP=str(root.parent.parent/'ACCOUNT_STOP'),
-        PACBENCH_MEMORY_API_INPUT_TRACE_ROOT=str(root/'memory-api-inputs'),PACBENCH_IMPORT_ROOT=str(root))
-    started=time.monotonic()
-    with run_environment(settings):
-        check_cohort_stop()
-        fetch_catalog(profile=PROFILE_NAME)
-        bound=cap.create(root,'memos',canary=canary,prepaid=credit_snapshot(),auto_recharge_evidence=auth,
-                         qualification=prior)
-        with run_environment({cap.ENV:json.dumps(bound)}):
-            scope=cap.load()
-            ledger=cap.budget()
-            result={'provider':'memos','canary':canary,'state':'incomplete','cleanup':'unverified'}
-            journal=root/'workflow/workflow.jsonl'
-            try:
-                with direct_environment(os.environ['OPENROUTER_API_KEY']):
-                    with open_account(root,scope,ledger,source,qualification) as (condition,account):
-                        _,key=client_settings(scope['projects']['memos']['judge'])
-                        judge=ModelClient(key=key,model=MODEL,record_dir=journal.parent/'model-calls',
-                                          url=CHAT_COMPLETIONS_URL,json_mode=True,max_attempts=1)
-                        run_current_week(condition,account,journal.parent,judge=judge,canary=canary)
-                result['cleanup']='complete'
-                report=summarize(journal)
-                rows=ledger.snapshot()
-                receipt=receipt_summary(root,rows,scope['run_id'])
-                coverage=report['coverage']
-                roles={r['accounting_role'] for r in rows if r.get('upstream_request_id')}
-                if (coverage['verified_turns']==coverage['planned_turns']
-                        and coverage['graded_criteria']==coverage['planned_criteria']
-                        and all(t['driver_attempt_coverage']['coverage']=='complete' for t in report['turns'])
-                        and roles=={'hermes','judge','memory_provider'}
-                        and (not canary or receipt['complete_cost_usd'] is not None)):
-                    result['state']='live-canary-complete' if canary else 'live-week-complete'
-            except BaseException as error:
-                result['error']=type(error).__name__
-                raise
-            finally:
-                result.update(elapsed_s=time.monotonic()-started,billing=receipt_summary(root,ledger.snapshot(),scope['run_id']),
-                              workflow=summarize(journal) if journal.is_file() else None)
-                atomic(root/'result.json',result)
-    return result
+    return run_document_week(
+        root, confirmation, provider='memos', canary=canary, after_canary=after_canary,
+        check_canary=check_canary, open_account=open_native_account, fresh_account_error='Expected a fresh MemoryOS OSS Luna account',
+        extra_environment={'PACBENCH_MEMOS_OSS_LUNA_COMPAT': MEMOS_OSS_LUNA_COMPAT}, cleanup_after_direct=True)

@@ -4,7 +4,6 @@ from datetime import datetime, timezone
 import hashlib
 import json
 import logging
-import os
 from pathlib import Path
 import sqlite3
 import time
@@ -315,170 +314,36 @@ def open_account(root, endpoint, scope, ledger):
 
 def check_canary(root):
     """Re-audit the saved canary without opening the retired provider account."""
-    from .canary_capability import binding, read, sha
-    from .observational_receipts import RunReceiptJournal
+    from .canary_capability import sha
     from .observation_adapters import MEM0_PLUGIN_SHA256
-    from .openrouter_route import PROFILES
-    from .workflow_capability import schedule
-    from .workflow_metrics import summarize
-    from .workflow_receipts import receipt_summary
-    from .workflow_spec import SPEC
+    from .workflow_document_canary import audit_document_canary
 
-    root = Path(root).resolve(strict=True)
-    result_binding = binding(root/'result.json')
-    scope_binding = binding(root/'workflow-scope.json')
-    result = read(result_binding)
-    scope = read(scope_binding)
-    documents, turns, frozen = schedule(sha(SPEC), True)
-    journal = root/'workflow/workflow.jsonl'
-    summary = summarize(journal)
-    with journal.open() as stream:
-        events = [json.loads(line) for line in stream]
-    receipts = RunReceiptJournal(root/'receipts.jsonl').snapshot()
-    matched = receipt_summary(root,receipts,scope['run_id'])
-    actual_sources = [e['evidence'] for e in events if e['phase']=='readback']
-    actual_turns = [e['question'] for e in events if e['phase']=='verified-turn']
-    expected_sources = [(doc.filename,doc.sha256) for doc in documents]
-    roles = {row['accounting_role'] for row in receipts if row.get('upstream_request_id')}
-    coverage = summary['coverage']
-    condition = events[1]['condition']
-    deployment = events[1]['deployment_witness']
-    profile = PROFILES['luna-bedrock-global']
-    installed = root/'hermes-home/plugins/mem0'
-    plugin_files = {p.name:sha(p) for p in sorted(installed.glob('*.py'))}
-    installed_sha = hashlib.sha256(json.dumps(plugin_files,sort_keys=True).encode()).hexdigest()
-    harness_root = Path(__file__).resolve().parents[1]
-    hermes_revision = next(line.split('=',1)[1] for line in (harness_root/'vendor/HERMES_PIN').read_text().splitlines()
-                           if line.startswith('HERMES_PIN='))
-    if (condition['provider']!='mem0' or condition['version']!='OSS 2.2.1'
-            or condition['track']!='nightly-document' or condition['state']!='continuing-account'
-            or condition['frontend']!='Hermes '+hermes_revision
-            or condition['gateway_patch']!=sha(harness_root/'patches/hermes-isolated.diff')
-            or condition['model']!=profile['model'] or condition['model_route']!=profile['endpoint']
-            or condition['tool_names']!=list(HERMES_TOOLS['mem0']) or deployment['account']!=str(root)
-            or installed_sha!=MEM0_PLUGIN_SHA256):
-        raise ValueError('Mem0 canary static runtime and route differ from the Week condition')
-    if (root.name!='mem0' or scope['root']!=str(root) or scope['provider']!='mem0' or scope['canary'] is not True
-            or scope.get('admission')!='mem0-native-oss-document-week-v1'
-            or scope['spec_sha256']!=sha(SPEC) or scope['frozen_inputs']!=frozen
-            or result['state']!='live-canary-complete' or result['cleanup']!='complete'
-            or result['canary'] is not True or summary!=result['workflow'] or matched!=result['billing']
-            or events[-1]['phase']!='completion'
-            or coverage['planned_turns']!=4 or coverage['verified_turns']!=4
-            or coverage['planned_criteria']!=12 or coverage['graded_criteria']!=12
-            or roles != {'hermes','judge','memory_provider'} or matched['complete_cost_usd'] is None
-            or actual_turns!=[t.id for t in turns] or [(a['native_id'],a['submitted_sha256']) for a in actual_sources]!=expected_sources
-            or any(not row['ready'] for row in actual_sources)
-            or any(t['driver_attempt_coverage']['coverage']!='complete' for t in summary['turns'])):
-        raise ValueError('Mem0 canary does not establish a complete native and receipted qualification')
-    return {'result':result_binding,'scope':scope_binding}
+    audit = audit_document_canary(root, 'mem0')
+    installed = audit.root/'hermes-home/plugins/mem0'
+    plugin_files = {p.name: sha(p) for p in sorted(installed.glob('*.py'))}
+    installed_sha = hashlib.sha256(json.dumps(plugin_files, sort_keys=True).encode()).hexdigest()
+    if (audit.condition['version'] != 'OSS 2.2.1'
+            or audit.condition['tool_names'] != list(HERMES_TOOLS['mem0'])
+            or installed_sha != MEM0_PLUGIN_SHA256):
+        raise ValueError('Mem0 canary static runtime differs from the Week condition')
+    return audit.bindings
 
 
-@contextmanager
 def terminal_result(root, ledger, run_id, canary, started):
-    """Reconcile the closed account once and persist even a partial report."""
-    from .gateway_reuse import atomic
-    from .workflow_metrics import summarize
-    from .workflow_receipts import receipt_summary
+    from .workflow_document_lifecycle import terminal_result as record_result
 
-    result = {'provider':'mem0', 'canary':canary, 'state':'incomplete', 'cleanup':'unverified',
-              'workflow':None, 'billing':None}
-    failure = None
-    try:
-        yield result
-    except BaseException as error:
-        failure = error
-        result['error'] = type(error).__name__
-        raise
-    finally:
-        try:
-            report = summarize(root/'workflow/workflow.jsonl')
-            result['workflow'] = report
-            rows = ledger.snapshot()
-            billing = receipt_summary(root, rows, run_id)
-            result['billing'] = billing
-            if failure is None:
-                coverage = report['coverage']
-                roles = {row['accounting_role'] for row in rows if row.get('upstream_request_id')}
-                if (coverage['verified_turns'] == coverage['planned_turns']
-                        and coverage['graded_criteria'] == coverage['planned_criteria']
-                        and all(t['driver_attempt_coverage']['coverage'] == 'complete' for t in report['turns'])
-                        and roles == {'hermes','judge','memory_provider'}
-                        and (not canary or billing['complete_cost_usd'] is not None)):
-                    result['state'] = 'live-canary-complete' if canary else 'live-week-complete'
-        except Exception as error:
-            result['report_error'] = type(error).__name__
-            if failure is None:
-                result['error'] = type(error).__name__
-                failure = error
-                raise
-            failure.add_note(f'Additional reporting failure: {type(error).__name__}')
-        finally:
-            result['elapsed_s'] = time.monotonic() - started
-            try:
-                atomic(root/'result.json', result)
-                # atomic() syncs the file before rename. Persist the directory entry too.
-                directory = os.open(root, os.O_RDONLY | os.O_DIRECTORY)
-                try:
-                    os.fsync(directory)
-                finally:
-                    os.close(directory)
-            except Exception as error:
-                if failure is None:
-                    raise
-                failure.add_note(f'Could not write result.json: {type(error).__name__}')
+    return record_result(root, ledger, run_id, canary, started, provider='mem0')
 
 
 def run(root, endpoint, confirmation, *, canary, after_canary=None):
-    from . import workflow_capability as cap
-    from .canary_capability import binding, read
-    from .context_isolation import validate_recall_environment
-    from .gateway_client import client_settings
-    from .live_dispatch import CONDITION
-    from .model_calls import ModelClient
-    from .observational_receipts import check_cohort_stop, credit_snapshot
-    from .openrouter_direct import direct_environment
-    from .openrouter_route import CHAT_COMPLETIONS_URL, MODEL, PROFILE_NAME
-    from .openrouter_run import fetch_catalog
-    from .workflow_memcal_contract import verify_contract
-    from .workflow_memcal_live import run_environment
-    from .workflow_runner import run_current_week
-    from .workflow_spec import compile_week
+    from .workflow_document_lifecycle import run_document_week
 
-    root = Path(root).absolute()
-    if (root.name != 'mem0' or root != root.resolve() or PROFILE_NAME != cap.PROFILE or os.environ.get(cap.ENV)
-            or canary == (after_canary is not None)):
-        raise ValueError('fresh dedicated Mem0 Luna campaign required')
-    qualified = check_canary(after_canary) if after_canary is not None else None
-    auth = binding(confirmation)
-    cap.confirm_setting(read(auth))
-    validate_recall_environment()
-    _, documents, turns, frozen = compile_week('continuing-account')
-    verify_contract(documents, turns, frozen)
-    root.mkdir(mode=0o700, parents=True, exist_ok=False)
-    settings = dict(PACBENCH_RECEIPT_JOURNAL=str(root/'receipts.jsonl'), PACBENCH_DISPATCH_TRACKING=CONDITION,
-                    PACBENCH_ROLE_ROUTES='luna-all-roles-v1', PACBENCH_LUNA_COMPATIBILITY='temperature-omitted-default-v1',
-                    PACBENCH_EFFECTIVE_OUTPUT_TOKENS='32768', PACBENCH_STOP_FILE=str(root/'STOP'),
-                    PACBENCH_OBSERVATIONAL_COHORT_STOP=str(root.parent.parent/'ACCOUNT_STOP'),
-                    PACBENCH_MEMORY_API_INPUT_TRACE_ROOT=str(root/'memory-api-inputs'), PACBENCH_IMPORT_ROOT=str(root))
-    start = time.monotonic()
-    with run_environment(settings):
-        check_cohort_stop()
-        fetch_catalog(profile=cap.PROFILE)
-        bound = cap.create(root, 'mem0', canary=canary, prepaid=credit_snapshot(),
-                           auto_recharge_evidence=auth, qualification=qualified)
-        with run_environment({cap.ENV:json.dumps(bound)}):
-            scope = cap.load()
-            ledger = cap.budget()
-            with terminal_result(root, ledger, scope['run_id'], canary, start) as result:
-                with direct_environment(os.environ['OPENROUTER_API_KEY']):
-                    with open_account(root, endpoint, scope, ledger) as (condition, account):
-                        _, key = client_settings(scope['projects']['mem0']['judge'])
-                        judge = ModelClient(key=key,model=MODEL,record_dir=root/'workflow/model-calls',
-                                            url=CHAT_COMPLETIONS_URL,json_mode=True,max_attempts=1)
-                        run_current_week(condition,account,root/'workflow',judge=judge,canary=canary)
-                    result['cleanup'] = 'complete'
-    return result
+    def open_native_account(root, scope, ledger):
+        return open_account(root, endpoint, scope, ledger)
+
+    return run_document_week(
+        root, confirmation, provider='mem0', canary=canary, after_canary=after_canary,
+        check_canary=check_canary, open_account=open_native_account, fresh_account_error='fresh dedicated Mem0 Luna campaign required')
 
 
 def main():

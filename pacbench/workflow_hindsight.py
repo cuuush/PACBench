@@ -335,159 +335,52 @@ def reconcile_canary_cleanup(root):
 
 def check_canary(root):
     """Re-audit the retained native document canary before starting a new account."""
-    from .canary_capability import binding, read, sha
+    from .canary_capability import binding, read
     from .catalog_plugins import verify_retained_catalog_provider
     from .checkpoint_clock import CEILING_MODE, audit_question
-    from .observational_receipts import RunReceiptJournal
-    from .openrouter_route import PROFILES
-    from .workflow_capability import schedule
-    from .workflow_metrics import summarize
-    from .workflow_receipts import receipt_summary
-    from .workflow_runner import Condition
-    from .workflow_spec import SPEC
+    from .workflow_document_canary import audit_document_canary
 
-    root = Path(root).resolve(strict=True)
-    result_binding = binding(root/'result.json')
-    scope_binding = binding(root/'workflow-scope.json')
-    result, scope = read(result_binding), read(scope_binding)
+    audit = audit_document_canary(root, 'hindsight')
+    root = audit.root
     clean = read(binding(root/'service-shutdown.json'))['active'] is False
     cleanup_binding = None
     if not clean:
         cleanup_binding = binding(root/'service-shutdown-reconciliation.json')
         cleanup = read(cleanup_binding)
-        clean = {key:value for key,value in cleanup.items() if key!='recorded_at'} == shutdown_recovery_evidence(root)
-    journal = root/'workflow/workflow.jsonl'
-    report = summarize(journal)
-    with journal.open() as stream:
-        events = [json.loads(line) for line in stream]
-    deployment = events[1]['deployment_witness']
-    condition = Condition(**events[1]['condition'])
-    validate_native_deployment(condition,deployment)
-    verify_retained_catalog_provider('hindsight',root/'hermes-home')
-    documents, turns, frozen = schedule(sha(SPEC),True)
-    receipts = RunReceiptJournal(root/'receipts.jsonl').snapshot()
-    matched = receipt_summary(root,receipts,scope['run_id'])
-    roles = {row['accounting_role'] for row in receipts if row.get('upstream_request_id')}
-    sources = [e['evidence'] for e in events if e['phase']=='readback']
-    seen_turns = [e['question'] for e in events if e['phase']=='verified-turn']
-    visible = [e for e in events if e['phase']=='answer-visible']
+        clean = {key: value for key, value in cleanup.items() if key != 'recorded_at'} == shutdown_recovery_evidence(root)
+    verify_retained_catalog_provider('hindsight', root/'hermes-home')
     setup = json.loads((root/'native-bank-setup.json').read_text())
     runtime = json.loads(setup['stdout'].splitlines()[-1])['runtime_versions']
-    profile = PROFILES['luna-bedrock-global']
-    checkout = Path(__file__).resolve().parents[1]
-    hermes_revision = next(line.split('=',1)[1] for line in (checkout/'vendor/HERMES_PIN').read_text().splitlines()
-                           if line.startswith('HERMES_PIN='))
-    cov = report['coverage']
-    if (root.name!='hindsight' or scope['root']!=str(root) or scope['provider']!='hindsight'
-            or scope.get('admission')!='hindsight-native-file-document-week-v1' or scope['canary'] is not True
-            or scope['spec_sha256']!=sha(SPEC) or scope['frozen_inputs']!=frozen
-            or condition.provider!='hindsight' or condition.version!='1.2.1' or condition.track!='nightly-document'
-            or condition.state!='continuing-account' or tuple(condition.tool_names)!=HERMES_TOOLS['hindsight']
-            or condition.service_clock!=OBSERVATION_CONDITION
-            or deployment['account']!=str(root) or runtime.get('hindsight-api-slim')!='1.2.1'
-            or condition.model_route!=profile['endpoint'] or condition.model!=profile['model']
-            or condition.frontend!='Hermes '+hermes_revision or condition.gateway_patch!=sha(checkout/'patches/hermes-isolated.diff')
-            or not clean or result['canary'] is not True
-            or (cleanup_binding is None and (result['state'],result['cleanup'])!=('live-canary-complete','complete'))
-            or (cleanup_binding is not None and (result['state'],result['cleanup'])!=('incomplete','unverified'))
-            or result['workflow']!=report or result['billing']!=matched or matched['complete_cost_usd'] is None
-            or roles!={'hermes','judge','memory_provider'} or events[-1]['phase']!='completion'
-            or (cov['verified_turns'],cov['planned_turns'],cov['graded_criteria'],cov['planned_criteria'])!=(4,4,12,12)
-            or seen_turns!=[turn.id for turn in turns]
-            or [e['question'] for e in visible]!=seen_turns
-            or len([e for e in events if e['phase']=='chat-closed'])!=3
-            or visible[0]['surface']['session_id']!=visible[3]['surface']['session_id']
-            or [(row['native_id'],row['submitted_sha256'],row['ready']) for row in sources]!=[
-                (doc.filename,doc.sha256,True) for doc in documents]
-            or any(row['driver_attempt_coverage']['coverage']!='complete' for row in report['turns'])):
-        raise ValueError('Hindsight requires its exact completed native and receipted canary')
-    for turn, event in zip(turns, visible, strict=True):
+    condition = audit.condition
+    expected_outcome = ('live-canary-complete', 'complete') if cleanup_binding is None else ('incomplete', 'unverified')
+    if (condition['version'] != '1.2.1' or tuple(condition['tool_names']) != HERMES_TOOLS['hindsight']
+            or condition['service_clock'] != OBSERVATION_CONDITION
+            or runtime.get('hindsight-api-slim') != '1.2.1'
+            or not clean or audit.outcome != expected_outcome):
+        raise ValueError('Hindsight canary lacks its exact native runtime or shutdown proof')
+    visible = [event for event in audit.events if event['phase'] == 'answer-visible']
+    for turn, event in zip(audit.turns, visible, strict=True):
         surface = event['surface']
         evidence = surface['clock_evidence']
         desc = evidence['descriptor']
         adoption = evidence['gateway_process_adoption']
-        owner = {'pid':adoption['pid'],'start_time':adoption['process_start_ticks'],'process_adoption':adoption}
-        if (desc['clock_ceiling']!=CEILING_MODE or desc['at']!=turn.at or desc['checkpoint']!=scope['spec_sha256']
-                or [owner['pid'],owner['start_time']]!=surface['gateway_identity']
-                or evidence != audit_question(root/'reuse-clock',desc,
-                    {'prompt':turn.prompt,'session_id':surface['session_id']},owner)):
+        owner = {'pid': adoption['pid'], 'start_time': adoption['process_start_ticks'], 'process_adoption': adoption}
+        if (event['question'] != turn.id or desc['clock_ceiling'] != CEILING_MODE
+                or desc['at'] != turn.at or desc['checkpoint'] != audit.spec_sha256
+                or [owner['pid'], owner['start_time']] != surface['gateway_identity']
+                or evidence != audit_question(root/'reuse-clock', desc,
+                    {'prompt': turn.prompt, 'session_id': surface['session_id']}, owner)):
             raise ValueError('Hindsight canary lacks its bounded native admission chain')
-    qualified = {'result':result_binding,'scope':scope_binding}
     if cleanup_binding is not None:
-        if cleanup['server'] != deployment['native_processes']['memory']:
+        if cleanup['server'] != audit.deployment['native_processes']['memory']:
             raise ValueError('Hindsight shutdown proof belongs to another process')
-        qualified['cleanup'] = cleanup_binding
-    return qualified
+        return {**audit.bindings, 'cleanup': cleanup_binding}
+    return audit.bindings
 
 
 def run(root, confirmation, *, canary, after_canary=None):
-    from . import workflow_capability as cap
-    from .canary_capability import binding, read
-    from .context_isolation import validate_recall_environment
-    from .gateway_client import client_settings
-    from .gateway_reuse import atomic
-    from .live_dispatch import CONDITION
-    from .model_calls import ModelClient
-    from .observational_receipts import check_cohort_stop, credit_snapshot
-    from .openrouter_direct import direct_environment
-    from .openrouter_route import CHAT_COMPLETIONS_URL, MODEL, PROFILE_NAME
-    from .openrouter_run import fetch_catalog
-    from .workflow_memcal_contract import verify_contract
-    from .workflow_memcal_live import run_environment
-    from .workflow_metrics import summarize
-    from .workflow_receipts import receipt_summary
-    from .workflow_runner import run_current_week
-    from .workflow_spec import compile_week
+    from .workflow_document_lifecycle import run_document_week
 
-    root = Path(root).absolute()
-    if (root.name!='hindsight' or root!=root.resolve() or PROFILE_NAME!=cap.PROFILE or os.environ.get(cap.ENV)
-            or canary==(after_canary is not None)):
-        raise ValueError('expected a fresh dedicated Hindsight Luna account')
-    qualification = check_canary(after_canary) if after_canary is not None else None
-    auth = binding(confirmation)
-    cap.confirm_setting(read(auth))
-    validate_recall_environment()
-    _, documents, turns, frozen = compile_week('continuing-account')
-    verify_contract(documents,turns,frozen)
-    root.mkdir(mode=0o700,parents=True,exist_ok=False)
-    settings = dict(PACBENCH_RECEIPT_JOURNAL=str(root/'receipts.jsonl'),PACBENCH_DISPATCH_TRACKING=CONDITION,
-                    PACBENCH_ROLE_ROUTES='luna-all-roles-v1',PACBENCH_LUNA_COMPATIBILITY='temperature-omitted-default-v1',
-                    PACBENCH_EFFECTIVE_OUTPUT_TOKENS='32768',PACBENCH_STOP_FILE=str(root/'STOP'),
-                    PACBENCH_OBSERVATIONAL_COHORT_STOP=str(root.parent.parent/'ACCOUNT_STOP'),
-                    PACBENCH_MEMORY_API_INPUT_TRACE_ROOT=str(root/'memory-api-inputs'),PACBENCH_IMPORT_ROOT=str(root))
-    started = time.monotonic()
-    with run_environment(settings):
-        check_cohort_stop()
-        fetch_catalog(profile=PROFILE_NAME)
-        bound = cap.create(root,'hindsight',canary=canary,prepaid=credit_snapshot(),
-                           auto_recharge_evidence=auth,qualification=qualification)
-        with run_environment({cap.ENV:json.dumps(bound)}):
-            scope = cap.load()
-            ledger = cap.budget()
-            result = {'provider':'hindsight','canary':canary,'state':'incomplete','cleanup':'unverified'}
-            try:
-                with direct_environment(os.environ['OPENROUTER_API_KEY']):
-                    with open_account(root,scope,ledger) as (condition,account):
-                        _, key = client_settings(scope['projects']['hindsight']['judge'])
-                        judge = ModelClient(key=key,model=MODEL,record_dir=root/'workflow/model-calls',
-                                            url=CHAT_COMPLETIONS_URL,json_mode=True,max_attempts=1)
-                        run_current_week(condition,account,root/'workflow',judge=judge,canary=canary)
-                    result['cleanup'] = 'complete'
-                report = summarize(root/'workflow/workflow.jsonl')
-                rows = ledger.snapshot()
-                matched = receipt_summary(root,rows,scope['run_id'])
-                roles = {row['accounting_role'] for row in rows if row.get('upstream_request_id')}
-                cov = report['coverage']
-                if (cov['verified_turns']==cov['planned_turns'] and cov['graded_criteria']==cov['planned_criteria']
-                        and all(t['driver_attempt_coverage']['coverage']=='complete' for t in report['turns'])
-                        and roles=={'hermes','judge','memory_provider'}
-                        and (not canary or matched['complete_cost_usd'] is not None)):
-                    result['state'] = 'live-canary-complete' if canary else 'live-week-complete'
-            except BaseException as error:
-                result['error'] = type(error).__name__
-                raise
-            finally:
-                result.update(elapsed_s=time.monotonic()-started, billing=receipt_summary(root,ledger.snapshot(),scope['run_id']),
-                              workflow=summarize(root/'workflow/workflow.jsonl'))
-                atomic(root/'result.json',result)
-    return result
+    return run_document_week(
+        root, confirmation, provider='hindsight', canary=canary, after_canary=after_canary,
+        check_canary=check_canary, open_account=open_account, fresh_account_error='expected a fresh dedicated Hindsight Luna account')

@@ -268,3 +268,68 @@ def test_native_stream_first_answer_can_be_graded_after_second_dispatch_fails(tm
     (directory/'run.json').write_text(json.dumps(meta))
     with pytest.raises(ValueError,match='original incremental'):
         grading.main([str(directory)])
+
+
+@pytest.mark.parametrize('legacy_scope', [False, True])
+def test_document_campaign_stop_blocks_launch_and_judge_recovery(tmp_path, monkeypatch, legacy_scope):
+    import os
+    import urllib.request
+
+    from pacbench import observational_receipts, openrouter_route, workflow_capability as cap
+    from pacbench import workflow_reme
+    from pacbench.canary_capability import read, sha
+    from pacbench.workflow_document_progress import PROTOCOL
+
+    root = tmp_path/'campaign'/'week'/'reme'
+    stop = tmp_path/'campaign'/'ACCOUNT_STOP'
+    stop.parent.mkdir()
+    stop.touch()
+    confirmation = tmp_path/'verified-setting.json'
+    confirmation.write_text(json.dumps(dict(auto_recharge='off', confirmed_by='test',
+                                            confirmed_at='2026-11-26T00:00:00+00:00')))
+    monkeypatch.setattr(openrouter_route, 'PROFILE_NAME', cap.PROFILE)
+    monkeypatch.setattr(urllib.request, 'urlopen', lambda *a, **kw: pytest.fail('unexpected network request'))
+    monkeypatch.setattr(observational_receipts, 'credit_snapshot', lambda: pytest.fail('unexpected credit check'))
+    monkeypatch.delenv(cap.ENV, raising=False)
+    monkeypatch.delenv('PACBENCH_OPENROUTER_PROFILE', raising=False)
+    monkeypatch.setenv(observational_receipts.COHORT_STOP, str(root.parent/'ACCOUNT_STOP'))
+    original_env = dict(os.environ)
+    with pytest.raises(RuntimeError, match='Shared OpenRouter account stopped'):
+        workflow_reme.run(root, confirmation, canary=True)
+    assert dict(os.environ) == original_env
+
+    root.mkdir(parents=True, exist_ok=True)
+    (root/'receipts.jsonl').touch()
+    verification = root/'prepaid-verification'
+    verification.mkdir()
+    balance = verification/'fixture.json'
+    balance.write_text(json.dumps({'data':{'total_credits':10,'total_usage':0}}))
+    balance_sha = sha(balance)
+    balance.rename(verification/(balance_sha+'.private.json'))
+    prepaid = dict(remaining_usd='10', receipt_sha256=balance_sha, source='OpenRouter GET /api/v1/credits')
+    with subprocess.Popen([sys.executable, '-c', 'import time; time.sleep(30)']) as child:
+        try:
+            with monkeypatch.context() as local:
+                owner = process_identity(child.pid)
+                local.setattr(cap, 'process_identity', lambda: owner)
+                bound = cap.create(root, 'reme', canary=True, prepaid=prepaid,
+                                   auto_recharge_evidence=binding(confirmation))
+        finally:
+            child.terminate()
+    scope = read(bound)
+    assert scope['campaign_stop'] == str(stop)
+    if legacy_scope:
+        scope.pop('campaign_stop')
+        (root/'workflow-scope.json').write_text(json.dumps(scope))
+        bound = binding(root/'workflow-scope.json')
+
+    directory = root/'workflow'
+    with checkpoints(directory, verified=1) as (progress, _):
+        progress.bind('workflow_scope', bound)
+        progress.bind('identity', dict(protocol=PROTOCOL, condition={'provider':'reme'}, account=str(root),
+                                       spec_sha256=scope['spec_sha256']))
+        assert progress.grade_states()['ready'] == 1
+        with pytest.raises(RuntimeError, match='original run is stopped'):
+            grading.paid_batch(progress, directory, 1)
+        assert progress.grade_states()['ready'] == 1
+        assert dict(os.environ) == original_env

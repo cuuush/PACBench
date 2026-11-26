@@ -3,7 +3,6 @@ from contextlib import ExitStack, closing, contextmanager
 from datetime import datetime, timezone
 import hashlib
 import json
-import os
 from pathlib import Path, PurePosixPath
 import sqlite3
 import time
@@ -306,151 +305,37 @@ def open_account(root, scope, ledger):
 
 def check_canary(root):
     """Verify the retained native source, session, process and receipt evidence."""
-    from socket import create_connection
-    from urllib.parse import urlsplit
-    from .canary_capability import binding, read, sha
+    from .canary_capability import binding, read
     from .catalog_plugins import verify_retained_catalog_provider
     from .live_dispatch import OwnershipConflict
-    from .observational_receipts import RunReceiptJournal
-    from .openrouter_route import PROFILES
-    from .workflow_capability import schedule
-    from .workflow_metrics import summarize
-    from .workflow_receipts import receipt_summary
-    from .workflow_runner import Condition
-    from .workflow_spec import SPEC
+    from .workflow_document_canary import audit_document_canary, verify_listener_stopped
 
-    root = Path(root).resolve(strict=True)
-    bindings = {'result':binding(root/'result.json'),'scope':binding(root/'workflow-scope.json')}
-    result, scope = read(bindings['result']), read(bindings['scope'])
-    journal = root/'workflow/workflow.jsonl'
-    report = summarize(journal)
-    events = [json.loads(line) for line in journal.read_text().splitlines()]
-    condition = Condition(**events[1]['condition'])
-    deployment = events[1]['deployment_witness']
-    validate_native_deployment(condition,deployment)
-    verify_retained_catalog_provider('openviking',root/'hermes-home')
-    docs, turns, frozen = schedule(sha(SPEC),True)
-    rows = RunReceiptJournal(root/'receipts.jsonl').snapshot()
-    actual = receipt_summary(root,rows,scope['run_id'])
-    roles = {r['accounting_role'] for r in rows if r.get('upstream_request_id')}
-    sources = [r['evidence'] for r in events if r['phase']=='readback']
-    visible = [r for r in events if r['phase']=='answer-visible']
-    closes = [r for r in events if r['phase']=='chat-closed']
+    audit = audit_document_canary(root, 'openviking')
+    root = audit.root
+    verify_retained_catalog_provider('openviking', root/'hermes-home')
     setup = read(binding(root/'native-server-setup.json'))
-    server = deployment['native_processes']['memory']
-    endpoint = urlsplit(setup['endpoint'])
-    profile = PROFILES['luna-bedrock-global']
-    cov = report['coverage']
-    checkout = Path(__file__).resolve().parents[1]
-    hermes = next(line.split('=',1)[1] for line in (checkout/'vendor/HERMES_PIN').read_text().splitlines()
-                  if line.startswith('HERMES_PIN='))
-    if (root.name!='openviking' or scope['root']!=str(root) or scope['provider']!='openviking'
-            or scope['canary'] is not True or scope['spec_sha256']!=sha(SPEC) or scope['frozen_inputs']!=frozen
-            or condition.provider!='openviking' or condition.version!='0.5.4.1' or condition.track!='nightly-document'
-            or condition.state!='continuing-account' or tuple(condition.tool_names)!=HERMES_TOOLS['openviking']
-            or deployment['account']!=str(root) or setup['version']!='0.5.4.1' or setup['pid']!=server['pid']
-            or endpoint.scheme!='http' or endpoint.hostname!='127.0.0.1' or not endpoint.port
-            or read(binding(root/'import-condition.json'))['condition']!='native-defaults'
-            or condition.model_route!=profile['endpoint'] or condition.model!=profile['model']
-            or condition.frontend!='Hermes '+hermes or condition.gateway_patch!=sha(checkout/'patches/hermes-isolated.diff')
-            or result['provider']!='openviking' or result['canary'] is not True
-            or (result['state'],result['cleanup'])!=('live-canary-complete','complete') or result['workflow']!=report
-            or result['billing']!=actual or actual['complete_cost_usd'] is None
-            or roles!={'hermes','judge','memory_provider'} or events[-1]['phase']!='completion'
-            or (cov['verified_turns'],cov['planned_turns'],cov['graded_criteria'],cov['planned_criteria'])!=(4,4,12,12)
-            or [r['question'] for r in events if r['phase']=='verified-turn']!=[t.id for t in turns]
-            or len(visible)!=4 or len(closes)!=3 or any(r['evidence']['readback']['state']!='complete' for r in closes)
-            or visible[0]['surface']['session_id']!=visible[3]['surface']['session_id']
-            or [(r['native_id'],r['submitted_sha256'],r['ready']) for r in sources]!=[
-                (d.filename,d.sha256,True) for d in docs]
-            or any(r['driver_attempt_coverage']['coverage']!='complete' for r in report['turns'])):
-        raise ValueError('OpenViking requires its exact completed native and receipted canary')
+    server = audit.deployment['native_processes']['memory']
+    closes = [row for row in audit.events if row['phase'] == 'chat-closed']
+    if (audit.condition['version'] != '0.5.4.1'
+            or tuple(audit.condition['tool_names']) != HERMES_TOOLS['openviking']
+            or setup['version'] != '0.5.4.1' or setup['pid'] != server['pid']
+            or read(binding(root/'import-condition.json'))['condition'] != 'native-defaults'
+            or any(row['evidence']['readback']['state'] != 'complete' for row in closes)):
+        raise ValueError('OpenViking canary lacks its native ingestion or shutdown proof')
     try:
         observed = process_identity(server['pid'])
     except (FileNotFoundError, OwnershipConflict):
         observed = None
     if observed == server:
         raise ValueError('OpenViking canary server remains active')
-    try:
-        connection = create_connection((endpoint.hostname,endpoint.port),timeout=2)
-    except ConnectionRefusedError:
-        pass
-    else:
-        connection.close()
-        raise ValueError('OpenViking canary listener remains active')
-    return bindings
+    verify_listener_stopped(setup['endpoint'], 'OpenViking')
+    return audit.bindings
 
 
 def run(root, confirmation, *, canary, after_canary=None):
-    from . import workflow_capability as cap
-    from .canary_capability import binding, read
-    from .context_isolation import validate_recall_environment
-    from .gateway_client import client_settings
-    from .gateway_reuse import atomic
-    from .live_dispatch import CONDITION
-    from .model_calls import ModelClient
-    from .observational_receipts import check_cohort_stop, credit_snapshot
-    from .openrouter_direct import direct_environment
-    from .openrouter_route import CHAT_COMPLETIONS_URL, MODEL, PROFILE_NAME
-    from .openrouter_run import fetch_catalog
-    from .workflow_memcal_contract import verify_contract
-    from .workflow_memcal_live import run_environment
-    from .workflow_metrics import summarize
-    from .workflow_receipts import receipt_summary
-    from .workflow_runner import run_current_week
-    from .workflow_spec import compile_week
+    from .workflow_document_lifecycle import run_document_week
 
-    root = Path(root).absolute()
-    if (root.name!='openviking' or root!=root.resolve() or PROFILE_NAME!=cap.PROFILE or os.environ.get(cap.ENV)
-            or canary==(after_canary is not None)):
-        raise ValueError('expected a fresh dedicated OpenViking Luna account')
-    qualification = check_canary(after_canary) if after_canary is not None else None
-    auth = binding(confirmation)
-    cap.confirm_setting(read(auth))
-    validate_recall_environment()
-    _, documents, turns, frozen = compile_week('continuing-account')
-    verify_contract(documents,turns,frozen)
-    root.mkdir(mode=0o700,parents=True,exist_ok=False)
-    settings = dict(PACBENCH_RECEIPT_JOURNAL=str(root/'receipts.jsonl'),PACBENCH_DISPATCH_TRACKING=CONDITION,
-                    PACBENCH_ROLE_ROUTES='luna-all-roles-v1',PACBENCH_LUNA_COMPATIBILITY='temperature-omitted-default-v1',
-                    PACBENCH_EFFECTIVE_OUTPUT_TOKENS='32768',PACBENCH_STOP_FILE=str(root/'STOP'),
-                    PACBENCH_OBSERVATIONAL_COHORT_STOP=str(root.parent.parent/'ACCOUNT_STOP'),
-                    PACBENCH_MEMORY_API_INPUT_TRACE_ROOT=str(root/'memory-api-inputs'),PACBENCH_IMPORT_ROOT=str(root),
-                    PACBENCH_OPENVIKING_IMPORT_CONDITION='native-defaults')
-    started = time.monotonic()
-    with run_environment(settings):
-        check_cohort_stop()
-        fetch_catalog(profile=PROFILE_NAME)
-        scope_binding = cap.create(root,'openviking',canary=canary,prepaid=credit_snapshot(),
-                                   auto_recharge_evidence=auth,qualification=qualification)
-        with run_environment({cap.ENV:json.dumps(scope_binding)}):
-            scope = cap.load()
-            ledger = cap.budget()
-            result = {'provider':'openviking','canary':canary,'state':'incomplete','cleanup':'unverified'}
-            try:
-                with direct_environment(os.environ['OPENROUTER_API_KEY']):
-                    with open_account(root,scope,ledger) as (condition,account):
-                        _, key = client_settings(scope['projects']['openviking']['judge'])
-                        judge = ModelClient(key=key,model=MODEL,record_dir=root/'workflow/model-calls',
-                                            url=CHAT_COMPLETIONS_URL,json_mode=True,max_attempts=1)
-                        run_current_week(condition,account,root/'workflow',judge=judge,canary=canary)
-                    result['cleanup'] = 'complete'
-                report = summarize(root/'workflow/workflow.jsonl')
-                rows = ledger.snapshot()
-                matched = receipt_summary(root,rows,scope['run_id'])
-                coverage = report['coverage']
-                roles = {row['accounting_role'] for row in rows if row.get('upstream_request_id')}
-                if (coverage['verified_turns']==coverage['planned_turns']
-                        and coverage['graded_criteria']==coverage['planned_criteria']
-                        and all(row['driver_attempt_coverage']['coverage']=='complete' for row in report['turns'])
-                        and roles=={'hermes','judge','memory_provider'} and
-                        (not canary or matched['complete_cost_usd'] is not None)):
-                    result['state'] = 'live-canary-complete' if canary else 'live-week-complete'
-            except BaseException as error:
-                result['error'] = type(error).__name__
-                raise
-            finally:
-                result.update(elapsed_s=time.monotonic()-started,billing=receipt_summary(root,ledger.snapshot(),scope['run_id']),
-                              workflow=summarize(root/'workflow/workflow.jsonl'))
-                atomic(root/'result.json',result)
-    return result
+    return run_document_week(
+        root, confirmation, provider='openviking', canary=canary, after_canary=after_canary,
+        check_canary=check_canary, open_account=open_account, fresh_account_error='expected a fresh dedicated OpenViking Luna account',
+        extra_environment={'PACBENCH_OPENVIKING_IMPORT_CONDITION': 'native-defaults'})

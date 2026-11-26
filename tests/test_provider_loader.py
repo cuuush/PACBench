@@ -34,14 +34,17 @@ def test_catalog_load_errors_are_not_masked_as_legacy_imports(monkeypatch):
         provider_loader.provider_module("supermemory")
 
 
-def test_catalog_moved_providers_selectable_and_unknown_migration_blocked():
+def test_catalog_moved_providers_selectable_and_unknown_migration_blocked(monkeypatch):
+    from pacbench.catalog_plugins import CATALOG
     from pacbench import native_pilot
-    names = native_pilot.provider_names()
-    assert {"mem0", "honcho", "hindsight", "supermemory", "openviking"} <= set(names)
+    assert set(CATALOG) <= set(native_pilot.provider_names())
+    monkeypatch.setattr(native_pilot, 'catalog_migrated_providers', lambda: set(CATALOG) | {'unreviewed'})
     with pytest.raises(RuntimeError, match="No reviewed trial-home"):
-        native_pilot.require_trial_provider("holographic")
-    with pytest.raises(RuntimeError, match="recovery protocol"):
-        native_pilot.require_trial_provider("openviking", resume=True)
+        native_pilot.require_trial_provider("unreviewed")
+    for provider in CATALOG:
+        native_pilot.require_trial_provider(provider, resume=True)
+    with pytest.raises(ValueError, match="resume protocol"):
+        native_pilot.require_trial_provider("reme", resume=True)
 
 
 def test_byterover_is_not_selectable_or_provisioned(tmp_path, monkeypatch):

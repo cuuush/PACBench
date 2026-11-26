@@ -78,16 +78,28 @@ def _expected_source(identifier: str) -> str:
     return source + ('#' + '/'.join(subdir) if subdir else '')
 
 
-def verify_retained_catalog_provider(name,home):
-    """Check the pinned existing installation; do not reinstall on recovery."""
-    if name not in {'supermemory','openviking','hindsight','mem0','honcho'}:raise ValueError('No retained catalog recovery protocol')
+def verify_retained_catalog_provider(name: str, home: Path) -> None:
+    """Check the pinned existing installation without modifying the home."""
+    if name not in CATALOG:
+        raise ValueError('No retained catalog recovery protocol')
     from ruamel.yaml import YAML
-    identifier,sha=CATALOG[name];directory=home/'plugins'/name
-    metadata=json.loads((home/'plugins/.install-metadata.json').read_text())[name]
-    manifest=YAML(typ='safe').load((directory/'plugin.yaml').read_text())
-    if (not directory.is_dir() or directory.is_symlink() or metadata.get('pinned') is not True or
-        metadata.get('revision')!=sha or metadata.get('source')!=_expected_source(identifier) or
-        manifest.get('name')!=name or str(manifest.get('version'))!=SOURCE_VERSIONS[name]):
+    from ruamel.yaml.error import YAMLError
+
+    identifier, sha = CATALOG[name]
+    plugins = home / 'plugins'
+    directory = plugins / name
+    if not directory.is_dir() or directory.is_symlink():
+        raise ValueError(f'Expected an installed {name} catalog plugin directory')
+    try:
+        index = json.loads((plugins / '.install-metadata.json').read_text())
+        manifest = YAML(typ='safe').load((directory / 'plugin.yaml').read_text())
+    except (OSError, ValueError, YAMLError) as exc:
+        raise ValueError(f'{name} catalog plugin metadata or manifest is missing or invalid') from exc
+    metadata = index.get(name) if isinstance(index, dict) else None
+    if (not isinstance(metadata, dict) or metadata.get('pinned') is not True or
+            metadata.get('revision') != sha or metadata.get('source') != _expected_source(identifier) or
+            not isinstance(manifest, dict) or manifest.get('name') != name or
+            str(manifest.get('version')) != SOURCE_VERSIONS[name]):
         raise ValueError('Retained catalog source differs')
 
 
@@ -102,7 +114,6 @@ def install_catalog_provider(name: str, home: Path, fallback: Path, hermes_bin: 
     identifier, sha = CATALOG[name]
     # Verify the unchanged Hermes catalog separately from the explicit upstream selection.
     from ruamel.yaml import YAML
-    from ruamel.yaml.error import YAMLError
     parser = YAML(typ="safe")
     entry = parser.load((tree / 'plugin-catalog' / f'{name}.yaml').read_text())
     if (entry.get('name') != name or entry.get('sha') != HERMES_CATALOG[name][1] or
@@ -127,15 +138,9 @@ def install_catalog_provider(name: str, home: Path, fallback: Path, hermes_bin: 
         raise RuntimeError(f'Hermes catalog install for {name} failed (exit {result.returncode})')
     directory = home / 'plugins' / name
     try:
-        metadata = json.loads((home / 'plugins' / '.install-metadata.json').read_text())[name]
-        manifest = parser.load((directory / 'plugin.yaml').read_text())
-    except (OSError, ValueError, KeyError, YAMLError) as exc:
-        raise RuntimeError(f'Hermes catalog install for {name} has invalid metadata') from exc
-    if (not directory.is_dir() or directory.is_symlink() or metadata.get('pinned') is not True or
-        metadata.get('revision') != sha or metadata.get('source') != _expected_source(identifier) or
-        not isinstance(manifest, dict) or manifest.get('name') != name or
-        str(manifest.get('version')) != SOURCE_VERSIONS[name]):
-        raise RuntimeError(f'Hermes catalog install for {name} failed source or manifest verification')
+        verify_retained_catalog_provider(name, home)
+    except ValueError as exc:
+        raise RuntimeError(f'Hermes catalog install for {name} failed source or manifest verification') from exc
     python = hermes_bin.parent / 'python'
     try:
         probe = subprocess.run([str(python), '-c', _PROBE, name, str(directory.resolve())],

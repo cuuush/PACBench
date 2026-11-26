@@ -296,8 +296,23 @@ def require_trial_provider(provider: str, *, resume: bool = False) -> None:
     if provider in catalog_migrated_providers() and not (bundled / "plugin.yaml").is_file():
         if provider not in CATALOG:
             raise RuntimeError(f"No reviewed trial-home catalog provisioning route for {provider!r}")
-        if resume and provider not in {'supermemory','openviking','hindsight','mem0','honcho'}:
-            raise RuntimeError("Catalog provider resume requires a verified installed-plugin recovery protocol")
+    if resume and provider not in _RESUME_PROVIDERS:
+        raise ValueError('Provider lacks a verified retained-store resume protocol')
+
+
+def uses_catalog_plugin(provider: str) -> bool:
+    from .catalog_plugins import CATALOG
+    bundled = harness.ISOLATED_TREE / 'plugins' / 'memory' / provider / 'plugin.yaml'
+    return provider in CATALOG and not bundled.is_file()
+
+
+def verify_retained_trial_home(provider: str, home: Path) -> None:
+    require_trial_provider(provider, resume=True)
+    if not (home / 'config.yaml').is_file():
+        raise ValueError('Retained Hermes config.yaml is missing')
+    if uses_catalog_plugin(provider):
+        from .catalog_plugins import verify_retained_catalog_provider
+        verify_retained_catalog_provider(provider, home)
 
 
 def provision(root: Path, provider: str, model: str = "unconfigured", *,
@@ -307,6 +322,9 @@ def provision(root: Path, provider: str, model: str = "unconfigured", *,
     require_not_retired(provider)
     if inference_route not in ('muse-gateway', 'codex-subscription', 'openrouter'):
         raise ValueError('Unknown inference route')
+    home = root / 'hermes-home'
+    if resume:
+        verify_retained_trial_home(provider, home)
     if inference_route == 'openrouter':
         if provider not in ACTIVE_PROVIDERS:
             raise ValueError('Unsupported OpenRouter memory provider')
@@ -316,7 +334,8 @@ def provision(root: Path, provider: str, model: str = "unconfigured", *,
         require_live_cost_boundary()
     from .providers import require_live_trials_ready
     require_live_trials_ready()
-    require_trial_provider(provider, resume=resume)
+    if not resume:
+        require_trial_provider(provider)
     if provider == 'memcal':
         from .provider_versions import verify_memcal_source
 
@@ -324,17 +343,14 @@ def provision(root: Path, provider: str, model: str = "unconfigured", *,
             verify_memcal_source(harness.REPO)
         except subprocess.CalledProcessError as error:
             raise RuntimeError('Cannot verify the pinned MemCal checkout') from error
-    home = root / "hermes-home"
     root_hash = hashlib.sha256(str(root.resolve()).encode()).hexdigest()
     run_id = root_hash[:12]
     driver_project = f"pacbench-{run_id}-{provider}-driver"
     memory_project = f"pacbench-{run_id}-{provider}-memory"
     driver_url, client_key = client_settings(driver_project)
     _, memory_key = client_settings(memory_project)
-    if resume and (provider not in _RESUME_PROVIDERS or not (home/'config.yaml').exists()):
-        raise ValueError('Provider lacks a verified retained-store resume protocol')
-    from .catalog_plugins import CATALOG, install_catalog_provider
-    external = provider in CATALOG and not (harness.ISOLATED_TREE / "plugins" / "memory" / provider / "plugin.yaml").is_file()
+    from .catalog_plugins import install_catalog_provider
+    external = uses_catalog_plugin(provider)
     if not resume:harness.provision_home(
         home, provider_plugin_src=(MEMCAL_SRC / "integrations/hermes/memcal"
                                    if provider == "memcal" else None),
@@ -361,9 +377,6 @@ def provision(root: Path, provider: str, model: str = "unconfigured", *,
         config["memory"]["provider"] = provider
         config.setdefault("security", {})["allow_lazy_installs"] = False
         harness._write_yaml(home / "config.yaml", config)
-    if external and resume:
-        from .catalog_plugins import verify_retained_catalog_provider
-        verify_retained_catalog_provider(provider,home)
     env = {"HOME": str(fallback.resolve()), "PACBENCH_NO_BUILTIN_MEMORY": "1", "PACBENCH_PROVIDER_ONLY": "1",
            "MEMCAL_HOME": str((root / "memcal-home").resolve()),
            "MEMCAL_SRC": str(MEMCAL_SRC),

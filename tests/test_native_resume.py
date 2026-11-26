@@ -46,20 +46,44 @@ def test_resume_rejects_partial_processing_or_prior_evaluation(tmp_path,damage):
     with pytest.raises(ValueError):ready_prefix(tmp_path,report,rows)
 
 
-def test_catalog_resume_rejects_unverified_home_before_bootstrap(tmp_path, monkeypatch):
-    from pacbench.native_pilot import provision
+@pytest.mark.parametrize('damage', ['missing', 'invalid', 'changed', None])
+def test_catalog_resume_verifies_retained_home_before_bootstrap(tmp_path, monkeypatch, damage):
+    from pacbench import native_pilot
+    from pacbench.catalog_plugins import CATALOG, SOURCE_VERSIONS, _expected_source
+
+    monkeypatch.setattr(native_pilot.harness, 'ISOLATED_TREE', tmp_path/'hermes-tree')
     monkeypatch.setattr('pacbench.providers.require_live_trials_ready', lambda: None)
-    monkeypatch.setattr('pacbench.native_pilot.client_settings',lambda project:('http://127.0.0.1:8099/p/unit/v1','offline-test'))
-    home=tmp_path/'hermes-home';home.mkdir();(home/'config.yaml').write_text('original config')
+    client_calls = []
+    def settings(project):
+        client_calls.append(project)
+        return 'http://127.0.0.1:8099/p/unit/v1', 'offline-test'
+    monkeypatch.setattr(native_pilot, 'client_settings', settings)
+    home=tmp_path/'hermes-home'
+    plugin=home/'plugins/openviking'
+    plugin.mkdir(parents=True)
+    (home/'config.yaml').write_text('original config')
+    (plugin/'plugin.yaml').write_text(f'name: openviking\nversion: "{SOURCE_VERSIONS["openviking"]}"\n')
+    index=plugin.parent/'.install-metadata.json'
+    source, sha = CATALOG['openviking']
+    if damage == 'invalid':
+        index.write_text('{')
+    elif damage != 'missing':
+        save(index, {'openviking': {'pinned': True, 'source': _expected_source(source),
+                                    'revision': sha if damage is None else 'changed'}})
     with patch('pacbench.native_pilot.harness.provision_home') as bootstrap, \
-         patch('provider_adapters.openviking_local.start') as backend:
-        with pytest.raises(RuntimeError,match='verified installed-plugin recovery protocol'):
-            provision(tmp_path,'openviking','muse-spark-1.3-contributor',resume=True)
+         patch('provider_adapters.openviking_local.start', return_value=None) as backend:
+        if damage is None:
+            env = native_pilot.provision(tmp_path, 'openviking', 'muse-spark-1.3-contributor', resume=True)
+            backend.assert_called_once_with(tmp_path, env, 'muse-spark-1.3-contributor',
+                                            'http://127.0.0.1:8099/p/unit/v1', 'offline-test')
+        else:
+            with pytest.raises(ValueError,match='catalog plugin metadata|Retained catalog source differs'):
+                native_pilot.provision(tmp_path,'openviking','muse-spark-1.3-contributor',resume=True)
+            backend.assert_not_called()
+            assert not client_calls
+            assert not (tmp_path/'fallback-home').exists()
     bootstrap.assert_not_called()
-    backend.assert_not_called()
     assert (home/'config.yaml').read_text()=='original config'
-    with pytest.raises(ValueError,match='Only an existing OpenViking'):
-        provision(tmp_path,'memcal',resume=True)
 
 
 def test_changed_frozen_identity_blocks_resume_before_backend_or_paid_work(tmp_path, monkeypatch):

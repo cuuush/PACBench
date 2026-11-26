@@ -80,7 +80,7 @@ def resume(output, *, max_messages=4500, question_dir=None):
     from .providers import require_live_trials_ready
     require_live_trials_ready()
     from .native_pilot import (read_prepared, provision, probe, smoke_succeeded,
-                               stop_arm_model_work)
+                               stop_arm_model_work, verify_retained_trial_home)
     from .gateway_client import client_settings, require_live_cost_boundary, validate_route
     from .creds import load_driver
     from pacbench.corpus.evaluation import load_evaluations, judge_evidence
@@ -118,6 +118,7 @@ def resume(output, *, max_messages=4500, question_dir=None):
         if (output/name).read_bytes()!=(source/name).read_bytes():
             raise ValueError('Resume frozen source/contract changed')
     completed=ready_prefix(output,report,messages);root=output/'repeat-1/openviking'
+    verify_retained_trial_home('openviking', root/'hermes-home')
     record_recall_isolation(root)
     cfg=read(root/'ov.conf');_,key=client_settings('resume-validation')
     validate_route(cfg['vlm']['api_base'],cfg['vlm']['api_key'])

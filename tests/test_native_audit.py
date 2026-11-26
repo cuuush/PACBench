@@ -138,6 +138,24 @@ def test_declared_judge_reasoning_requires_the_actual_model_request(trace):
     assert any('generation condition' in e for e in audit(root)['errors'])
 
 
+@pytest.mark.parametrize(('conditions', 'expected'), [
+    ({'wall_deadline_s': 600}, 'pass'),
+    ({'wall_deadline_s': 600, 'reasoning_effort': 'maximum'}, 'fail'),
+    ({'wall_deadline_s': True}, 'fail'),
+    ({'wall_deadline_s': 901}, 'fail'),
+])
+def test_native_audit_accepts_deadline_without_explicit_reasoning(trace, conditions, expected):
+    root, _ = trace
+    path = root / 'summary.json'
+    summary = json.loads(path.read_text())
+    summary.update(inference_route='openrouter', judge_generation_conditions=conditions)
+    save(path, summary)
+    result = audit(root)
+    assert result['state'] == expected
+    if expected == 'fail':
+        assert result['errors'] == ['ValueError: Invalid benchmark judge generation condition']
+
+
 def test_v3_provenance_is_supported_without_rewriting_legacy_conditions(trace):
     root,_=trace
     summary=json.loads((root/'summary.json').read_text())

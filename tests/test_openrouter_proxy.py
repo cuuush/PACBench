@@ -56,6 +56,23 @@ def test_run_owned_budget_never_recreates_its_ledger(tmp_path):
     assert not path.exists()
 
 
+def test_run_owned_budget_does_not_hold_money_when_local_trace_is_refused(tmp_path):
+    from pacbench.api_input_trace import TRACE_NAME
+
+    b = Budget(tmp_path / 'ledger', cap='1', context_tokens=100,
+               prompt_per_million='1', completion_per_million='2', max_completion_tokens=50, new_run=True)
+    arm = tmp_path / 'arm'
+    arm.mkdir()
+    outside = tmp_path / 'outside'
+    (arm / TRACE_NAME).symlink_to(outside)
+
+    with b.input_trace('test-driver', arm), pytest.raises(OSError):
+        b.request('test-driver', {'model': MODEL}, lambda _: pytest.fail('sent without a valid trace'))
+    assert not outside.exists()
+    assert b.snapshot() == []
+    assert b.health()['accounted_usd'] == 0
+
+
 def test_snapshot_keeps_active_reservation_without_waiting_for_inference(tmp_path):
     import threading
     from concurrent.futures import ThreadPoolExecutor

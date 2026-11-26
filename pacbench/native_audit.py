@@ -51,9 +51,17 @@ def audit(root: Path, *, providers=None) -> dict:
         if summary.get('judge_protocol', LEGACY_JUDGE_PROTOCOL) not in JUDGE_PROTOCOLS:
             raise ValueError('Unsupported semantic judge protocol')
         judge_conditions=summary.get('judge_generation_conditions')
-        if judge_conditions is not None and (summary.get('inference_route')!='openrouter' or
-                judge_conditions.get('reasoning_effort') not in {'none','low','medium','high'}):
-            raise ValueError('Invalid benchmark judge generation condition')
+        if judge_conditions is not None:
+            if not isinstance(judge_conditions, dict) or not judge_conditions:
+                raise ValueError('Invalid benchmark judge generation condition')
+            if 'reasoning_effort' in judge_conditions and (
+                    summary.get('inference_route') != 'openrouter' or
+                    judge_conditions['reasoning_effort'] not in ('none', 'low', 'medium', 'high')):
+                raise ValueError('Invalid benchmark judge generation condition')
+            if 'wall_deadline_s' in judge_conditions:
+                deadline = judge_conditions['wall_deadline_s']
+                if type(deadline) is not int or not 0 < deadline <= 900:
+                    raise ValueError('Invalid benchmark judge generation condition')
         check(summary.get('ingestion_mode') == 'documents', 'Native source ingestion required')
         check(summary.get('tool_policy') in SUPPORTED_VERSIONS, 'Provider tool boundary required')
         bundle = load_bundle(root / 'bundle.json', summary.get('bundle_hash') or read(root / 'bundle.json')['bundle_hash'])
@@ -154,7 +162,7 @@ def audit(root: Path, *, providers=None) -> dict:
                         data = read(path)
                         if isinstance(data, dict) and 'tool_calls' in data and 'prompt' in data:
                             judgment_path=path.parent/'judgment.json'
-                            if judge_conditions is not None and judgment_path.exists():
+                            if judge_conditions and 'reasoning_effort' in judge_conditions and judgment_path.exists():
                                 judgment=read(judgment_path)
                                 call=root/'model-calls'/Path(judgment.get('model_call') or '').name
                                 check(call.is_file() and read(call).get('request',{}).get('reasoning_effort')==

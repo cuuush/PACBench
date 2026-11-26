@@ -95,6 +95,10 @@ def test_secrets_and_route_overrides_are_scrubbed_then_restored(monkeypatch):
 
 
 def test_public_session_forwards_with_key_enforces_cap_and_cleans_up(tmp_path, monkeypatch):
+    import hashlib
+    from types import SimpleNamespace
+    from pacbench.api_input_trace import PROXY_PROTOCOL, rows
+    from pacbench.clock_context import NATIVE, delivery
     from pacbench import openrouter_proxy, openrouter_task
     from pacbench.gateway_client import client_settings, require_live_cost_boundary, SpendingBlocked
     from pacbench.usage import snapshot
@@ -129,16 +133,39 @@ def test_public_session_forwards_with_key_enforces_cap_and_cleans_up(tmp_path, m
                 env = subprocess.check_output([sys.executable, '-c', 'import os; print(dict(os.environ))'], text=True)
                 assert key not in env
                 assert 'example.invalid,127.0.0.1,localhost' in env
-                base, token = client_settings('test')
+                base, token = client_settings('test-driver')
                 url = base + '/chat/completions'
-                body = json.dumps({'model': MODEL, 'messages': [], 'max_tokens': 50}).encode()
+                messages = [{'role': 'system', 'content': 'native system prompt'},
+                            {'role': 'user', 'content': 'What happened?'}]
+                body = json.dumps({'model': MODEL, 'messages': messages, 'max_tokens': 50}).encode()
                 with pytest.raises(urllib.error.HTTPError) as error:
                     urllib.request.urlopen(urllib.request.Request(url, data=body), timeout=2)
                 assert error.value.code == 401
                 req = urllib.request.Request(url, data=body, headers={'Authorization': f'Bearer {token}'})
-                with urllib.request.urlopen(req, timeout=2) as response:
-                    assert response.status == 200
-                assert snapshot({'test': 'hermes'})['calls'][0]['actual_cost_usd_decimal'] == '0.0001'
+                arm = output / 'arm'
+                arm.mkdir(parents=True)
+                trace = arm / 'api-inputs.jsonl'
+                arm_env = {'PACBENCH_USAGE_ROLES': json.dumps({'test-driver': 'hermes'})}
+                with pytest.raises(ValueError, match='inside the run output'):
+                    with r.public_input_trace(tmp_path, arm_env):
+                        pytest.fail('traced outside run output')
+                with r.public_input_trace(arm, arm_env):
+                    assert arm_env['PACBENCH_API_INPUT_TRACE'] == str(trace)
+                    with urllib.request.urlopen(req, timeout=2) as response:
+                        assert response.status == 200
+                assert 'PACBENCH_API_INPUT_TRACE' not in arm_env
+                call = snapshot({'test-driver': 'hermes'})['calls'][0]
+                assert call['actual_cost_usd_decimal'] == '0.0001'
+                trace_row, = rows(trace)
+                assert trace_row['protocol'] == PROXY_PROTOCOL
+                assert trace_row['request_id'] == call['id']
+                assert trace_row['messages'] == messages
+                assert trace.stat().st_mode & 0o777 == 0o600
+                assert key not in trace.read_text() and token not in trace.read_text()
+                turn = SimpleNamespace(at='fixture', prompt=messages[1]['content'], prefetch_context=None, session_id='fixture',
+                    context_isolation={'state': 'pass', 'system_prompt_sha256': hashlib.sha256(messages[0]['content'].encode()).hexdigest()})
+                (arm / 'context.jsonl').write_text(json.dumps({'session_id': turn.session_id, 'query': turn.prompt, 'prefetch': None}) + '\n')
+                assert delivery(arm, turn, identifiers=[call['id']], protocol=NATIVE)['state'] == 'pass'
                 with pytest.raises(urllib.error.HTTPError) as error:
                     urllib.request.urlopen(req, timeout=2)
                 assert error.value.code == 429

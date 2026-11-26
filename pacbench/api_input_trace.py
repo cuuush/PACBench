@@ -1,9 +1,38 @@
-"""Observe Hermes system/user inputs at the direct HTTP boundary, without keys."""
+"""Observe Hermes system/user inputs at the HTTP boundary without headers."""
 import fcntl
 import hashlib
 import json
 import os
 from pathlib import Path
+import stat
+
+
+TRACE_NAME = 'api-inputs.jsonl'
+PROXY_PROTOCOL = 'proxy-hermes-api-input-v1'
+
+
+def _input_row(project, receipt, protocol):
+    body = receipt['request']
+    return {'protocol': protocol, 'request_id': receipt['id'], 'project': project, 'model': body['model'],
+            'messages': [{'role': m['role'], 'content': m.get('content')}
+                         for m in body.get('messages', []) if m.get('role') in {'system', 'user'}],
+            'canonical_request_sha256': hashlib.sha256(json.dumps(body, sort_keys=True, ensure_ascii=False).encode()).hexdigest()}
+
+
+def _append(path, row, *, dir_fd=None):
+    fd = os.open(path, os.O_WRONLY | os.O_APPEND | os.O_CREAT | os.O_NOFOLLOW | os.O_NONBLOCK,
+                 0o600, dir_fd=dir_fd)
+    with os.fdopen(fd, 'a', encoding='utf-8') as stream:
+        identity = os.fstat(fd)
+        if not stat.S_ISREG(identity.st_mode) or identity.st_nlink != 1:
+            raise ValueError('API input observer requires a private regular file')
+        os.fchmod(fd, 0o600)
+        fcntl.flock(stream, fcntl.LOCK_EX)
+        stream.write(json.dumps(row, ensure_ascii=False) + '\n')
+
+
+def record_proxy(project, receipt, arm_fd):
+    _append(TRACE_NAME, _input_row(project, receipt, PROXY_PROTOCOL), dir_fd=arm_fd)
 
 
 def record(project, receipt):
@@ -11,15 +40,11 @@ def record(project, receipt):
     if not configured or not project.endswith('-driver'):
         return
     path=Path(configured)
-    expected=Path(os.environ['HERMES_HOME']).resolve().parent/'api-inputs.jsonl'
+    expected=Path(os.environ['HERMES_HOME']).resolve().parent/TRACE_NAME
     if path.resolve()!=expected or path.is_symlink():
         raise ValueError('API input observer is outside the run-owned Hermes home')
     body=receipt['request']
-    messages=[{'role':m['role'],'content':m.get('content')} for m in body.get('messages',[])
-              if m.get('role') in {'system','user'}]
-    row={'protocol':'direct-hermes-api-input-v1','request_id':receipt['id'],
-         'project':project,'model':body['model'],'messages':messages,
-         'canonical_request_sha256':hashlib.sha256(json.dumps(body,sort_keys=True,ensure_ascii=False).encode()).hexdigest()}
+    row = _input_row(project, receipt, 'direct-hermes-api-input-v1')
     if os.environ.get('PACBENCH_PYTHON_CLOCK_NONCE'):
         row.update(protocol='direct-hermes-api-input-v2',pid=os.getpid(),
             process_start_ticks=int(Path('/proc/self/stat').read_text().rsplit(')',1)[1].split()[19]),
@@ -37,12 +62,7 @@ def record(project, receipt):
         row.update(protocol='workflow-driver-input-v1', request=body,
                    messages=body['messages'],
                    tools=[t['function']['name'] for t in body.get('tools', [])])
-    encoded=json.dumps(row,ensure_ascii=False)+'\n'
-    with path.open('a') as stream:
-        path.chmod(0o600)
-        fcntl.flock(stream,fcntl.LOCK_EX)
-        stream.write(encoded)
-        stream.flush()
+    _append(path, row)
 
 
 def rows(path):

@@ -1135,7 +1135,9 @@ def run(source: Path | None, output: Path, max_messages: int | None = 150,
                     or result['state'] == 'invalid'):
                 return
             phase = 'evaluation'
-            collect_final_usage = evaluate_arm(root, provider, env, result)
+            from .openrouter_run import public_input_trace
+            with public_input_trace(root, env):
+                collect_final_usage = evaluate_arm(root, provider, env, result)
         except OperatorStop:
             result.update(state='interrupted', reason='operator stop requested')
             interrupted = True

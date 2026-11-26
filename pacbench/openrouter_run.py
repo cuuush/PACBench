@@ -2,6 +2,7 @@
 from __future__ import annotations
 import argparse
 import contextlib
+from contextvars import ContextVar
 from datetime import datetime, timezone
 from decimal import Decimal
 import hashlib
@@ -14,6 +15,36 @@ import urllib.request
 
 from .openrouter_route import MODEL, ENDPOINT, PROVIDER, CATALOG_URL, PROFILE, PROFILES, PROFILE_NAME
 from .providers import ACTIVE_PROVIDERS
+
+
+_PUBLIC_SESSION = ContextVar('public_openrouter_session', default=None)
+
+
+@contextlib.contextmanager
+def public_input_trace(arm_root, env):
+    session = _PUBLIC_SESSION.get()
+    if session is None:
+        yield
+        return
+    from .api_input_trace import TRACE_NAME
+
+    project, = [project for project, role in json.loads(env['PACBENCH_USAGE_ROLES']).items() if role == 'hermes']
+    budget, output = session
+    arm = Path(arm_root)
+    resolved = arm.resolve(strict=True)
+    output = output.resolve(strict=True)
+    if arm.is_symlink() or resolved == output or not resolved.is_relative_to(output):
+        raise ValueError('API input observer requires an arm inside the run output')
+    with budget.input_trace(project, resolved):
+        old_trace = env.get('PACBENCH_API_INPUT_TRACE')
+        env['PACBENCH_API_INPUT_TRACE'] = str(resolved / TRACE_NAME)
+        try:
+            yield
+        finally:
+            if old_trace is None:
+                env.pop('PACBENCH_API_INPUT_TRACE', None)
+            else:
+                env['PACBENCH_API_INPUT_TRACE'] = old_trace
 
 
 class CatalogError(ValueError):
@@ -166,6 +197,8 @@ def public_session(output, spend_limit_usd, *, before_start=None):
             (evidence / 'catalog.json').write_text(json.dumps({**catalog, 'startup_error': 'listener_unavailable'}, indent=2) + '\n', encoding='utf-8')
             raise PublicSessionError(f'Could not start the run-owned OpenRouter listener. Spending evidence remains at {evidence}.') from exc
         stack.enter_context(transport_environment(access, cap))
+        context_token = _PUBLIC_SESSION.set((budget, output))
+        stack.callback(_PUBLIC_SESSION.reset, context_token)
         yield
 
 

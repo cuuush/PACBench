@@ -39,7 +39,7 @@ def judge_question(turn):
 
 def delivery(root, turn, *, before=(), identifiers=None, hook_before=0, hook_index=None, protocol=VERSION):
     """Verify independently observed HTTP input and native provider query."""
-    from .api_input_trace import rows
+    from .api_input_trace import PROXY_PROTOCOL, rows
     record={'protocol':protocol,'at':turn.at,'state':'fail',
             'query_sha256':hashlib.sha256(turn.prompt.encode()).hexdigest()}
     try:
@@ -53,7 +53,7 @@ def delivery(root, turn, *, before=(), identifiers=None, hook_before=0, hook_ind
             raise ValueError('Missing/ambiguous actual HTTP input witness')
         actor_ids=[];auxiliary_ids=[];continuation_ids=[]
         for row in candidates:
-            if row.get('protocol') not in ('direct-hermes-api-input-v1','direct-hermes-api-input-v2','workflow-driver-input-v1'):
+            if row.get('protocol') not in ('direct-hermes-api-input-v1','direct-hermes-api-input-v2','workflow-driver-input-v1',PROXY_PROTOCOL):
                 raise ValueError('Unknown HTTP input witness protocol')
             systems=[m.get('content') for m in row['messages'] if m['role']=='system']
             users=[m.get('content') for m in row['messages'] if m['role']=='user']

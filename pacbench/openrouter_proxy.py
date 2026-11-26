@@ -76,10 +76,30 @@ class Budget:
             raise ValueError('positive explicit input and output price ceilings required')
         self.path.parent.mkdir(parents=True, exist_ok=True)
         self._run_owned = new_run
+        self._input_traces = {}
+        self._trace_lock = threading.Lock()
         if new_run:
             fd = os.open(self.path, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
             with os.fdopen(fd, 'w', encoding='utf-8') as ledger:
                 self._persist_state(ledger, {'version': 1, 'config': self.config, 'calls': []})
+
+    @contextlib.contextmanager
+    def input_trace(self, project, arm):
+        if not self._run_owned or not re.fullmatch(r'[a-z0-9][a-z0-9_.-]{0,56}-driver', project):
+            raise ValueError('API input observer requires a run-owned Hermes driver project')
+        fd = os.open(arm, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW)
+        try:
+            with self._trace_lock:
+                if project in self._input_traces:
+                    raise ValueError('API input observer is already bound for this driver project')
+                self._input_traces[project] = fd
+            try:
+                yield
+            finally:
+                with self._trace_lock:
+                    del self._input_traces[project]
+        finally:
+            os.close(fd)
 
     def request(self, project, body, send):
         if body.get('n', 1) not in (None, 1) or body.get('modalities') not in (None, ['text']):
@@ -149,6 +169,10 @@ class Budget:
                    'reserved': str(bound), 'accounted': str(bound), 'state': 'uncertain',
                    'provider_request': request['provider'], 'completion_bound_tokens': maximum,
                    'input_tokens': None, 'output_tokens': None, 'http_status': None, 'error_label': None}
+            with self._trace_lock:
+                if project in self._input_traces:
+                    from .api_input_trace import record_proxy
+                    record_proxy(project, {'request': request, 'id': row['id']}, self._input_traces[project])
             state['calls'].append(row)
             self._persist_state(ledger, state)
             try:

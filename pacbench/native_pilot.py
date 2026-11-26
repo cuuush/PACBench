@@ -733,7 +733,8 @@ def run(source: Path | None, output: Path, max_messages: int | None = 150,
             raise ValueError('Unsupported OpenRouter memory provider')
         if os.environ.get('PACBENCH_TRANSPORT') != 'openrouter':
             raise RuntimeError('OpenRouter requires the run-local transport; key and spending limit must be configured first')
-        require_live_cost_boundary()
+        if not (source and report_blocked):
+            require_live_cost_boundary()
     elif os.environ.get('PACBENCH_TRANSPORT') == 'openrouter':
         raise ValueError('Transport and inference route differ')
     if source and inference_route == 'codex-subscription':
@@ -820,13 +821,13 @@ def run(source: Path | None, output: Path, max_messages: int | None = 150,
             raise
         try:
             report["gateway_before"] = require_live_cost_boundary()
+            driver = load_driver()
         except RuntimeError as exc:
             report.update(state="blocked", reason=str(exc))
             save(output / "summary.json", report)
             if report_blocked:
                 return report
             raise
-        driver = load_driver()
         copy_prepared_files(source,output)
         report["process_timezone"] = resolved.get("timezone", "")
         from .document_ingestion import VERSION as INGESTION_VERSION

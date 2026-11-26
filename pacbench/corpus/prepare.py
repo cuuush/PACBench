@@ -4,6 +4,7 @@ import argparse
 import hashlib
 import json
 import os
+import sys
 from datetime import datetime, timedelta, time, timezone
 from pathlib import Path
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
@@ -11,8 +12,9 @@ from pacbench.corpus.authoring import (ScenePlan, SceneRecord, SceneRealization,
     validate_participants,
     build_scene_observations, realize_scene, scene_spec, judge_prompt, judge_scene)
 from pacbench.creds import load_driver
-from pacbench.gateway_client import client_settings
-from pacbench.gateway_client import SpendingBlocked, ModelAccessBlocked
+from pacbench.gateway_client import (
+    GatewayConfigurationError, ModelAccessBlocked, SpendingBlocked, client_settings, public_inference_route)
+from pacbench.generation import GenerationError
 from pacbench.corpus.sources import bundle_hash, read_spec, write_bundle
 from pacbench.model_calls import ModelClient, ResponsesWriter, public_record
 from pacbench.corpus.contract import build_contract, load_contract
@@ -606,9 +608,11 @@ def prepare(spec: dict, root: Path, *, resume=False, week_start=None,
     save(root / "experiment-status.json", progress)
     try:
         summary = _prepare_body(spec, root, progress)
-        if inference_route=='openrouter' and imported_scenes is None:
-            summary['author_generation_conditions']={'reasoning_effort':'low',
-                'scope':'Synthetic source writer only; independent native memory processing unchanged'}
+        if inference_route == 'openrouter':
+            summary['inference_route'] = inference_route
+            if imported_scenes is None:
+                summary['author_generation_conditions'] = {'reasoning_effort': 'low',
+                    'scope': 'Synthetic source writer only; independent native memory processing unchanged'}
             save(root/'summary.json',summary)
         if judge_reasoning_effort is not None:
             summary['judge_generation_conditions']={'reasoning_effort':judge_reasoning_effort,
@@ -645,7 +649,7 @@ def add_arguments(parser):
     parser.add_argument("--week-start",help="Override the spec's first Monday (YYYY-MM-DD); legacy unpinned specs default to this week")
     parser.add_argument('--resume',action='store_true',help='Reuse unchanged verified scenes while fixing preparation; no writer calls for those scenes')
     parser.add_argument('--inference-route', choices=('muse-gateway', 'codex-subscription'),
-                        default='muse-gateway', help='Explicit author and verifier model route')
+                        help='Override the default author and verifier model route')
 
 
 def generate_from_args(args, parser):
@@ -658,10 +662,20 @@ def generate_from_args(args, parser):
     if 'corpus_hash' in spec and 'files' in spec:
         parser.error('generate expects an author spec. Use `python -m pacbench run CORPUS --output RUN` for a frozen corpus.')
     try:
+        inference_route = public_inference_route()
+    except ValueError as exc:
+        parser.error(str(exc))
+    if inference_route == 'openrouter' and args.inference_route:
+        parser.error(f'--inference-route {args.inference_route} conflicts with PACBENCH_TRANSPORT=openrouter')
+    try:
         result = prepare(spec, args.output.resolve(), resume=args.resume, week_start=args.week_start,
-                         inference_route=args.inference_route)
+                         inference_route=args.inference_route or inference_route)
     except AuthorSpecError as exc:
         parser.error(str(exc))
+    except (GatewayConfigurationError, GenerationError, ModelAccessBlocked, SpendingBlocked) as exc:
+        print(f'Preparation stopped. {exc}', file=sys.stderr)
+        print(args.output / 'summary.json')
+        return 1
     print(args.output)
     return 0 if result['state'] == 'prepared' else 1
 

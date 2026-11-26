@@ -12,7 +12,10 @@ from pathlib import Path
 
 from . import harness
 from .context_isolation import outside_project
-from .gateway_client import STATE, require_live_cost_boundary
+from .gateway_client import (
+    STATE, GatewayConfigurationError, ModelAccessBlocked, SpendingBlocked,
+    require_live_cost_boundary, require_muse_state,
+)
 from pacbench.corpus.audit import audit_prepared
 
 
@@ -91,7 +94,8 @@ def inspect(prepared: Path, *, repo: Path = harness.REPO,
             detail = action()
         except (OSError, ValueError, KeyError, InvalidOperation, RuntimeError, subprocess.SubprocessError) as exc:
             # Subprocess output and exception text can contain private values.
-            detail = str(exc) if type(exc) is RuntimeError else type(exc).__name__
+            safe_error = isinstance(exc, (GatewayConfigurationError, ModelAccessBlocked, SpendingBlocked))
+            detail = str(exc) if type(exc) is RuntimeError or safe_error else type(exc).__name__
             checks.append({'check': name, 'state': 'blocked', 'detail': detail})
             return False
         checks.append({'check': name, 'state': 'pass', 'detail': detail})
@@ -181,11 +185,7 @@ def inspect(prepared: Path, *, repo: Path = harness.REPO,
     check('driver_configuration', driver)
 
     def existing_state():
-        required = ('ledger.sqlite3', 'client-token', 'address.json')
-        missing = [name for name in required if not (gateway_state / name).is_file()]
-        if missing:
-            raise RuntimeError('Restore the original gateway private state; missing: ' + ', '.join(missing)
-                               + '. Do not initialize a replacement ledger.')
+        required = require_muse_state(gateway_state)
         return {'files_present': list(required),
                 'history': 'Presence alone does not prove the original ledger was recovered'}
 

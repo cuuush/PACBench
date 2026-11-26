@@ -33,6 +33,7 @@ def test_missing_classification_cannot_start_recovery():
 
 def test_gateway_blocks_external_routes_and_upstream_keys(tmp_path,monkeypatch):
     from pacbench import gateway_client
+    (tmp_path / 'ledger.sqlite3').touch()
     (tmp_path/'client-token').write_text('local-key')
     (tmp_path/'address.json').write_text(json.dumps({'base':'http://127.0.0.1:8099'}))
     monkeypatch.setattr(gateway_client,'STATE',tmp_path)
@@ -67,6 +68,7 @@ def test_usage_keeps_unknown_tokens_late_settlements_and_provider_roles_separate
 def test_external_model_client_is_rejected_before_http(tmp_path,monkeypatch):
     from pacbench import gateway_client
     from pacbench.model_calls import ModelClient
+    (tmp_path / 'ledger.sqlite3').touch()
     (tmp_path/'client-token').write_text('local-key')
     (tmp_path/'address.json').write_text(json.dumps({'base':'http://127.0.0.1:8099'}))
     monkeypatch.setattr(gateway_client,'STATE',tmp_path)

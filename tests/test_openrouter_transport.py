@@ -43,7 +43,7 @@ def test_proxy_settings_reject_noncanonical_target(route, monkeypatch, url):
 def test_health_must_match_confirmed_cap_and_endpoint(route, monkeypatch):
     health = dict(service='pacbench-openrouter', model=MODEL, endpoint=ENDPOINT,
                   limit_usd='1.25', budget_blocked=False, auth_blocked=False)
-    monkeypatch.setattr(g.urllib.request, 'urlopen', lambda *a, **k: response(health))
+    monkeypatch.setattr(g.transport, 'open_without_redirect', lambda *a, **k: response(health))
     assert g.require_live_cost_boundary() == health
     health['endpoint'] = 'deepinfra'
     with pytest.raises(RuntimeError, match='mismatch'):

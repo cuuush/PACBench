@@ -1,6 +1,7 @@
 """Exercise the two-command authoring and native entry point without traffic."""
 import json
 from contextlib import nullcontext
+from io import BytesIO
 from pathlib import Path
 import shutil
 import subprocess
@@ -130,7 +131,7 @@ def test_generate_and_run_one_new_author_spec(tmp_path, monkeypatch, capsys):
     monkeypatch.setattr(native_pilot, 'provision', fail_if_called)
     assert cli.main(['run', str(portable), '--output', str(blocked), '--providers', 'mem0', 'memos']) == 1
     assert read(blocked / 'summary.json')['state'] == 'blocked'
-    assert 'mem0 not run offline account unavailable' in capsys.readouterr().out
+    assert 'mem0, memos not run offline account unavailable' in capsys.readouterr().out
 
     monkeypatch.setattr(native_pilot, 'require_live_cost_boundary', fail_if_called)
     with (portable / 'bundle.json').open('a') as stream:
@@ -159,6 +160,177 @@ def test_month_plan_and_run_keep_full_corpus_and_select_subset(tmp_path, monkeyp
     blocked = read(tmp_path / 'native/summary.json')
     assert blocked['message_count'] == 2868 and blocked['selected_providers'] == ['supermemory']
     assert report['corpus_hash'] == blocked['corpus_hash']
+
+
+@pytest.mark.parametrize('entry', [[], ['generate']])
+def test_generate_uses_proxy_chat_writer_and_reports_known_error(entry, tmp_path, monkeypatch, capsys):
+    from pacbench.generation import GenerationError
+
+    path = Path(__file__).resolve().parents[1] / 'specs/pizza_week.json'
+    output = tmp_path / 'preparation'
+    monkeypatch.setenv('PACBENCH_TRANSPORT', 'openrouter')
+    monkeypatch.delenv('PACBENCH_DIRECT', raising=False)
+    monkeypatch.setenv('META_API_KEY', 'offline-proxy-token')
+    monkeypatch.setattr(prepare, 'load_driver', lambda: SimpleNamespace(model_id='proxy-model'))
+    monkeypatch.setattr(prepare, 'client_settings', lambda project: (f'http://127.0.0.1:1/p/{project}/v1', 'offline-proxy-token'))
+
+    def legacy_writer(**_):
+        pytest.fail('proxy preparation must use the chat writer')
+
+    def chat_writer(**settings):
+        assert settings['url'] == 'http://127.0.0.1:1/p/pacbench-authoring/v1/chat/completions'
+        assert settings['reasoning_effort'] == 'low'
+        raise GenerationError('offline setup failure')
+
+    monkeypatch.setattr(prepare, 'ResponsesWriter', legacy_writer)
+    monkeypatch.setattr(prepare, 'ModelClient', chat_writer)
+    assert cli.main([*entry, str(path), '--output', str(output)]) == 1
+    assert read(output / 'experiment-status.json')['inference_route'] == 'openrouter'
+    assert read(output / 'summary.json')['state'] == 'incomplete'
+    assert not (output / 'week.json').exists()
+    assert 'Preparation stopped. offline setup failure' in capsys.readouterr().err
+
+
+def test_generate_checks_explicit_route_before_writing(tmp_path, monkeypatch, capsys):
+    path = Path(__file__).resolve().parents[1] / 'specs/pizza_week.json'
+    output = tmp_path / 'preparation'
+    command = ['generate', str(path), '--output', str(output), '--inference-route', 'codex-subscription']
+    monkeypatch.setenv('PACBENCH_TRANSPORT', 'openrouter')
+    monkeypatch.delenv('PACBENCH_DIRECT', raising=False)
+    with pytest.raises(SystemExit) as conflict:
+        cli.main(command)
+    assert conflict.value.code == 2 and not output.exists()
+    assert 'conflicts with PACBENCH_TRANSPORT=openrouter' in capsys.readouterr().err
+
+    monkeypatch.setenv('PACBENCH_DIRECT', '1')
+    with pytest.raises(SystemExit) as direct:
+        cli.main(command)
+    assert direct.value.code == 2 and not output.exists()
+    assert 'pacbench.openrouter_run --help' in capsys.readouterr().err
+
+    monkeypatch.delenv('PACBENCH_TRANSPORT')
+    monkeypatch.delenv('PACBENCH_DIRECT')
+
+    def subscription_prepare(*_, inference_route, **__):
+        assert inference_route == 'codex-subscription'
+        return {'state': 'prepared'}
+
+    monkeypatch.setattr(prepare, 'prepare', subscription_prepare)
+    assert cli.main(command) == 0
+
+
+def test_run_records_driver_failure_after_gateway_health(tmp_path, monkeypatch, capsys):
+    from pacbench.generation import GenerationError
+
+    corpus = Path(__file__).resolve().parents[1] / 'runs/bike-pickup-native-clock-20261105/preparation'
+    output = tmp_path / 'run'
+    monkeypatch.delenv('PACBENCH_TRANSPORT', raising=False)
+    monkeypatch.delenv('PACBENCH_DIRECT', raising=False)
+    monkeypatch.setattr(native_pilot, 'require_live_cost_boundary', lambda: {'service': 'test-gateway'})
+
+    def driver_failure():
+        raise GenerationError('test model inventory unavailable')
+
+    def unexpected(*_, **__):
+        pytest.fail('driver failure must stop before provider setup')
+
+    monkeypatch.setattr(native_pilot, 'load_driver', driver_failure)
+    monkeypatch.setattr(native_pilot, 'provision', unexpected)
+    assert cli.main(['run', str(corpus), '--output', str(output), '--providers', 'mem0']) == 1
+    report = read(output / 'summary.json')
+    assert report['gateway_before'] == {'service': 'test-gateway'}
+    assert report['state'] == 'blocked' and report['results'] == []
+    assert report['reason'] == 'test model inventory unavailable'
+    assert 'mem0 not run test model inventory unavailable' in capsys.readouterr().out
+
+
+def test_run_and_doctor_report_missing_muse_history_consistently(tmp_path, monkeypatch, capsys):
+    from pacbench import gateway_client
+
+    monkeypatch.delenv('PACBENCH_TRANSPORT', raising=False)
+    monkeypatch.delenv('PACBENCH_DIRECT', raising=False)
+    state = tmp_path / 'private-state'
+    state.mkdir()
+    (state / 'client-token').write_text('fixture-secret')
+    save(state / 'address.json', {'base': 'http://127.0.0.1:18999'})
+    monkeypatch.setattr(gateway_client, 'STATE', state)
+    monkeypatch.setattr(gateway_client.transport, 'open_without_redirect',
+                        lambda *_a, **_kw: pytest.fail('unexpected health request'))
+    corpus = Path(__file__).resolve().parents[1] / 'runs/bike-pickup-native-clock-20261105/preparation'
+    output = tmp_path / 'blocked'
+
+    assert cli.main(['run', str(corpus), '--output', str(output)]) == 1
+    report = read(output / 'summary.json')
+    assert report['state'] == 'blocked'
+    assert report['reason'] == gateway_client.check_live_route()['detail']
+    assert 'ledger.sqlite3' in report['reason'] and 'README.md' in report['reason']
+    printed = capsys.readouterr().out
+    assert ', '.join(ACTIVE_PROVIDERS) + ' not run ' + report['reason'] in printed
+    assert printed.count(report['reason']) == 1
+    assert 'fixture-secret' not in report['reason']
+    assert not (state / 'ledger.sqlite3').exists()
+
+
+def test_run_uses_configured_openrouter_proxy_and_blocks_unbound_transport(tmp_path, monkeypatch, capsys):
+    from pacbench import gateway_client
+    from pacbench.openrouter_route import ENDPOINT, MODEL
+
+    corpus = Path(__file__).resolve().parents[1] / 'runs/bike-pickup-native-clock-20261105/preparation'
+    command = ['run', str(corpus), '--providers', 'mem0']
+    monkeypatch.setenv('PACBENCH_TRANSPORT', 'openrouter')
+    monkeypatch.setenv('PACBENCH_DIRECT', '0')
+    monkeypatch.delenv('PACBENCH_OPENROUTER_PROXY_URL', raising=False)
+    monkeypatch.delenv('PACBENCH_OPENROUTER_PROXY_TOKEN', raising=False)
+    monkeypatch.setenv('OPENROUTER_API_KEY', 'offline-upstream-key')
+
+    checks = []
+    health = {'service': 'pacbench-openrouter', 'model': MODEL, 'endpoint': ENDPOINT,
+              'limit_usd': '1.25', 'budget_blocked': False, 'auth_blocked': False}
+
+    def health_check(request, *, timeout):
+        assert request.full_url == 'http://127.0.0.1:18999/health'
+        assert request.get_header('Authorization') == 'Bearer offline-proxy-token'
+        checks.append(request.full_url)
+        return BytesIO(json.dumps(health).encode())
+
+    class PassedAdmission(Exception):
+        pass
+
+    def stop_before_driver():
+        raise PassedAdmission
+
+    monkeypatch.setattr(gateway_client.transport, 'open_without_redirect', health_check)
+    monkeypatch.setattr(native_pilot, 'load_driver', stop_before_driver)
+    assert cli.main([*command, '--output', str(tmp_path / 'plan'), '--plan']) == 0
+    blocked = tmp_path / 'blocked'
+    assert cli.main([*command, '--output', str(blocked)]) == 1
+    report = read(blocked / 'summary.json')
+    assert report['inference_route'] == 'openrouter' and report['state'] == 'blocked' and report['results'] == []
+    assert report['reason'].startswith('run-owned OpenRouter transport is not configured.')
+    assert 'README.md' in report['reason']
+    assert report['reason'] in capsys.readouterr().out
+    assert not checks
+
+    monkeypatch.setenv('PACBENCH_OPENROUTER_PROXY_URL', 'http://127.0.0.1:18999')
+    monkeypatch.setenv('PACBENCH_OPENROUTER_PROXY_TOKEN', 'offline-proxy-token')
+    monkeypatch.setenv('PACBENCH_OPENROUTER_LIMIT_USD', '1.25')
+    with pytest.raises(PassedAdmission):
+        cli.main([*command, '--output', str(tmp_path / 'admitted')])
+    assert checks == ['http://127.0.0.1:18999/health']
+
+    monkeypatch.delenv('PACBENCH_TRANSPORT')
+    monkeypatch.setattr(gateway_client, 'STATE', tmp_path / 'missing-shared-state')
+    assert cli.main([*command, '--output', str(tmp_path / 'default')]) == 1
+    assert read(tmp_path / 'default/summary.json')['inference_route'] == 'muse-gateway'
+    assert len(checks) == 1
+
+    monkeypatch.setenv('PACBENCH_DIRECT', '1')
+    with pytest.raises(SystemExit) as rejected:
+        cli.main([*command, '--output', str(tmp_path / 'unsupported-direct')])
+    assert rejected.value.code == 2
+    assert 'pacbench.openrouter_run --help' in capsys.readouterr().err
+    assert not (tmp_path / 'unsupported-direct').exists()
+    assert len(checks) == 1
 
 
 def test_shared_prepared_loader_authenticates_portable_siblings_and_loads_checks_once(tmp_path, monkeypatch):

@@ -49,19 +49,31 @@ def run_from_args(args, parser):
     try:
         if args.plan:
             return plan_run(manifest, args.output, providers)
-        report = run(manifest, args.output, max_messages=None, providers=providers, report_blocked=True)
+        from .gateway_client import public_inference_route
+
+        try:
+            inference_route = public_inference_route()
+        except ValueError as exc:
+            parser.error(str(exc))
+        report = run(manifest, args.output, max_messages=None, providers=providers,
+                     inference_route=inference_route, report_blocked=True)
     except PreparedCorpusError as exc:
         parser.error(str(exc))
     results = {row['provider']: row for row in report['results']}
+    unstarted = []
     for provider in providers:
-        if provider in results:
-            row = results[provider]
-            capability = row['capability']
-            reason = row.get('reason') or capability.get('execution_blocker') or capability.get('reason') or ''
-            print(provider, row['state'], reason)
-        else:
-            reason = report.get('reason') or report.get('interruption') or 'the run stopped before this provider started'
-            print(provider, 'not run', reason)
+        row = results.get(provider)
+        if row is None:
+            unstarted.append(provider)
+            continue
+        capability = row['capability']
+        reason = row.get('reason') or capability.get('execution_blocker') or capability.get('reason') or ''
+        print(provider, row['state'], reason)
+    if unstarted:
+        fallback = ('the run stopped before this provider started' if len(unstarted) == 1
+                    else 'the run stopped before these providers started')
+        reason = report.get('reason') or report.get('interruption') or fallback
+        print(', '.join(unstarted), 'not run', reason)
     print(args.output / 'summary.json')
     return int(report['state'] != 'diagnostic' or len(results) != len(providers))
 

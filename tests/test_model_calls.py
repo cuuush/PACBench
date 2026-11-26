@@ -210,6 +210,7 @@ def fake_gateway_identity(tmp_path, monkeypatch):
     from pacbench import gateway_client
     state = tmp_path / 'gateway'
     state.mkdir()
+    (state / 'ledger.sqlite3').touch()
     (state / 'client-token').write_text('test' if __name__.endswith('test_model_calls') else 'TEST-GATEWAY')
     (state / 'address.json').write_text(json.dumps({'base':'http://127.0.0.1:8099'}))
     monkeypatch.setattr(gateway_client, 'STATE', state)

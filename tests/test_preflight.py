@@ -68,7 +68,7 @@ def test_missing_state_blocks_without_network_or_replacement(setup, monkeypatch)
     assert result['state'] == 'blocked' and result['inference_calls'] == 0
     assert not state.exists()
     assert states(result)['existing_gateway_state']['state'] == 'blocked'
-    assert 'Do not initialize a replacement ledger' in json.dumps(result)
+    assert 'If resuming a study, restore its original private files.' in json.dumps(result)
     assert 'SECRET_DO_NOT_PRINT' not in json.dumps(result)
 
 

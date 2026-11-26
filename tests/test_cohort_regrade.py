@@ -2,10 +2,12 @@
 from collections import defaultdict
 from copy import deepcopy
 from dataclasses import asdict
+from datetime import timedelta
 from functools import lru_cache
 import hashlib
 import json
 from pathlib import Path
+import shutil
 import sqlite3
 import subprocess
 import sys
@@ -508,6 +510,143 @@ class CohortRegradeTests(unittest.TestCase):
             plan = json.loads(out.call_args.args[0])
         self.assertFalse(plan['dispatch_enabled'])
         self.assertNotIn('Synthetic retained answer.', json.dumps(plan))
+
+    def test_daily_checkpoint_rejects_late_readback_with_or_without_dispatch(self):
+        run = self.make_run('supermemory', count=49, seal=True, daily=True)
+        workflow = run.with_name('workflow.jsonl')
+        _, turns, _, _ = week()
+        documents = seven_daily()
+        first_affected = next(turn for turn in turns if instant(turn.at) >= instant(documents[-1].cutoff))
+        header = [json.loads(line) for line in workflow.read_text().splitlines()][:2]
+        intake = journal_documents(documents)
+        good_events = list(header)
+        release = 0
+        for turn in turns:
+            while release < len(documents) and instant(documents[release].cutoff) <= instant(turn.at):
+                good_events.extend(intake[release*3:(release+1)*3])
+                release += 1
+            good_events.append(dict(phase='dispatch', question=turn.id, prompt=turn.prompt, at=turn.at))
+        write_journal(workflow, good_events)
+        verify_args = [str(run), '--revision', NEUTRAL_REVISION, '--verify']
+        cli = [sys.executable, '-m', 'pacbench.cohort_regrade']
+        good = subprocess.run([*cli, *verify_args], check=True, capture_output=True, text=True)
+        self.assertEqual(json.loads(good.stdout)['coverage']['supermemory']['completed_criteria'], 192)
+        recording = self.root/'daily-recording.jsonl'
+        write_journal(recording, self.judge_records(snapshot(run, NEUTRAL_REVISION)))
+        last_readback = intake[-1]['evidence']
+        last_readback['at'] = (instant(first_affected.at) + timedelta(seconds=1)).isoformat()
+        omitted = {turn.id for turn in turns[-20:]}
+        self.assertIn(first_affected.id, omitted)
+
+        for events in (good_events, [event for event in good_events if event['phase'] != 'dispatch'
+                                     or event['question'] not in omitted]):
+            write_journal(workflow, events)
+            verification = subprocess.run([*cli, *verify_args], capture_output=True, text=True)
+            self.assertEqual(verification.returncode, 1)
+            coverage = json.loads(verification.stdout)['coverage']['supermemory']
+            self.assertEqual(coverage['state'], 'unavailable-or-invalid')
+            self.assertIn(f'is late at question {first_affected.id}', coverage['reason'])
+            output = self.root/'late-overlay'
+            imported = subprocess.run([*cli, *self.judge_cli(run, recording, output)],
+                                      capture_output=True, text=True)
+            self.assertEqual(imported.returncode, 2)
+            self.assertIn(f'is late at question {first_affected.id}', imported.stderr)
+            self.assertFalse(output.exists())
+
+    def test_legacy_partial_answer_requires_readback_at_its_own_cutoff(self):
+        documents, turns, basis, _ = week()
+        turn = turns[0]
+        prefix = [doc for doc in documents if instant(doc.cutoff) <= instant(turn.at)]
+        path = self.root/'workflow.jsonl'
+        header = journal_header(condition('supermemory'), turns, basis, False)
+        intake = journal_documents(prefix)
+        saved = [dict(phase='answer-visible', question=turn.id, surface=saved_surface(turn, documents, {})),
+                 dict(phase='verified-turn', question=turn.id, activity={'synthetic': True})]
+        write_journal(path, [*header, *intake, *saved])
+        coverage = snapshot(path, NEUTRAL_REVISION)['coverage']['supermemory']
+        self.assertEqual(coverage['completed_turns'], 1)
+        self.assertLess(coverage['source_provenance']['ready_documents'], len(documents))
+        # A readback appended after the answer cannot prove prior readiness,
+        # even if its source clock falls within the question cutoff.
+        write_journal(path, [*header, *intake[:-1], *saved, intake[-1]])
+        with self.assertRaisesRegex(ValueError, f'missing original native readback.*{turn.id}'):
+            snapshot(path, NEUTRAL_REVISION)
+
+    def test_frozen_plan_replays_all_recorded_cells_after_planner_comment(self):
+        run = self.legacy_complete(self.root/'supermemory', 'supermemory')
+        plan = snapshot(run, NEUTRAL_REVISION)
+        self.assertEqual(len(plan['items']), 47)
+        journal = self.root/'recorded.jsonl'
+        write_journal(journal, self.judge_records(plan))
+        frozen = self.root/'frozen'
+        with patch('builtins.print'):
+            main([str(run), '--revision', NEUTRAL_REVISION, '--output', str(frozen)])
+        database = frozen/'overlay.sqlite3'
+        original_database_sha = hash_file(database)
+
+        changed = self.root/'changed-checkout'
+        repo = Path(__file__).resolve().parents[1]
+        for directory in ('pacbench', 'specs', 'datasets'):
+            shutil.copytree(repo/directory, changed/directory,
+                            ignore=shutil.ignore_patterns('__pycache__'))
+        with (changed/'pacbench/cohort_regrade.py').open('a') as planner:
+            planner.write('\n# Unrelated comment.\n')
+
+        output = self.root/'comparison'
+        command = [sys.executable, '-m', 'pacbench.cohort_regrade', *self.judge_cli(run, journal, output)]
+        mismatch = subprocess.run(command, cwd=changed, capture_output=True, text=True, check=False)
+        self.assertNotEqual(mismatch.returncode, 0)
+        self.assertIn('response journal belongs to another frozen plan', mismatch.stderr)
+        self.assertFalse(output.exists())
+        subprocess.run([*command, '--frozen-plan', str(database)], cwd=changed,
+                       capture_output=True, text=True, check=True)
+        subprocess.run([*command, '--frozen-plan', str(output/'overlay.sqlite3')], cwd=changed,
+                       capture_output=True, text=True, check=True)
+        report = json.loads((output/'report.json').read_text())
+        self.assertEqual(report['plan_id'], plan['plan_id'])
+        self.assertEqual(len(report['states']), 47)
+        self.assertEqual(report['arms']['supermemory']['regraded_criteria'], 192)
+        self.assertEqual(hash_file(database), original_database_sha)
+        with sqlite3.connect(output/'overlay.sqlite3') as db:
+            stored = json.loads(db.execute('SELECT plan FROM binding').fetchone()[0])
+        self.assertEqual(stored['plan']['judge'], plan['judge'])
+        with (changed/'pacbench/semantic_grade.py').open('a') as scorer:
+            scorer.write('\n# Scorer implementation changed.\n')
+        mismatch = subprocess.run([*command, '--frozen-plan', str(database)], cwd=changed,
+                                  capture_output=True, text=True, check=False)
+        self.assertNotEqual(mismatch.returncode, 0)
+        self.assertIn('current scorer or response adapter differs from the frozen plan', mismatch.stderr)
+
+    def test_frozen_plan_refuses_changed_retained_input_and_tampered_archive(self):
+        run = self.legacy_complete(self.root/'supermemory', 'supermemory')
+        plan = snapshot(run, NEUTRAL_REVISION)
+        frozen = self.root/'frozen'
+        Overlay(frozen, plan).close()
+        database = frozen/'overlay.sqlite3'
+        output = self.root/'comparison'
+        command = [str(run), '--revision', NEUTRAL_REVISION, '--frozen-plan', str(database),
+                   '--output', str(output)]
+
+        with sqlite3.connect(database) as db:
+            saved = db.execute('SELECT plan FROM binding').fetchone()[0]
+            modified = json.loads(saved)
+            modified['items'][0]['prompt'] += 'Tampered.'
+            db.execute('UPDATE binding SET plan=?', (json.dumps(modified),))
+        with self.assertRaises(SystemExit), patch('sys.stderr') as stderr:
+            main(command)
+        self.assertIn('frozen plan ID does not match', str(stderr.write.call_args_list))
+        self.assertFalse(output.exists())
+
+        with sqlite3.connect(database) as db:
+            db.execute('UPDATE binding SET plan=?', (saved,))
+        events = [json.loads(line) for line in run.read_text().splitlines()]
+        grade = next(event for event in events if event['phase'] == 'grade')
+        grade['criteria'][0]['reason'] = 'Revised original judgment.'
+        write_journal(run, events)
+        with self.assertRaises(SystemExit), patch('sys.stderr') as stderr:
+            main(command)
+        self.assertIn('current retained inputs or judge revision differ', str(stderr.write.call_args_list))
+        self.assertFalse(output.exists())
 
     def test_complete_selected_judge_comparisons_keep_conditions_and_originals_separate(self):
         historical = self.legacy_complete(self.root/'old-supermemory', 'supermemory', skip_original=True)

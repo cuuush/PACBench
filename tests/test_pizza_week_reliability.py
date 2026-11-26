@@ -113,11 +113,11 @@ def test_retained_intake_rejects_later_release_submitted_before_question():
     _, docs, _, _, _ = compile_daily_week()
     dispatch = {'phase': 'dispatch', 'question': TURN.id, 'at': TURN.at, 'prompt': TURN.prompt}
     ready = journal_documents(docs[:2])
-    assert document_readbacks([*ready, dispatch], docs, [TURN], through=TURN.at)['ready_documents'] == 2
+    assert document_readbacks([*ready, dispatch], docs, [TURN], answered=[TURN])['ready_documents'] == 2
     future = journal_documents(docs[2:3])[0]
     assert future['phase'] == 'submit'
     with pytest.raises(ValueError, match='original cutoff'):
-        document_readbacks([*ready, future, dispatch], docs, [TURN], through=TURN.at)
+        document_readbacks([*ready, future, dispatch], docs, [TURN], answered=[TURN])
 
 
 def test_parallel_tool_provenance_uses_call_id_instead_of_return_order():

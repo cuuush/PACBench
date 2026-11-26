@@ -18,6 +18,10 @@ REVIEWED_READER_PAIRS = (
         '590b75770aac728f51e8608a541dc7508433d5de1c68615d2b7f044a2df8ab66',
         'e252c6b764e5d3a12237909c6a82e0e29755155652d90e699375454e88eef72e',
     ),
+    (
+        '0ecb847f980af9ad3791de9c074a44eff729dfc014b095a62d9c6cb7ce8e15a7',
+        '08e5a117d64c0eb574b2a46aef94d69c887f90e065021583cee926ba59d51376',
+    ),
 )
 
 
@@ -50,6 +54,8 @@ def export_retained(args):
     if (coverage['completed_turns'], coverage['completed_criteria'], coverage['execution_sealed'],
         coverage['verified_pending_completion']) != (49, 192, True, []):
         raise ValueError('retained arm is incomplete')
+    if coverage['source_provenance'].get('missing_evidence'):
+        raise ValueError('retained arm lacks original native ingestion evidence')
     if args.output.resolve().is_relative_to(directory.parent if directory.name == 'workflow' else directory):
         raise ValueError('choose an export destination outside the retained run')
     layout = 'single' if data.binding.get('single_native_session') else 'logical'

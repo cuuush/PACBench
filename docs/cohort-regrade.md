@@ -134,6 +134,38 @@ correct counts, and matched per-criterion deltas for every arm. Unknown
 original judgments remain ungraded. Replaying the exact recording is
 idempotent. An overlay rejects a different recording or judge selection.
 
+### Replay a frozen plan after code changes
+
+Before recording responses, run the planning command with `--output` and
+keep its private `overlay.sqlite3`. The database stores the exact plan,
+including saved answers, prompts, and implementation fingerprints. A
+completed import's overlay also contains this plan.
+
+```sh
+python -m pacbench.cohort_regrade /path/to/cohort.json \
+  --revision explicit-criteria-v1 --output /path/to/regrades/frozen-plan
+python -m pacbench.cohort_regrade /path/to/cohort.json \
+  --revision explicit-criteria-v1 --response-journal /path/to/recorded-responses.jsonl \
+  --judge candidate --journal-sha256 EXPECTED_RECORDING_SHA256 \
+  --frozen-plan /path/to/regrades/frozen-plan/overlay.sqlite3 \
+  --output /path/to/regrades/explicit-v1-candidate
+```
+
+Replay opens the frozen plan read-only. It verifies the original retained
+inputs with the current reader, checks the archived plan ID against the
+archived contents, and requires an exact match for every plan field except
+the planner and input adapter fingerprints. Replay requires the original
+scorer and response adapter bytes because the importer evaluates each saved
+response with that code. The original fingerprints and plan ID are kept in
+the new overlay. The importer validates each recorded request, route,
+response and verdict.
+
+If the original overlay is missing, use the original software checkout and
+pinned judge revision to recreate the plan with `--output`. Confirm its
+reported `plan_id` matches the original journal's header before replaying it
+from the current checkout. The journal alone cannot recreate the original
+implementation fingerprints.
+
 ### Seven daily files
 
 A run may record `input_projection: "seven-daily-files-v1"` in its

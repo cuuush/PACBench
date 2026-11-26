@@ -203,10 +203,14 @@ fixture.cohort([fixture.make_run('cognee',count=49,seal=True)])
     subprocess.run([sys.executable,'-c',make,str(tmp_path)],cwd=reader,check=True)
     module = root/'pacbench/question_judge_batch.py'
     export = tmp_path/'native.private.jsonl'
-    proc = subprocess.run([sys.executable,str(module),'export-retained',str(cohort),
-                           '--arm','cognee','--sha256',hashlib.sha256(cohort.read_bytes()).hexdigest(),
-                           '--output',str(export)],cwd=reader,env=dict(os.environ,PYTHONPATH=str(reader)),
-                           text=True,capture_output=True)
+    manifest_sha = hashlib.sha256(cohort.read_bytes()).hexdigest()
+
+    def native_export(destination):
+        return subprocess.run([sys.executable, str(module), 'export-retained', str(cohort),
+                               '--arm', 'cognee', '--sha256', manifest_sha, '--output', str(destination)],
+                              cwd=reader, env=dict(os.environ, PYTHONPATH=str(reader)), text=True, capture_output=True)
+
+    proc = native_export(export)
     assert proc.returncode == 0, proc.stderr
     summary = json.loads(proc.stdout)
     plan = tmp_path/'verified.plan'
@@ -218,6 +222,30 @@ fixture.cohort([fixture.make_run('cognee',count=49,seal=True)])
     assert result['manifest']['retained_origin']['arm'] == 'cognee'
     assert result['manifest']['retained_origin']['cohort_manifest_sha256'] == hashlib.sha256(cohort.read_bytes()).hexdigest()
     assert result['manifest']['retained_origin']['entry_manifest_sha256'] == json.loads(cohort.read_text())['runs'][0]['sha256']
+
+    from pacbench.workflow_spec import compile_week, instant
+
+    journal = tmp_path/'cognee/workflow/workflow.jsonl'
+    first_turn = compile_week('continuing-account')[2][0]
+    events = []
+    for line in journal.read_text().splitlines():
+        event = json.loads(line)
+        if event['phase'] == 'submit' and instant(event['at']) > instant(first_turn.at):
+            break
+        events.append(event)
+    first_readback = next(event for event in events if event['phase'] == 'readback')
+    first_readback['evidence']['at'] = '2099-10-06T21:01:00-04:00'
+    events.append(dict(phase='dispatch', question=first_turn.id, prompt=first_turn.prompt, at=first_turn.at))
+    journal.write_text(''.join(json.dumps(event) + '\n' for event in events))
+    late = tmp_path/'late.private.jsonl'
+    proc = native_export(late)
+    assert proc.returncode == 2 and not late.exists()
+    assert 'is late at question' in proc.stderr or 'differs at its original cutoff' in proc.stderr
+
+    journal.unlink()
+    missing = tmp_path/'missing.private.jsonl'
+    proc = native_export(missing)
+    assert proc.returncode == 2 and 'lacks original native ingestion evidence' in proc.stderr and not missing.exists()
 
 
 def test_export_refuses_an_unreviewed_reader_before_opening_input(tmp_path, monkeypatch):

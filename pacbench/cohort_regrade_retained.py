@@ -8,7 +8,7 @@ import json
 from pathlib import Path
 
 from .provider_versions import MEMCAL_WEEK_VERSION
-from .workflow_capability import MEMCAL_SCOPE, MEMOS_OSS_ADMISSION, _memcal_schedule
+from .workflow_capability import DOCUMENT_ARMS, MEMCAL_SCOPE, _memcal_schedule
 from .workflow_document_progress import PROTOCOL as DOCUMENT_PROGRESS, PROVIDERS
 from .workflow_daily_documents import LAYOUT as NORMALIZED_DAILY, compile_daily_week
 from .workflow_memcal_tools import manifest as memcal_product, verify_captured_driver
@@ -28,12 +28,7 @@ HONCHO_ADMISSION = 'honcho-seven-daily-documents-v1'
 SUPERMEMORY_ADMISSION = 'supermemory-stock-document-week-v1'
 ADMISSIONS = {
     'memcal': MEMCAL_SCOPE,
-    'mem0': 'mem0-native-oss-document-week-v1',
-    'hindsight': 'hindsight-native-file-document-week-v1',
-    'openviking': 'openviking-native-file-document-week-v1',
-    'reme': 'reme-native-watched-resource-week-v1',
-    'cognee': 'cognee-native-permanent-document-week-v1',
-    'memos': MEMOS_OSS_ADMISSION,
+    **{provider: arm.admission for provider, arm in DOCUMENT_ARMS.items()},
 }
 
 
@@ -287,11 +282,25 @@ def verify_journal_header(events, turns, condition, spec_sha, basis, canary):
         raise ValueError('journal planned turn or criterion denominator differs')
 
 
-def document_readbacks(events, documents, turns, *, through=None, complete=False):
+def _verify_ready_at_turn(turn, releases, ready_times):
+    question_at = instant(turn.at)
+    for release, cutoff in releases.items():
+        if cutoff > question_at:
+            continue
+        if release not in ready_times:
+            raise ValueError(f'missing original native readback for {release} before question {turn.id}')
+        if ready_times[release] > question_at:
+            raise ValueError(f'original native readback for {release} is late at question {turn.id}')
+
+
+def document_readbacks(events, documents, turns, *, answered=(), complete=False):
     """Bind native acceptance/readback to the original submitted document."""
     submitted, accepted, ready, intake_failures = set(), {}, {}, []
     planned = {doc.filename: doc for doc in documents}
+    releases = {doc.filename: instant(doc.cutoff) for doc in documents}
+    ready_times = {}
     ordered_questions = iter(turns)
+    answered_questions = {turn.id: turn for turn in answered}
     pending, submitted_through = None, None
     for event in events:
         phase = event['phase']
@@ -325,8 +334,9 @@ def document_readbacks(events, documents, turns, *, through=None, complete=False
             if submission is None:
                 raise ValueError('unbound document readback')
             doc, acceptance = submission
+            observed_at = instant(proof['at'])
             if (doc.filename in ready or doc.filename in intake_failures
-                    or instant(proof['at']) < instant(acceptance['at'])):
+                    or observed_at < instant(acceptance['at'])):
                 raise ValueError('original document readback is stale or duplicated')
             if proof.get('ready') is not True:
                 intake_failures.append(doc.filename)
@@ -334,16 +344,19 @@ def document_readbacks(events, documents, turns, *, through=None, complete=False
                 raise ValueError('original document readback differs from its submitted content')
             else:
                 ready[doc.filename] = proof
+                ready_times[doc.filename] = observed_at
         elif phase == 'dispatch':
             turn = next(ordered_questions, None)
-            if (turn is None or event['question'] != turn.id or event['prompt'] != turn.prompt
-                    or event['at'] != turn.at
-                    or (submitted_through is not None and submitted_through > instant(turn.at))
-                    or any(d.filename not in ready or instant(ready[d.filename]['at']) > instant(turn.at)
-                           for d in documents if instant(d.cutoff) <= instant(turn.at))):
+            if (turn is None or event['question'] != turn.id or event['prompt'] != turn.prompt or event['at'] != turn.at
+                    or (submitted_through is not None and submitted_through > instant(turn.at))):
                 raise ValueError('document intake or dispatched question differs at its original cutoff')
-    if (complete and set(ready) != set(planned)) or (
-            through and any(d.filename not in ready for d in documents if instant(d.cutoff) <= instant(through))):
+            _verify_ready_at_turn(turn, releases, ready_times)
+        elif phase == 'answer-visible' and event['question'] in answered_questions:
+            _verify_ready_at_turn(answered_questions[event['question']], releases, ready_times)
+    # SQLite may have saved an answer beyond the end of the journal.
+    for turn in answered:
+        _verify_ready_at_turn(turn, releases, ready_times)
+    if complete and set(ready) != set(planned):
         raise ValueError('missing original document readbacks through retained execution')
     return {'kind': 'native-document-readback', 'ready_documents': len(ready),
             'ready_releases': sum(all(d.filename in ready for d in documents if d.cutoff == at)
@@ -385,7 +398,7 @@ def _collection(cutoff, docs, accepted, ready, ids_seen, *, require_archive=Fals
             'witness_sha256': fingerprint([accepted, ready])}
 
 
-def memcal_readbacks(progress, documents):
+def memcal_readbacks(progress, documents, *, answered=()):
     """Use recorded connector effects and Dream observations instead of a file denominator."""
     batches = defaultdict(list)
     for doc in documents:
@@ -414,6 +427,10 @@ def memcal_readbacks(progress, documents):
                 or clock['observation_sha256'] != accepted.get('source_observation_sha256')):
             raise ValueError('original MemCal clock, archive mapping or Dream readback differs')
         result.append(_collection(cutoff, docs, accepted, ready, ids_seen, require_archive=True))
+    releases = {cutoff: instant(cutoff) for cutoff in batches}
+    ready_times = {row['cutoff']: instant(row['ready_at']) for row in result}
+    for turn in answered:
+        _verify_ready_at_turn(turn, releases, ready_times)
     return {'kind': 'native-connector-collection', 'ready_documents': None, 'ready_releases': len(result),
             'collections': result, 'last_completed_cutoff': latest}
 
@@ -454,8 +471,61 @@ def bound_json(path, proof):
     return value
 
 
-def _honcho_releases(root, scope, documents, rows):
-    """Check the exact daily file, stock upload record, and settled completion."""
+def _honcho_response_binding(root, scope, scope_sha, row, role):
+    from .honcho_first_answer_admission import usable_response
+    from .live_dispatch import operation_id
+
+    context = row.get('dispatch_context', {})
+    return (usable_response(row) and row.get('workflow_root') == str(root)
+            and row.get('workflow_capability') == {'path': str(root/'workflow-scope.json'), 'sha256': scope_sha}
+            and row.get('project') == scope['projects']['honcho'][role]
+            and context.get('attempt_id') == row['id'] and context.get('run_id') == scope['run_id']
+            and context.get('operation_id') == operation_id(row))
+
+
+def _honcho_ingest_response(root, scope, scope_sha, rows, attempt, ready, sealed):
+    if 'honcho_wire_identity' in attempt:
+        from .dispatch_ownership import OwnershipConflict
+        from .honcho_daily_gate import _source_completion
+
+        if not _honcho_response_binding(root, scope, scope_sha, attempt, 'memory'):
+            return False
+        try:
+            completed = _source_completion(scope, rows, ready['release'], sealed['queue_id'])
+        except OwnershipConflict:
+            return False
+        if completed != attempt:
+            return False
+        if attempt['state'] == 'receipt_missing':
+            return True
+
+    receipt = attempt.get('billing_receipt') or {}
+    receipt_path = root/'billing-receipts'/Path(receipt.get('relative_path', '')).name
+    proof, receipt_sha = read_json(receipt_path)
+    return (attempt['state'] == 'settled' and attempt['http_status'] == 200
+            and receipt.get('relative_path') == str(receipt_path.relative_to(root))
+            and receipt_sha == receipt.get('sha256') and proof.get('attempt_id') == attempt['id']
+            and proof.get('generation_id') == attempt.get('upstream_request_id')
+            and 'cost' in proof.get('usage', {}))
+
+
+def _honcho_answer_response(root, scope, scope_sha, row, request, final_text=None):
+    if 'honcho_wire_identity' not in row:
+        return row['state'] == 'settled' and row['http_status'] == 200
+    from .canary_capability import digest
+
+    if not (_honcho_response_binding(root, scope, scope_sha, row, 'driver')
+            and row.get('request_sha256') == digest(request)):
+        return False
+    if final_text is None:
+        return True
+    evidence = row['response_validation']
+    return (evidence.get('finish_reasons') == ['stop']
+            and evidence.get('assistant_trimmed_text_sha256') == hashlib.sha256(final_text.strip().encode()).hexdigest())
+
+
+def _honcho_releases(root, scope, scope_sha, documents, rows):
+    """Check the exact daily file, stock upload record, and native completion."""
     ready_bindings, native_ids, queue_ids = [], set(), set()
     for index, (doc, entry) in enumerate(zip(documents, scope['plan'], strict=True), 1):
         path = root/'frozen-documents'/doc.filename
@@ -470,20 +540,14 @@ def _honcho_releases(root, scope, documents, rows):
         source = sealed['file']
         attempt = rows[ready['attempt']]
         slot = attempt['workflow_slot']
-        receipt = attempt.get('billing_receipt') or {}
-        receipt_path = root/'billing-receipts'/Path(receipt.get('relative_path', '')).name
-        proof, receipt_sha = read_json(receipt_path)
         if (sealed['at'] != doc.cutoff or source['sha256'] != doc.sha256
                 or source['file']['filename'] != doc.filename or source['meta'] != {'filename': doc.filename}
                 or source['session'] != scope['session']
                 or source['public_id'] in native_ids or sealed['queue_id'] in queue_ids
                 or slot.get('honcho_daily_release') != ready['release'] or slot.get('at') != doc.cutoff
-                or slot.get('kind') != 'ingest' or attempt['state'] != 'settled' or attempt['http_status'] != 200
-                or receipt.get('relative_path') != str(receipt_path.relative_to(root))
-                or receipt_sha != receipt.get('sha256') or proof.get('attempt_id') != attempt['id']
-                or proof.get('generation_id') != attempt.get('upstream_request_id')
-                or 'cost' not in proof.get('usage', {})):
-            raise ValueError('Honcho native readiness is outside the original file or settled ingest attempt')
+                or slot.get('kind') != 'ingest'
+                or not _honcho_ingest_response(root, scope, scope_sha, rows, attempt, ready, sealed)):
+            raise ValueError('Honcho native readiness is outside the original file or verified ingest attempt')
         native_ids.add(source['public_id'])
         queue_ids.add(sealed['queue_id'])
         ready_bindings.append({'path': str(ready_file), 'sha256': ready_sha})
@@ -525,7 +589,13 @@ def honcho_checkpoint(root, scope, scope_sha, expected_admission, projection):
     if not raw.endswith(b'\n'):
         raise ValueError('Honcho receipt journal is incomplete')
     rows = replay_attempts(StringIO(raw.decode()))
-    ready = _honcho_releases(root, scope, documents, rows)
+    if any('honcho_wire_identity' in row for row in rows.values()):
+        from .honcho_first_answer_admission import usable_response
+
+        generations = {row.get('upstream_request_id') for row in rows.values()}
+        if len(generations) != len(rows) or not all(map(usable_response, rows.values())):
+            raise ValueError('Retained Honcho run has an unusable or duplicate terminal response')
+    ready = _honcho_releases(root, scope, scope_sha, documents, rows)
     startup, startup_sha = read_json(root/'startup.json')
     if startup['controller'] != scope['controller'] or startup['source_ready'] != result['source_ready']:
         raise ValueError('Honcho gateway startup does not match the owned run and source')
@@ -573,13 +643,14 @@ def honcho_checkpoint(root, scope, scope_sha, expected_admission, projection):
         turn_ids = {request['request_id'] for request in requests}
         if len(turn_ids) != len(requests) or ids.intersection(turn_ids):
             raise ValueError('Honcho captured driver request was reused')
-        for request in requests:
+        for ordinal, request in enumerate(requests, 1):
             validate_request(request['request'], profile='luna-bedrock-global')
             row = rows[request['request_id']]
             slot = row['workflow_slot']
-            if (row['state'] != 'settled' or row['http_status'] != 200 or
-                    slot.get('kind') != 'answer' or slot.get('question_id') != turn.id):
-                raise ValueError('Honcho captured request differs from its settled driver operation')
+            final_text = surface['answer'] if ordinal == len(requests) else None
+            if (slot.get('kind') != 'answer' or slot.get('question_id') != turn.id
+                    or not _honcho_answer_response(root, scope, scope_sha, row, request['request'], final_text)):
+                raise ValueError('Honcho captured request differs from its verified driver operation')
         ids.update(turn_ids)
         inspect_source_cutoff({'model_requests': [r['request'] for r in requests], 'prefetch': surface['prefetch']},
                               documents, prefix, [t.prompt for t in turns[:index]])
@@ -658,19 +729,22 @@ def legacy_journal(events, document_sha, torn, *, projection=None, expected_admi
                    ingestion_protocol=deployment.get('admission'), scope_sha256=None)
     if complete and (pending or len(saved) != len(turns)):
         raise ValueError('legacy completion differs from retained answers')
+    answered = turns[:len(saved)]
     if condition['track'] == 'nightly-document':
-        latest = turns[len(saved)-1].at if saved else None
-        provenance = document_readbacks(events, documents, turns, through=latest, complete=complete)
+        provenance = document_readbacks(events, documents, turns, answered=answered, complete=complete)
     else:
-        provenance = legacy_connector_readbacks(events, documents, condition, complete=complete)
+        provenance = legacy_connector_readbacks(events, documents, condition, answered=answered, complete=complete)
     return RetainedArm(documents, turns, condition, binding, provenance, saved, originals, False, [])
 
 
-def legacy_connector_readbacks(events, documents, condition, *, complete):
+def legacy_connector_readbacks(events, documents, condition, *, answered, complete):
     batches = defaultdict(list)
     for doc in documents:
         batches[doc.cutoff].append(doc)
     expected_order = list(batches)
+    cutoffs = {cutoff: instant(cutoff) for cutoff in batches}
+    ready_times = {}
+    answered_questions = {turn.id: turn for turn in answered}
     releases, ids_seen = [], set()
     pending, accepted = None, None
     for event in events:
@@ -695,13 +769,17 @@ def legacy_connector_readbacks(events, documents, condition, *, complete):
                 ident = accepted['native_id']
                 if (not ident or ident in ids_seen or accepted.get('accepted') is not True
                         or ready.get('native_id') != ident or ready.get('ready') is not True
-                        or not ready.get('readback') or sorted(ready.get('new_source_ids', [])) != expected):
+                        or not ready.get('readback') or sorted(ready.get('new_source_ids', [])) != expected
+                        or not cutoffs[pending] <= instant(accepted['at']) <= instant(ready['at'])):
                     raise ValueError('unbound legacy connector release evidence')
                 ids_seen.add(ident)
                 releases.append({'cutoff': pending, 'native_collection_id': ident,
                                  'source_records': len(expected), 'ready_at': ready['at'],
                                  'witness_sha256': fingerprint([accepted, ready])})
+            ready_times[pending] = instant(ready['at'])
             pending, accepted = None, None
+        elif event['phase'] == 'answer-visible' and event['question'] in answered_questions:
+            _verify_ready_at_turn(answered_questions[event['question']], cutoffs, ready_times)
     if complete and len(releases) != len(batches):
         raise ValueError('completed legacy journal lacks original connector readbacks')
     return {'kind': 'legacy-native-connector-collection', 'ready_documents': None,

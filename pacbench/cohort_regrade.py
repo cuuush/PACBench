@@ -1,5 +1,6 @@
 """Plan all saved cohort answers, or analyze retained responses, without a transport."""
 import argparse
+from contextlib import closing
 from dataclasses import asdict, dataclass
 import hashlib
 import json
@@ -38,6 +39,13 @@ REVISIONS.update({
     revision.removeprefix('luna-'): {key: rule[key] for key in ('protocol', 'supplement')}
     for revision, rule in list(REVISIONS.items())
 })
+
+IMPLEMENTATION_FILES = {
+    'planner_sha256': 'cohort_regrade.py',
+    'input_adapter_sha256': 'cohort_regrade_retained.py',
+    'scorer_sha256': 'semantic_grade.py',
+    'response_adapter_sha256': 'cohort_regrade_journal.py',
+}
 
 
 @dataclass(frozen=True)
@@ -184,14 +192,14 @@ def _checkpoint_arm(manifest, entry, scope_sha, projection):
         if list(saved) != [t.id for t in turns[:len(saved)]] or (sealed and len(saved) != len(turns)):
             raise ValueError('retained completed turns do not form their original ordered prefix')
         binding.update(run_manifest_sha256=sha, run_key=key)
+        answered = [turn for turn in turns if turn.id in saved or turn.id in verified_pending]
         if binding['protocol'] == retained.MEMCAL_PROGRESS:
-            provenance = retained.memcal_readbacks(progress, documents)
+            provenance = retained.memcal_readbacks(progress, documents, answered=answered)
         elif journal is not None:
             events, journal_sha, torn = journal
             retained.verify_journal_header(events, turns, identity['condition'],
                                            identity['spec_sha256'], identity['source_basis'], identity['canary'])
-            latest = turns[len(saved)-1].at if saved else None
-            provenance = retained.document_readbacks(events, documents, turns, through=latest, complete=sealed)
+            provenance = retained.document_readbacks(events, documents, turns, answered=answered, complete=sealed)
             binding.update(journal_sha256=journal_sha, journal_torn_tail=torn)
         else:
             provenance = {'kind': 'document-readbacks-unavailable', 'ready_documents': None,
@@ -345,15 +353,44 @@ def snapshot(path, revision, *, verify_all=False):
         items.extend(arm_items)
         coverage[entry.arm] = report
     registry = dict(REVISIONS[revision])
-    registry['planner_sha256'] = hashlib.sha256(Path(__file__).read_bytes()).hexdigest()
-    registry['input_adapter_sha256'] = hashlib.sha256(Path(retained.__file__).read_bytes()).hexdigest()
-    registry['scorer_sha256'] = hashlib.sha256(Path(__file__).with_name('semantic_grade.py').read_bytes()).hexdigest()
-    registry['response_adapter_sha256'] = hashlib.sha256(Path(response_journal.__file__).read_bytes()).hexdigest()
+    registry.update({field: hashlib.sha256(Path(__file__).with_name(filename).read_bytes()).hexdigest()
+                     for field, filename in IMPLEMENTATION_FILES.items()})
     plan = {'schema': 'pacbench-cohort-regrade-plan-v1', 'revision': revision, 'judge': registry,
             'manifest_sha256': manifest_sha, 'source_roots': roots, 'coverage': coverage, 'items': items,
             'dispatch_enabled': False}
     plan['plan_id'] = digest(plan)
     return plan
+
+
+def replay_plan(database, current):
+    """Rebind a freshly verified plan to the exact plan archived in an overlay."""
+    database = Path(database).absolute()
+    if database != database.resolve() or not database.is_file():
+        raise ValueError('frozen plan requires the original, non-symlinked overlay database')
+    with closing(sqlite3.connect(database.as_uri() + '?mode=ro', uri=True)) as db:
+        row = db.execute('SELECT plan FROM binding WHERE id=1').fetchone()
+    if row is None:
+        raise ValueError('overlay has no frozen plan')
+    archived = response_journal._object(row[0])
+    if set(archived) == {'plan', 'selected_judge'}:
+        archived = archived['plan']
+    if not isinstance(archived, dict):
+        raise ValueError('invalid archived frozen plan')
+    plan_id = archived['plan_id']
+    if digest({key: value for key, value in archived.items() if key != 'plan_id'}) != plan_id:
+        raise ValueError('frozen plan ID does not match its archived contents')
+    implementation = {key: archived['judge'][key] for key in IMPLEMENTATION_FILES}
+    if any(not isinstance(sha, str) or not re.fullmatch(r'[0-9a-f]{64}', sha)
+           for sha in implementation.values()):
+        raise ValueError('invalid frozen plan implementation fingerprints')
+    if any(implementation[field] != current['judge'][field]
+           for field in ('scorer_sha256', 'response_adapter_sha256')):
+        raise ValueError('current scorer or response adapter differs from the frozen plan')
+    # Keep the current cohort order for reports after reinstating the original planner and reader fingerprints.
+    rebuilt = {**current, 'judge': {**current['judge'], **implementation}}
+    if digest({key: value for key, value in rebuilt.items() if key != 'plan_id'}) != plan_id:
+        raise ValueError('current retained inputs or judge revision differ from the frozen plan')
+    return {**rebuilt, 'plan_id': plan_id}
 
 
 def public_summary(plan):
@@ -555,6 +592,7 @@ def main(argv=None):
     parser.add_argument('--revision', required=True, choices=sorted(REVISIONS))
     parser.add_argument('--verify', action='store_true', help='check each declared arm and report missing or invalid inputs')
     parser.add_argument('--output', type=Path, help='separate versioned overlay; never writes original run')
+    parser.add_argument('--frozen-plan', type=Path, help='replay the exact plan from a retained overlay.sqlite3')
     imports = parser.add_mutually_exclusive_group()
     imports.add_argument('--responses', type=Path, help='legacy offline observations without journal provenance')
     imports.add_argument('--response-journal', type=Path, help='import one complete result from a recorded JSONL journal')
@@ -565,6 +603,8 @@ def main(argv=None):
         parser.error('response import requires --output')
     if args.verify and args.output:
         parser.error('--verify reports coverage without opening an overlay')
+    if args.verify and args.frozen_plan:
+        parser.error('--verify checks current coverage; --frozen-plan requires a fully verified plan')
     if args.responses and 'model' not in REVISIONS[args.revision]:
         parser.error('model-neutral results require a selected --response-journal')
     if args.response_journal:
@@ -574,6 +614,8 @@ def main(argv=None):
         parser.error('--judge and --journal-sha256 require --response-journal')
     try:
         plan = snapshot(args.manifest, args.revision, verify_all=args.verify)
+        if args.frozen_plan:
+            plan = replay_plan(args.frozen_plan, plan)
         if not args.output:
             print(json.dumps(public_summary(plan), indent=2))
             return int(args.verify and any(row['state'] != 'verified-retained-inputs'

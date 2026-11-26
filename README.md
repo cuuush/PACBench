@@ -100,22 +100,36 @@ reported reason before retrying and use a new output directory.
 
 For multiple personas, put one spec per file in `specs/personas/`. Give a
 changed spec a fresh name, such as `maya-v2.json`, so its corpus stays distinct.
-Use the same activated terminal to run the batch below. It stops at a failed
-preparation or run. Use a fresh batch label when rerunning the same frozen corpora.
+Use the same activated terminal to run one batch attempt at a time. The loop
+stops at the first error and records the summary path for each successful run.
+To retry unfinished personas, inspect the failed attempt and keep the same
+`batch` with a new `attempt` label. Earlier attempts stay in their original
+directories. If interrupted before writing a completion file, check that
+attempt's summary before retrying. If preparation stopped partway, inspect its
+error, then use
+`python -m pacbench generate SPEC --output CORPUS --resume` for a compatible
+partial corpus. Use a new batch label when you intend to rerun every persona.
 
 ```sh
-batch=batch-001
-for spec in specs/personas/*.json; do
-  [ -f "$spec" ] || continue
-  name=$(basename "$spec" .json)
-  corpus="artifacts/personas/$name/corpus"
-  run="artifacts/personas/$name/runs/$batch"
-  if [ ! -f "$corpus/week.json" ]; then
-    python -m pacbench.specs "$spec" || break
-    python -m pacbench generate "$spec" --output "$corpus" || break
-  fi
-  python -m pacbench run "$corpus" --output "$run" || break
-done
+(
+  set -e
+  batch=batch-001
+  attempt=attempt-001
+  for spec in specs/personas/*.json; do
+    [ -f "$spec" ] || continue
+    name=$(basename "$spec" .json)
+    corpus="artifacts/personas/$name/corpus"
+    batch_dir="artifacts/personas/$name/runs/$batch"
+    [ ! -s "$batch_dir/completed" ] || continue
+    if [ ! -f "$corpus/week.json" ]; then
+      python -m pacbench.specs "$spec"
+      python -m pacbench generate "$spec" --output "$corpus"
+    fi
+    run="$batch_dir/$attempt"
+    python -m pacbench run "$corpus" --output "$run"
+    printf '%s\n' "$run/summary.json" > "$batch_dir/completed"
+  done
+)
 ```
 
 To try the same authored scenario without paying for preparation, download the

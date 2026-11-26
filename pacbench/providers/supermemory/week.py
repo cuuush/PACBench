@@ -39,7 +39,7 @@ from .source_qualify import account_lock, check_runtime, check_stops, verify_pre
 from .week_admission import SCOPE, WEEK_RUN, plan, prepare_driver, verified_final_response
 from .worker import ROUND_PROTOCOL as WORKER_ROUND_PROTOCOL
 from .worker import CHUNK_PROTOCOL as CHUNK_READ_PROTOCOL, capture_anchor
-from .observation import PENDING, read_release_processing, stock_temporal_metadata, verify_native_version, verify_release_inventory
+from .observation import PENDING, read_options, read_release_processing, stock_temporal_metadata, verify_native_version, verify_release_inventory
 from .. import run_environment
 from pacbench.workflows.native import NativeAccount, WarmHermes
 from pacbench.workflows.recording import receipt_summary
@@ -62,19 +62,20 @@ class StockWeekWitness:
         with run_environment({'HERMES_HOME': str(owner.home)}):
             self.plugin = provider_module(PROVIDER)
 
-    def read_native(self, path, body=None):
+    def read_native(self, path, body=None, *, deadline=None):
         headers = {'Authorization': 'Bearer ' + self.token}
         if body is not None:
             headers['Content-Type'] = 'application/json'
         request = Request(self.endpoint + path, data=json.dumps(body).encode() if body is not None else None,
                           headers=headers)
-        with open_without_redirect(request, timeout=5) as response:
+        timeout = 5 if deadline is None else read_options(deadline, max_timeout=5)['timeout']
+        with open_without_redirect(request, timeout=timeout) as response:
             return json.load(response)
 
-    def catalog(self, expected):
+    def catalog(self, expected, *, deadline=None):
         expected = set(expected)
         result = self.read_native('/v3/documents/list', dict(containerTags=[self.namespace], includeContent=False,
-                                  page=1, limit=100))
+                                  page=1, limit=100), deadline=deadline)
         try:
             rows, page = result['memories'], result['pagination']
             native_ids = {row['id'] for row in rows}
@@ -276,8 +277,8 @@ class StockWeekWitness:
             check_stops(self.root.parent.parent)
             try:
                 response = self.sdk.documents.get(
-                    self.namespace, public, request_options={'max_retries': 0, 'timeout': min(5, deadline - time.monotonic())})
-            except (NotFoundError, APITimeoutError):
+                    self.namespace, public, request_options=read_options(deadline, max_timeout=5))
+            except (NotFoundError, APITimeoutError, TimeoutError):
                 time.sleep(.25)
                 continue
             wire = response.model_dump(mode='json', by_alias=True)
@@ -287,19 +288,25 @@ class StockWeekWitness:
             if state == 'done' and wire.get('content') == expected:
                 if (meta.get('session_id'), meta.get('type'), meta.get('docId')) != (sid, 'conversation', public):
                     raise ValueError('Supermemory native capture is outside the authored chat')
-                native_id = self.catalog({*self.ready, *self.captures, public})[public]['id']
-                native_path = '/v3/documents/' + quote(native_id, safe='')
-                native = self.read_native(native_path)
                 document = SimpleNamespace(filename=public)
-                rev = verify_native_version(native, document, native_id=native_id, namespace=self.namespace, wire=wire)
                 anchor = {}
-                if anchor_chunks:
-                    snapshot = self.sdk.documents.get(self.namespace, public, include='chunks',
-                                      request_options={'max_retries': 0, 'timeout': 5}).model_dump(mode='json', by_alias=True)
-                    if snapshot.get('id') != public or snapshot.get('content') != expected:
-                        raise ValueError('Supermemory chunk readback differs from the captured conversation')
-                    anchor['chunk_anchor'] = capture_anchor(native, snapshot, self.read_native(native_path), document,
-                                                             native_id=native_id, namespace=self.namespace)
+                try:
+                    native_id = self.catalog({*self.ready, *self.captures, public}, deadline=deadline)[public]['id']
+                    native_path = '/v3/documents/' + quote(native_id, safe='')
+                    native = self.read_native(native_path, deadline=deadline)
+                    rev = verify_native_version(native, document, native_id=native_id, namespace=self.namespace, wire=wire)
+                    if anchor_chunks:
+                        snapshot = self.sdk.documents.get(self.namespace, public, include='chunks',
+                            request_options=read_options(deadline, max_timeout=5)).model_dump(mode='json', by_alias=True)
+                        if snapshot.get('id') != public or snapshot.get('content') != expected:
+                            raise ValueError('Supermemory chunk readback differs from the captured conversation')
+                        confirmed = self.read_native(native_path, deadline=deadline)
+                        anchor['chunk_anchor'] = capture_anchor(native, snapshot, confirmed, document,
+                                                                 native_id=native_id, namespace=self.namespace)
+                except (APITimeoutError, TimeoutError):
+                    # Restart the read-only observation so each version witness comes from the same polling attempt.
+                    time.sleep(.25)
+                    continue
                 return dict(id=public, native_id=native_id, status=state, revision=rev,
                             capture_sha256=sha256(expected.encode()).hexdigest(),
                             dreaming_status=wire['system'].get('dreamingStatus'), **anchor)

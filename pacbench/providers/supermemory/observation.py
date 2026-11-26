@@ -52,11 +52,11 @@ def _wire(response):
     return response.model_dump(mode='json', by_alias=True, exclude_unset=True)
 
 
-def _options(deadline):
+def read_options(deadline, *, max_timeout=10):
     remaining = deadline - time.monotonic()
     if not isfinite(remaining) or remaining <= 0:
         raise TimeoutError('Supermemory document-processing deadline expired')
-    return {'timeout': min(10, remaining), 'max_retries': 0}
+    return {'timeout': min(max_timeout, remaining), 'max_retries': 0}
 
 
 def verify_release_inventory(client, namespace, expected_ids, *, deadline, on_rejection=None):
@@ -68,8 +68,8 @@ def verify_release_inventory(client, namespace, expected_ids, *, deadline, on_re
     pages = max(1, ceil(len(expected) / 100))
     for page in range(1, pages + 1):
         result = _wire(client.list(namespace, 'documents', page=page, limit=100,
-                                   sort='createdAt', order='asc', request_options=_options(deadline)))
-        _options(deadline)
+                                   sort='createdAt', order='asc', request_options=read_options(deadline)))
+        read_options(deadline)
         try:
             pagination = result['pagination']
             rows = result['documents']
@@ -117,11 +117,11 @@ def read_release_processing(client, namespace, documents, *, deadline, other_ids
             if before_read is not None:
                 before_read()
             try:
-                response = client.documents.get(namespace, ident, request_options=_options(deadline))
+                response = client.documents.get(namespace, ident, request_options=read_options(deadline))
             except APITimeoutError:
                 continue  # Only retry this observation within the release deadline.
             row = _wire(response)
-            _options(deadline)
+            read_options(deadline)
             if row['id'] != ident:
                 raise ValueError(f'foreign Supermemory document readback for {ident}')
             system = row['system']
@@ -155,7 +155,7 @@ def read_release_processing(client, namespace, documents, *, deadline, other_ids
                                    metadata=metadata, native_revision=native_revision,
                                    dreaming_status=system.get('dreamingStatus'))
         if len(observed) < len(expected):
-            time.sleep(min(0.5, _options(deadline)['timeout']))
+            time.sleep(min(0.5, read_options(deadline)['timeout']))
     if before_read is not None:
         before_read()
     verify_release_inventory(client, namespace, (*other_ids, *expected), deadline=deadline,

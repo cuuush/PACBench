@@ -90,7 +90,7 @@ def test_catalog_keeps_explicit_native_ids_separate_and_preserves_rejections(tmp
     if fault == 'retargeted':
         tool['customId'] = 'frozen.txt'
     response = dict(memories=rows, pagination=dict(currentPage=1, totalPages=1))
-    witness.read_native = lambda path, body: response
+    witness.read_native = lambda path, body, *, deadline=None: response
     if not fault:
         assert witness.catalog(['frozen.txt']) == {'frozen.txt': source}
         assert not list((tmp_path / 'inventory-rejections').iterdir())

@@ -2,8 +2,10 @@ from contextlib import contextmanager, nullcontext
 from dataclasses import replace
 import fcntl
 from hashlib import sha256
+from io import BytesIO
 import json
 from types import SimpleNamespace
+from urllib.error import HTTPError
 
 import httpx
 import pytest
@@ -51,14 +53,64 @@ def test_stock_sdk_add_and_readback_of_one_complete_day(tmp_path, transient_time
         witness.documents, witness.batch, witness.cutoff = [doc], [doc], doc.cutoff
         witness.ready, witness.accepted, witness.captures = {}, {}, {}
         witness.explicit_writes = {}
-        witness.read_native = lambda path, body=None: (dict(memories=[db_row], pagination=dict(currentPage=1, totalPages=1))
-                                                        if path.endswith('/list') else db_row)
+        witness.read_native = lambda path, body=None, *, deadline=None: (
+            dict(memories=[db_row], pagination=dict(currentPage=1, totalPages=1)) if path.endswith('/list') else db_row)
         accepted = witness.acceptance(submit_document('supermemory', client.with_raw_response, namespace, doc), doc)
         proof = witness.document_readback(doc, accepted)
         assert proof['readback']['native_id'] == native and proof['submitted_sha256'] == doc.sha256
         assert proof['ready'] and proof['readback']['native_revision'] == 1
         assert witness.source_inventory() == [doc.filename]
         assert calls == ['POST', *(['GET'] * (1 + transient_timeout)), 'POST', 'POST']
+
+
+@pytest.mark.parametrize('failure', ['timeout', 'unauthorized'])
+def test_capture_retries_only_transient_native_read(tmp_path, monkeypatch, failure):
+    pytest.importorskip('supermemory')
+    witness = StockWeekWitness.__new__(StockWeekWitness)
+    witness.root, witness.namespace, witness.endpoint, witness.token = tmp_path, 'week', 'http://127.0.0.1:1', 'fixture'
+    witness.ready, witness.captures, witness.explicit_writes = {}, {}, {}
+    public, sid, native_id = 'chat-one', 'one', 'D' * 22
+    text = 'Synthetic conversation.'
+    seen_at = '2026-10-05T09:00:00-04:00'
+    metadata = dict(session_id=sid, type='conversation', docId=public)
+    wire = dict(id=public, content=text, metadata=metadata,
+                system=dict(status='done', createdAt=seen_at, updatedAt=seen_at))
+    native = dict(id=native_id, customId=public, containerTags=['week'], content=text, metadata=metadata,
+                  status='done', createdAt=seen_at, updatedAt=seen_at, latestRevision=1)
+    inventory = dict(memories=[native], pagination=dict(currentPage=1, totalPages=1))
+    witness.plugin = SimpleNamespace(_capture_doc_id=lambda _: public)
+    calls = []
+
+    def status(namespace, identifier, *, request_options):
+        assert (namespace, identifier) == ('week', public)
+        assert 0 < request_options['timeout'] <= 5
+        calls.append('status')
+        return SimpleNamespace(model_dump=lambda **kwargs: wire)
+
+    witness.sdk = SimpleNamespace(documents=SimpleNamespace(get=status))
+
+    def read(request, *, timeout):
+        assert 0 < timeout <= 5
+        if request.full_url.endswith('/list'):
+            calls.append('inventory')
+            return BytesIO(json.dumps(inventory).encode())
+        assert request.get_method() == 'GET' and request.full_url.endswith('/' + native_id)
+        calls.append('native document')
+        if calls.count('native document') == 1:
+            if failure == 'unauthorized':
+                raise HTTPError(request.full_url, 401, 'Unauthorized', None, None)
+            raise TimeoutError('Transient stock native read timeout')
+        return BytesIO(json.dumps(native).encode())
+
+    monkeypatch.setattr(runner, 'open_without_redirect', read)
+    if failure == 'unauthorized':
+        with pytest.raises(HTTPError, match='401'):
+            witness.capture(sid, text)
+        assert calls == ['status', 'inventory', 'native document']
+    else:
+        proof = witness.capture(sid, text)
+        assert proof['native_id'] == native_id and proof['revision'] == 1
+        assert calls == ['status', 'inventory', 'native document'] * 2
 
 
 @pytest.mark.parametrize(('native_failure', 'ledger_failure', 'stop_failure'), [

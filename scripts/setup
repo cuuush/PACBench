@@ -2,10 +2,6 @@
 set -eu
 
 CDPATH= cd "$(dirname "$0")/.."
-if [ "$#" -eq 0 ]; then
-    set -- --help
-fi
-
 # Bootstrap uses the standard library and installs the pinned provider runtimes separately.
 for python in ./.venv/bin/python python3.12 python3; do
     if command -v "$python" >/dev/null 2>&1 &&

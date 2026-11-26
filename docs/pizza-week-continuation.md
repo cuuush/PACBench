@@ -13,9 +13,9 @@ python3 -m pacbench.workflow conform --track nightly-document --seven-daily-docu
   --output "$(mktemp -d)/pizza-week-conformance"
 ```
 
-For a new live run, use `./scripts/setup` and follow the
-[live setup guide](../README.md#set-up-a-live-run). Continuing the historical run
-requires the original private files described below.
+To run the bundled 80-message benchmark on OpenRouter, follow the
+[fresh-clone quickstart](../README.md#run-pizza-week-with-openrouter). This
+guide covers the separately frozen r2 study and its original private state.
 
 The frozen r2 source has 142 synthetic records and seven releases at 21:00
 America/New_York. In the [seven-document condition](pizza-week-workflow.md),

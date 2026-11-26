@@ -243,21 +243,54 @@ For multiple weeks, replace `days` with a `weeks` array of complete Monday–Sun
 
 Concrete dates are assigned during preparation from the spec's `week_start` Monday. `--week-start` explicitly overrides it; update any prose containing concrete dates when moving a scenario. Legacy unpinned inputs can still prepare relative to the host week, but the inventory requires a fixed date. Eastern defaults to `America/New_York`, including daylight saving time. Dates and offsets are frozen in the compiled corpus.
 
-Use the activated Hermes Python environment and the model gateway from the
-[live setup](../README.md#set-up-a-live-run) for these commands.
+Use the OpenRouter setup from the quickstart. For example, freeze a new copy
+of the authored scenario and then evaluate it. Each command has its own spending
+limit. [OpenRouter setup](../README.md#run-pizza-week-with-openrouter)
 
 ```sh
-python -m pacbench generate specs/pizza_week.json --output artifacts/corpora/pizza-week
-python -m pacbench run artifacts/corpora/pizza-week --output runs/pizza-current
+python3 -m pacbench generate specs/pizza_week.json --output artifacts/corpora/pizza-week --budget-usd 5
+python3 -m pacbench run artifacts/corpora/pizza-week --budget-usd 5
 ```
 
-Preparation writes a small plain-JSON `week.json` manifest with hashes of the generated messages, verification receipts, questions and evidence-cited judging contracts beside it. Keep the prepared directory together to reuse it across providers and runs. `run` accepts the directory or its `week.json`, verifies every referenced file, and imports the corpus without new authoring or model reviews. Older self-contained manifests remain readable. `generate --resume` reuses unchanged verified scenes and accepted contracts when fixing an interrupted preparation. Changed sources, questions, expectations or clocks require fresh contract review. A changed scene requires fresh source verification. Failed scenes are recorded, dependent source continuations skip, and independent scenes continue. Incomplete preparation cannot become a runnable frozen corpus.
+Preparation writes a small plain-JSON `week.json` manifest with hashes of the generated messages, verification receipts, questions and evidence-cited judging contracts beside it. Keep the prepared directory together to reuse it across providers and runs. `run` accepts the directory or its `week.json`, verifies every referenced file, and imports the corpus without new authoring or model reviews. Older self-contained manifests remain readable. `generate --resume` can reuse verified scenes on an existing, explicitly configured campaign route. A new public OpenRouter invocation uses a fresh output directory and budget. Changed sources, questions, expectations or clocks require fresh contract review. A changed scene requires fresh source verification. Failed scenes are recorded, dependent source continuations skip, and independent scenes continue. Incomplete preparation cannot become a runnable frozen corpus.
 
 `run` uses the full frozen corpus and selects all nine active providers by default. `--providers memcal mem0` selects a subset. `--plan` checks the corpus and writes its full source schedule and frozen question and criterion counts without model calls or provider startup. Conditional follow-ups are included in the frozen counts and can depend on what the provider answers during a run. Native execution requires the [runtime and model route setup](../vendor/README). Its summary reports unavailable arms and retains outcomes separately from semantic grades and retention evidence.
 
 For contributors, `pacbench/corpus/prepare.py` compiles and freezes the author spec, and `pacbench/corpus/audit.py` verifies the portable evidence. `pacbench/native_pilot.py` reads that verified corpus and coordinates native ingestion and recall through the provider adapters. Each arm writes its status, source receipts, and grading evidence under `repeat-1/<provider>` in the run directory. Frozen historical campaign definitions and operators live under `pacbench/campaigns/`.
 
-The minimal [Pizza Day](../specs/pizza_day.json) uses the same format for a one-day source smoke test. Preparation always runs separately from Hermes and native provider ingestion. All paid work goes through the shared gateway.
+The minimal [Pizza Day](../specs/pizza_day.json) uses the same format for a one-day source smoke test. Preparation always runs separately from Hermes and native provider ingestion.
+
+### Run multiple personas
+
+Put one spec per file in `specs/personas/`. Give a changed spec a new name to
+keep its corpus and results distinct. The loop freezes each corpus once,
+stops at the first failed command and skips completed runs when restarted.
+Choose a per-command cap and a batch label. For another attempt, inspect any
+partial evidence first and use a new attempt label. If generation stopped
+partway, retain that directory and its spending ledger before choosing a new
+output for another generation attempt.
+
+```sh
+(
+  set -e
+  budget=5
+  batch=batch-001
+  attempt=attempt-001
+  for spec in specs/personas/*.json; do
+    [ -f "$spec" ] || continue
+    name=$(basename "$spec" .json)
+    corpus="artifacts/personas/$name/corpus"
+    batch_dir="artifacts/personas/$name/runs/$batch"
+    [ ! -s "$batch_dir/completed" ] || continue
+    if [ ! -f "$corpus/week.json" ]; then
+      python3 -m pacbench generate "$spec" --output "$corpus" --budget-usd "$budget"
+    fi
+    run="$batch_dir/$attempt"
+    python3 -m pacbench run "$corpus" --output "$run" --budget-usd "$budget"
+    printf '%s\n' "$run/summary.json" > "$batch_dir/completed"
+  done
+)
+```
 
 ### Scene review output
 

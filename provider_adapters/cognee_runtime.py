@@ -15,6 +15,7 @@ from urllib.request import urlopen
 from pacbench.followups import save
 from pacbench.gateway_client import validate_route
 from pacbench.cognee_memobase_setup import PINS
+from pacbench.provider_versions import huggingface_model_cache
 
 REPO = Path(__file__).resolve().parents[1]
 
@@ -52,6 +53,9 @@ def start(root, env, model, base, key):
         plan_config(root,model,base,key)['EMBEDDING_ENDPOINT'],interface='ollama'))
     plugin_source = source / "integrations/hermes-agent"
     child = {**os.environ, **env, **plan_config(root, model, base, key)}
+    child['HF_HUB_CACHE'] = str(huggingface_model_cache(REPO))
+    if child.get('PACBENCH_WORKFLOW_SCOPE'):
+        child['HF_HUB_OFFLINE'] = '1'
     from pacbench.openrouter_direct import runtime_environment
     runtime_environment(child)
     from provider_adapters.tokenizer_cache import configure as configure_tokenizers

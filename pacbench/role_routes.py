@@ -72,10 +72,6 @@ def memory_model():
     return PROFILES[memory_profile()]['model']
 
 
-def is_memory_model(model):
-    return model == memory_model()
-
-
 def record():
     if render_scope_active():
         return {'condition':RENDER_SCOPE,'source_writer':dict(PROFILES['luna-bedrock-global']),

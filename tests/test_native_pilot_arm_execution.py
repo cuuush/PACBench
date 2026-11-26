@@ -51,8 +51,6 @@ def test_arm_records_failure_and_releases_its_backend(tmp_path, monkeypatch, pha
                             lambda *a: pytest.fail('native recall reparsed a prepared timeline'))
     else:
         monkeypatch.setattr(document_ingestion, 'prepare_sources', lambda *a, **kw: [])
-        monkeypatch.setattr(document_ingestion, 'validate_evaluation_clocks', lambda *a, **kw: None)
-        monkeypatch.setattr(document_ingestion, 'ready_sources', lambda *a: [])
     monkeypatch.setattr(document_ingestion, 'record_recall_isolation', lambda *a: None)
     monkeypatch.setattr(native_audit, 'audit', lambda *_: {'state': 'pass'})
     monkeypatch.setattr(usage, 'snapshot', lambda *_: {})

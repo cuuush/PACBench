@@ -11,6 +11,7 @@ import urllib.request
 
 from ..gateway.reuse_runtime import PROTOCOL
 from ..live_dispatch import process_identity
+from pacbench.workflows.native import receipt_lineage
 from pacbench.workflows.tracks import HERMES_TOOLS, validate_native_deployment
 
 
@@ -247,13 +248,7 @@ class OpenVikingWitness:
         return boundaries
 
     def request_lineage(self, requests):
-        selected = {request['request_id'] for request in requests}
-        attempts = self.ledger.snapshot()
-        for attempt in reversed(attempts):
-            if attempt['id'] in selected and attempt.get('retry_of'):
-                selected.add(attempt['retry_of'])
-        return [dict(id=row['id'],parent=row.get('retry_of'),operation=row['dispatch_context']['operation_id'],
-                     origin='harness' if row.get('retry_of') else 'unknown') for row in attempts if row['id'] in selected]
+        return receipt_lineage(self.ledger.snapshot(), requests)
 
     def close(self):
         pass

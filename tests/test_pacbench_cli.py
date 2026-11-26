@@ -1,7 +1,9 @@
 """Exercise the two-command authoring and native entry point without traffic."""
+import argparse
 import json
-from contextlib import nullcontext
+from contextlib import contextmanager, nullcontext
 from io import BytesIO
+import os
 from pathlib import Path
 import shutil
 import subprocess
@@ -72,7 +74,7 @@ def test_generate_and_run_one_new_author_spec(tmp_path, monkeypatch, capsys):
         return original_audit(root)
 
     monkeypatch.setattr(prepare, 'audit_prepared', audit)
-    assert cli.main(['generate', str(spec), '--output', str(corpus)]) == 0
+    assert cli.main(['generate', str(spec), '--output', str(corpus), '--inference-route', 'muse-gateway']) == 0
     assert audit_calls == [corpus]
     assert len(calls) >= 5
     frozen = (corpus / 'week.json').read_bytes()
@@ -103,7 +105,7 @@ def test_generate_and_run_one_new_author_spec(tmp_path, monkeypatch, capsys):
         raise RuntimeError('offline provider fixture')
 
     monkeypatch.delenv('PACBENCH_STOP_FILE', raising=False)
-    monkeypatch.delenv('PACBENCH_TRANSPORT', raising=False)
+    monkeypatch.setenv('PACBENCH_TRANSPORT', 'muse-gateway')
     monkeypatch.setattr(native_pilot, 'require_live_cost_boundary', lambda: {})
     monkeypatch.setattr(native_pilot, 'load_driver', lambda: driver)
     monkeypatch.setattr(native_pilot, 'client_settings', lambda _: ('https://offline.invalid/v1', 'offline-fixture'))
@@ -154,12 +156,129 @@ def test_month_plan_and_run_keep_full_corpus_and_select_subset(tmp_path, monkeyp
     def offline_route():
         raise RuntimeError('offline account unavailable')
 
-    monkeypatch.delenv('PACBENCH_TRANSPORT', raising=False)
+    monkeypatch.setenv('PACBENCH_TRANSPORT', 'muse-gateway')
     monkeypatch.setattr(native_pilot, 'require_live_cost_boundary', offline_route)
     assert cli.main(['run', str(corpus), '--output', str(tmp_path / 'native'), '--providers', 'supermemory']) == 1
     blocked = read(tmp_path / 'native/summary.json')
     assert blocked['message_count'] == 2868 and blocked['selected_providers'] == ['supermemory']
     assert report['corpus_hash'] == blocked['corpus_hash']
+
+
+def test_named_corpus_plan_and_fresh_run(tmp_path, monkeypatch, capsys):
+    from pacbench import openrouter_run
+
+    source = Path(__file__).resolve().parents[1] / 'runs/bike-pickup-native-clock-20261105/preparation'
+    dataset = tmp_path / 'datasets' / 'independent-persona'
+    shutil.copytree(source, dataset)
+    monkeypatch.setattr(cli, 'REPO', tmp_path)
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.delenv('OPENROUTER_API_KEY', raising=False)
+    for name in ('PACBENCH_TRANSPORT', 'PACBENCH_DIRECT', 'PACBENCH_GATEWAY_STATE', 'MUSE_GATEWAY_STATE',
+                 'PACBENCH_OPENROUTER_PROXY_URL', 'PACBENCH_OPENROUTER_PROXY_TOKEN', 'PACBENCH_OPENROUTER_LIMIT_USD'):
+        monkeypatch.delenv(name, raising=False)
+
+    def unexpected(*_, **__):
+        pytest.fail('called live execution for an offline or incomplete invocation')
+
+    monkeypatch.setattr(openrouter_run, 'fetch_catalog', unexpected)
+    monkeypatch.setattr(native_pilot, 'run', unexpected)
+    command = ['run', 'independent-persona']
+    assert cli.main([*command, '--plan']) == 0
+    plan_path = Path(capsys.readouterr().out.splitlines()[-1])
+    assert plan_path.is_relative_to(tmp_path / 'artifacts' / 'runs')
+    assert read(plan_path)['selected_providers'] == list(ACTIVE_PROVIDERS)
+    for flags, expected in [([], '--budget-usd AMOUNT'), (['--budget-usd', '2'], 'Set OPENROUTER_API_KEY'),
+                            (['--budget-usd', 'NaN'], 'positive finite --budget-usd')]:
+        with pytest.raises(SystemExit) as rejected:
+            cli.main([*command, *flags])
+        assert rejected.value.code == 2 and expected in capsys.readouterr().err
+    assert list((tmp_path / 'artifacts' / 'runs').glob('*/summary.json')) == [plan_path]
+
+    active = {}
+
+    @contextmanager
+    def session(output, limit, *, before_start):
+        assert before_start is None
+        assert not output.exists() and output.parent == plan_path.parent.parent
+        active.update(output=output, limit=limit)
+        try:
+            yield
+        finally:
+            active.clear()
+
+    def run(manifest, output, **kwargs):
+        assert manifest == dataset / 'week.json'
+        assert kwargs == dict(max_messages=None, providers=list(ACTIVE_PROVIDERS),
+                              inference_route='openrouter', report_blocked=True)
+        assert active == dict(output=output, limit='5.25')
+        return {'state': 'diagnostic', 'results': [
+            {'provider': provider, 'state': 'diagnostic', 'capability': {}} for provider in ACTIVE_PROVIDERS
+        ]}
+
+    monkeypatch.setenv('OPENROUTER_API_KEY', 'fixture-key')
+    monkeypatch.setattr(openrouter_run, 'public_session', session)
+    monkeypatch.setattr(native_pilot, 'run', run)
+    assert cli.main([*command, '--budget-usd', '5.25']) == 0
+    assert not active
+    run_path = Path(capsys.readouterr().out.splitlines()[-1])
+    assert run_path != plan_path and run_path.parent.parent == plan_path.parent.parent
+
+
+def test_bounded_generate_uses_fresh_session(tmp_path, monkeypatch, capsys):
+    from pacbench import openrouter_run
+
+    spec = tmp_path / 'persona.json'
+    save(spec, {'id': 'independent-persona', 'scenes': []})
+    output = tmp_path / 'corpus'
+    for name in ('PACBENCH_TRANSPORT', 'PACBENCH_DIRECT', 'PACBENCH_GATEWAY_STATE', 'MUSE_GATEWAY_STATE',
+                 'PACBENCH_OPENROUTER_PROXY_URL', 'PACBENCH_OPENROUTER_PROXY_TOKEN', 'PACBENCH_OPENROUTER_LIMIT_USD'):
+        monkeypatch.delenv(name, raising=False)
+    command = ['generate', str(spec), '--output', str(output)]
+    with pytest.raises(SystemExit) as rejected:
+        cli.main(command)
+    assert rejected.value.code == 2
+    assert 'Set OPENROUTER_API_KEY and pass --budget-usd AMOUNT' in capsys.readouterr().err
+    assert not output.exists()
+    monkeypatch.setenv('OPENROUTER_API_KEY', 'fixture-key')
+
+    @contextmanager
+    def session(root, limit, *, before_start):
+        assert before_start is None
+        assert root == output and limit == '3'
+        monkeypatch.setenv('PACBENCH_TRANSPORT', 'openrouter')
+        yield
+
+    def generate(body, root, **kwargs):
+        assert body['id'] == 'independent-persona' and root == output
+        assert kwargs['inference_route'] == 'openrouter'
+        assert os.environ['PACBENCH_TRANSPORT'] == 'openrouter'
+        return {'state': 'prepared'}
+
+    monkeypatch.setattr(openrouter_run, 'public_session', session)
+    monkeypatch.setattr(prepare, 'prepare', generate)
+    assert cli.main([*command, '--budget-usd', '3']) == 0
+
+
+def test_public_live_command_selects_installed_runtime(tmp_path, monkeypatch, capsys):
+    monkeypatch.setattr(cli, 'REPO', tmp_path)
+    command = ['run', 'pizza-week', '--budget-usd', '5']
+    parser = argparse.ArgumentParser()
+    with pytest.raises(SystemExit) as rejected:
+        cli.use_installed_runtime(command, parser)
+    assert rejected.value.code == 2
+    assert './scripts/setup' in capsys.readouterr().err
+
+    runtime = tmp_path / 'vendor/venv-hermes-isolated'
+    python = runtime / 'bin/python'
+    python.parent.mkdir(parents=True)
+    python.touch(mode=0o700)
+    commands = []
+    monkeypatch.setattr(os, 'execv', lambda executable, args: commands.append((executable, args)))
+    cli.use_installed_runtime(command, parser)
+    assert commands == [(python, [str(python), '-m', 'pacbench', *command])]
+    monkeypatch.setattr(sys, 'prefix', str(runtime))
+    cli.use_installed_runtime(command, parser)
+    assert len(commands) == 1
 
 
 @pytest.mark.parametrize('entry', [[], ['generate']])
@@ -224,7 +343,7 @@ def test_run_records_driver_failure_after_gateway_health(tmp_path, monkeypatch, 
 
     corpus = Path(__file__).resolve().parents[1] / 'runs/bike-pickup-native-clock-20261105/preparation'
     output = tmp_path / 'run'
-    monkeypatch.delenv('PACBENCH_TRANSPORT', raising=False)
+    monkeypatch.setenv('PACBENCH_TRANSPORT', 'muse-gateway')
     monkeypatch.delenv('PACBENCH_DIRECT', raising=False)
     monkeypatch.setattr(native_pilot, 'require_live_cost_boundary', lambda: {'service': 'test-gateway'})
 
@@ -244,10 +363,10 @@ def test_run_records_driver_failure_after_gateway_health(tmp_path, monkeypatch, 
     assert 'mem0 not run test model inventory unavailable' in capsys.readouterr().out
 
 
-def test_run_and_doctor_report_missing_muse_history_consistently(tmp_path, monkeypatch, capsys):
+def test_run_reports_missing_muse_history_without_creating_it(tmp_path, monkeypatch, capsys):
     from pacbench import gateway_client
 
-    monkeypatch.delenv('PACBENCH_TRANSPORT', raising=False)
+    monkeypatch.setenv('PACBENCH_TRANSPORT', 'muse-gateway')
     monkeypatch.delenv('PACBENCH_DIRECT', raising=False)
     state = tmp_path / 'private-state'
     state.mkdir()
@@ -262,7 +381,9 @@ def test_run_and_doctor_report_missing_muse_history_consistently(tmp_path, monke
     assert cli.main(['run', str(corpus), '--output', str(output)]) == 1
     report = read(output / 'summary.json')
     assert report['state'] == 'blocked'
-    assert report['reason'] == gateway_client.check_live_route()['detail']
+    with pytest.raises(gateway_client.GatewayConfigurationError) as missing:
+        gateway_client.require_muse_state(state)
+    assert report['reason'] == str(missing.value)
     assert 'ledger.sqlite3' in report['reason'] and 'README.md' in report['reason']
     printed = capsys.readouterr().out
     assert ', '.join(ACTIVE_PROVIDERS) + ' not run ' + report['reason'] in printed
@@ -318,10 +439,10 @@ def test_run_uses_configured_openrouter_proxy_and_blocks_unbound_transport(tmp_p
         cli.main([*command, '--output', str(tmp_path / 'admitted')])
     assert checks == ['http://127.0.0.1:18999/health']
 
-    monkeypatch.delenv('PACBENCH_TRANSPORT')
+    monkeypatch.setenv('PACBENCH_TRANSPORT', 'muse-gateway')
     monkeypatch.setattr(gateway_client, 'STATE', tmp_path / 'missing-shared-state')
-    assert cli.main([*command, '--output', str(tmp_path / 'default')]) == 1
-    assert read(tmp_path / 'default/summary.json')['inference_route'] == 'muse-gateway'
+    assert cli.main([*command, '--output', str(tmp_path / 'muse')]) == 1
+    assert read(tmp_path / 'muse/summary.json')['inference_route'] == 'muse-gateway'
     assert len(checks) == 1
 
     monkeypatch.setenv('PACBENCH_DIRECT', '1')
@@ -381,6 +502,7 @@ def test_cli_invalid_inputs_report_a_short_error(tmp_path, command, corpus_text,
         output.mkdir()
         (output / 'existing').touch()
     result = subprocess.run([sys.executable, '-m', 'pacbench', *command, str(source), '--output', str(output)],
+                            env={**os.environ, 'PACBENCH_TRANSPORT': 'muse-gateway'},
                             capture_output=True, text=True)
     assert result.returncode == 2 and reason in result.stderr
     assert 'Traceback' not in result.stderr and 'KeyError' not in result.stderr
@@ -400,6 +522,7 @@ def test_cli_preserves_unexpected_native_errors(tmp_path, monkeypatch):
         raise ValueError('unexpected provider failure')
 
     monkeypatch.setattr(native_pilot, 'run', unexpected)
+    monkeypatch.setenv('PACBENCH_TRANSPORT', 'muse-gateway')
     with pytest.raises(ValueError, match='unexpected provider failure'):
         cli.main(['run', str(source), '--output', str(tmp_path / 'native')])
 

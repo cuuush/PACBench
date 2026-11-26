@@ -44,7 +44,7 @@ def test_exact_ref_install_and_dependency_probe(name, tmp_path, monkeypatch, cat
         return SimpleNamespace(returncode=0, stdout=json.dumps({'provider': name,
             'plugin_version': str(catalog.SOURCE_VERSIONS[name]), 'dependencies': ['example>=1']}), stderr='')
     monkeypatch.setattr(catalog.subprocess, 'run', run)
-    receipt = catalog.install_catalog_provider(name, home, fallback, Path('/fake/bin/hermes'), catalog_checkout)
+    receipt = catalog._install_upstream_provider(name, home, fallback, Path('/fake/bin/hermes'), catalog_checkout)
     assert calls[0][1:] == ['plugins', 'install', source, '--ref', sha, '--no-deps', '--no-enable']
     assert calls[1][0] == '/fake/bin/python'
     assert receipt['revision'] == sha and receipt['dependencies'] == ['example>=1']
@@ -61,7 +61,7 @@ def test_wrong_installed_revision_fails_before_probe(tmp_path, monkeypatch, cata
     calls = []
     monkeypatch.setattr(catalog.subprocess, 'run', lambda *a, **k: calls.append(a) or SimpleNamespace(returncode=0))
     with pytest.raises(RuntimeError, match='source or manifest'):
-        catalog.install_catalog_provider('mem0', home, fallback, Path('/fake/bin/hermes'), catalog_checkout)
+        catalog._install_upstream_provider('mem0', home, fallback, Path('/fake/bin/hermes'), catalog_checkout)
     assert len(calls) == 1
 
 
@@ -77,7 +77,51 @@ def test_declared_dependency_failure_is_not_accepted(tmp_path, monkeypatch, cata
     results = iter([SimpleNamespace(returncode=0), SimpleNamespace(returncode=1)])
     monkeypatch.setattr(catalog.subprocess, 'run', lambda *a, **k: next(results))
     with pytest.raises(RuntimeError, match='dependency or API probe'):
-        catalog.install_catalog_provider('mem0', home, fallback, Path('/fake/bin/hermes'), catalog_checkout)
+        catalog._install_upstream_provider('mem0', home, fallback, Path('/fake/bin/hermes'), catalog_checkout)
+
+
+def test_setup_caches_native_install_and_each_arm_copies_its_plugin(tmp_path, monkeypatch, catalog_checkout):
+    tree = tmp_path / 'vendor' / 'hermes'
+    tree.parent.mkdir()
+    tree.symlink_to(catalog_checkout, target_is_directory=True)
+    hermes = Path('/fake/bin/hermes')
+    calls = []
+
+    def install(name, home, *args):
+        calls.append(name)
+        plugins = home / 'plugins'
+        destination = plugins / name
+        destination.mkdir(parents=True)
+        (destination / 'plugin.yaml').write_text(f'name: {name}\nversion: {catalog.SOURCE_VERSIONS[name]}\n')
+        source, revision = catalog.CATALOG[name]
+        (plugins / '.install-metadata.json').write_text(json.dumps({name: {
+            'source': catalog._expected_source(source), 'revision': revision, 'pinned': True}}))
+
+    monkeypatch.setattr(catalog, '_install_upstream_provider', install)
+    catalog.prefetch_catalog(hermes, tree)
+    catalog.prefetch_catalog(hermes, tree)
+    catalog.verify_catalog_cache(tree)
+    assert calls == list(catalog.CATALOG)
+
+    def run(command, **kwargs):
+        assert command[0] == '/fake/bin/python'
+        return SimpleNamespace(returncode=0, stdout=json.dumps({
+            'provider': 'mem0', 'plugin_version': catalog.SOURCE_VERSIONS['mem0'], 'dependencies': []}))
+
+    monkeypatch.setattr(catalog.subprocess, 'run', run)
+    for attempt in range(2):
+        home = tmp_path / f'home-{attempt}'
+        home.mkdir()
+        receipt = catalog.install_catalog_provider('mem0', home, tmp_path, hermes, tree)
+        assert receipt['source_cached'] is True
+        assert sorted(path.name for path in (home / 'plugins').iterdir()) == ['.install-metadata.json', 'mem0']
+        (home / 'plugins/mem0/plugin.yaml').write_text('isolated trial edit')
+    assert calls == list(catalog.CATALOG)
+
+    cached = catalog._cache_entry('mem0', tree)
+    (cached / 'plugins/mem0/extra.py').touch()
+    with pytest.raises(RuntimeError, match='files differ'):
+        catalog.verify_catalog_cache(tree)
 
 
 def test_failed_preflight_leaves_provider_inactive_before_native_setup(tmp_path, monkeypatch):

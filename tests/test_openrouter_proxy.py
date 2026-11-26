@@ -42,6 +42,20 @@ def test_uncertain_retained_on_restart_and_conflict_rejected(tmp_path):
     assert len(b.snapshot()) == 1
 
 
+def test_run_owned_budget_never_recreates_its_ledger(tmp_path):
+    path = tmp_path / 'ledger'
+    params = dict(cap='1', context_tokens=100, prompt_per_million='1',
+                  completion_per_million='2', max_completion_tokens=50, new_run=True)
+    b = Budget(path, **params)
+    assert b.snapshot() == []
+    with pytest.raises(FileExistsError):
+        Budget(path, **params)
+    path.unlink()
+    with pytest.raises(FileNotFoundError):
+        b.request('test', {'model': MODEL}, lambda _: pytest.fail('sent without ledger'))
+    assert not path.exists()
+
+
 def test_snapshot_keeps_active_reservation_without_waiting_for_inference(tmp_path):
     import threading
     from concurrent.futures import ThreadPoolExecutor
@@ -62,6 +76,35 @@ def test_snapshot_keeps_active_reservation_without_waiting_for_inference(tmp_pat
             finish.set()
         pending.result(timeout=2)
     assert b.snapshot()[0]['state'] == 'settled'
+
+
+def test_run_owned_budget_checks_pending_settlement_before_terminal_refusal(tmp_path):
+    import threading
+    from concurrent.futures import ThreadPoolExecutor
+    from pacbench.openrouter_proxy import BudgetRefused
+
+    b = Budget(tmp_path / 'ledger', cap='0.0002', context_tokens=100,
+               prompt_per_million='1', completion_per_million='2', max_completion_tokens=50, new_run=True)
+    entered, finish = threading.Event(), threading.Event()
+
+    def send(_):
+        entered.set()
+        assert finish.wait(5)
+        return 200, b'{"usage":{"cost":0.00002,"prompt_tokens":9,"completion_tokens":2}}'
+
+    with ThreadPoolExecutor(max_workers=2) as pool:
+        active = pool.submit(b.request, 'first', {'model': MODEL}, send)
+        assert entered.wait(2)
+        try:
+            assert not b.health()['budget_blocked']
+            queued = pool.submit(b.request, 'second', {'model': MODEL}, lambda _: pytest.fail('sent over cap'))
+        finally:
+            finish.set()
+        active.result(timeout=2)
+        with pytest.raises(BudgetRefused):
+            queued.result(timeout=2)
+    assert b.health()['budget_blocked']
+    assert len(b.snapshot()) == 1
 
 
 def test_shutdown_drains_inference_after_client_timeout(tmp_path):

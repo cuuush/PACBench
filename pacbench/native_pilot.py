@@ -348,7 +348,7 @@ def provision(root: Path, provider: str, model: str = "unconfigured", *,
     driver_project = f"pacbench-{run_id}-{provider}-driver"
     memory_project = f"pacbench-{run_id}-{provider}-memory"
     driver_url, client_key = client_settings(driver_project)
-    _, memory_key = client_settings(memory_project)
+    memory_url, memory_key = client_settings(memory_project)
     from .catalog_plugins import install_catalog_provider
     external = uses_catalog_plugin(provider)
     if not resume:harness.provision_home(
@@ -363,7 +363,8 @@ def provision(root: Path, provider: str, model: str = "unconfigured", *,
     if inference_route == 'openrouter':
         from .role_routes import memory_model, record as role_record
         model=memory_model()
-        if role_record():save(root/'role-routes.json',role_record())
+        if roles := role_record():
+            save(root/'role-routes.json', roles)
     # Isolate HOME fallbacks; only the selected provider supplies memory.
     fallback = root / "fallback-home"
     fallback.mkdir(exist_ok=resume)
@@ -408,7 +409,7 @@ def provision(root: Path, provider: str, model: str = "unconfigured", *,
     if inference_route=='openrouter' and split_enabled():
         if provider=='hindsight':env['HINDSIGHT_API_LLM_MAX_CONCURRENT']='1'
         if provider=='memcal':env['MEMCAL_MAX_PARALLEL']='1'
-    arm = _NativeArm(root, root_hash, model, env, memory_project, memory_key, client_key,
+    arm = _NativeArm(root, root_hash, model, env, memory_url, memory_key, client_key,
                      inference_route, resume)
     if provider in _CUSTOM_SETUPS:
         prepare, _ = _CUSTOM_SETUPS[provider]
@@ -428,7 +429,7 @@ class _NativeArm:
     root_hash: str
     model: str
     env: dict
-    memory_project: str
+    memory_url: str
     memory_key: str
     driver_key: str
     inference_route: str
@@ -437,9 +438,6 @@ class _NativeArm:
     @property
     def home(self):
         return self.root / 'hermes-home'
-
-    def memory_route(self):
-        return client_settings(self.memory_project)
 
 
 def _start_native_service(arm, provider, simulated_at, checkpoint):
@@ -454,10 +452,9 @@ def _start_native_service(arm, provider, simulated_at, checkpoint):
             options['simulated_at'] = simulated_at
         if checkpoint:
             options['checkpoint'] = checkpoint
-    base, key = arm.memory_route()
     model = ('muse-spark-1.3-contributor'
              if service.spark_when_unconfigured and arm.model == 'unconfigured' else arm.model)
-    return start(arm.root.resolve(), arm.env, model, base, key, **options)
+    return start(arm.root.resolve(), arm.env, model, arm.memory_url, arm.memory_key, **options)
 
 
 def _check_mem0_resume(arm):
@@ -479,7 +476,7 @@ def _provision_mem0(arm):
     client_key, memory_key = arm.driver_key, arm.memory_key
     inference_route = arm.inference_route
     identity = "pacbench-" + arm.root_hash[:24]
-    extraction_url, _ = arm.memory_route()
+    extraction_url = arm.memory_url
     configured_model = model if model != "unconfigured" else os.environ.get("MODEL", "muse-spark-1.3-contributor")
     # Invoke the documented agent-driven OSS setup, not a custom SDK shim.
     command = [str(harness.ISOLATED_BIN), "memory", "setup", "mem0", "--mode", "oss",
@@ -548,9 +545,8 @@ Mem0MemoryProvider().save_config({"mode":"oss","user_id":sys.argv[2],"oss":oss},
 def _provision_memcal(arm):
     root, env, model = arm.root, arm.env, arm.model
     memory_key, resume = arm.memory_key, arm.resume
-    memcal_url, _ = arm.memory_route()
     configured_model = model if model != "unconfigured" else os.environ.get("MODEL", "muse-spark-1.3-contributor")
-    env.update(memcal_model_settings(configured_model, memcal_url, memory_key))
+    env.update(memcal_model_settings(configured_model, arm.memory_url, memory_key))
     # Recommended store-scoped configuration overrides project .env fallbacks.
     memcal_home = root / "memcal-home"
     memcal_home.mkdir(parents=True, exist_ok=True)
@@ -595,7 +591,7 @@ def _provision_hindsight(arm):
         raise RuntimeError('Install the isolated Hindsight server runtime in vendor/venv-hindsight; see vendor/README')
     from provider_adapters.tokenizer_cache import configure as configure_tokenizers
     configure_tokenizers(root,env)
-    base,key=arm.memory_route()
+    base, key = arm.memory_url, arm.memory_key
     validate_route(base,key)
     configured_model=model if model!='unconfigured' else 'muse-spark-1.3-contributor'
     folder=home/'hindsight'
@@ -607,6 +603,13 @@ def _provision_hindsight(arm):
     else:save(folder/'config.json', hindsight_config)
     os.chmod(folder/'config.json',0o600)
     env.update(hindsight_env)
+    if not resume or arm.inference_route == 'openrouter':
+        from .provider_versions import hindsight_model_cache
+
+        cache = str(hindsight_model_cache(harness.REPO))
+        env.update(HF_HUB_CACHE=cache, SENTENCE_TRANSFORMERS_HOME=cache)
+        if arm.inference_route == 'openrouter':
+            env['HF_HUB_OFFLINE'] = '1'
     # Ordinary provisioning creates an empty bank, not starter memories or a
     # benchmark mission. Recall of a nonexistent bank is otherwise a 404.
     bootstrap='''
@@ -737,7 +740,9 @@ def run(source: Path | None, output: Path, max_messages: int | None = 150,
     if not 1 <= repetitions <= 3 or max_messages is not None and not 1 <= max_messages <= 100000:
         raise ValueError("pilot limits: 1–3 repetitions, 1–100000 messages; increase gradually")
     selected = providers if providers is not None else provider_names()
-    if not selected or len(set(selected)) != len(selected) or any(p not in provider_names() for p in selected):
+    unique = set(selected)
+    if (not selected or len(unique) != len(selected)
+            or providers is not None and not unique.issubset(provider_names())):
         raise ValueError("invalid or duplicate provider selection")
     if honcho_clock not in ('real', 'simulated') or (honcho_clock == 'simulated' and (not source or 'honcho' not in selected)):
         raise ValueError('A simulated Honcho clock requires prepared source and the Honcho provider')
@@ -786,7 +791,8 @@ def run(source: Path | None, output: Path, max_messages: int | None = 150,
         else:
             from .openrouter_proxy import VERSION as TRANSPORT_VERSION
         from .role_routes import memory_model, record as role_record
-        if role_record():report['role_routes']=role_record()
+        if roles := role_record():
+            report['role_routes'] = roles
         report.update(hermes_model=MODEL, judge_model=MODEL, extraction_model=memory_model(),
                       openrouter_endpoint=ENDPOINT, transport=TRANSPORT_VERSION)
     if inference_route == 'codex-subscription':
@@ -814,6 +820,7 @@ def run(source: Path | None, output: Path, max_messages: int | None = 150,
     driver = None
     model_judge = plan = None
     messages = contract = resolved = None
+    process_timezone = ''
     evaluations = []
     if source:
         from pacbench.corpus.audit import PreparedCorpusError, open_prepared
@@ -842,32 +849,31 @@ def run(source: Path | None, output: Path, max_messages: int | None = 150,
                 return report
             raise
         copy_prepared_files(source,output)
-        report["process_timezone"] = resolved.get("timezone", "")
+        process_timezone = resolved.get('timezone', '')
+        report['process_timezone'] = process_timezone
+        source_timezone = process_timezone or 'America/New_York'
+        logical_documents = os.environ.get('PACBENCH_LOGICAL_DOCUMENTS_ONLY') == '1'
         from .document_ingestion import VERSION as INGESTION_VERSION
         report.update(ingestion_version=INGESTION_VERSION,
                       document_provider_blockers=dict(BLOCKERS),
-                      ingestion_schedule=prepare_sources(output,messages,resolved.get('timezone') or 'America/New_York',
-                          native_fixtures=not (os.environ.get('PACBENCH_LOGICAL_DOCUMENTS_ONLY')=='1' and 'memcal' not in selected)))
-        report['source_transport_condition']='logical-document-metadata-v1' if os.environ.get('PACBENCH_LOGICAL_DOCUMENTS_ONLY')=='1' else 'native-source-fixtures-v1'
+                      ingestion_schedule=prepare_sources(output, messages, source_timezone,
+                          native_fixtures=not logical_documents or 'memcal' in selected))
+        report['source_transport_condition']='logical-document-metadata-v1' if logical_documents else 'native-source-fixtures-v1'
         report['strict_memory_only']=os.environ.get('PACBENCH_STRICT_MEMORY_ONLY')=='1'
         source_timelines = validate_evaluation_clocks(report['ingestion_schedule'], [p for p in selected if p not in BLOCKERS],
             [row['at'] for row,_,_ in evaluations] if evaluations else [resolved['question_at']],
-            report['process_timezone'] or 'America/New_York', chronological=bool(evaluations)) or {}
+            source_timezone, chronological=bool(evaluations))
         if evaluation_plan:
             from .native_writes import VERSION as WRITE_READINESS
             report['write_readiness_protocol']=WRITE_READINESS
             shutil.copyfile(source / 'evaluation-plan.json', output / 'evaluation-plan.json')
             shutil.copytree(source / 'evaluations', output / 'evaluations')
             report.update(evaluation_plan_hash=evaluation_plan['plan_hash'], evaluation_context=evaluation_plan['context'])
-        if inference_route == 'codex-subscription':
-            from .codex_model_calls import CodexModelClient
-            model_judge = CodexModelClient(model='gpt-6-luna', record_dir=output / 'model-calls')
-        else:
-            judge_base, judge_token = client_settings("pacbench-judge")
-            model_judge = ModelClient(key=judge_token, model=driver.model_id,
-                                url=judge_base + "/chat/completions",
-                                record_dir=output / "model-calls", reasoning_effort=judge_reasoning_effort,
-                                json_mode=inference_route=='openrouter',timeout_s=judge_timeout_s)
+        judge_base, judge_token = client_settings("pacbench-judge")
+        model_judge = ModelClient(key=judge_token, model=driver.model_id,
+                            url=judge_base + "/chat/completions",
+                            record_dir=output / "model-calls", reasoning_effort=judge_reasoning_effort,
+                            json_mode=inference_route=='openrouter',timeout_s=judge_timeout_s)
         plan = freeze_policy(contract, output / "followup-plan.json")
         report["followup_plan_hash"] = plan["plan_hash"]
         report["followup_policy"] = "one combined message for implicit omissions only; wrong answers, explicit misses and admitted retrieval failures are terminal; half recovery credit; source fallback is permitted but earns no retention credit"
@@ -902,7 +908,6 @@ def run(source: Path | None, output: Path, max_messages: int | None = 150,
         save(root / "tool-policy.json", policy)
         ingested=[]
         failed_batches=set()
-        from .document_ingestion import ready_sources
         from .usage import snapshot, provider_model_health
         def check_model_health():
             require_live_cost_boundary()
@@ -914,20 +919,16 @@ def run(source: Path | None, output: Path, max_messages: int | None = 150,
         def import_before_check(row, directory):
             check_stop(stop_file)
             check_model_health()
-            timeline = source_timelines.get(provider)
-            needed = (timeline.ready(row['at']) if timeline is not None
-                      else ready_sources(report['ingestion_schedule'], provider, row['at'],
-                                         report['process_timezone'] or 'America/New_York'))
-            if provider == 'honcho' and honcho_clock == 'simulated':
+            needed = source_timelines[provider].ready(row['at'])
+            if simulated:
                 env['PACBENCH_CLOCK_HORIZON'] = row['at']
                 later = next_checkpoint((r for r,_,_ in evaluations), row['at'])
                 if later: env['PACBENCH_CLOCK_NEXT_CHECKPOINT'] = later
                 else: env.pop('PACBENCH_CLOCK_NEXT_CHECKPOINT', None)
             ingest_pending(needed, ingested, failed_batches, output, root, provider, env,
-                           report['process_timezone'] or 'America/New_York', stop_file,
-                           ingest_day, check_model_health)
+                           source_timezone, stop_file, ingest_day, check_model_health)
             if not (root/'pre-recall-isolation.json').exists():record_recall_isolation(root)
-            if provider == 'honcho' and honcho_clock == 'simulated':
+            if simulated:
                 from provider_adapters.honcho_clock import stage_turn
                 # Age any genuine capture work before checking a later
                 # session's dependency; never flush or backdate that work.
@@ -1089,14 +1090,14 @@ def run(source: Path | None, output: Path, max_messages: int | None = 150,
                     from provider_adapters.honcho_enrollment import initial_at
                     clock_options['honcho_simulated_at'] = initial_at(messages)
                 env = provision(root, provider, driver.model_id if driver else "unconfigured",
-                                local_timezone=resolved.get("timezone", "") if resolved else "",
+                                local_timezone=process_timezone,
                                 inference_route=inference_route, **clock_options)
             except (ModelAccessBlocked, SpendingBlocked):
                 raise
             except (OSError, RuntimeError, subprocess.TimeoutExpired) as exc:
                 local_failure(exc, 'setup')
                 save(root/'simulation-clock.json', {
-                    'process_timezone': resolved.get('timezone', '') if resolved else '',
+                    'process_timezone': process_timezone,
                     'pin': 'setup attempt; no evaluation',
                 })
                 return

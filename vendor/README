@@ -17,38 +17,32 @@ trust configuration.
   MemOS, curl and GNU coreutils for the clock build, and GNU tar and zstd for
   embeddings. On Debian or Ubuntu the packages are `build-essential curl coreutils tar zstd`.
 
-From the repository root, run:
+From the repository root, run `./scripts/setup`. It installs the pinned
+components, verifies their identities and leaves Ollama running on
+`127.0.0.1:11435`. Use your regular account. Runtime installation requires
+access to the upstream package, plugin and model repositories. Ollama writes
+its local identity in `~/.ollama`.
 
-```sh
-./scripts/setup --check
-./scripts/setup --install --start-services
-```
+Use `./scripts/setup --check` to check the installation offline. Add
+`--components hermes honcho` to check or install a subset. For a build that
+should stop its temporary embedding service after verification, use
+`./scripts/setup --install`. The live benchmark command selects the installed
+Hermes Python environment automatically.
+[Run Pizza Week with OpenRouter](../README.md#run-pizza-week-with-openrouter)
 
-Ollama writes its local identity in `~/.ollama`. The setup script runs without
-`sudo`, and runtime installation needs no inference API key.
+Setup uses GitHub and the Python, npm, Docker and model registries for the
+pinned dependencies. Five Hermes plugins are installed once into
+`vendor/hermes-catalog/`. Each trial copies its selected plugin into its own
+Hermes home and checks it there.
 
-`--check` verifies installed identities offline. `--install` provisions the
-runtime and stops the temporary embedding server after verification.
-`--install --start-services` leaves that server running. To check an existing
-model route as well, run `./scripts/setup --check-live` after the gateway is
-running. See the [README](../README.md#set-up-a-live-run) for gateway setup.
-Run `. vendor/venv-hermes-isolated/bin/activate` before live PACBench commands
-so the launcher can load the pinned provider plugin dependencies. The runner
-may fetch pinned plugin source into a trial's isolated Hermes home.
-For component-level debugging, `./scripts/setup --check --components hermes honcho`
-verifies only the selected subset.
-Pinned Hermes includes the Mem0 and other provider clients and the clean Memcal
-0.8.11 checkout. Separate environments install Hindsight, OpenViking, ReMe,
-Cognee and Honcho. MemOS and Supermemory assets are hash-verified. The clock
-uses the existing reproducible Docker build. Embeddings install a pinned
-CPU Ollama runtime, native Nomic model and offline MiniLM files. A temporary
-loopback Ollama server downloads the model and checks a 768-dimensional local
-embedding, then stops. `--start-services` additionally leaves the verified runtime
-ready at `127.0.0.1:11435`, checking its version, model identity and actual local
-embedding. Existing mismatched services are refused. No paid model requests or
-source ingestion occur.
-To reuse verified MiniLM assets on an existing machine, set
-`PACBENCH_MEMOS_MODEL_CACHE` to the directory containing `Xenova/all-MiniLM-L6-v2`.
+Hindsight loads `BAAI/bge-small-en-v1.5` and `hindsight-ai/hs-rerank-1`.
+Cognee uses the `nomic-ai/nomic-embed-text-v1.5` tokenizer. Setup caches
+these Hugging Face assets for use from the trials’ isolated homes. It also
+installs MemOS’s offline MiniLM assets and the pinned CPU Ollama binary and
+Nomic model. The local service check verifies a 768-dimensional embedding.
+After a machine restart, rerun `./scripts/setup` to bring Ollama back up.
+To reuse an existing MiniLM installation, point `PACBENCH_MEMOS_MODEL_CACHE`
+at the directory containing `Xenova/all-MiniLM-L6-v2`.
 
 The separately authorized MemCal correction diagnostic selects
 `PACBENCH_MEMCAL_CONDITION=wiki-supersession-review-da58057-v1` and a clean
@@ -216,15 +210,6 @@ sandbox-provided synthetic Git mounts must not cover that root. These tests run
 actual stock gateway sessions, native ReMe queues/async loops, actual Mem0 local
 Qdrant/history storage and native MemCal archives. Synthetic model/embedding or
 ReMe storage responses do not verify model extraction or production store cloning.
-
-Example saved cloud-environment setup, with this repository already selected
-at the desired review commit:
-
-```sh
-set -eu
-./scripts/setup --install --start-services
-./scripts/setup --check
-```
 
 For the retained OpenRouter campaign, restore the **original** private directory
 `/workspace/shared/pacbench-openrouter-pizza-day-20261112` using the environment's

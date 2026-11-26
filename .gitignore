@@ -1,7 +1,6 @@
 .env
 /.venv/
 .env.*
-!.env.example
 __pycache__/
 *.pyc
 *.pyo
@@ -12,8 +11,6 @@ build/
 *.local.json
 .DS_Store
 # Isolated Hermes: PACBench-owned clone + venv + run homes/artifacts.
-/vendor/hermes-isolated/
-/vendor/venv-hermes-isolated/
 /hermes-homes/
 /artifacts/
 # Track run evidence, but keep credentials, native stores and raw reasoning private.
@@ -41,32 +38,31 @@ build/
 # Generated artifact.
 docs/corpus-explorer.html
 
-# Locally installed provider runtime dependencies.
-/vendor/byterover-local/
-/vendor/venv-openviking/
-/vendor/venv-hindsight/
-/vendor/supermemory-local/
-/vendor/honcho-local/
-/vendor/ollama/
+# Local provider runtimes and caches can also be symlinks.
+/vendor/byterover-local
+/vendor/cognee-integrations
+/vendor/hermes-catalog
+/vendor/hermes-isolated
+/vendor/honcho-local
+/vendor/huggingface-models
+/vendor/libfaketime/runtime
+/vendor/memcal
+/vendor/memos
+/vendor/memos-local-plugin
+/vendor/memos-models
+/vendor/ollama
+/vendor/reme
+/vendor/supermemory-local
+/vendor/supermemory-plugin
+/vendor/venv-cognee
+/vendor/venv-hermes-isolated
+/vendor/venv-hindsight
+/vendor/venv-openviking
+/vendor/venv-reme
+/.bootstrap-cache/
 
 # Preserve local OpenRouter spending reservations outside published evidence.
 *.openrouter-private/
-
-# Native backends are installed separately; never commit runtime symlinks.
-/vendor/venv-cognee
-/vendor/venv-reme
-/vendor/cognee-integrations
-/vendor/reme
-/vendor/memos
-
-# Runtime dependencies may be symlinks in an isolated integration checkout.
-/vendor/byterover-local
-/vendor/venv-openviking
-/vendor/venv-hindsight
-/vendor/supermemory-local
-/vendor/honcho-local
-/vendor/ollama
-/vendor/libfaketime/runtime
 
 # Native document-provider stores and background-worker payloads stay private.
 /runs/**/cognee-data/
@@ -75,10 +71,3 @@ docs/corpus-explorer.html
 /runs/**/reme-workspace/
 /runs/**/reme-native-resource-results/
 /runs/**/memos-home/
-
-# Isolated official provider release installations, never source changes.
-/vendor/memos-local-plugin/
-/vendor/supermemory-plugin/
-/vendor/hermes-isolated
-/vendor/venv-hermes-isolated
-/.bootstrap-cache/

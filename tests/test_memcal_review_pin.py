@@ -40,3 +40,19 @@ def test_context_repair_is_a_separate_exact_review_condition(monkeypatch):
     assert memcal_pin()==(MEMCAL_CONTEXT_CONDITION,MEMCAL_CONTEXT_REVISION,'0.8.12')
     monkeypatch.setenv('PACBENCH_MEMCAL_CONDITION','0.8.12')
     with pytest.raises(RuntimeError,match='Unknown'):memcal_pin()
+
+
+def test_checkout_uses_old_memcal_location_only_for_selected_revision(tmp_path, monkeypatch):
+    from types import SimpleNamespace
+    from pacbench.provider_versions import memcal_source
+
+    monkeypatch.delenv('PACBENCH_MEMCAL_SRC', raising=False)
+    monkeypatch.delenv('PACBENCH_MEMCAL_CONDITION', raising=False)
+    repo = tmp_path / 'checkout'
+    legacy = tmp_path / 'memcal-stable-20261113'
+    (legacy / '.git').mkdir(parents=True)
+    monkeypatch.setattr('pacbench.provider_versions.subprocess.run',
+                        lambda *args, **kwargs: SimpleNamespace(returncode=0, stdout=MEMCAL_REVIEW_REVISION))
+    assert memcal_source(repo) == repo / 'vendor/memcal'
+    monkeypatch.setenv('PACBENCH_MEMCAL_CONDITION', 'wiki-supersession-review-da58057-v1')
+    assert memcal_source(repo) == legacy

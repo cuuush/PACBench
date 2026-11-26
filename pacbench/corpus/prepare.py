@@ -13,7 +13,7 @@ from pacbench.corpus.authoring import (ScenePlan, SceneRecord, SceneRealization,
     build_scene_observations, realize_scene, scene_spec, judge_prompt, judge_scene)
 from pacbench.creds import load_driver
 from pacbench.gateway_client import (
-    GatewayConfigurationError, ModelAccessBlocked, SpendingBlocked, client_settings, public_inference_route)
+    GatewayConfigurationError, ModelAccessBlocked, SpendingBlocked, cli_inference_route, client_settings)
 from pacbench.generation import GenerationError
 from pacbench.corpus.sources import bundle_hash, read_spec, write_bundle
 from pacbench.model_calls import ModelClient, ResponsesWriter, public_record
@@ -648,8 +648,11 @@ def add_arguments(parser):
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--week-start",help="Override the spec's first Monday (YYYY-MM-DD); legacy unpinned specs default to this week")
     parser.add_argument('--resume',action='store_true',help='Reuse unchanged verified scenes while fixing preparation; no writer calls for those scenes')
-    parser.add_argument('--inference-route', choices=('muse-gateway', 'codex-subscription'),
-                        help='Override the default author and verifier model route')
+    route = parser.add_mutually_exclusive_group()
+    route.add_argument('--inference-route', choices=('muse-gateway', 'codex-subscription'),
+                       help='Override the default author and verifier model route')
+    route.add_argument('--budget-usd', metavar='AMOUNT',
+                       help='start fresh OpenRouter preparation with this maximum spend in USD')
 
 
 def generate_from_args(args, parser):
@@ -661,21 +664,18 @@ def generate_from_args(args, parser):
         parser.error(f'cannot read author spec {args.spec}: {exc}')
     if 'corpus_hash' in spec and 'files' in spec:
         parser.error('generate expects an author spec. Use `python -m pacbench run CORPUS --output RUN` for a frozen corpus.')
-    try:
-        inference_route = public_inference_route()
-    except ValueError as exc:
-        parser.error(str(exc))
-    if inference_route == 'openrouter' and args.inference_route:
-        parser.error(f'--inference-route {args.inference_route} conflicts with PACBENCH_TRANSPORT=openrouter')
-    try:
-        result = prepare(spec, args.output.resolve(), resume=args.resume, week_start=args.week_start,
-                         inference_route=args.inference_route or inference_route)
-    except AuthorSpecError as exc:
-        parser.error(str(exc))
-    except (GatewayConfigurationError, GenerationError, ModelAccessBlocked, SpendingBlocked) as exc:
-        print(f'Preparation stopped. {exc}', file=sys.stderr)
-        print(args.output / 'summary.json')
-        return 1
+    if args.resume and args.budget_usd is not None:
+        parser.error('--budget-usd requires a fresh output directory. Resume with the original authorized route and ledger.')
+    with cli_inference_route(parser, args.output, args.budget_usd, requested=args.inference_route) as inference_route:
+        try:
+            result = prepare(spec, args.output.resolve(), resume=args.resume, week_start=args.week_start,
+                             inference_route=inference_route)
+        except AuthorSpecError as exc:
+            parser.error(str(exc))
+        except (GatewayConfigurationError, GenerationError, ModelAccessBlocked, SpendingBlocked) as exc:
+            print(f'Preparation stopped. {exc}', file=sys.stderr)
+            print(args.output / 'summary.json')
+            return 1
     print(args.output)
     return 0 if result['state'] == 'prepared' else 1
 

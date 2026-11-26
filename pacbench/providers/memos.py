@@ -12,7 +12,7 @@ from provider_adapters.memos_oss_service import backend
 from ..checkpoint_clock import CheckpointClock
 from ..gateway_reuse import PersistentGateway, atomic
 from ..live_dispatch import process_identity
-from pacbench.workflows.native import NativeAccount, WarmHermes
+from pacbench.workflows.native import NativeAccount, WarmHermes, receipt_lineage
 from pacbench.workflows.tracks import MEMOS_OSS_LUNA_COMPAT, MEMOS_OSS_TOOLS, MEMOS_OSS_VERSION, validate_native_deployment
 
 
@@ -273,13 +273,7 @@ class MemosWitness:
     tool_boundaries = staticmethod(lambda _: {})
 
     def request_lineage(self, requests):
-        ids={request['request_id'] for request in requests}
-        rows=self.ledger.snapshot()
-        for row in reversed(rows):
-            if row['id'] in ids and row.get('retry_of'):
-                ids.add(row['retry_of'])
-        return [{'id':r['id'],'parent':r.get('retry_of'),'operation':r['dispatch_context']['operation_id'],
-                 'origin':'harness' if r.get('retry_of') else 'unknown'} for r in rows if r['id'] in ids]
+        return receipt_lineage(self.ledger.snapshot(), requests)
 
     def close(self):
         self.idle()

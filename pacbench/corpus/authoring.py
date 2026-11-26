@@ -273,13 +273,6 @@ def scene_prompt(plan: ScenePlan,
     )
 
 
-def scene_prompt_sha() -> str:
-    probe = ScenePlan(id="probe", channel="text", thread="probe",
-                      scene="Two friends making weekend plans.",
-                      test_intent="Recall their plan.")
-    return hashlib.sha256(scene_prompt(probe).encode()).hexdigest()[:16]
-
-
 def scene_spec(plan: ScenePlan) -> dict[str, Any]:
     """The full scene spec, as persisted in judgment audit records."""
     return {

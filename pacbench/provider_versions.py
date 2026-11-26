@@ -46,7 +46,18 @@ def memcal_week_pin():
 
 def memcal_source(repo: Path) -> Path:
     override = os.environ.get('PACBENCH_MEMCAL_SRC', '').strip()
-    return Path(override).expanduser().resolve() if override else repo.parent / 'memcal-stable-20261113'
+    if override:
+        return Path(override).expanduser().resolve()
+    local = repo / 'vendor/memcal'
+    if os.path.lexists(local):
+        return local
+    legacy = repo.parent / 'memcal-stable-20261113'
+    if (legacy / '.git').exists():
+        revision = subprocess.run(['git', '-C', str(legacy), 'rev-parse', 'HEAD'],
+                                  capture_output=True, text=True, check=False)
+        if revision.returncode == 0 and revision.stdout.strip() == memcal_pin()[1]:
+            return legacy
+    return local
 
 
 def verify_memcal_source(repo: Path) -> dict:
@@ -74,7 +85,28 @@ def memos_model_cache(repo: Path) -> Path:
         return Path(override).expanduser().resolve()
     if LEGACY_MEMOS_MODEL_CACHE.is_dir():
         return LEGACY_MEMOS_MODEL_CACHE
-    return repo.parent / 'shared/pacbench-memos-models'
+    legacy = repo.parent / 'shared/pacbench-memos-models'
+    if legacy.is_dir():
+        return legacy
+    return repo / 'vendor/memos-models'
+
+
+def huggingface_model_cache(repo: Path) -> Path:
+    """Resolve native Hub cache paths before assigning isolated homes."""
+    for name in ('HF_HUB_CACHE', 'HUGGINGFACE_HUB_CACHE'):
+        if value := os.environ.get(name):
+            return Path(os.path.expandvars(value)).expanduser().resolve()
+    if home := os.environ.get('HF_HOME'):
+        return Path(os.path.expandvars(home)).expanduser().resolve() / 'hub'
+    if cache := os.environ.get('XDG_CACHE_HOME'):
+        return Path(os.path.expandvars(cache)).expanduser().resolve() / 'huggingface/hub'
+    return repo / 'vendor/huggingface-models'
+
+
+def hindsight_model_cache(repo: Path) -> Path:
+    if value := os.environ.get('SENTENCE_TRANSFORMERS_HOME'):
+        return Path(os.path.expandvars(value)).expanduser().resolve()
+    return huggingface_model_cache(repo)
 
 
 def verify_memos_package(repo: Path) -> tuple[Path, dict]:

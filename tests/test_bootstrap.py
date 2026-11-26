@@ -7,22 +7,31 @@ import pytest
 from pacbench import bootstrap
 
 
-def test_plan_has_no_side_effects(monkeypatch, capsys):
-    monkeypatch.setattr(bootstrap, 'install', lambda *_: pytest.fail('plan installed software'))
-    bootstrap.main([])
-    result = json.loads(capsys.readouterr().out)
-    assert not result['install'] and not result['paid_calls']
-    assert 'hermes' in result['components']
+def test_setup_installs_verifies_and_starts_by_default(monkeypatch, capsys):
+    calls = []
+    monkeypatch.setattr(bootstrap, 'install_blockers', lambda _: [])
+    monkeypatch.setattr(bootstrap, 'install', calls.append)
+    monkeypatch.setattr(bootstrap, 'verify',
+                        lambda _, *, warm_models: calls.append(('verify', warm_models)) or {'state': 'pass'})
+    monkeypatch.setattr(bootstrap, 'start_services', lambda: calls.append('start') or {'state': 'ready'})
+
+    assert bootstrap.main([]) == 0
+    assert calls == [*bootstrap.COMPONENTS, ('verify', True), 'start']
+    assert '"state": "ready"' in capsys.readouterr().out
 
 
 def test_installer_environment_removes_model_keys_preserves_proxy(monkeypatch, tmp_path):
     monkeypatch.setenv('OPENROUTER_API_KEY', 'secret')
     monkeypatch.setenv('PACBENCH_OPENROUTER_DIRECT_TOKEN', 'private')
+    monkeypatch.setenv('META', 'legacy')
+    monkeypatch.setenv('PACBENCH_DIRECT_UPSTREAM_KEY', 'legacy-direct')
     monkeypatch.setenv('HTTPS_PROXY', 'http://proxy:8080')
     monkeypatch.delenv('XDG_CACHE_HOME', raising=False)
     env = bootstrap.environment(tmp_path)
     assert 'OPENROUTER_API_KEY' not in env
     assert 'PACBENCH_OPENROUTER_DIRECT_TOKEN' not in env
+    assert 'META' not in env
+    assert 'PACBENCH_DIRECT_UPSTREAM_KEY' not in env
     assert env['HTTPS_PROXY'] == 'http://proxy:8080'
     assert env['XDG_CACHE_HOME'] == str(tmp_path / '.bootstrap-cache')
 
@@ -122,29 +131,18 @@ def test_start_services_is_explicit_and_does_not_run_after_failed_identity_check
     assert bootstrap.main(['--check','--start-services'])==1
 
 
-def test_check_live_is_opt_in_and_keeps_installation_status_separate(monkeypatch, capsys):
-    from pacbench import gateway_client
-
-    calls = []
+def test_check_does_not_install_or_start_services(monkeypatch, capsys):
+    monkeypatch.setattr(bootstrap, 'install_blockers', lambda _: pytest.fail('checked installation tools'))
+    monkeypatch.setattr(bootstrap, 'install', lambda _: pytest.fail('installed from offline check'))
     monkeypatch.setattr(bootstrap, 'verify', lambda _: {'state': 'pass'})
-    monkeypatch.setattr(gateway_client, 'check_live_route',
-                        lambda: calls.append('route') or {'state': 'blocked'}, raising=False)
+    monkeypatch.setattr(bootstrap, 'start_services', lambda: pytest.fail('started from offline check'))
     assert bootstrap.main(['--check']) == 0
-    assert json.loads(capsys.readouterr().out)['live_route']['state'] == 'not-checked'
-    assert calls == []
-    for args in (['--check-live'], ['--check', '--check-live']):
-        assert bootstrap.main(args) == 1
-        report = json.loads(capsys.readouterr().out)
-        assert report['state'] == 'blocked'
-        assert report['runtime_state'] == 'pass'
-        assert report['live_route']['state'] == 'blocked'
-    assert calls == ['route', 'route']
+    assert json.loads(capsys.readouterr().out) == {'state': 'pass'}
 
 
-@pytest.mark.parametrize('option', ['--install', '--start-services'])
-def test_check_live_rejects_mutating_options(option):
+def test_services_require_verified_embeddings():
     with pytest.raises(SystemExit) as exc:
-        bootstrap.main(['--check-live', option])
+        bootstrap.main(['--check', '--start-services', '--components', 'cognee'])
     assert exc.value.code == 2
 
 
@@ -177,6 +175,41 @@ def test_backend_install_uses_reviewed_python_cpu_wheel_and_constraints(tmp_path
     assert calls[0][-2:] == ['3.12.14',tmp_path/'vendor/venv-cognee']
     assert 'torch==2.15.0+cpu' in calls[1] and '--no-deps' in calls[1]
     assert '--constraint' in calls[2] and lock in calls[2] and 'torch==2.15.0+cpu' in calls[2]
+
+
+def test_cognee_tokenizer_offline_check_uses_runtime_cache(monkeypatch):
+    def run(args, *, env, capture_output, **kwargs):
+        assert 'local_files_only=True' in args[-1]
+        assert 'tokenizer.json' in args[-1] and 'tokenizer_config.json' in args[-1]
+        assert env['HF_HUB_CACHE'] == '/explicit/hub'
+        assert capture_output
+        raise subprocess.CalledProcessError(1, args)
+
+    monkeypatch.delenv('XDG_CACHE_HOME', raising=False)
+    monkeypatch.setenv('HF_HUB_CACHE', '/explicit/hub')
+    monkeypatch.setattr(bootstrap.subprocess, 'run', run)
+    with pytest.raises(RuntimeError, match='unavailable in the local Hugging Face cache'):
+        bootstrap.cognee_tokenizer(offline=True)
+
+
+def test_hindsight_warmup_and_offline_check_share_native_cache(monkeypatch, tmp_path):
+    choice = tmp_path / 'native-hub'
+    monkeypatch.setenv('SENTENCE_TRANSFORMERS_HOME', str(choice))
+    monkeypatch.setenv('HF_HUB_CACHE', str(tmp_path / 'generic-hub'))
+    monkeypatch.delenv('HF_HUB_OFFLINE', raising=False)
+    modes = []
+
+    def run(args, *, env, capture_output, **kwargs):
+        assert args[0].endswith('vendor/venv-hindsight/bin/python')
+        assert 'LocalSTEmbeddings().initialize()' in args[-1]
+        assert 'LocalSTCrossEncoder().initialize()' in args[-1]
+        assert env['SENTENCE_TRANSFORMERS_HOME'] == env['HF_HUB_CACHE'] == str(choice)
+        modes.append((env.get('HF_HUB_OFFLINE'), capture_output))
+
+    monkeypatch.setattr(bootstrap.subprocess, 'run', run)
+    bootstrap.hindsight_models(offline=False)
+    bootstrap.hindsight_models(offline=True)
+    assert modes == [(None, False), ('1', True)]
 
 
 def test_dependency_drift_is_blocked_optional_packages_are_not_required(tmp_path,monkeypatch):

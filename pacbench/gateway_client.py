@@ -1,5 +1,6 @@
 """Connect to PACBench’s shared budget gateway; never bypass it."""
 from __future__ import annotations
+from contextlib import ExitStack, contextmanager
 import json
 import math
 import os
@@ -25,14 +26,33 @@ class GatewayConfigurationError(RuntimeError):
     """The configured gateway cannot establish a live spending boundary."""
 
 
-def public_inference_route() -> str:
-    from .openrouter_direct import active
-    if active():
-        raise ValueError('Direct OpenRouter requires its authorized launcher. See `python -m pacbench.openrouter_run --help`.')
+@contextmanager
+def cli_inference_route(parser, output, budget_usd, *, requested=None, before_start=None):
+    """Select a configured historical route or hold a fresh bounded session."""
+    if budget_usd is not None:
+        from .openrouter_run import PublicSessionError, public_session
+
+        with ExitStack() as resources:
+            try:
+                resources.enter_context(public_session(output, budget_usd, before_start=before_start))
+            except (FileExistsError, PublicSessionError) as exc:
+                parser.error(str(exc))
+            yield 'openrouter'
+        return
+
+    if os.environ.get('PACBENCH_DIRECT') == '1':
+        parser.error('Direct OpenRouter requires its authorized launcher. See `python -m pacbench.openrouter_run --help`.')
     transport = os.environ.get('PACBENCH_TRANSPORT', '')
     if transport not in ('', 'muse', 'muse-gateway', 'openrouter'):
-        raise ValueError('Set PACBENCH_TRANSPORT to muse-gateway or openrouter.')
-    return 'openrouter' if transport == 'openrouter' else 'muse-gateway'
+        parser.error('Set PACBENCH_TRANSPORT to muse-gateway or openrouter.')
+    if transport == 'openrouter':
+        if requested:
+            parser.error(f'--inference-route {requested} conflicts with PACBENCH_TRANSPORT=openrouter')
+        yield 'openrouter'
+        return
+    if not (requested or transport or os.environ.get('PACBENCH_GATEWAY_STATE') or os.environ.get('MUSE_GATEWAY_STATE')):
+        parser.error('Set OPENROUTER_API_KEY and pass --budget-usd AMOUNT for a fresh OpenRouter session.')
+    yield requested or 'muse-gateway'
 
 
 def require_muse_state(state: Path) -> tuple[str, ...]:
@@ -42,7 +62,7 @@ def require_muse_state(state: Path) -> tuple[str, ...]:
     if missing:
         raise GatewayConfigurationError(
             'Muse gateway unavailable. Missing files: ' + ', '.join(missing) +
-            '. See README.md, follow the gateway setup steps, and set PACBENCH_GATEWAY_STATE to the authorized state directory. '
+            '. Set PACBENCH_GATEWAY_STATE to the authorized state directory. See CONTRIBUTING.md for historical campaign setup. '
             'If resuming a study, restore its original private files.')
     return required
 
@@ -150,7 +170,9 @@ def require_live_cost_boundary() -> dict:
         if health.get('auth_blocked'):
             raise ModelAccessBlocked('OpenRouter authentication blocked')
         if health.get('budget_blocked'):
-            raise SpendingBlocked('OpenRouter run spending limit reached')
+            if health.get('spending_stop_reason') == 'upstream_payment_required':
+                raise SpendingBlocked('OpenRouter rejected payment for this run (HTTP 402)')
+            raise SpendingBlocked('OpenRouter run spending limit cannot admit further requests')
         return health
     daily, total = health.get('daily_limit_usd'), health.get('total_limit_usd')
     spent = health.get('accounted_today_usd', 0)
@@ -165,24 +187,6 @@ def require_live_cost_boundary() -> dict:
     if health.get('upstream_auth_blocked'):
         raise ModelAccessBlocked('upstream model authentication failed; confirm access with a free model inventory before resuming')
     return health
-
-
-def check_live_route() -> dict:
-    """Check the selected inference route without creating state or running inference."""
-    from .openrouter_direct import active
-
-    try:
-        route = public_inference_route()
-    except ValueError as exc:
-        route = 'openrouter-direct' if active() else 'unrecognized'
-        return {'state': 'blocked', 'route': route, 'detail': str(exc)}
-
-    try:
-        require_live_cost_boundary()
-    except (ModelAccessBlocked, SpendingBlocked, GatewayConfigurationError) as exc:
-        return {'state': 'blocked', 'route': route, 'detail': str(exc)}
-    detail = 'Authenticated gateway health and its configured spending boundary passed. Upstream model availability and run-specific admission remain separate checks.'
-    return {'state': 'pass', 'route': route, 'detail': detail}
 
 
 def validate_route(url: str, key: str | None = None) -> None:

@@ -18,6 +18,29 @@ from ..stop import communicate_until_stop
 from .delivery import submit_document
 
 
+def receipt_lineage(rows, requests):
+    """Project captured requests and their retry parents in journal order."""
+    selected = {request['request_id'] for request in requests}
+    for row in reversed(rows):
+        if row['id'] in selected and row.get('retry_of'):
+            selected.add(row['retry_of'])
+    return [
+        dict(id=row['id'], parent=row.get('retry_of'), operation=row['dispatch_context']['operation_id'],
+             origin='harness' if row.get('retry_of') else 'unknown')
+        for row in rows if row['id'] in selected
+    ]
+
+
+def native_chat_closed(home, session_id, sessions):
+    """Verify a CLI close in both the native database and the gateway sample."""
+    managers = [row for row in sessions if row['session_id'] == session_id]
+    path = home / 'state.db'
+    with closing(sqlite3.connect(path.as_uri() + '?mode=ro', uri=True)) as db:
+        ended = db.execute('SELECT ended_at,end_reason FROM sessions WHERE id=?', (session_id,)).fetchone()
+    return (ended is not None and ended[0] is not None and ended[1] == 'cli_close'
+            and bool(managers) and all(row['shutdown_returned'] and row['clean'] for row in managers))
+
+
 def trace_position(path):
     """Bind an append cursor to the file and its last complete pre-turn bytes."""
     try:

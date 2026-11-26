@@ -1,36 +1,9 @@
 """Mutually exclusive native checkpoint execution permissions."""
-from functools import wraps
 import os
-from threading import Lock
 from . import canary_capability,full_run_capability,remaining_r2_capability
 from pacbench.workflows import capability as workflow_capability
 from .hermes_gateway import GatewayLifecycleError
 CanaryBusy=canary_capability.CanaryBusy
-
-# Capability lookup and native clients both read the process environment.
-# Deployed parallel arms have separate processes. Overlapping launchers inside
-# one interpreter would observe and restore each other's settings.
-_launcher_lock = Lock()
-
-
-def scoped_launcher(*keys):
-    """Restore only the process variables owned by this launcher, including on startup failure."""
-    def decorate(run):
-        @wraps(run)
-        def scoped(root, env, **kwargs):
-            with _launcher_lock:
-                previous = {key: os.environ.get(key) for key in keys}
-                try:
-                    return run(root, dict(env), **kwargs)
-                finally:
-                    for key, value in previous.items():
-                        if value is None:
-                            os.environ.pop(key, None)
-                        else:
-                            os.environ[key] = value
-        return scoped
-    return decorate
-
 
 def selected():
  modes=[m for m in (canary_capability,full_run_capability,remaining_r2_capability,workflow_capability) if os.environ.get(m.ENV)]

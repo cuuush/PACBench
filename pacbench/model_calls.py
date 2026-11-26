@@ -251,9 +251,9 @@ class ModelClient:
                 access_blocked = exc.code in (401,403)
                 try:
                     refusal_type = json.loads(error_response).get('error', {}).get('type')
-                    if refusal_type in ('budget_refused','request_refused'):
+                    if refusal_type in ('budget_refused','upstream_payment_required','request_refused'):
                         transient = False
-                        spending_refused = refusal_type == 'budget_refused'
+                        spending_refused = refusal_type != 'request_refused'
                     if refusal_type == 'upstream_auth_blocked':
                         access_blocked = True
                         transient = False
@@ -325,7 +325,9 @@ class ModelClient:
             _write_record(path, record)
             if spending_refused:
                 from .gateway_client import SpendingBlocked
-                raise SpendingBlocked(f'model call blocked by daily spending gateway; audit record {path}: {error}')
+                reason = ('upstream model provider rejected payment' if refusal_type == 'upstream_payment_required'
+                          else 'model call blocked by the spending limit')
+                raise SpendingBlocked(f'{reason} ({error}). Audit record {path}.')
             if access_blocked:
                 from .gateway_client import ModelAccessBlocked
                 raise ModelAccessBlocked(f'upstream model authentication blocked; audit record {path}: {error}')

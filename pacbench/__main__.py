@@ -1,12 +1,38 @@
 """Freeze one authored corpus and run it through native memory providers."""
 import argparse
-import json
+from functools import partial
 import os
 from pathlib import Path
 import sys
+from uuid import uuid4
 
 import pacbench.corpus.prepare as prepare
 from .providers import ACTIVE_PROVIDERS
+
+
+REPO = Path(__file__).resolve().parents[1]
+
+
+def corpus_manifest(source):
+    manifest = source / 'week.json' if source.is_dir() else source
+    if not source.exists() and not source.is_absolute() and len(source.parts) == 1:
+        dataset = REPO / 'datasets' / source.name / 'week.json'
+        if dataset.is_file():
+            return dataset
+    return manifest
+
+
+def use_installed_runtime(argv, parser):
+    runtime = REPO / 'vendor/venv-hermes-isolated'
+    if Path(sys.prefix).resolve() == runtime.resolve():
+        return
+    python = runtime / 'bin/python'
+    if not os.access(python, os.X_OK):
+        parser.error('Install the native provider runtime first with ./scripts/setup.')
+    try:
+        os.execv(python, [str(python), '-m', 'pacbench', *argv])
+    except OSError as exc:
+        parser.error(f'Cannot start the installed native provider runtime: {exc.strerror}. Re-run ./scripts/setup.')
 
 
 def plan_run(manifest, output, providers):
@@ -34,31 +60,36 @@ def plan_run(manifest, output, providers):
     return 0
 
 
-def run_from_args(args, parser):
+def run_from_args(args, parser, *, command_line=None):
     from .corpus.audit import PreparedCorpusError
-    from .native_pilot import run
+    from .gateway_client import cli_inference_route
 
+    manifest = corpus_manifest(args.corpus)
+    if args.output is None:
+        label = manifest.parent.resolve().name if manifest.name == 'week.json' else manifest.stem
+        args.output = REPO / 'artifacts/runs' / f'{label or "corpus"}-{uuid4().hex}'
     if os.path.lexists(args.output):
         parser.error(f'output already exists: {args.output}')
-    manifest = args.corpus / 'week.json' if args.corpus.is_dir() else args.corpus
     if not manifest.is_file():
         parser.error(f'frozen corpus manifest not found at {manifest}')
     providers = args.providers or list(ACTIVE_PROVIDERS)
     if len(providers) != len(set(providers)):
         parser.error('select each provider only once')
-    try:
-        if args.plan:
-            return plan_run(manifest, args.output, providers)
-        from .gateway_client import public_inference_route
-
+    if args.plan:
         try:
-            inference_route = public_inference_route()
-        except ValueError as exc:
+            return plan_run(manifest, args.output, providers)
+        except (ValueError, FileExistsError) as exc:
             parser.error(str(exc))
-        report = run(manifest, args.output, max_messages=None, providers=providers,
-                     inference_route=inference_route, report_blocked=True)
-    except PreparedCorpusError as exc:
-        parser.error(str(exc))
+
+    from .native_pilot import run
+
+    before_start = partial(use_installed_runtime, command_line, parser) if command_line is not None else None
+    with cli_inference_route(parser, args.output, args.budget_usd, before_start=before_start) as inference_route:
+        try:
+            report = run(manifest, args.output, max_messages=None, providers=providers,
+                         inference_route=inference_route, report_blocked=True)
+        except PreparedCorpusError as exc:
+            parser.error(str(exc))
     results = {row['provider']: row for row in report['results']}
     unstarted = []
     for provider in providers:
@@ -79,7 +110,8 @@ def run_from_args(args, parser):
 
 
 def main(argv=None):
-    argv = list(sys.argv[1:] if argv is None else argv)
+    command_line = argv is None
+    argv = list(sys.argv[1:] if command_line else argv)
     if argv and argv[0] not in {'generate', 'run', '-h', '--help'}:
         return prepare.main(argv)  # Original bare-spec invocation.
 
@@ -88,12 +120,17 @@ def main(argv=None):
     generator = commands.add_parser('generate', help='generate, review and freeze an authored JSON spec')
     prepare.add_arguments(generator)
     native = commands.add_parser('run', help='evaluate a frozen corpus with native providers')
-    native.add_argument('corpus', type=Path, help='prepared directory or its week.json manifest')
-    native.add_argument('--output', type=Path, required=True, help='new destination for run evidence')
+    native.add_argument('corpus', type=Path, help='dataset name, prepared directory or its week.json manifest')
+    native.add_argument('--output', type=Path, help='new destination for run evidence (default: under artifacts/runs)')
     native.add_argument('--providers', nargs='+', choices=ACTIVE_PROVIDERS, help='subset of the active providers')
-    native.add_argument('--plan', action='store_true', help='verify and summarize the corpus without starting providers or models')
+    mode = native.add_mutually_exclusive_group()
+    mode.add_argument('--plan', action='store_true', help='verify and summarize the corpus without starting providers or models')
+    mode.add_argument('--budget-usd', metavar='AMOUNT',
+                      help='start a fresh OpenRouter run with this maximum spend in USD')
     args = parser.parse_args(argv)
-    return prepare.generate_from_args(args, generator) if args.command == 'generate' else run_from_args(args, native)
+    if args.command == 'generate':
+        return prepare.generate_from_args(args, generator)
+    return run_from_args(args, native, command_line=argv if command_line else None)
 
 
 if __name__ == '__main__':

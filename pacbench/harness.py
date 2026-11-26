@@ -36,21 +36,6 @@ def question_prompt(text: str, at: str, protocol: str) -> str:
         return f"[Simulated now: {at}. Treat this as the current date and time for everything in this turn.]\n\n{text}"
     raise ValueError("Unknown question prompt protocol")
 
-#: Interpreter that owns the hindsight_api install (proven: 3.12.8 at this
-#: path; 3.14 lacks the deps → ModuleNotFoundError mid-run). The Hindsight
-#: MCP server MUST launch under this binary — never bare sys.executable
-#: (inherits whatever launched the run), never a new hardcoded literal
-#: (rots on the next machine). Override with PACBENCH_PYTHON when the
-#: install provably moves; the override is recorded, never silent.
-PYTHON_ENV_OVERRIDE = "PACBENCH_PYTHON"
-DEFAULT_PYTHON = "/usr/local/bin/python3"
-
-
-def python_bin() -> str:
-    """Interpreter for provider server subprocesses (audit surface)."""
-    override = os.environ.get(PYTHON_ENV_OVERRIDE, "").strip()
-    return override or DEFAULT_PYTHON
-
 
 @dataclasses.dataclass
 class TurnResult:

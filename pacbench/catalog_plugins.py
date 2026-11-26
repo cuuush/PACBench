@@ -1,10 +1,13 @@
 """Install the reviewed Hermes catalog providers into an isolated trial home."""
 from __future__ import annotations
 
+import hashlib
 import json
 import os
 from pathlib import Path
+import shutil
 import subprocess
+import tempfile
 
 # Historical entries in the pinned Hermes v0.23.1 catalog.
 HERMES_CATALOG = {
@@ -103,16 +106,8 @@ def verify_retained_catalog_provider(name: str, home: Path) -> None:
         raise ValueError('Retained catalog source differs')
 
 
-def install_catalog_provider(name: str, home: Path, fallback: Path, hermes_bin: Path, tree: Path) -> dict:
-    """Install reviewed upstream source without changing the shared client environment.
-
-    Hermes uses a separate PM runtime even with --no-deps. The memory provider is
-    left inactive until its declared dependencies and adapter imports are checked.
-    """
-    if name not in CATALOG:
-        raise RuntimeError(f'Unsupported external catalog provider: {name}')
-    identifier, sha = CATALOG[name]
-    # Verify the unchanged Hermes catalog separately from the explicit upstream selection.
+def _verify_catalog_pin(name: str, tree: Path) -> None:
+    identifier, _ = CATALOG[name]
     from ruamel.yaml import YAML
     parser = YAML(typ="safe")
     entry = parser.load((tree / 'plugin-catalog' / f'{name}.yaml').read_text())
@@ -120,13 +115,25 @@ def install_catalog_provider(name: str, home: Path, fallback: Path, hermes_bin: 
         entry.get('repo', '').removesuffix('/') != 'https://github.com/' + '/'.join(identifier.split('/')[:2]) or
         entry.get('subdir', '') != '/'.join(identifier.split('/')[2:])):
         raise RuntimeError(f'Pinned Hermes catalog mismatch for {name}')
+
+
+def _plugin_environment(home: Path, fallback: Path) -> dict:
     env = {**os.environ, 'HOME': str(fallback.resolve()), 'HERMES_HOME': str(home.resolve()),
-           'HERMES_ENABLE_PROJECT_PLUGINS': '0', 'GIT_TERMINAL_PROMPT': '0'}
+           'HERMES_ENABLE_PROJECT_PLUGINS': '0', 'GIT_TERMINAL_PROMPT': '0',
+           'PYTHONDONTWRITEBYTECODE': '1'}
     if env.get('PACBENCH_R2_LIVE_SCOPE') or env.get('PACBENCH_WORKFLOW_SCOPE'):
         # Package setup is offline from the inference transport. Its child
         # Python bootstrap must not load the request-bound benchmark hooks.
         for key in ('PACBENCH_DIRECT', 'PACBENCH_DIRECT_UPSTREAM_KEY', 'PYTHONPATH', 'NODE_OPTIONS'):
             env.pop(key, None)
+    return env
+
+
+def _install_upstream_provider(name: str, home: Path, fallback: Path, hermes_bin: Path, tree: Path) -> dict:
+    """Run Hermes' native pinned installer once, under setup."""
+    _verify_catalog_pin(name, tree)
+    identifier, sha = CATALOG[name]
+    env = _plugin_environment(home, fallback)
     command = [str(hermes_bin), 'plugins', 'install', identifier, '--ref', sha, '--no-deps', '--no-enable']
     try:
         result = subprocess.run(command, cwd=tree, env=env, capture_output=True, text=True, timeout=600)
@@ -136,6 +143,11 @@ def install_catalog_provider(name: str, home: Path, fallback: Path, hermes_bin: 
         if os.environ.get('PACBENCH_R2_LIVE_SCOPE') or os.environ.get('PACBENCH_WORKFLOW_SCOPE'):
             (home.parent/'catalog-install-error.private.log').write_text(result.stdout + '\n' + result.stderr)
         raise RuntimeError(f'Hermes catalog install for {name} failed (exit {result.returncode})')
+    return _probe_installed_provider(name, home, hermes_bin, tree, env)
+
+
+def _probe_installed_provider(name: str, home: Path, hermes_bin: Path, tree: Path, env: dict) -> dict:
+    identifier, sha = CATALOG[name]
     directory = home / 'plugins' / name
     try:
         verify_retained_catalog_provider(name, home)
@@ -162,4 +174,83 @@ def install_catalog_provider(name: str, home: Path, fallback: Path, hermes_bin: 
                'source_selection': ('upstream untagged plugin revision; no release tags available' if name == 'supermemory' else 'plugin shipped in selected stable backend release')}
     if name == 'hindsight':
         receipt['native_recall_types_default'] = 'observation'
+    return receipt
+
+
+def _cache_entry(name: str, tree: Path) -> Path:
+    return tree.parent / 'hermes-catalog' / name / CATALOG[name][1]
+
+
+def _plugin_files_digest(directory: Path) -> str:
+    files = {}
+    for path in sorted(directory.rglob('*')):
+        if path.is_symlink():
+            raise RuntimeError(f'Unexpected symbolic link in cached Hermes plugin: {path.name}')
+        if path.is_dir():
+            continue
+        if not path.is_file():
+            raise RuntimeError(f'Unexpected file type in cached Hermes plugin: {path.name}')
+        with path.open('rb') as stream:
+            files[path.relative_to(directory).as_posix()] = [
+                path.stat().st_mode & 0o111, hashlib.file_digest(stream, 'sha256').hexdigest()]
+    return hashlib.sha256(json.dumps(files, sort_keys=True).encode()).hexdigest()
+
+
+def _verified_cache_entry(name: str, tree: Path) -> Path:
+    _verify_catalog_pin(name, tree)
+    entry = _cache_entry(name, tree)
+    try:
+        verify_retained_catalog_provider(name, entry)
+        recorded = (entry / 'files.sha256').read_text().strip()
+    except (OSError, ValueError) as exc:
+        raise RuntimeError(f'{name} Hermes plugin cache is unavailable. Run ./scripts/setup --install --components hermes.') from exc
+    if recorded != _plugin_files_digest(entry / 'plugins' / name):
+        raise RuntimeError(f'Cached Hermes plugin files differ for {name}: {entry}')
+    return entry
+
+
+def verify_catalog_cache(tree: Path) -> None:
+    for name in CATALOG:
+        _verified_cache_entry(name, tree)
+
+
+def prefetch_catalog(hermes_bin: Path, tree: Path) -> None:
+    """Cache each native installer result and its original install metadata."""
+    for name in CATALOG:
+        entry = _cache_entry(name, tree)
+        if entry.exists():
+            _verified_cache_entry(name, tree)
+            continue
+        entry.parent.mkdir(parents=True, exist_ok=True)
+        with tempfile.TemporaryDirectory(prefix='.plugin-', dir=entry.parent) as stage:
+            stage = Path(stage)
+            home, fallback = stage / 'home', stage / 'fallback'
+            home.mkdir()
+            fallback.mkdir()
+            _install_upstream_provider(name, home, fallback, hermes_bin, tree)
+            plugins = home / 'plugins'
+            cache = stage / 'cache'
+            cache.mkdir()
+            (cache / 'plugins').mkdir()
+            (plugins / name).rename(cache / 'plugins' / name)
+            (plugins / '.install-metadata.json').rename(cache / 'plugins' / '.install-metadata.json')
+            digest = _plugin_files_digest(cache / 'plugins' / name)
+            (cache / 'files.sha256').write_text(digest + '\n')
+            try:
+                cache.rename(entry)
+            except OSError:
+                if not entry.exists():
+                    raise
+                _verified_cache_entry(name, tree)
+
+
+def install_catalog_provider(name: str, home: Path, fallback: Path, hermes_bin: Path, tree: Path) -> dict:
+    """Provision the selected plugin locally without reusing any prior home."""
+    entry = _verified_cache_entry(name, tree)
+    plugins = home / 'plugins'
+    plugins.mkdir(exist_ok=True)
+    shutil.copytree(entry / 'plugins' / name, plugins / name, symlinks=True)
+    shutil.copyfile(entry / 'plugins' / '.install-metadata.json', plugins / '.install-metadata.json')
+    receipt = _probe_installed_provider(name, home, hermes_bin, tree, _plugin_environment(home, fallback))
+    receipt['source_cached'] = True
     return receipt

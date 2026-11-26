@@ -53,6 +53,13 @@ def start(root, env, model, base, key, *, resume=False):
             raise ValueError('Expected a fresh stock scope or the exact first-question snapshot')
     with socket.socket() as s:
         s.bind(('127.0.0.1',0));port=s.getsockname()[1]
+    settings = plan_config(root, model, base, key, port=port)
+    if not resume:
+        from .embedding_health import check
+
+        check(settings['SUPERMEMORY_EMBEDDING_BASE_URL'],
+              model=settings['SUPERMEMORY_EMBEDDING_MODEL'],
+              dimensions=int(settings['SUPERMEMORY_EMBEDDING_DIMENSIONS']))
     directory=root/'supermemory-data'
     if resume and not (directory/'data').is_file():raise ValueError('No persisted native Supermemory store to reopen')
     directory.mkdir(exist_ok=resume)
@@ -66,7 +73,7 @@ def start(root, env, model, base, key, *, resume=False):
     # Only local embeddings and the shared spending gateway. Do not inherit
     # alternative LLM providers from the host or use a hosted Supermemory key.
     owner = uuid4().hex
-    child={**os.environ, **env, **plan_config(root,model,base,key,port=port), OWNER:owner}
+    child={**os.environ, **env, **settings, OWNER:owner}
     for name in ('ANTHROPIC_API_KEY','GEMINI_API_KEY','GROQ_API_KEY','WORKERS_AI_API_KEY',
                  'CLOUDFLARE_ACCOUNT_ID','GOOGLE_VERTEX_PROJECT_ID','GOOGLE_VERTEX_LOCATION',
                  'SUPERMEMORY_API_KEY','SUPERMEMORY_BASE_URL'):

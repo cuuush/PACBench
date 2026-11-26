@@ -92,10 +92,13 @@ def test_live_budget_block_happens_before_any_model_call(tmp_path):
     assert json.loads((tmp_path / "out/summary.json").read_text())["state"] == "blocked"
 
 
-def test_cli_audit_failure_cannot_be_success(tmp_path):
+def test_cli_audit_failure_cannot_be_success(tmp_path, monkeypatch):
     path = tmp_path / "spec.json"
     path.write_text("{}")
-    with patch("sys.argv", ["runner", str(path), "--output", str(tmp_path / "out")]), \
+    monkeypatch.setenv("PACBENCH_TRANSPORT", "muse-gateway")
+    monkeypatch.delenv("PACBENCH_DIRECT", raising=False)
+    with patch("sys.argv", ["runner", str(path), "--output", str(tmp_path / "out"),
+                            "--inference-route", "muse-gateway"]), \
          patch("pacbench.corpus.prepare.prepare", return_value={
              "state": "incomplete", "results": [{"state": "valid"}]}):
         assert main() == 1
@@ -228,7 +231,7 @@ def test_native_service_receives_its_route_and_resume_arguments(tmp_path, monkey
                                      honcho_simulated_at=simulated_at, honcho_checkpoint=checkpoint)
 
         prefix = f'pacbench-{sha256(str(root).encode()).hexdigest()[:12]}-{provider}'
-        assert ready == [prefix+'-driver', prefix+'-memory', prefix+'-memory']
+        assert ready == [prefix+'-driver', prefix+'-memory']
         assert bootstrap.call_args.kwargs['model_base_url'] == 'http://127.0.0.1:1/p/driver/v1'
         assert env['HOME'] == str(root/'fallback-home') and env['TZ'] == 'America/New_York'
         assert env['OPENAI_API_KEY'] == 'scoped-memory-key' and env['META_API_KEY'] == 'scoped-driver-key'

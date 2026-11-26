@@ -11,6 +11,7 @@ from provider_adapters.reme_resource import inside
 
 from ..gateway.reuse_runtime import PROTOCOL
 from ..live_dispatch import process_identity
+from pacbench.workflows.native import native_chat_closed, receipt_lineage
 from pacbench.workflows.tracks import HERMES_TOOLS, validate_native_deployment
 
 
@@ -154,25 +155,14 @@ class ReMeWitness:
 
     def after_native_close(self, sid):
         sample = self.idle()['readback']['gateway']
-        managers = [row for row in sample['sessions'] if row['session_id']==sid]
-        path = self.owner.home/'state.db'
-        with closing(sqlite3.connect(path.as_uri()+'?mode=ro',uri=True)) as db:
-            ended = db.execute('SELECT ended_at,end_reason FROM sessions WHERE id=?',(sid,)).fetchone()
-        if (not ended or ended[0] is None or ended[1]!='cli_close' or not managers
-                or not all(r['shutdown_returned'] and r['clean'] for r in managers)):
+        if not native_chat_closed(self.owner.home, sid, sample['sessions']):
             raise ValueError('ReMe selected session did not close natively')
         return dict(session_id=sid,pending_writes=0,readback={'native_dialog':str(self.conversations[sid].relative_to(self.workspace))})
 
     tool_boundaries = staticmethod(lambda _: {})
 
     def request_lineage(self, requests):
-        selected = {r['request_id'] for r in requests}
-        rows = self.ledger.snapshot()
-        for row in reversed(rows):
-            if row['id'] in selected and row.get('retry_of'):
-                selected.add(row['retry_of'])
-        return [dict(id=row['id'],parent=row.get('retry_of'),operation=row['dispatch_context']['operation_id'],
-                     origin='harness' if row.get('retry_of') else 'unknown') for row in rows if row['id'] in selected]
+        return receipt_lineage(self.ledger.snapshot(), requests)
 
     def close(self):
         pass

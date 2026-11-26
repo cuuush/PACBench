@@ -8,6 +8,7 @@ from unittest.mock import Mock
 import pytest
 
 from pacbench import import_lifecycle, openrouter_direct
+from provider_adapters import embedding_health
 from provider_adapters import supermemory_local as adapter
 
 
@@ -37,6 +38,7 @@ def native_service(tmp_path, monkeypatch):
     kill_group = Mock()
     scan = Mock(return_value=([], 0))
     cleanup = Mock(return_value={'state': 'verified-inventory-stopped'})
+    embeddings = Mock()
     monkeypatch.setattr(adapter, '__file__', str(tmp_path / 'provider_adapters/supermemory_local.py'))
     monkeypatch.delenv('PACBENCH_SUPERMEMORY_STOCK_SOURCE', raising=False)
     monkeypatch.setattr(adapter, 'validate_route', lambda *_: None)
@@ -48,12 +50,32 @@ def native_service(tmp_path, monkeypatch):
     monkeypatch.setattr(adapter.socket, 'socket', lambda: nullcontext(Mock(getsockname=lambda: ('127.0.0.1', 1234))))
     monkeypatch.setattr(adapter.socket, 'create_connection', lambda *_, **__: nullcontext())
     monkeypatch.setattr(adapter.urllib.request, 'urlopen', lambda *_, **__: StringIO('{"memories": []}'))
+    monkeypatch.setattr(embedding_health, 'check', embeddings)
     monkeypatch.setattr(import_lifecycle, 'scan', scan)
     monkeypatch.setattr(import_lifecycle, 'cleanup', cleanup)
     env = {}
-    return SimpleNamespace(start=lambda: adapter.start(root, env, 'offline', 'offline', 'offline'),
+    return SimpleNamespace(start=lambda **options: adapter.start(root, env, 'offline', 'offline', 'offline', **options),
                            root=root, env=env, process=process, popen=popen, kill_group=kill_group,
-                           hooks=hooks, scan=scan, cleanup=cleanup)
+                           hooks=hooks, scan=scan, cleanup=cleanup, embeddings=embeddings)
+
+
+def test_fresh_supermemory_checks_native_embeddings_before_startup(native_service):
+    service = native_service
+    service.embeddings.side_effect = RuntimeError('local embedder unavailable')
+    with pytest.raises(RuntimeError, match='local embedder unavailable'):
+        service.start()
+    service.embeddings.assert_called_once_with('http://127.0.0.1:11435/v1',
+                                              model='nomic-embed-text', dimensions=768)
+    service.popen.assert_not_called()
+    assert not (service.root / 'supermemory-data').exists()
+
+
+def test_retained_supermemory_startup_preserves_its_recovery_checks(native_service):
+    service = native_service
+    with pytest.raises(ValueError, match='No persisted native Supermemory store'):
+        service.start(resume=True)
+    service.embeddings.assert_not_called()
+    service.popen.assert_not_called()
 
 
 @pytest.mark.parametrize('artifact', ['native-server-setup.json', 'supermemory.json'])

@@ -10,7 +10,7 @@ import time
 from ...gateway.reuse_runtime import PROTOCOL
 from ...live_dispatch import process_identity
 from .evidence import HindsightDocumentReadback
-from pacbench.workflows.native import NativeAccount
+from pacbench.workflows.native import NativeAccount, native_chat_closed, receipt_lineage
 from pacbench.workflows.tracks import HERMES_TOOLS, validate_native_deployment
 
 OBSERVATION_CONDITION = 'Physical Hindsight service clock; authored Hermes observation capped at 60 seconds between admissions'
@@ -171,14 +171,9 @@ class HindsightWitness:
 
     def after_native_close(self, session):
         deadline = time.monotonic()+180
-        path = self.owner.home/'state.db'
         while time.monotonic()<deadline:
             sample = self.idle()['readback']['gateway']
-            managers = [r for r in sample['sessions'] if r['session_id']==session]
-            with closing(sqlite3.connect(path.as_uri()+'?mode=ro',uri=True)) as connection:
-                end = connection.execute('SELECT ended_at,end_reason FROM sessions WHERE id=?',(session,)).fetchone()
-            if end and end[0] is not None and end[1]=='cli_close' and managers and all(
-                    r['shutdown_returned'] and r['clean'] for r in managers):
+            if native_chat_closed(self.owner.home, session, sample['sessions']):
                 return dict(session_id=session,pending_writes=0,
                             readback={'native_document':self.conversation_documents[session]})
             time.sleep(.05)
@@ -187,13 +182,7 @@ class HindsightWitness:
     tool_boundaries = staticmethod(lambda _: {})
 
     def request_lineage(self, requests):
-        selected = {r['request_id'] for r in requests}
-        rows = self.ledger.snapshot()
-        for row in reversed(rows):
-            if row['id'] in selected and row.get('retry_of'):
-                selected.add(row['retry_of'])
-        return [dict(id=row['id'],parent=row.get('retry_of'),operation=row['dispatch_context']['operation_id'],
-                     origin='harness' if row.get('retry_of') else 'unknown') for row in rows if row['id'] in selected]
+        return receipt_lineage(self.ledger.snapshot(), requests)
 
     def close(self):
         pass

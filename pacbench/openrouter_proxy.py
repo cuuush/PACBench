@@ -59,7 +59,7 @@ def _price_float(value):
 class Budget:
     """Exclusive file lock covers reservation, inference and settlement."""
     def __init__(self, path, *, cap, context_tokens, prompt_per_million,
-                 completion_per_million, max_completion_tokens):
+                 completion_per_million, max_completion_tokens, new_run=False):
         self.path = Path(path)
         if not isinstance(context_tokens, int) or isinstance(context_tokens, bool) or context_tokens <= 0:
             raise ValueError('invalid context length')
@@ -75,6 +75,11 @@ class Budget:
         if _money(prompt_per_million) <= 0 or _money(completion_per_million) <= 0:
             raise ValueError('positive explicit input and output price ceilings required')
         self.path.parent.mkdir(parents=True, exist_ok=True)
+        self._run_owned = new_run
+        if new_run:
+            fd = os.open(self.path, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
+            with os.fdopen(fd, 'w', encoding='utf-8') as ledger:
+                self._persist_state(ledger, {'version': 1, 'config': self.config, 'calls': []})
 
     def request(self, project, body, send):
         if body.get('n', 1) not in (None, 1) or body.get('modalities') not in (None, ['text']):
@@ -106,12 +111,17 @@ class Budget:
         request = with_route(request)
         request['provider']['max_price'] = {'prompt': _price_float(self.config['prompt_per_million']),
                                             'completion': _price_float(self.config['completion_per_million']), 'request': 0}
-        try:
-            fd = os.open(self.path, os.O_RDWR | os.O_CREAT | os.O_EXCL, 0o600)
-            created = True
-        except FileExistsError:
+        if request.get('stream'):
+            request['stream_options'] = {**(request.get('stream_options') or {}), 'include_usage': True}
+        created = False
+        if self._run_owned:
             fd = os.open(self.path, os.O_RDWR)
-            created = False
+        else:
+            try:
+                fd = os.open(self.path, os.O_RDWR | os.O_CREAT | os.O_EXCL, 0o600)
+                created = True
+            except FileExistsError:
+                fd = os.open(self.path, os.O_RDWR)
         with os.fdopen(fd, 'r+', encoding='utf-8') as ledger:
             fcntl.flock(ledger, fcntl.LOCK_EX)
             raw = ledger.read()
@@ -125,8 +135,15 @@ class Budget:
             if any(row.get('http_status') in (401, 403) for row in state['calls']):
                 raise AuthBlocked('upstream authentication blocked')
             total = sum((_money(row['accounted']) for row in state['calls']), Decimal(0))
+            if state.get('spending_stop'):
+                raise BudgetRefused(state['spending_stop']['reason'])
             if total + bound > _money(self.config['cap']):
-                raise BudgetRefused('spending cap reached')
+                if self._run_owned:
+                    state['spending_stop'] = {'reason': 'budget_refused', 'project': project,
+                                              'accounted_usd': str(total), 'requested_bound_usd': str(bound),
+                                              'observed_at': datetime.now(timezone.utc).isoformat()}
+                    self._persist_state(ledger, state)
+                raise BudgetRefused('budget_refused')
             row = {'id': str(uuid.uuid4()), 'project': project, 'model': MODEL,
                    'started': datetime.now(timezone.utc).isoformat(), 'finished': None,
                    'reserved': str(bound), 'accounted': str(bound), 'state': 'uncertain',
@@ -146,6 +163,12 @@ class Budget:
                 self._sending = False
             row.update(finished=datetime.now(timezone.utc).isoformat(), http_status=status,
                        error_label=None if status == 200 else 'upstream_request_failed')
+            if status == 402 and self._run_owned:
+                row['error_label'] = 'upstream_payment_required'
+                state['spending_stop'] = {'reason': row['error_label'], 'project': project,
+                                          'request_id': row['id'], 'observed_at': row['finished']}
+                self._persist_state(ledger, state)
+                raise BudgetRefused(row['error_label'])
             if status == 200:
                 try:
                     if request.get('stream'):
@@ -182,23 +205,49 @@ class Budget:
 
     def _persist_state(self, ledger, state):
         _persist(ledger, state)
-        self._last_snapshot = json.loads(json.dumps(state['calls']))
+        self._last_snapshot = json.loads(json.dumps(state))
 
-    def snapshot(self):
-        if not self.path.exists():
-            return []
+    def _snapshot_state(self):
+        if not self._run_owned and not self.path.exists():
+            return {'calls': []}
         with self.path.open('r') as file:
             try:
                 fcntl.flock(file, fcntl.LOCK_SH | fcntl.LOCK_NB)
             except BlockingIOError:
                 if not hasattr(self, '_last_snapshot'):
                     raise RuntimeError('Task ledger is busy and no durable local snapshot is available') from None
-                return [{**row, 'accounted_upper_bound_usd': float(_money(row['accounted']))}
-                        for row in self._last_snapshot]
+                return self._last_snapshot
             state = json.load(file)
             if state.get('config') != self.config:
                 raise ValueError('ledger configuration mismatch')
-            return [{**row, 'accounted_upper_bound_usd': float(_money(row['accounted']))} for row in state['calls']]
+            return state
+
+    def health(self):
+        state = self._snapshot_state()
+        calls = state['calls']
+        used = sum(_money(row['accounted']) for row in calls)
+        stop = state.get('spending_stop')
+        completed = used
+        if self._run_owned and calls and calls[-1]['finished'] is None:
+            # A pending reservation can settle below its bound. Admission waits
+            # for that settlement under the lock before making a terminal decision.
+            completed -= _money(calls[-1]['accounted'])
+        return {'service': 'pacbench-openrouter', 'model': MODEL, 'endpoint': ENDPOINT,
+                'limit_usd': self.config['cap'], 'accounted_usd': float(used),
+                'budget_blocked': bool(stop) or completed >= _money(self.config['cap']),
+                'spending_stop_reason': stop['reason'] if stop else None,
+                'auth_blocked': any(row.get('http_status') in (401, 403) for row in calls)}
+
+    def snapshot(self):
+        rows = []
+        for call in self._snapshot_state()['calls']:
+            amount = _money(call['accounted'])
+            row = {**call, 'accounted_upper_bound_usd': float(amount)}
+            if call['state'] == 'settled':
+                row.update(actual_cost_usd=float(amount), actual_cost_usd_decimal=format(amount, 'f'),
+                           actual_cost_source='openrouter.usage.cost')
+            rows.append(row)
+        return rows
 
 
 def _persist(file, state):
@@ -218,7 +267,8 @@ def send_openrouter(request, api_key, *, budget=None, stream_callback=None):
     from .openrouter_task import require_authorization
     if budget is None or not getattr(budget, '_sending', False):
         raise RuntimeError('A durable task reservation is required before inference')
-    require_authorization(budget)
+    if not (isinstance(budget, Budget) and budget._run_owned):
+        require_authorization(budget)
     req = urllib.request.Request(UPSTREAM, data=json.dumps(request).encode(),
         headers={'Authorization': 'Bearer ' + api_key, 'Content-Type': 'application/json'})
     opener = urllib.request.build_opener(_NoRedirect())
@@ -269,9 +319,7 @@ def make_server(port, token, api_key, budget, *, send=None):
             if not self.authorized():
                 return self._reply(401, b'{"error":"unauthorized"}')
             if self.path == '/health':
-                calls = budget.snapshot()
-                used = sum(_money(row['accounted']) for row in calls)
-                return self._reply(200, json.dumps({'service':'pacbench-openrouter', 'model': MODEL, 'endpoint': ENDPOINT, 'limit_usd':budget.config['cap'], 'accounted_usd':float(used), 'budget_blocked':used >= _money(budget.config['cap']), 'auth_blocked':any(row.get('http_status') in (401, 403) for row in calls)}).encode())
+                return self._reply(200, json.dumps(budget.health()).encode())
             if self.path == '/usage':
                 return self._reply(200, json.dumps({'state':'captured', 'calls':budget.snapshot()}).encode())
             if re.fullmatch(r'/p/[a-z0-9][a-z0-9_.-]{0,63}/v1/models', self.path):
@@ -315,7 +363,9 @@ def make_server(port, token, api_key, budget, *, send=None):
                 if streaming_started or client_closed:
                     return
                 return self._reply(status, data, stream=bool(body.get('stream')))
-            except BudgetRefused:
+            except BudgetRefused as exc:
+                if str(exc) == 'upstream_payment_required':
+                    return self._reply(402, b'{"error":{"type":"upstream_payment_required"}}')
                 return self._reply(429, b'{"error":{"type":"budget_refused"}}')
             except AuthBlocked:
                 return self._reply(403, b'{"error":{"type":"upstream_auth_blocked"}}')

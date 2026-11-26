@@ -1,8 +1,4 @@
-"""Reproduce pinned runtimes without paid inference or task credentials.
-
-The default is a read-only plan. Existing source revisions are never reset.
-The private task ledger is deliberately outside this installer's remit.
-"""
+"""Install and verify pinned PACBench runtimes without model credentials."""
 from __future__ import annotations
 
 import argparse
@@ -19,7 +15,10 @@ import tempfile
 import time
 import urllib.request
 
-from .provider_versions import MEMCAL_REVISION, memcal_source, memos_model_cache, verify_memos_package
+from .provider_versions import (
+    MEMCAL_REVISION, hindsight_model_cache, huggingface_model_cache, memcal_source, memos_model_cache,
+    verify_memos_package,
+)
 from .reme_memos_setup import PINS as REME_PINS
 from .cognee_memobase_setup import PINS as COGNEE_PINS
 
@@ -28,12 +27,12 @@ COMPONENTS = ('hermes', 'hindsight', 'honcho', 'openviking', 'reme', 'cognee', '
 INSTALL_TOOLS = {
     'hermes': ('git', 'uv'),
     'hindsight': ('uv',),
-    'honcho': ('git', 'uv'),
+    'honcho': ('git', 'uv', 'docker'),
     'openviking': ('uv',),
     'reme': ('git', 'uv'),
     'cognee': ('git', 'uv'),
     'memos': ('node', 'npm', 'make', 'c++'),
-    'embeddings': ('tar', 'zstd'),
+    'embeddings': ('node', 'tar', 'zstd'),
 }
 
 
@@ -47,14 +46,19 @@ def install_blockers(components):
     missing = [tool for tool in commands if shutil.which(tool) is None]
     if missing:
         return ['Required commands missing from PATH: ' + ', '.join(missing)]
-    if build_clock:
+    if build_clock or 'honcho' in components:
+        docker = ['docker']
+        reason = 'The clock build requires an accessible Docker daemon.'
+        if 'honcho' in components:
+            docker.append('--host=unix:///var/run/docker.sock')
+            reason = 'Honcho requires access to the local Docker socket at /var/run/docker.sock.'
         try:
-            daemon = subprocess.run(['docker', 'info'], env=environment(), timeout=10,
+            daemon = subprocess.run([*docker, 'info'], env=environment(), timeout=10,
                                     stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, check=False)
         except (OSError, subprocess.TimeoutExpired):
-            return ['The clock build requires an accessible Docker daemon.']
+            return [reason]
         if daemon.returncode:
-            return ['The clock build requires an accessible Docker daemon.']
+            return [reason]
     return []
 
 
@@ -62,7 +66,8 @@ def environment(root=ROOT):
     env = dict(os.environ)
     # Installation never needs model credentials. Keep inherited TLS/proxy trust.
     for key in list(env):
-        if key.endswith(('API_KEY', 'API_TOKEN')) or key.startswith('PACBENCH_OPENROUTER'):
+        if (key in {'META', 'PACBENCH_DIRECT_UPSTREAM_KEY'} or
+                key.endswith(('API_KEY', 'API_TOKEN')) or key.startswith('PACBENCH_OPENROUTER')):
             env.pop(key, None)
     env.setdefault('UV_CACHE_DIR', str(root / '.bootstrap-cache/uv'))
     env.setdefault('UV_PYTHON_INSTALL_DIR', str(root / '.bootstrap-cache/python'))
@@ -79,6 +84,20 @@ def command(args, *, cwd=ROOT):
 
 def output(args, cwd=ROOT):
     return subprocess.check_output([str(v) for v in args], cwd=cwd, text=True).strip()
+
+
+def catalog_plugins(*, install):
+    python = ROOT / 'vendor/venv-hermes-isolated/bin/python'
+    tree = ROOT / 'vendor/hermes-isolated'
+    env = environment()
+    env.setdefault('HERMES_RUNTIME_DIR', str(ROOT / '.bootstrap-cache/hermes-tools'))
+    paths = [str(tree)]
+    if install:
+        paths.insert(0, str(python.with_name('hermes')))
+    function = 'prefetch_catalog' if install else 'verify_catalog_cache'
+    program = ('import sys; from pathlib import Path; '
+               f'from pacbench.catalog_plugins import {function}; {function}(*map(Path, sys.argv[1:]))')
+    subprocess.run([str(python), '-c', program, *paths], cwd=ROOT, env=env, check=True)
 
 
 def source(url, revision, destination, *, patch=None):
@@ -138,8 +157,12 @@ def file_digest(path):
         return hashlib.file_digest(stream, 'sha256').hexdigest()
 
 
+def nomic_manifest(model_root):
+    return model_root / 'manifests/registry.ollama.ai/library/nomic-embed-text/latest'
+
+
 def verify_nomic(model_root, expected):
-    manifest = model_root / 'manifests/registry.ollama.ai/library/nomic-embed-text/latest'
+    manifest = nomic_manifest(model_root)
     model = json.loads(manifest.read_text())
     if file_digest(manifest) != expected:
         # Ollama 0.40 records the original registry manifest as one extra
@@ -193,7 +216,8 @@ def embeddings():
                 if process.poll() is not None or time.monotonic() > deadline:
                     raise RuntimeError('Temporary local embedding server failed; inspect vendor/ollama/setup.log')
                 time.sleep(.2)
-        subprocess.run([str(binary), 'pull', pins['nomic']['name']], env=env, check=True)
+        if not nomic_manifest(runtime / 'models').exists():
+            subprocess.run([str(binary), 'pull', pins['nomic']['name']], env=env, check=True)
         verify_nomic(runtime / 'models', pins['nomic']['manifest_sha256'])
         from provider_adapters.embedding_health import check
         check(f'http://127.0.0.1:{port}/v1')
@@ -251,6 +275,57 @@ def venv(name, requirements, *, cpu_torch=False):
     command(['uv', 'pip', 'install', '--python', python, '--constraint', lock, *requirements])
 
 
+def cognee_tokenizer(*, offline):
+    env = environment()
+    env['HF_HUB_CACHE'] = str(huggingface_model_cache(ROOT))
+    program = """
+import json
+from pathlib import Path
+from huggingface_hub import hf_hub_download
+from tokenizers import Tokenizer
+
+repo = 'nomic-ai/nomic-embed-text-v1.5'
+Tokenizer.from_file(hf_hub_download(repo, 'tokenizer.json', local_files_only=OFFLINE))
+json.loads(Path(hf_hub_download(repo, 'tokenizer_config.json', local_files_only=OFFLINE)).read_text())
+""".replace('OFFLINE', repr(offline))
+    try:
+        subprocess.run([str(ROOT / 'vendor/venv-cognee/bin/python'), '-c', program],
+                       cwd=ROOT, env=env, check=True, timeout=120, capture_output=offline)
+    except subprocess.CalledProcessError:
+        if offline:
+            raise RuntimeError('Cognee tokenizer unavailable in the local Hugging Face cache') from None
+        raise
+
+
+def hindsight_models(*, offline):
+    cache = str(hindsight_model_cache(ROOT))
+    env = environment()
+    env.update(SENTENCE_TRANSFORMERS_HOME=cache, HF_HUB_CACHE=cache)
+    if offline:
+        env['HF_HUB_OFFLINE'] = '1'
+    program = """
+import asyncio
+from hindsight_api.engine.cross_encoder import LocalSTCrossEncoder
+from hindsight_api.engine.embeddings import LocalSTEmbeddings
+
+async def check_defaults():
+    await LocalSTEmbeddings().initialize()
+    await LocalSTCrossEncoder().initialize()
+
+asyncio.run(check_defaults())
+"""
+    try:
+        subprocess.run([str(ROOT / 'vendor/venv-hindsight/bin/python'), '-c', program],
+                       cwd=ROOT, env=env, check=True, timeout=180 if offline else 1800,
+                       capture_output=offline)
+    except (subprocess.CalledProcessError, subprocess.TimeoutExpired) as exc:
+        raise RuntimeError(
+            'Hindsight could not load its native BAAI/bge-small-en-v1.5 and '
+            f'hindsight-ai/hs-rerank-1 models from {cache}. '
+            'Run ./scripts/setup --install --components hindsight with Hugging Face access.'
+        ) from exc
+
+
 def verify_memos_dependencies(package):
     folder=ROOT/'vendor/runtime-locks'
     row=json.loads((folder/'manifest.json').read_text())['components']['memos']
@@ -293,12 +368,20 @@ def install(name):
         _,lock=runtime_lock('hermes')
         command(['uv', 'pip', 'install', '--python', vendor / 'venv-hermes-isolated/bin/python',
                  '--constraint',lock,'-r', vendor / 'hermes-isolated-extra-requirements.txt', '-e', memcal])
+        catalog_plugins(install=True)
     elif name == 'honcho':
+        from provider_adapters.honcho_local import PGVECTOR_IMAGE
+
         tree = vendor / 'honcho-local'
         source('https://github.com/plastic-labs/honcho.git', '70c67624169683b9e265517aec95a51b8077cabc', tree)
         row,_=runtime_lock('honcho')
         command(['uv', 'sync', '--frozen', '--no-dev', '--python', row['python']], cwd=tree)
         command(['uv', 'pip', 'install', '--python', tree / '.venv/bin/python', 'time-machine==3.6.0'])
+        docker = ['docker', '--host=unix:///var/run/docker.sock']
+        cached = subprocess.run([*docker, 'image', 'inspect', PGVECTOR_IMAGE], env=environment(),
+                                stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=10, check=False)
+        if cached.returncode:
+            command([*docker, 'pull', PGVECTOR_IMAGE])
     elif name == 'reme':
         source(*REME_PINS['reme'], vendor / 'reme')
         venv(name, ['reme-ai[core]==0.4.2.2'])
@@ -306,6 +389,7 @@ def install(name):
         pin = COGNEE_PINS['cognee']
         source(pin['repository'], pin['commit'], vendor / 'cognee-integrations')
         venv(name, [pin['backend_requirement']], cpu_torch=True)
+        cognee_tokenizer(offline=False)
     elif name == 'hindsight':
         venv(name, ['hindsight-all==1.2.1'], cpu_torch=True)
     elif name == 'openviking':
@@ -340,7 +424,7 @@ def install(name):
         (root / 'installation.json').write_text(json.dumps({'version': 'server-v0.0.9', 'sha256': digest, 'source': url}) + '\n')
 
 
-def verify(components):
+def verify(components, *, warm_models=False):
     """Offline installation evidence, deliberately separate from paid readiness."""
     expected = {
         'hermes': ('vendor/venv-hermes-isolated/bin/python', {'memcal': '0.8.11', 'mem0ai': '2.2.1', 'honcho-ai': '2.9.0', 'supermemory': '5.0.1', 'hindsight-client': '1.2.1', 'time-machine': '3.6.0'}),
@@ -371,6 +455,11 @@ def verify(components):
                     raise RuntimeError('Hermes source or isolation patch differs')
                 from .provider_versions import verify_memcal_source
                 detail['memcal_source'] = verify_memcal_source(ROOT)
+                catalog_plugins(install=False)
+                detail['catalog_plugins_cached'] = True
+            elif name == 'hindsight':
+                hindsight_models(offline=not warm_models)
+                detail['local_models_verified'] = True
             elif name == 'honcho':
                 if output(['git', '-C', ROOT / 'vendor/honcho-local', 'rev-parse', 'HEAD']) != '70c67624169683b9e265517aec95a51b8077cabc':
                     raise RuntimeError('Honcho source differs')
@@ -379,6 +468,9 @@ def verify(components):
                 revision = REME_PINS['reme'][1] if name == 'reme' else COGNEE_PINS['cognee']['commit']
                 if output(['git', '-C', tree, 'rev-parse', 'HEAD']) != revision or output(['git', '-C', tree, 'status', '--porcelain']):
                     raise RuntimeError('Provider integration source differs')
+                if name == 'cognee':
+                    cognee_tokenizer(offline=True)
+                    detail['embedding_tokenizer_cached'] = True
             elif name == 'memos':
                 _, detail = verify_memos_package(ROOT)
                 detail['dependency_lock']=verify_memos_dependencies(ROOT/'vendor/memos-local-plugin/package')
@@ -419,10 +511,12 @@ await p.close();
             if name == 'embeddings':
                 blocked['memos_model_cache'] = str(memos_model_cache(ROOT))
                 blocked['asset_pins'] = 'vendor/EMBEDDING_PINS.json'
+            if isinstance(exc, RuntimeError):
+                blocked['detail'] = str(exc)
             checks.append(blocked)
     return {'state': 'pass' if all(x['state'] == 'pass' for x in checks) else 'blocked',
             'checks': checks, 'inference_calls': 0,
-            'scope': 'Offline installed identity checks; no native processing or paid readiness claim.'}
+            'scope': 'Installed identity and local model checks. No paid inference.'}
 
 
 def start_services():
@@ -451,7 +545,7 @@ def start_services():
                 time.sleep(.2)
     if read('/api/version').get('version')!=pins['ollama']['version']:
         raise RuntimeError('Existing endpoint is not the pinned Ollama version')
-    manifest=runtime/'models/manifests/registry.ollama.ai/library/nomic-embed-text/latest'
+    manifest=nomic_manifest(runtime/'models')
     models=read('/api/tags')['models']
     if not any(m.get('name')=='nomic-embed-text:latest' and m.get('digest') in {file_digest(manifest),pins['nomic']['manifest_sha256']} for m in models):
         raise RuntimeError('Existing embedding endpoint model differs from verified local manifest')
@@ -464,59 +558,39 @@ def start_services():
 
 
 def main(argv=None):
-    parser = argparse.ArgumentParser(description=__doc__,
-                                     epilog='See the README for the offline quick start without native runtimes.')
-    parser.add_argument('--install', action='store_true', help='Install and verify; briefly starts local Ollama for a CPU embedding check, never paid inference')
-    parser.add_argument('--start-services',action='store_true',help='Leave verified local Ollama running on port11435; no paid inference')
-    parser.add_argument('--check', action='store_true', help='Offline verification of installed identities; no installation')
-    parser.add_argument('--check-live', action='store_true',
-                        help='Verify installed runtimes and the configured model route without inference')
+    parser = argparse.ArgumentParser(
+        prog='./scripts/setup', description=__doc__,
+        epilog='With no options, install every runtime and start local Ollama.')
+    mode = parser.add_mutually_exclusive_group()
+    mode.add_argument('--install', action='store_true', help='Install and verify without leaving a service running')
+    mode.add_argument('--check', action='store_true', help='Verify the installed runtimes offline')
+    parser.add_argument('--start-services', action='store_true',
+                        help='Leave verified local Ollama running on port 11435')
     parser.add_argument('--components', nargs='+', choices=COMPONENTS, default=list(COMPONENTS))
     args = parser.parse_args(argv)
-    checking = args.check or args.check_live
-    if args.install and checking:
-        parser.error('--install cannot be combined with --check or --check-live')
-    if args.check_live and args.start_services:
-        parser.error('--check-live cannot be combined with --start-services')
-    if args.start_services and not (args.install or checking):
-        parser.error('--start-services requires --install or --check')
-    if checking:
-        result = verify(args.components)
-        if result['state'] != 'pass':
-            blocked = [row['component'] for row in result.get('checks', ()) if row['state'] == 'blocked']
-            command = './scripts/setup --install'
-            if blocked:
-                command += ' --components ' + ' '.join(blocked)
-            result['next_step'] = f'Install or repair the blocked runtimes with `{command}`, then rerun the check.'
-        if args.check_live:
-            from .gateway_client import check_live_route
-
-            result['live_route'] = check_live_route()
-            result['runtime_state'] = result['state']
-            if result['live_route']['state'] != 'pass':
-                result['state'] = 'blocked'
-        else:
-            result['live_route'] = {'state': 'not-checked',
-                                    'detail': 'Use --check-live to check the configured route without model calls.'}
-        if args.start_services and result['state']=='pass':result['services']=start_services()
-        print(json.dumps(result, indent=2))
-        return int(result['state'] != 'pass')
-    if not args.install:
-        print(json.dumps({'components': args.components, 'install': False, 'paid_calls': False,
-            'private_accounting': 'Installation needs no model credentials or accounting. Follow the configured route and campaign preflight for live execution.',
-            'remaining_prerequisites': ['Docker daemon for the clock build and the native Honcho service', 'start installed local Ollama at 127.0.0.1:11435 before execution', 'native per-provider preflight and processing checks'],
-            'existing_installations': 'Mismatched or modified sources are preserved and rejected; move them aside explicitly before retrying.'}, indent=2))
-        return 0
-    blockers = install_blockers(args.components)
-    if blockers:
-        print(json.dumps({'state': 'blocked', 'components': args.components, 'blockers': blockers,
-                          'inference_calls': 0}, indent=2))
-        return 1
-    for name in dict.fromkeys(args.components):
-        print(f'Installing {name}', flush=True)
-        install(name)
-    result = verify(args.components)
-    if args.start_services and result['state']=='pass':result['services']=start_services()
+    has_embeddings = 'embeddings' in args.components
+    if args.start_services and not has_embeddings:
+        parser.error('--start-services requires the embeddings component')
+    run_services = args.start_services or (has_embeddings and not (args.install or args.check))
+    if not args.check:
+        blockers = install_blockers(args.components)
+        if blockers:
+            print(json.dumps({'state': 'blocked', 'components': args.components, 'blockers': blockers,
+                              'inference_calls': 0}, indent=2))
+            return 1
+        for name in dict.fromkeys(args.components):
+            print(f'Installing {name}', flush=True)
+            install(name)
+    result = verify(args.components) if args.check else verify(args.components, warm_models=True)
+    if result['state'] == 'pass':
+        if run_services:
+            result['services'] = start_services()
+    elif args.check:
+        blocked = [row['component'] for row in result.get('checks', ()) if row['state'] == 'blocked']
+        repair = './scripts/setup --install'
+        if blocked:
+            repair += ' --components ' + ' '.join(blocked)
+        result['next_step'] = f'Install or repair the blocked runtimes with `{repair}`, then rerun the check.'
     print(json.dumps(result, indent=2))
     return int(result['state'] != 'pass')
 

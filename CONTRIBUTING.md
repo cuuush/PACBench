@@ -64,19 +64,14 @@ Work on small, inspectable changes before expanding the benchmark:
 
 ## Run a new experiment
 
-For a fresh environment, run `./scripts/setup --install --start-services` from
-the repository root, then `./scripts/setup --check`. See the
-[runtime setup](vendor/README) for prerequisites. The script provisions pinned
-local components without paid inference. Start separately with the original
-private ledger for an existing experiment or follow the [new study setup](README.md#set-up-a-live-run).
-Once the gateway is running, use `./scripts/setup --check-live` to
-verify its spending boundary. Native recall readiness is checked during the trial.
-Run `. vendor/venv-hermes-isolated/bin/activate` before launching paid work to
-use the setup script's provider libraries.
+New studies use the public OpenRouter workflow. Run `./scripts/setup` once,
+export `OPENROUTER_API_KEY` and choose a budget for the command. To inspect
+the local runtime after installation, use `./scripts/setup --check`.
+[Run Pizza Week from a fresh clone](README.md#run-pizza-week-with-openrouter)
 
-Parallel catalog installs can share a provisioned, pinned Hermes tool store via
-`HERMES_RUNTIME_DIR`. Give each arm its own Hermes home, provider data and
-receipts. The shared tool store contains install binaries.
+Setup provisions the shared catalog once. Each trial receives its own Hermes
+home, provider data and receipts. `HERMES_RUNTIME_DIR` selects the package
+manager tool store used during setup.
 
 Use `python -m pacbench.runtime_cleanup plan --reference <kept-hermes-home/tools>
 <run-hermes-home/tools>...` to list confirmed duplicate Python and uv packages.
@@ -93,8 +88,10 @@ before provisioning services. Native servers use separate environments from
 Hermes' pinned client environment. Record actual revisions, model settings,
 clock conditions and every processing deviation from defaults.
 
-The default writer, verifier, judge, Hermes and provider inference route uses
-**Spark Contributor through [muse-gateway](https://github.com/cuuush/muse-gateway)**,
+### Continuing a historical campaign
+
+The original Muse studies route writer, verifier, judge, Hermes and provider inference through
+**Spark Contributor via [muse-gateway](https://github.com/cuuush/muse-gateway)**,
 an independent repository normally checked out at `/workspace/muse-gateway`.
 The shared limit is **$10 per UTC day**, with no lifetime cap. Check the live
 ledger before paid work. A daily budget refusal stops live work until the next

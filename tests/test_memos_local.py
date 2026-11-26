@@ -33,7 +33,10 @@ def test_bootstrap_and_memos_share_model_cache_preserving_historical_location(tm
     def configured():
         return plan_config(tmp_path, 'model', 'url', 'inert')['embedding']['local']['cacheDir']
 
-    assert configured() == str(bootstrap.memos_model_cache(repo)) == str(repo.parent / 'shared/pacbench-memos-models')
+    assert configured() == str(bootstrap.memos_model_cache(repo)) == str(repo / 'vendor/memos-models')
+    sibling = repo.parent / 'shared/pacbench-memos-models'
+    sibling.mkdir(parents=True)
+    assert configured() == str(bootstrap.memos_model_cache(repo)) == str(sibling)
     legacy.mkdir()
     assert configured() == str(bootstrap.memos_model_cache(repo)) == str(legacy)
     override = tmp_path / 'explicit-cache'

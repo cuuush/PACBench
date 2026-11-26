@@ -68,22 +68,6 @@ class Observation:
         return asdict(self)
 
 
-def delivery_order(observations: list[Observation]) -> list[Observation]:
-    """Observations in the order the systems learn them: by collection time, with a
-    stable tiebreak on source id so a batch delivered at one instant is reproducible."""
-    return sorted(observations, key=lambda o: (o.collected_at, o.source_id))
-
-
-def chronology_ok(observations: list[Observation]) -> list[str]:
-    """Return the ids whose clocks are inconsistent — authored after they arrived, or
-    collected before they arrived. A corpus check, not a grader call."""
-    bad: list[str] = []
-    for o in observations:
-        if o.arrived_at < o.written_at or o.collected_at < o.arrived_at:
-            bad.append(o.source_id)
-    return bad
-
-
 def canonical_bytes(bundle: dict) -> bytes:
     """Deterministic bytes for hashing (never includes the hash field)."""
     stripped = {k: v for k, v in bundle.items() if k != "bundle_hash"}

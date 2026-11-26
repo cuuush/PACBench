@@ -32,9 +32,11 @@ def patch(budget, ident, **values):
 def test_explicit_initial_replay_and_keyed_dispatch_never_scan_history(tmp_path,monkeypatch):
     path=tmp_path/'receipts.jsonl'
     old=RunReceiptJournal(path)
-    for i in range(10):
-        add(old,i)
-        patch(old,i,finished='done',state='settled',settled_charge_usd='0.001')
+    with path.open('w') as stream:
+        for i in range(10):
+            stream.write(json.dumps({'kind':'prepared','id':str(i),'row':row(i)})+'\n')
+            stream.write(json.dumps({'kind':'outcome','id':str(i),'patch':
+                         dict(finished='done',state='settled',settled_charge_usd='0.001')})+'\n')
     before=path.read_bytes()
     new=IndexedRunReceiptJournal(path)
     with pytest.raises(ValueError,match='Initialize'):
@@ -42,6 +44,8 @@ def test_explicit_initial_replay_and_keyed_dispatch_never_scan_history(tmp_path,
     new.initialize_from_journal()
     assert new.snapshot()==old.snapshot()
     assert path.read_bytes()==before
+    with pytest.raises(ValueError,match='different journal protocol'):
+        old.get_attempt('9')
     reads=[]
     load=json.loads
     monkeypatch.setattr(projection.json,'loads',lambda payload,**kw:(reads.append(1),load(payload,**kw))[1])
@@ -53,10 +57,11 @@ def test_explicit_initial_replay_and_keyed_dispatch_never_scan_history(tmp_path,
     assert len(reads)==2
 
 
+@pytest.mark.parametrize('journal_class',[RunReceiptJournal,IndexedRunReceiptJournal])
 @pytest.mark.parametrize('bytes_written',['none','some','all'])
-def test_interruption_completes_the_same_durable_event_once(tmp_path,monkeypatch,bytes_written):
+def test_interruption_completes_the_same_durable_event_once(tmp_path,monkeypatch,bytes_written,journal_class):
     path=tmp_path/'receipts.jsonl'
-    budget=IndexedRunReceiptJournal(path)
+    budget=journal_class(path)
     add(budget,1)
     def interrupted(stream, db, rows, raw, written):
         amount={'none':0,'some':15,'all':len(raw)}[bytes_written]
@@ -67,15 +72,24 @@ def test_interruption_completes_the_same_durable_event_once(tmp_path,monkeypatch
         m.setattr(projection.Projection,'_finish',staticmethod(interrupted))
         with pytest.raises(RuntimeError,match='killed'):
             patch(budget,1,finished='done',http_status=402,provider_rejection='insufficient_credits')
+    interrupted_log=path.read_bytes()
+    index=projection.Projection(path).index
+    interrupted_index=index.read_bytes()
+    with pytest.raises(ValueError,match='unfinished append'):
+        RunReceiptJournal(path).snapshot()
+    assert path.read_bytes()==interrupted_log
+    assert index.read_bytes()==interrupted_index
+    assert not budget.has_active_attempts()
     assert budget.get_attempt('1')==RunReceiptJournal(path).snapshot()[0]
     with budget.journal() as (rows,_):
         assert rows.refused() and not rows.active()
     assert len(path.read_bytes().splitlines())==2
 
 
+@pytest.mark.parametrize('journal_class',[RunReceiptJournal,IndexedRunReceiptJournal])
 @pytest.mark.parametrize('mutation',['rewrite','truncate','replace','append'])
-def test_modified_journal_cannot_authorize_new_calls(tmp_path,mutation):
-    path=tmp_path/'receipts.jsonl';budget=IndexedRunReceiptJournal(path)
+def test_modified_journal_cannot_authorize_new_calls(tmp_path,mutation,journal_class):
+    path=tmp_path/'receipts.jsonl';budget=journal_class(path)
     for i in range(40):
         add(budget,i)
     original=path.read_bytes()
@@ -94,19 +108,23 @@ def test_modified_journal_cannot_authorize_new_calls(tmp_path,mutation):
         budget.get_attempt('1')
 
 
-def _process_writer(path_and_id):
-    path, ident = path_and_id
-    budget = IndexedRunReceiptJournal(path)
+def _process_writer(path_id_and_class):
+    path, ident, journal_class = path_id_and_class
+    budget = journal_class(path)
     add(budget,ident)
     patch(budget,ident,finished='done',http_status=200)
 
 
-def test_independent_process_clients_serialize_appends(tmp_path):
+@pytest.mark.parametrize('journal_class',[RunReceiptJournal,IndexedRunReceiptJournal])
+def test_independent_process_clients_serialize_appends(tmp_path,journal_class):
     path = tmp_path/'receipts.jsonl'
     with ProcessPoolExecutor(4,mp_context=multiprocessing.get_context("spawn")) as executor:
-        list(executor.map(_process_writer, [(path,i) for i in range(20)]))
-    assert len(RunReceiptJournal(path).snapshot())==20
-    assert IndexedRunReceiptJournal(path).snapshot()==RunReceiptJournal(path).snapshot()
+        list(executor.map(_process_writer, [(path,i,journal_class) for i in range(20)]))
+    snapshot = RunReceiptJournal(path).snapshot()
+    assert len(snapshot)==20
+    budget = journal_class(path)
+    with budget.journal() as (rows, _):
+        assert list(rows.values())==snapshot
 
 
 def test_normal_admission_and_failed_retries_remain_closed(tmp_path,monkeypatch):
@@ -147,6 +165,19 @@ def test_scoped_idle_and_request_lineage_need_only_selected_rows(tmp_path,monkey
     assert not b.has_active_attempts(('memory_provider','hermes'))
     assert b.has_offline_generations()
     assert [r['id'] for r in b.lineage_for_requests(['3','missing','2'])] == ['1','2','3']
+
+def test_standard_active_poll_does_not_decode_receipt_history(tmp_path,monkeypatch):
+    path = tmp_path/'receipts.jsonl'
+    budget = RunReceiptJournal(path)
+    for i in range(20):
+        add(budget,i)
+        patch(budget,i,finished='done')
+    for finished, active in [(None,True), ('',True), ('done',False)]:
+        patch(budget,0,finished=finished)
+        with monkeypatch.context() as m:
+            m.setattr(projection.json, 'loads', lambda *_: pytest.fail('active poll decoded a receipt'))
+            for _ in range(25):
+                assert RunReceiptJournal(path).has_active_attempts() is active
 
 
 def test_projection_only_sql_edit_cannot_hide_account_refusal(tmp_path):

@@ -17,6 +17,7 @@ from pacbench.workflow_spec import compile_week
     ('metadata-omitted', ValueError), ('metadata-null', ValueError), ('metadata-empty', ValueError),
     ('wrong-source-date', ValueError), ('wrong-boundary', ValueError),
     ('version', ValueError), ('failed', ValueError), ('inventory', ValueError), ('pending', TimeoutError),
+    ('status-timeout', TimeoutError),
 ])
 def test_stock_sdk_first_evening(monkeypatch, fault, error):
     sdk = pytest.importorskip('supermemory')
@@ -50,6 +51,8 @@ def test_stock_sdk_first_evening(monkeypatch, fault, error):
         ident = path.rsplit('/', 1)[-1]
         assert request.method == 'GET' and path == '/ns/smoke/document/' + ident
         reads[ident] += 1
+        if fault == 'status-timeout' and ident == last:
+            raise httpx.ReadTimeout('native status read', request=request)
         row = {**saved[ident], 'system': dict(saved[ident]['system'])}
         if ident == last:
             row['system']['dreamingStatus'] = 'dreaming'
@@ -97,6 +100,8 @@ def test_stock_sdk_first_evening(monkeypatch, fault, error):
             if fault in metadata_states:
                 assert 'metadata_state='+metadata_states[fault] in str(err.value)
                 assert last in str(err.value) and 'foreign' not in str(err.value)
+            if fault == 'status-timeout':
+                assert clock[0] == 2. and reads[last] == 4
             return
         result = observation.wait_for_batch_processing(client, 'smoke', batch, acks, deadline=2.)
 

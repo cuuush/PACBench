@@ -410,6 +410,34 @@ def test_matrix_cli_does_not_claim_hosted_compatibility(capsys):
     assert all(not x['live_verified'] for x in result['providers'].values())
 
 
+def test_conformance_cli_reports_unsupported_track_and_accepts_channel_only_import(tmp_path, capsys):
+    unsupported = tmp_path/'unsupported'
+    assert main(['conform', '--provider', 'honcho', '--track', 'nightly-document',
+                 '--seven-daily-documents', '--output', str(unsupported)]) == 2
+    row = json.loads(capsys.readouterr().out)['providers']['honcho']
+    assert row['result'] == 'conformance-unavailable'
+    assert 'generic offline conformance' in row['reason']
+    assert (row['recorded_files'], row['offline_recorded_turns']) == (0, 0)
+    assert not unsupported.exists()
+
+    assert main(['conform', '--track', 'first-party-connector', '--output', str(tmp_path/'matrix')]) == 0
+    providers = json.loads(capsys.readouterr().out)['providers']
+    assert set(providers) == set(PROVIDERS)
+    assert providers['mem0']['result'] == 'conformance-unavailable'
+    row = providers['honcho']
+    assert row['result'] == 'channel-only import conformance'
+    assert row['recorded_files'] > 0 and row['offline_recorded_turns'] == 0
+
+
+def test_conformance_cli_reports_a_supported_route_that_records_no_work(tmp_path, capsys, monkeypatch):
+    monkeypatch.setattr('pacbench.workflow.run_current_week', lambda *args, **kwargs: {})
+    assert main(['conform', '--provider', 'mem0', '--track', 'nightly-document',
+                 '--output', str(tmp_path/'empty')]) == 2
+    row = json.loads(capsys.readouterr().out)['providers']['mem0']
+    assert row['result'] == 'conformance-unavailable'
+    assert row['reason'] == 'Conformance recorded no source files or turns.'
+
+
 def test_open_chat_clock_never_forces_shutdown(monkeypatch):
     from pacbench.workflow_native import OpenChatClockOwner
     monkeypatch.setattr(workflow_native,'_identity',lambda *a:None)

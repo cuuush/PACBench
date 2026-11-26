@@ -19,7 +19,7 @@ def prepare(scope,current,receipt,prompt,answer,session_id):
     index,turn,_ = week.pending(scope)
     if (prompt!=turn.prompt or session_id!=current['session_id'] or not isinstance(answer,str) or not answer.strip()
             or receipt['response_validation']['assistant_trimmed_text_sha256']!=sha256(answer.strip().encode()).hexdigest()):
-        raise OwnershipConflict('Stock Honcho capture differs from the active user and settled assistant output')
+        raise OwnershipConflict('Stock Honcho capture differs from the active user and observed assistant output')
     capture = capture_description({'provider':'honcho','captures':[dict(session=session_id,prompt=prompt,answer=answer)]})
     native = gate.runtime(Path(scope['root']))['host']
     if (capture['workspace'],capture['owner'],capture['assistant']) != (native['workspace'],native['peerName'],native['aiPeer']):

@@ -44,6 +44,7 @@ from .supermemory_week_observation import (
 from .workflow_memcal_live import run_environment
 from .workflow_native import NativeAccount, WarmHermes
 from .workflow_receipts import receipt_summary
+from .workflow_terminal import RunFailures
 from .workflow_runner import Condition
 from .workflow_spec import SPEC
 from .workflow_tracks import HERMES_TOOLS
@@ -261,7 +262,7 @@ class StockWeekWitness:
                 active = (sample['native_release_threads'] or any(s['pending_futures'] for s in sample['sessions'])
                           or any(p['workers'] for p in providers))
                 if (not active and sample['observed_monotonic_ns'] >= since
-                        and not any(not row.get('finished') for row in self.ledger.snapshot())):
+                        and not self.ledger.has_active_attempts()):
                     return dict(gateway_identity=ident, pending_native_writes=0, inflight_requests=0,
                                 native_errors=[], readback=sample)
             time.sleep(.1)
@@ -389,8 +390,7 @@ class StockWeekAccount(NativeAccount):
 
 def run_native(root, scope, env, ledger, marker):
     from supermemory import Supermemory
-    from .workflow_daily_documents import compile_daily_week
-    from .workflow_document_progress import run as run_progress
+    from .workflow_runner import run_current_week
 
     home = root / 'hermes-home'
     first = plan()[1][0]
@@ -411,13 +411,34 @@ def run_native(root, scope, env, ledger, marker):
             witness = StockWeekWitness(root, scope, owner, sdk, env, ledger)
             frontend = WarmHermes(owner, clock, witness.idle)
             account = StockWeekAccount(str(root), PROVIDER, scope['namespace'], sdk.with_raw_response, frontend, witness)
-            condition = Condition(PROVIDER, 'nightly-document', 'continuing-account', 'Hermes ' + owner.pins['hermes'],
-                                  MODEL, ENDPOINT, 'Stock Supermemory with seven chronological daily source documents',
-                                  'local server 0.0.9 / SDK 5.0.1',
-                                  owner.pins['hermes_isolation_sha256'], 'Physical provider clock and authored Hermes clock', tools)
-            spec, docs, turns, basis, _ = compile_daily_week()
-            return run_progress(condition, account, docs, turns, root / 'workflow', spec, scope['spec_sha256'],
-                                basis, docs, judge=None, canary=False)
+            return run_current_week(_stock_week_condition(owner), account, root / 'workflow', seven_daily_documents=True)
+
+
+def _stock_week_condition(owner):
+    return Condition(PROVIDER, 'nightly-document', 'continuing-account', 'Hermes ' + owner.pins['hermes'],
+                     MODEL, ENDPOINT, 'Stock Supermemory with seven chronological daily source documents',
+                     'local server 0.0.9 / SDK 5.0.1',
+                     owner.pins['hermes_isolation_sha256'], 'Physical provider clock and authored Hermes clock',
+                     HERMES_TOOLS[PROVIDER])
+
+
+def verify_daily_execution(condition, account, directory, docs, basis, manifest):
+    """Bind the shared runner to the stock launcher's native account and verified scope."""
+    if (not isinstance(account, StockWeekAccount) or not isinstance(account.witness, StockWeekWitness)
+            or not isinstance(account.frontend, WarmHermes) or not os.environ.get(cap.ENV)
+            or os.environ.get('PACBENCH_SUPERMEMORY_STOCK_SOURCE') != '1'):
+        raise ValueError('native seven daily files require a qualified stock Supermemory Week account and scope')
+    scope = cap.load()
+    witness = account.witness
+    directory = Path(directory).absolute()
+    if (scope.get('admission') != SCOPE or witness.scope != scope or process_identity() != scope['controller']
+            or str(witness.root) != scope['root'] or account.identity != scope['root']
+            or account.provider != PROVIDER or account.scope != scope['namespace']
+            or witness.namespace != scope['namespace'] or account.frontend.owner is not witness.owner
+            or directory != witness.root / 'workflow' or directory != directory.resolve()
+            or condition != _stock_week_condition(witness.owner)
+            or witness.documents != docs or scope['frozen_inputs'] != basis or scope['contract'] != manifest):
+        raise ValueError('native seven daily files differ from the bound stock Supermemory Week account, scope or plan')
 
 
 def run(campaign, checkpoint, plugin_home):
@@ -457,51 +478,61 @@ def run(campaign, checkpoint, plugin_home):
                      lock_fd=lock, projects=projects(root), spec_sha256=sha(SPEC))
         atomic(root / 'workflow-scope.json', scope)
         settings = {cap.ENV: json.dumps(binding(root / 'workflow-scope.json')), JOURNAL: str(root / 'receipts.jsonl'),
-                    COHORT_STOP: str(campaign / 'ACCOUNT_STOP'), 'PACBENCH_STOP_FILE': str(root / 'STOP'),
+                    COHORT_STOP: str(cap.campaign_stop(root, nested_run=True)), 'PACBENCH_STOP_FILE': str(root / 'STOP'),
                     'PACBENCH_DIRECT_STOP_ON_429': str(root / 'STOP'), 'PACBENCH_DISPATCH_TRACKING': CONDITION,
                     'PACBENCH_ROLE_ROUTES': 'luna-all-roles-v1', 'PACBENCH_LUNA_COMPATIBILITY': 'temperature-omitted-default-v1',
                     'PACBENCH_EFFECTIVE_OUTPUT_TOKENS': '32768', 'PACBENCH_SUPERMEMORY_STOCK_SOURCE': '1',
                     'PACBENCH_SUPERMEMORY_STOCK_ROUNDS': '1', 'PACBENCH_SUPERMEMORY_STOCK_CHUNKS': '1',
                     explicit.ENV: explicit.PROTOCOL}
         result = dict(state='incomplete', condition=SCOPE, cleanup='unverified', contract=contract)
-        with run_environment(settings):
+
+        failures = RunFailures(result)
+        ledger = None
+        with failures.record('setup'), run_environment(settings):
             ledger = cap.budget()
-            try:
-                with direct_environment(key):
-                    home = root / 'hermes-home'
-                    base, marker = client_settings(scope['projects'][PROVIDER]['driver'])
-                    harness.provision_home(home, provider_plugin_src=plugin_home / 'plugins' / PROVIDER,
-                                           provider_name=PROVIDER, model=MODEL, model_provider='openrouter', model_base_url=base)
-                    shutil.copyfile(plugin_home / 'plugins' / '.install-metadata.json',
-                                    home / 'plugins' / '.install-metadata.json')
-                    env = {'HOME': str(root / 'fallback-home')}
-                    base, memory = client_settings(scope['projects'][PROVIDER]['memory'])
-                    stop = start(root, env, MODEL, base, memory)
-                    try:
+            with failures.record('direct_environment'), direct_environment(key), failures.record('setup'):
+                home = root / 'hermes-home'
+                base, marker = client_settings(scope['projects'][PROVIDER]['driver'])
+                harness.provision_home(home, provider_plugin_src=plugin_home / 'plugins' / PROVIDER,
+                                       provider_name=PROVIDER, model=MODEL, model_provider='openrouter', model_base_url=base)
+                shutil.copyfile(plugin_home / 'plugins' / '.install-metadata.json',
+                                home / 'plugins' / '.install-metadata.json')
+                env = {'HOME': str(root / 'fallback-home')}
+                base, memory = client_settings(scope['projects'][PROVIDER]['memory'])
+                stop = start(root, env, MODEL, base, memory)
+                try:
+                    with failures.record('native_execution'):
                         result['execution'] = run_native(root, scope, env, ledger, marker)
-                    finally:
+                    with failures.record('transport_drain'):
                         deadline = time.monotonic() + 45
-                        while any(not row.get('finished') for row in ledger.snapshot()) and time.monotonic() < deadline:
+                        while time.monotonic() < deadline and ledger.has_active_attempts():
                             time.sleep(.25)
+                finally:
+                    with failures.record('native_shutdown'):
                         stop()
-            except BaseException as exc:
-                result['failure_type'] = type(exc).__name__
-                raise
-            finally:
+
+        result['elapsed_seconds'] = time.monotonic() - began
+        if ledger is not None:
+            with failures.record('receipt_summary'):
                 rows = ledger.snapshot()
-                result.update(elapsed_seconds=time.monotonic() - began, billing=receipt_summary(root, rows, WEEK_RUN),
-                              unsettled_transports=sum(not r.get('finished') for r in rows),
+                result.update(unsettled_transports=sum(not r.get('finished') for r in rows),
                               terminal_sse_observed=sum((r.get('response_validation') or {}).get('sse_done_observed') is True for r in rows))
-                journal, shutdown = root / 'workflow/workflow.jsonl', root / 'native-service-stop.json'
-                if journal.is_file():
-                    result['workflow'] = summarize(journal)
-                if shutdown.is_file():
-                    result['cleanup'] = json.loads(shutdown.read_text())['state']
-                if ('execution' in result and result['cleanup'] == 'verified-inventory-stopped'
-                        and not result['unsettled_transports'] and not (root / 'STOP').exists()
-                        and result['workflow']['coverage']['verified_turns'] == contract['turns']):
-                    result['state'] = 'stock-week-native-complete-ungraded'
-                atomic(root / 'result.json', result)
+                result['billing'] = receipt_summary(root, rows, WEEK_RUN)
+        journal, shutdown = root / 'workflow/workflow.jsonl', root / 'native-service-stop.json'
+        with failures.record('workflow_summary'):
+            if journal.is_file():
+                result['workflow'] = summarize(journal)
+        with failures.record('shutdown_receipt'):
+            if shutdown.is_file():
+                result['cleanup'] = json.loads(shutdown.read_text())['state']
+        if (failures.primary is None and 'execution' in result and result['cleanup'] == 'verified-inventory-stopped'
+                and result.get('unsettled_transports') == 0 and not (root / 'STOP').exists()
+                and result.get('workflow', {}).get('coverage', {}).get('verified_turns') == contract['turns']):
+            result['state'] = 'stock-week-native-complete-ungraded'
+        with failures.record('result_write'):
+            atomic(root / 'result.json', result)
+        if failures.primary is not None:
+            raise failures.primary
     return result
 
 

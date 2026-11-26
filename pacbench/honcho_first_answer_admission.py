@@ -280,10 +280,10 @@ def check_prepared(rows,row):
     if previous:
         last = previous[-1]
         if (last['workflow_slot']['honcho_first_answer'] != {**proof,'tool_rounds':order[:-1]}
-                or not settled(last)
+                or not usable_response(last)
                 or last.get('honcho_selected_tools') != order[-1]):
             stop_measured_admission('honcho_first_answer_unverified_tool_choice')
-            raise OwnershipConflict('Honcho continuation did not come from an exact settled tool decision')
+            raise OwnershipConflict('Honcho continuation did not come from an exact terminal tool decision')
 
 
 def settled(row):
@@ -301,14 +301,73 @@ def settled(row):
             and bool(row.get('billing_receipt')) and bool(row.get('upstream_request_id')))
 
 
+def wire_identity(frames):
+    """Record only a consistent response identity from the actual wire frames."""
+    for event in frames.events:
+        choices = event.get('choices', [])
+        if (not isinstance(choices, list) or len(choices) > 1
+                or any(not isinstance(choice, dict) or choice.get('index', 0) != 0 for choice in choices)):
+            return None
+    identity = {}
+    for key in ('id', 'model', 'provider'):
+        values = [event[key] for event in frames.events if key in event and event[key] is not None]
+        if (not values or any(not isinstance(value, str) or not value.strip() or len(value) > 256
+                              for value in values)
+                or len(set(values)) != 1):
+            return None
+        identity[key] = values[0]
+    return dict(identity, stream=frames.sse)
+
+
+def usable_response(row, *, allow_truncated=False):
+    """Verify a finished Honcho response independently of its financial receipt."""
+    from .openrouter_route import PROFILES
+
+    if not row.get('finished'):
+        return False
+    if 'honcho_wire_identity' not in row:
+        return settled(row)  # Historical rows only retained route identity in settled receipts.
+    identity = row['honcho_wire_identity']
+    evidence = row.get('response_validation', {})
+    slot = row.get('workflow_slot', {})
+    answer = bool(slot.get('honcho_first_answer'))
+    if (not isinstance(identity, dict) or not identity.get('id') or identity['id'] != row.get('upstream_request_id')
+            or type(identity.get('stream')) is not bool
+            or identity.get('model') != PROFILES[PROFILE]['model'] or identity.get('provider') != 'Amazon Bedrock'
+            or row.get('http_status') != 200 or row.get('provider_rejection')
+            or row.get('state') not in ('settled', 'receipt_missing')
+            or (row['state'] == 'receipt_missing' and row.get('error_label') != 'actual_cost_unknown')
+            or evidence.get('envelope_errors') or evidence.get('wire_parse_errors')):
+        return False
+    if answer and not identity['stream']:
+        return False
+    if identity['stream'] and evidence.get('sse_done_observed') is not True:
+        return False
+    if not ((row.get('dispatch_execution') == 'response_ended' and row.get('response_body_complete') is True)
+            or (answer and identity['stream'] and row.get('dispatch_execution') == 'ambiguous'
+                and evidence.get('sse_done_observed') is True)):
+        return False
+    reasons = evidence.get('finish_reasons')
+    if reasons == ['tool_calls']:
+        return answer and bool(row.get('honcho_selected_tools'))
+    if reasons == ['stop']:
+        return (evidence.get('assistant_nonwhitespace_characters', 0) > 0
+                and evidence.get('tool_call_fragments') == 0)
+    if reasons == ['length'] and (allow_truncated or row.get('honcho_validation_rejection')):
+        from .honcho_week_retry import _representation
+
+        return _representation(slot) and evidence.get('tool_call_fragments') == 0
+    return False
+
+
 def verify_receipts(rows):
     from .direct_accounting import stop_measured_admission
 
     completed = [row for row in rows.values() if row.get('finished')]
     identifiers = {row.get('upstream_request_id') for row in completed}
-    if len(identifiers) != len(completed) or not all(map(settled, completed)):
-        stop_measured_admission('honcho_first_answer_unsettled_or_duplicate_receipt')
-        raise OwnershipConflict('Honcho requires unique settled Luna Bedrock receipts before another request')
+    if len(identifiers) != len(completed) or not all(map(usable_response, completed)):
+        stop_measured_admission('honcho_unusable_or_duplicate_terminal_response')
+        raise OwnershipConflict('Honcho requires unique usable Luna Bedrock responses before another request')
 
 
 def selected_tools(events):
@@ -316,18 +375,33 @@ def selected_tools(events):
     calls = {}
     stopped = False
     for event in events:
-        for choice in event.get('choices') or []:
-            if choice.get('index',0) != 0:
+        choices = event.get('choices') or []
+        if not isinstance(choices, list):
+            return None
+        for choice in choices:
+            if not isinstance(choice, dict) or choice.get('index', 0) != 0:
                 return None
             if choice.get('finish_reason') == 'tool_calls':
                 stopped = True
             message = choice.get('delta') or choice.get('message') or {}
-            for k, piece in enumerate(message.get('tool_calls') or []):
-                index = piece.get('index',k)
+            if not isinstance(message, dict):
+                return None
+            pieces = message.get('tool_calls') or []
+            if not isinstance(pieces, list):
+                return None
+            for k, piece in enumerate(pieces):
+                if not isinstance(piece, dict):
+                    return None
+                index = piece.get('index', k)
+                call_id = piece.get('id') or ''
+                function = piece.get('function') or {}
+                if (type(index) is not int or not isinstance(call_id, str) or not isinstance(function, dict)
+                        or any(not isinstance(function.get(key) or '', str) for key in ('name', 'arguments'))):
+                    return None
                 dest = calls.setdefault(index,dict(id='',type='function',function=dict(name='',arguments='')))
-                dest['id'] += piece.get('id') or ''
+                dest['id'] += call_id
                 for key in ('name','arguments'):
-                    dest['function'][key] += (piece.get('function') or {}).get(key) or ''
+                    dest['function'][key] += function.get(key) or ''
     if not stopped or not calls or sorted(calls)!=list(range(len(calls))):
         return None
     try:

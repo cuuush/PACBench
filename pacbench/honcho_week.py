@@ -12,7 +12,7 @@ from . import harness, honcho_week_capture as capture, honcho_week_state as week
 from .checkpoint_clock import CheckpointClock, atomic
 from .gateway_reuse import PersistentGateway
 from .honcho_first_answer import check_stops, run, upload
-from .honcho_first_answer_admission import TOOLS, settled, verify_receipts
+from .honcho_first_answer_admission import TOOLS, usable_response, verify_receipts
 from .openrouter_route import ENDPOINT, MODEL
 from .workflow_native import WarmHermes
 from .workflow_runner import Condition, captured_turn, inspect_source_cutoff
@@ -89,7 +89,7 @@ def answers(root,scope,env,marker,ledger,result):
                 actual={ident for ident,row in receipts.items() if row['workflow_slot'].get('question_id')==turn.id
                         and row['workflow_slot']['kind']=='answer'}
                 if (len(ids)!=len(set(ids)) or actual!=set(ids) or driver_ids.intersection(ids)
-                        or not all(settled(receipts[ident]) for ident in ids)):
+                        or not all(usable_response(receipts[ident]) for ident in ids)):
                     raise ValueError('Honcho turn has missing, reused or unmatched answer requests')
                 native=idle['readback']
                 surface.update(source_files=prefix,write_barrier=dict(session_id=surface['session_id'],pending_writes=0,
@@ -126,22 +126,22 @@ def answers(root,scope,env,marker,ledger,result):
         raise ValueError('Honcho did not complete the exact scoped source and questions')
 
 
-def main():
+def main(argv=None):
     parser=argparse.ArgumentParser(description=__doc__)
     for name in ('campaign','checkpoint','plugin_home'):
         parser.add_argument(name,type=Path)
     parser.add_argument('--cohort-suffix',help='Use a distinct fresh run directory under the shared campaign lock')
-    parser.add_argument('--session-layout', choices=(week.AUTHORED_CHATS,),
-                        help='use the authored chat boundaries in one continuing account')
+    parser.add_argument('--session-layout', choices=(week.AUTHORED_CHATS, 'single-chat'),
+                        help='use the 31 authored chats (default) or the historical single-chat layout')
     parser.add_argument('--authored-chat-canary', action='store_true',
                         help='use only the first daily document and four frozen questions')
-    options=parser.parse_args()
+    options=parser.parse_args(argv)
     if options.authored_chat_canary and (options.cohort_suffix or options.session_layout):
         parser.error('--authored-chat-canary sets the authored chat layout and has a fixed run directory')
     os.umask(0o077)
     result=run(*(getattr(options,name).resolve(strict=True) for name in ('campaign','checkpoint','plugin_home')),
                full_week=True,cohort_suffix=options.cohort_suffix,
-               week_session_layout=week.AUTHORED_CHATS if options.authored_chat_canary else options.session_layout,
+               week_session_layout=None if options.session_layout == 'single-chat' else week.AUTHORED_CHATS,
                week_first_four=options.authored_chat_canary)
     print(json.dumps(result,sort_keys=True))
 

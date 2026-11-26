@@ -1,5 +1,6 @@
 """Qualify one uncoached Honcho answer after its exact native day-one upload."""
 import argparse
+from contextlib import ExitStack
 from decimal import Decimal
 import fcntl
 from hashlib import sha256
@@ -22,7 +23,7 @@ from .execution_capability import selected
 from .gateway.transport import open_without_redirect
 from .gateway_client import client_settings
 from .gateway_reuse import PersistentGateway
-from .honcho_first_answer_admission import arm, question, settled, TOOLS, verify_receipts
+from .honcho_first_answer_admission import arm, question, settled, TOOLS, usable_response, verify_receipts
 from .live_dispatch import CONDITION
 from .observational_receipts import COHORT_STOP, ENV as JOURNAL
 from .openrouter_direct import direct_environment
@@ -31,6 +32,7 @@ from .openrouter_run import fetch_catalog
 from .workflow_memcal_live import run_environment
 from .workflow_native import WarmHermes
 from .workflow_receipts import receipt_summary
+from .workflow_terminal import RunFailures
 
 RUN = 'honcho-seven-daily-first-answer-v1'
 
@@ -199,67 +201,88 @@ def run(campaign, checkpoint, plugin_home, *, full_week=False, cohort_suffix=Non
         started = time.monotonic()
         root.parent.mkdir(mode=0o700)
         root.mkdir(mode=0o700)
-        for name in ('fallback-home','prepaid-verification'):
-            (root/name).mkdir(mode=0o700)
-        balance = root/'prepaid-verification'/(prepaid['receipt_sha256']+'.private.json')
-        with os.fdopen(os.open(balance,os.O_WRONLY|os.O_CREAT|os.O_EXCL|os.O_NOFOLLOW,0o600),'wb') as file:
-            file.write(raw)
-        manifest = gate.materialize_canonical_files(root/'frozen-documents', first_release=week_first_four)
-        bound = gate.create(root,execution_lock=lock,session_id='pizza-week-source',canonical_manifest=manifest['path'],
-                            manifest_sha256=manifest['sha256'],prepaid=prepaid,auto_recharge_evidence=confirmation,
-                            layout=gate.CANONICAL_LAYOUT,first_question=not full_week,week=full_week,
-                            week_session_layout=week_session_layout,week_first_four=week_first_four)
-        settings = {capability.ENV:json.dumps(bound),JOURNAL:str(root/'receipts.jsonl'),COHORT_STOP:str(campaign/'ACCOUNT_STOP'),
-                    'PACBENCH_STOP_FILE':str(root/'STOP'),'PACBENCH_DIRECT_STOP_ON_429':str(root/'STOP'),
-                    'PACBENCH_ROLE_ROUTES':'luna-all-roles-v1','PACBENCH_LUNA_COMPATIBILITY':'temperature-omitted-default-v1',
-                    'PACBENCH_EFFECTIVE_OUTPUT_TOKENS':'32768','PACBENCH_DISPATCH_TRACKING':CONDITION,
-                    'PACBENCH_MEMORY_API_INPUT_TRACE_ROOT':str(root/'memory-api-inputs'),'PACBENCH_IMPORT_ROOT':str(root)}
-        if full_week:
-            settings['PACBENCH_HONCHO_STOCK_WEEK']='1'
-        result = dict(state='incomplete',documents_verified=0,answers_received=0)
+        result = dict(state='incomplete', cleanup='unverified', documents_verified=0, answers_received=0)
         if not full_week:
-            result['question']='rsvp-before'
-        with run_environment(settings):
-            ledger = capability.budget()
-            scope = capability.load()
-            try:
-                with direct_environment(key):
-                    check_stops(campaign)
-                    home = root/'hermes-home'
-                    roles = scope['projects']['honcho']
-                    base, marker = client_settings(roles['driver'])
-                    harness.provision_home(home,provider_plugin_src=plugin_home/'plugins/honcho',provider_name='honcho',
-                                           model=MODEL,model_provider='openrouter',model_base_url=base)
-                    shutil.copyfile(plugin_home/'plugins/.install-metadata.json',home/'plugins/.install-metadata.json')
-                    verify_retained_catalog_provider('honcho',home)
-                    env = {'HOME':str(root/'fallback-home')}
-                    _, memory = client_settings(roles['memory'])
-                    stop = start(root,env,MODEL,base,memory,daily_documents=True)
-                    try:
-                        result['source_ready'] = upload(root,scope,env)['sha256']
-                        result['documents_verified'] = 1
-                        result['source_records'] = len(scope['plan'][0]['source_ids'])
-                        run_answers(root,scope,env,marker,ledger,result)
-                    finally:
-                        stop()
-                        result['cleanup'] = 'owned-services-stopped' if cleanup_verified(root) else 'unverified'
-                check_stops(campaign)
-                rows = ledger.snapshot()
-                verify_receipts({row['id']:row for row in rows})
-                if result['cleanup'] != 'owned-services-stopped' or not rows or not all(map(settled,rows)):
-                    raise RuntimeError('Honcho qualification lacks cleanup or settled receipt evidence')
-                if week_first_four:
-                    result['state'] = 'stock-authored-chat-canary-complete'
-                else:
-                    result['state'] = 'stock-week-answers-complete' if full_week else 'stock-first-answer-qualified'
-            except BaseException as exc:
-                result['failure_type'] = type(exc).__name__
-                raise
-            finally:
-                rows = ledger.snapshot()
-                result['billing'] = receipt_summary(root,rows,run_name)
-                result['elapsed_seconds'] = time.monotonic()-started
-                atomic(root/'result.json',result)
+            result['question'] = 'rsvp-before'
+        failures = RunFailures(result)
+
+        def shutdown(stop):
+            with failures.record('native_shutdown'):
+                stop()
+            with failures.record('shutdown_verification'):
+                if cleanup_verified(root):
+                    result['cleanup'] = 'owned-services-stopped'
+
+        with failures.record('setup'):
+            for name in ('fallback-home','prepaid-verification'):
+                (root/name).mkdir(mode=0o700)
+            balance = root/'prepaid-verification'/(prepaid['receipt_sha256']+'.private.json')
+            with os.fdopen(os.open(balance,os.O_WRONLY|os.O_CREAT|os.O_EXCL|os.O_NOFOLLOW,0o600),'wb') as file:
+                file.write(raw)
+            manifest = gate.materialize_canonical_files(root/'frozen-documents', first_release=week_first_four)
+            bound = gate.create(root,execution_lock=lock,session_id='pizza-week-source',canonical_manifest=manifest['path'],
+                                manifest_sha256=manifest['sha256'],prepaid=prepaid,auto_recharge_evidence=confirmation,
+                                layout=gate.CANONICAL_LAYOUT,first_question=not full_week,week=full_week,
+                                week_session_layout=week_session_layout,week_first_four=week_first_four)
+            settings = {capability.ENV:json.dumps(bound),JOURNAL:str(root/'receipts.jsonl'),COHORT_STOP:str(campaign/'ACCOUNT_STOP'),
+                        'PACBENCH_STOP_FILE':str(root/'STOP'),'PACBENCH_DIRECT_STOP_ON_429':str(root/'STOP'),
+                        'PACBENCH_ROLE_ROUTES':'luna-all-roles-v1','PACBENCH_LUNA_COMPATIBILITY':'temperature-omitted-default-v1',
+                        'PACBENCH_EFFECTIVE_OUTPUT_TOKENS':'32768','PACBENCH_DISPATCH_TRACKING':CONDITION,
+                        'PACBENCH_MEMORY_API_INPUT_TRACE_ROOT':str(root/'memory-api-inputs'),'PACBENCH_IMPORT_ROOT':str(root)}
+            if full_week:
+                settings['PACBENCH_HONCHO_STOCK_WEEK']='1'
+            with run_environment(settings):
+                rows = ledger = None
+                with failures.record('setup'):
+                    ledger = capability.budget()
+                    scope = capability.load()
+                    with failures.record('direct_environment'), direct_environment(key), failures.record('setup'):
+                        check_stops(campaign)
+                        home = root/'hermes-home'
+                        roles = scope['projects']['honcho']
+                        base, marker = client_settings(roles['driver'])
+                        harness.provision_home(home,provider_plugin_src=plugin_home/'plugins/honcho',provider_name='honcho',
+                                               model=MODEL,model_provider='openrouter',model_base_url=base)
+                        shutil.copyfile(plugin_home/'plugins/.install-metadata.json',home/'plugins/.install-metadata.json')
+                        verify_retained_catalog_provider('honcho',home)
+                        env = {'HOME':str(root/'fallback-home')}
+                        _, memory = client_settings(roles['memory'])
+                        with ExitStack() as native:
+                            with failures.record('native_start'):
+                                start(root,env,MODEL,base,memory,daily_documents=True,
+                                      register_stop=lambda stop: native.callback(shutdown, stop))
+                            if failures.primary is None:
+                                with failures.record('native_execution'):
+                                    result['source_ready'] = upload(root,scope,env)['sha256']
+                                    result['documents_verified'] = 1
+                                    result['source_records'] = len(scope['plan'][0]['source_ids'])
+                                    run_answers(root,scope,env,marker,ledger,result)
+
+                if ledger is not None:
+                    with failures.record('receipt_snapshot'):
+                        rows = ledger.snapshot()
+                if failures.primary is None:
+                    with failures.record('terminal_verification'):
+                        check_stops(campaign)
+                        verify_receipts({row['id']:row for row in rows})
+                        required_evidence = usable_response if full_week else settled
+                        if (result['cleanup'] != 'owned-services-stopped' or not rows
+                                or not all(map(required_evidence, rows))):
+                            raise RuntimeError('Honcho qualification lacks cleanup or required response evidence')
+                if rows is not None:
+                    with failures.record('receipt_summary'):
+                        result['billing'] = receipt_summary(root,rows,run_name)
+
+        if failures.primary is None:
+            if week_first_four:
+                result['state'] = 'stock-authored-chat-canary-complete'
+            else:
+                result['state'] = 'stock-week-answers-complete' if full_week else 'stock-first-answer-qualified'
+        result['elapsed_seconds'] = time.monotonic()-started
+        with failures.record('result_write'):
+            atomic(root/'result.json',result)
+        if failures.primary is not None:
+            raise failures.primary
     return result
 
 

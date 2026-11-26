@@ -13,7 +13,7 @@ from . import judge_development_live as prepaid
 from .canary_capability import binding, read, sha
 from .decisions_calibration import DECISIONS_URL, ROUTES, decisions_verdict, render_plan, strict_json, wire_bytes
 from .direct_accounting import now
-from .observational_receipts import RunReceiptJournal, rejection_402, stop_cohort
+from .observational_receipts import append_only_journal, rejection_402, stop_cohort
 from .response_receipts import receipt
 from .workflow_capability import confirm_setting
 
@@ -95,9 +95,9 @@ class DecisionsAdmission:
         path = self.root/'decisions-scope.json'
         _write_new(path, wire_bytes(scope))
         self.scope = binding(path)
-        self._journal = RunReceiptJournal(self.root/'receipts.jsonl')
-        _write_new(self._journal.path, b'')
-        self._journal_identity = self._journal.path.stat()
+        self._journal = self.root/'receipts.jsonl'
+        _write_new(self._journal, b'')
+        self._journal_identity = self._journal.stat()
         self._attempts = 0
 
     def _check_admission(self):
@@ -111,7 +111,7 @@ class DecisionsAdmission:
                     endpoint=route.endpoint, scope_sha256=self.scope['sha256'])
 
     def _check_journal(self):
-        path = self._journal.path
+        path = self._journal
         if path != path.resolve() or not path.is_file() or not os.path.samestat(path.stat(), self._journal_identity):
             raise ValueError('Missing or replaced Decisions receipt journal')
 
@@ -165,7 +165,7 @@ class DecisionsAdmission:
         """Durably consume the next cell immediately before a potential send."""
         self._check_admission()
         self._check_journal()
-        with self._journal.journal() as (rows, append):
+        with append_only_journal(self._journal) as (rows, append):
             _, _, unknown, _ = self._verified_prefix(rows)
             if unknown:
                 raise RuntimeError('Unsettled Decisions request; further dispatch refused')
@@ -187,7 +187,7 @@ class DecisionsAdmission:
         """Append one terminal response to its pending attempt, even after a stop."""
         prepaid.check_lock(self.lock_fd)
         self._check_journal()
-        with self._journal.journal() as (rows, append):
+        with append_only_journal(self._journal) as (rows, append):
             _, generations, unknown, _ = self._verified_prefix(rows)
             if unknown != [attempt] or rows[attempt]['state'] != 'receipt_pending':
                 raise ValueError('No matching pending Decisions attempt')
@@ -218,7 +218,7 @@ class DecisionsAdmission:
     def audit(self):
         """Return normalized cells and exact-validated costs without replaying a request."""
         self._check_journal()
-        with self._journal.journal() as (rows, _):
+        with append_only_journal(self._journal) as (rows, _):
             verdicts, generations, unknown, costs = self._verified_prefix(rows)
         return dict(verdicts=verdicts, attempted=len(rows), generations=len(generations),
                     remaining=len(self.cells) - len(rows), unknown=unknown,

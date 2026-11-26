@@ -111,8 +111,9 @@ class Capture:
                 elif self.encoding=='br':data=__import__('brotli').decompress(data)
                 elif self.encoding:data=b''
             except Exception:data=b''
-            self.receipt['budget'].settle(self.receipt['id'],self.status,data,headers=self.headers,body_complete=complete)
+            # Stream cleanup must not downgrade a failed complete settlement into a disconnect receipt.
             self.closed=True
+            self.receipt['budget'].settle(self.receipt['id'],self.status,data,headers=self.headers,body_complete=complete)
 
 
 class UrllibResponse:

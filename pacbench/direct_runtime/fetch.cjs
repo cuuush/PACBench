@@ -100,11 +100,12 @@ if (process.env.PACBENCH_DIRECT === '1' && !globalThis.__pacbenchDirectFetch) {
     };
     const finish = (complete = false) => {
       if (!settled) {
+        // Stream cleanup cannot retry failed complete settlement as a disconnect.
+        settled = true;
         track('settle', {id: receipt.id, status: response.status,
           body_complete: complete,
           headers: Object.fromEntries([...response.headers].filter(([name]) => /^(retry-after|x-request-id|x-generation-id|x-openrouter-request-id|x-ratelimit-)/i.test(name))),
           data: Buffer.concat(chunks).toString('utf8')});
-        settled = true;
       }
     };
     if (!response.body) { finish(true); return response; }

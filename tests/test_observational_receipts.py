@@ -25,6 +25,120 @@ def begin(b,question='one'):
 def response(b,cost='25.0000000000001'):
  return json.dumps({'id':'gen-one','model':b.model,'provider':'Amazon Bedrock','usage':{'cost':cost,'prompt_tokens':3,'completion_tokens':2}}).encode()
 
+
+def _prepared_judge_evidence(b):
+ from hashlib import sha256
+ from pacbench.response_receipts import read_frames, receipt
+
+ row=b.reserve('test-judge',{'model':b.model,'messages':[{'role':'user','content':'fixture'}]})
+ before_send({**row,'budget':b})
+ raw=response(b)
+ wire_hash=sha256(raw).hexdigest()
+ bill=(json.dumps(receipt(row['id'],read_frames(raw).events[-1],status=200,
+                          body_sha256=wire_hash,complete=True),sort_keys=True)+'\n').encode()
+ return row,raw,{
+  'wire':(b.path.parent/'response-bodies'/(wire_hash+'.private.bin'),raw),
+  'billing':(b.path.parent/'billing-receipts'/(sha256(bill).hexdigest()+'.json'),bill),
+ }
+
+
+@pytest.mark.parametrize('artifact',['wire','billing'])
+def test_receipt_rejects_existing_mismatched_evidence(observed,artifact):
+ from pacbench.canary_capability import CanaryBusy
+
+ b,_=observed;row,raw,evidence=_prepared_judge_evidence(b)
+ path,expected=evidence[artifact]
+ path.parent.mkdir()
+ partial=expected[:-1]
+ path.write_bytes(partial)
+ path.chmod(0o600)
+ with pytest.raises(ValueError,match='Existing private receipt evidence differs'):
+  b.settle(row['id'],200,raw,body_complete=True)
+ assert path.read_bytes()==partial
+ attempt=b.get_attempt(row['id'])
+ assert attempt['finished'] is None and 'billing_receipt' not in attempt and 'direct_body_evidence' not in attempt
+ assert not list(path.parent.glob('.pending-*'))
+ with pytest.raises(CanaryBusy):
+  b.prepare('test-judge',{'model':b.model,'messages':[{'role':'user','content':'different'}]})
+
+
+@pytest.mark.parametrize('artifact',['wire','billing'])
+def test_receipt_interrupted_publication_leaves_no_partial_digest_file(observed,monkeypatch,artifact):
+ b,_=observed;row,raw,evidence=_prepared_judge_evidence(b)
+ path,_=evidence[artifact]
+ original=os.link
+
+ def interrupted(source,dest,**options):
+  if dest==path.name:
+   raise OSError('injected publish interruption')
+  return original(source,dest,**options)
+
+ with monkeypatch.context() as patch:
+  patch.setattr(os,'link',interrupted)
+  with pytest.raises(OSError,match='injected publish interruption'):
+   b.settle(row['id'],200,raw,body_complete=True)
+ assert not path.exists() and not list(path.parent.iterdir())
+ assert b.get_attempt(row['id'])['finished'] is None
+ b.settle(row['id'],200,raw,body_complete=True)
+ attempt=b.get_attempt(row['id'])
+ assert attempt['state']=='settled'
+ for path,expected in evidence.values():
+  assert path.read_bytes()==expected and path.stat().st_mode & 0o777==0o600
+
+
+def test_receipt_adopts_exact_existing_legacy_bytes(observed):
+ b,_=observed;row,raw,evidence=_prepared_judge_evidence(b)
+ inodes={}
+ for path,expected in evidence.values():
+  path.parent.mkdir()
+  path.write_bytes(expected)
+  path.chmod(0o600)
+  inodes[path]=path.stat().st_ino
+ b.settle(row['id'],200,raw,body_complete=True)
+ assert b.get_attempt(row['id'])['state']=='settled'
+ assert {path:path.stat().st_ino for path in inodes}==inodes
+
+
+def test_successful_capture_with_conflicting_billing_cannot_settle_as_disconnect(observed):
+ from pacbench.direct_http import Capture
+
+ b,_=observed;row,raw,evidence=_prepared_judge_evidence(b)
+ billing,_=evidence['billing']
+ billing.parent.mkdir()
+ billing.write_bytes(b'partial')
+ billing.chmod(0o600)
+ capture=Capture({**row,'budget':b},200)
+ capture.add(raw)
+ with pytest.raises(ValueError,match='Existing private receipt evidence differs'):
+  try:
+   capture.finish(complete=True)
+  finally:
+   capture.finish()
+ assert b.get_attempt(row['id'])['finished'] is None
+ assert list(billing.parent.iterdir())==[billing]
+ assert billing.read_bytes()==b'partial'
+
+
+@pytest.mark.parametrize('link_parent',[True,False])
+def test_receipt_evidence_cannot_follow_symlink_outside_run(observed,link_parent):
+ b,_=observed;row,raw,evidence=_prepared_judge_evidence(b)
+ path,expected=evidence['wire']
+ outside=b.path.parent.parent/(b.path.parent.name+'-outside')
+ outside.mkdir()
+ outside_path=outside/path.name
+ outside_path.write_bytes(expected)
+ outside_path.chmod(0o600)
+ if link_parent:
+  path.parent.symlink_to(outside,target_is_directory=True)
+ else:
+  path.parent.mkdir()
+  path.symlink_to(outside_path)
+ with pytest.raises(OSError):
+  b.settle(row['id'],200,raw,body_complete=True)
+ assert b.get_attempt(row['id'])['finished'] is None
+ assert list(outside.iterdir())==[outside_path] and outside_path.read_bytes()==expected
+
+
 def test_no_money_admission_and_historical_files_read_only(observed):
  b,original=observed;r=begin(b);prefix=b.path.read_bytes();b.settle(r['id'],200,response(b),body_complete=True)
  row=b.snapshot()[-1];assert row['settled_charge_usd']=='25.0000000000001'
@@ -51,6 +165,58 @@ def test_wrong_route_and_duplicate_operation_refused(observed):
  with pytest.raises(ValueError):b.reserve('test-memory',{'model':'other'})
  r=begin(b);b.settle(r['id'],0)
  with pytest.raises(RuntimeError,match='replay'):begin(b)
+
+def test_ordinary_dispatch_only_decodes_its_own_receipts(observed,monkeypatch):
+ from pacbench import receipt_projection as projection
+ from pacbench.observational_receipts import RunReceiptJournal
+
+ budget,_=observed
+ # A pre-index run includes arbitrary attribution and an existing terminal outcome.
+ legacy={'id':'pre-index','project':'test-memory','finished':'done','state':'receipt_missing',
+         'accounting_mode':MODE,'attribution':{'witness':['private']}}
+ proof={'honcho_validation_rejection':{'reason':'retained'}}
+ events=[{'kind':'prepared','id':'pre-index','row':legacy},
+         {'kind':'validation_rejection','id':'pre-index','patch':proof}]
+ prefix=''.join(json.dumps(event)+'\n' for event in events).encode()
+ budget.path.write_bytes(prefix)
+ legacy.update(proof)
+ budget.path.chmod(0o400)
+ before=budget.path.stat()
+ assert RunReceiptJournal(budget.path).snapshot()==[legacy]
+ assert budget.path.stat().st_ctime_ns==before.st_ctime_ns
+ assert not projection.Projection(budget.path).index.exists()
+ budget.path.chmod(0o600)
+ assert budget.get_attempt('pre-index')==legacy
+ index=projection.Projection(budget.path).index
+ assert index.stat().st_mode & 0o777==0o600
+
+ decoded_events=[]
+ loads=json.loads
+ def track(payload,*args,**kwargs):
+  value=loads(payload,*args,**kwargs)
+  if isinstance(value,dict) and value.get('kind') in ('prepared','dispatch','outcome'):
+   decoded_events.append(value['id'])
+  return value
+
+ with monkeypatch.context() as m:
+  m.setattr(projection.json,'loads',track)
+  def no_full_scan(self):
+   pytest.fail('ordinary dispatch scanned prior attempts')
+  m.setattr(projection.IndexedAttempts,'values',no_full_scan)
+  for i in range(200):
+   call=begin(budget,str(i))
+   budget.settle(call['id'],0)
+   assert decoded_events[i*3:]==[call['id']]*3
+ assert len(decoded_events)==600
+ assert budget.path.read_bytes().startswith(prefix)
+ assert RunReceiptJournal(budget.path).snapshot()[0]==legacy
+ assert len(budget.snapshot())==202
+ # Losing a clean cache must not require rebuilding or rewriting the authority.
+ expected=budget.get_attempt(call['id'])
+ original=budget.path.read_bytes()
+ index.unlink()
+ assert budget.get_attempt(call['id'])==expected
+ assert budget.path.read_bytes()==original
 
 def test_distinct_hindsight_consolidation_calls_keep_transport_replay_guard(observed,monkeypatch):
  b,_=observed

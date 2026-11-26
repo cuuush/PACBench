@@ -12,7 +12,7 @@ from urllib.parse import urlsplit
 from . import honcho_daily_gate as gate
 from .canary_capability import binding, digest, read
 from .dispatch_ownership import OwnershipConflict
-from .honcho_first_answer_admission import active, question, settled
+from .honcho_first_answer_admission import active, question, usable_response, verify_receipts
 from .live_dispatch import process_identity
 from .openrouter_route import CHAT_COMPLETIONS_URL, validate_request
 
@@ -25,11 +25,12 @@ def _last_driver(scope, current):
     from .observational_receipts import RunReceiptJournal
 
     rows = RunReceiptJournal(Path(scope['root'])/'receipts.jsonl').snapshot()
+    verify_receipts({row['id']: row for row in rows})
     drivers = [row for row in rows if 'honcho_first_answer' in row['workflow_slot']]
     last = drivers[-1] if drivers else {}
     proof = last.get('workflow_slot', {}).get('honcho_first_answer', {})
-    if not settled(last) or any(proof.get(k) != v for k,v in current.items()):
-        raise OwnershipConflict('Honcho peer read lacks the settled active Hermes request')
+    if not usable_response(last) or any(proof.get(k) != v for k,v in current.items()):
+        raise OwnershipConflict('Honcho peer read lacks a usable active Hermes response')
     return last
 
 
@@ -38,7 +39,7 @@ def _origin_for_tool(scope, current, args):
     calls = [call for call in last.get('honcho_selected_tools') or ()
              if call['name'] == 'honcho_reasoning' and call['arguments_sha256'] == digest(args)]
     if len(calls) != 1:
-        raise OwnershipConflict('Honcho reasoning lacks an unambiguous, settled Hermes tool selection')
+        raise OwnershipConflict('Honcho reasoning lacks an unambiguous Hermes tool selection')
     return dict(kind='explicit', selected_by=last['id'], tool_call_id=calls[0]['id'])
 
 

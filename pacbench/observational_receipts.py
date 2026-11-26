@@ -7,6 +7,7 @@ import os,json,hashlib,uuid,fcntl
 from pathlib import Path
 from contextlib import contextmanager
 from decimal import Decimal
+import stat
 from .openrouter_route import with_route, PROFILES
 from .response_receipts import read_frames,sanitized,receipt
 from .receipt_projection import IndexedAttempts, Projection, account_refused
@@ -15,6 +16,57 @@ from .live_dispatch import sender_identity,operation_id,CONDITION,OwnershipConfl
 ENV='PACBENCH_RECEIPT_JOURNAL'
 MODE='prepaid-observational-v1'
 COHORT_STOP='PACBENCH_OBSERVATIONAL_COHORT_STOP'
+
+
+def _verify_private_evidence(directory_fd, destination, data):
+    flags = os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK
+    fd = os.open(destination.name, flags, dir_fd=directory_fd)
+    with os.fdopen(fd, 'rb') as stream:
+        mode = os.fstat(stream.fileno()).st_mode
+        if (not stat.S_ISREG(mode) or stat.S_IMODE(mode) != 0o600
+                or stream.read(len(data) + 1) != data):
+            raise ValueError(f'Existing private receipt evidence differs: {destination}')
+        os.fsync(stream.fileno())
+
+
+def _publish_private_evidence(root, folder, name, data):
+    """Publish durable bytes without replacing prior evidence."""
+    destination = Path(folder) / name
+    directory_flags = os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW
+    root_fd = os.open(root, directory_flags)
+    try:
+        try:
+            os.mkdir(folder, 0o700, dir_fd=root_fd)
+        except FileExistsError:
+            pass
+        directory_fd = os.open(folder, directory_flags, dir_fd=root_fd)
+        try:
+            try:
+                _verify_private_evidence(directory_fd, destination, data)
+            except FileNotFoundError:
+                pending = '.pending-' + uuid.uuid4().hex
+                flags = os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW
+                fd = os.open(pending, flags, 0o600, dir_fd=directory_fd)
+                try:
+                    with os.fdopen(fd, 'wb') as stream:
+                        os.fchmod(stream.fileno(), 0o600)
+                        stream.write(data)
+                        stream.flush()
+                        os.fsync(stream.fileno())
+                    try:
+                        os.link(pending, name, src_dir_fd=directory_fd, dst_dir_fd=directory_fd)
+                    except FileExistsError:
+                        _verify_private_evidence(directory_fd, destination, data)
+                finally:
+                    os.unlink(pending, dir_fd=directory_fd)
+            os.fsync(directory_fd)
+            os.fsync(root_fd)
+        finally:
+            os.close(directory_fd)
+    finally:
+        os.close(root_fd)
+    return destination
+
 
 def check_cohort_stop():
  path=os.environ.get(COHORT_STOP)
@@ -64,6 +116,19 @@ def replay_attempts(stream):
   else:rows[ident].update(event['patch'])
  return rows
 
+@contextmanager
+def append_only_journal(path):
+ """Full-prefix verification for the bounded Decisions calibration."""
+ with path.open('a+') as stream:
+  fcntl.flock(stream,fcntl.LOCK_EX)
+  if os.fstat(stream.fileno()).st_mode & 0o777 != 0o600:os.fchmod(stream.fileno(),0o600)
+  stream.seek(0)
+  rows=replay_attempts(stream)
+  def append(kind,ident,patch):
+   event={'kind':kind,'id':ident,'row':patch} if kind=='prepared' else {'kind':kind,'id':ident,'patch':patch}
+   stream.seek(0,2);stream.write(json.dumps(event,sort_keys=True)+'\n');stream.flush();os.fsync(stream.fileno())
+  yield rows,append
+
 class ObservedBudget:
  def __init__(self,base,path):
   self.base=base;self.original_path=base.path;self.path=Path(path).resolve()
@@ -72,25 +137,39 @@ class ObservedBudget:
   if self.profile_name!='luna-bedrock-global':raise RuntimeError('Luna/Bedrock Global exclusively')
   if not self.path.parent.is_dir():raise RuntimeError('Explicit run-owned journal directory required')
 
- @contextmanager
  def journal(self):
-  with self.path.open('a+') as f:
-   fcntl.flock(f,fcntl.LOCK_EX)
-   if os.fstat(f.fileno()).st_mode & 0o777 != 0o600:os.fchmod(f.fileno(),0o600)
-   f.seek(0)
-   rows=replay_attempts(f)
-   def append(kind,ident,patch):
-    event={'kind':kind,'id':ident,'row':patch} if kind=='prepared' else {'kind':kind,'id':ident,'patch':patch}
-    f.seek(0,2);f.write(json.dumps(event,sort_keys=True)+'\n');f.flush();os.fsync(f.fileno())
-   yield rows,append
+  return Projection(self.path).open(initialize=True, strict=False)
+
+ def _receipt_rows(self):
+  """Read the authority without creating or modifying files during reporting."""
+  projection=Projection(self.path)
+  try:
+   fd=os.open(self.path,os.O_RDONLY | os.O_NOFOLLOW)
+  except FileNotFoundError:
+   if os.path.lexists(projection.index):raise
+   return []
+  with os.fdopen(fd,'rb') as stream:
+   fcntl.flock(stream,fcntl.LOCK_SH)
+   projection.require_complete()
+   return list(replay_attempts(stream).values())
+
+ def get_attempt(self, ident):
+  with self.journal() as (rows, _):
+   return rows[ident]
+
+ def has_active_attempts(self, roles=None):
+  with self.journal() as (rows, _):
+   if roles is None:
+    return rows.active()
+   return any(rows.db.execute('SELECT 1 FROM attempts WHERE active=1 AND role=? LIMIT 1',
+                              (role,)).fetchone() for role in roles)
 
  @contextmanager
  def locked(self,*,write=True):
   if write:raise RuntimeError('Historical ledger writes are disabled in observational mode')
   with self.base.locked(write=False) as state:
    historical=dict(state);old=list(state['calls'])
-  with self.journal() as (rows,_):pass
-  yield {**historical,'calls':old+list(rows.values())}
+  yield {**historical,'calls':old+self._receipt_rows()}
 
  def snapshot(self):
   with self.locked(write=False) as state:
@@ -249,17 +328,16 @@ class ObservedBudget:
    patch={'finished':now(),'http_status':status or None,'state':'receipt_missing','error_label':'actual_cost_unknown',
     'response_body_complete':body_complete,'response_validation':validation,
     'dispatch_execution':row['dispatch_execution'],'dispatch_events':row['dispatch_events']}
-   if row.get('workflow_slot',{}).get('honcho_first_answer'):
-    from .honcho_first_answer_admission import selected_tools
-    validation['sse_done_observed']=frames.sse_done_observed
-    if status==200 and (body_complete or frames.sse_done_observed) and not errors and not validation['envelope_errors']:
+   slot=row.get('workflow_slot',{})
+   if any(slot.get(key) for key in ('honcho_first_answer','honcho_daily_release','honcho_chat_work','honcho_peer_read')):
+    from .honcho_first_answer_admission import selected_tools,wire_identity
+    patch['honcho_wire_identity']=wire_identity(frames)
+    if slot.get('honcho_first_answer') and status==200 and (body_complete or frames.sse_done_observed) and not errors and not validation['envelope_errors']:
      patch['honcho_selected_tools']=selected_tools(events)
    if raw and row['project'].endswith('-judge'):
-    digest=hashlib.sha256(raw).hexdigest();folder=self.path.parent/'response-bodies';folder.mkdir(exist_ok=True)
-    dest=folder/(digest+'.private.bin')
-    if not dest.exists():
-     with dest.open('xb') as f:dest.chmod(0o600);f.write(raw);f.flush();os.fsync(f.fileno())
-    patch['direct_body_evidence']={'relative_path':str(dest.relative_to(self.path.parent)),'sha256':digest,'bytes':len(raw),'body_complete':body_complete}
+    digest=hashlib.sha256(raw).hexdigest()
+    dest=_publish_private_evidence(self.path.parent,'response-bodies',digest+'.private.bin',raw)
+    patch['direct_body_evidence']={'relative_path':str(dest),'sha256':digest,'bytes':len(raw),'body_complete':body_complete}
    if status==402:
     code,delay=rejection_402(raw,headers);patch.update(provider_rejection=code,retry_after_s=delay)
    if status==429 and shared_pool_429(raw):
@@ -271,14 +349,11 @@ class ObservedBudget:
     if cost is not None and safe.get('id'):
      value=receipt(ident,event,status=status,body_sha256=hashlib.sha256(raw).hexdigest(),complete=body_complete)
      encoded=(json.dumps(value,sort_keys=True)+'\n').encode();digest=hashlib.sha256(encoded).hexdigest()
-     folder=self.path.parent/'billing-receipts';folder.mkdir(exist_ok=True)
-     dest=folder/(digest+'.json')
-     if not dest.exists():
-      with dest.open('xb') as f:f.write(encoded);f.flush();os.fsync(f.fileno());dest.chmod(0o600)
+     dest=_publish_private_evidence(self.path.parent,'billing-receipts',digest+'.json',encoded)
      from .usage import token_details
      patch.update(state='settled',settled_charge_usd=cost,error_label=None,
       upstream_request_id=safe['id'],served_model=safe.get('model'),served_provider=safe.get('provider'),usage_detail=token_details(safe.get('usage',{})),
-      billing_receipt={'relative_path':str(dest.relative_to(self.path.parent)),'sha256':digest,'protocol':value['protocol'],'cost_source':'response.usage.cost'})
+      billing_receipt={'relative_path':str(dest),'sha256':digest,'protocol':value['protocol'],'cost_source':'response.usage.cost'})
      for k,src in [('input_tokens','prompt_tokens'),('output_tokens','completion_tokens')]:patch[k]=safe.get('usage',{}).get(src)
      if row.get('settled_charge_usd') not in (None,cost):patch.update(state='receipt_conflict',error_label='conflicting_receipts')
    patch.update(self.outcome_evidence(row,frames,patch))
@@ -343,8 +418,7 @@ class RunReceiptJournal(ObservedBudget):
     def locked(self, *, write=True):
         if write:
             raise RuntimeError('Run receipts are append-only')
-        with self.journal() as (rows, _):
-            yield {'calls': list(rows.values())}
+        yield {'calls': self._receipt_rows()}
 
     def snapshot(self):
         with self.locked(write=False) as state:
@@ -359,20 +433,13 @@ class IndexedRunReceiptJournal(RunReceiptJournal):
         with Projection(self.path).open(initialize=True):
             pass
 
-    def get_attempt(self, ident):
+    def _receipt_rows(self):
         with self.journal() as (rows, _):
-            return rows[ident]
+            return list(rows.values())
 
     def has_offline_generations(self):
         with self.journal() as (rows, _):
             return rows.db.execute('SELECT 1 FROM attempts WHERE offline=1 LIMIT 1').fetchone() is not None
-
-    def has_active_attempts(self, roles=None):
-        with self.journal() as (rows, _):
-            if roles is None:
-                return rows.active()
-            return any(rows.db.execute('SELECT 1 FROM attempts WHERE active=1 AND role=? LIMIT 1',
-                                       (role,)).fetchone() for role in roles)
 
     def lineage_for_requests(self, ids):
         with self.journal() as (rows, _):

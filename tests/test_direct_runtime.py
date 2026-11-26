@@ -12,6 +12,38 @@ from pacbench.direct_accounting import MODEL
 REPO=Path(__file__).resolve().parents[1]
 
 
+def test_node_eof_settlement_failure_cannot_settle_again_as_disconnect(tmp_path):
+    node = shutil.which('node')
+    if not node:
+        pytest.skip('Node unavailable')
+    script = tmp_path / 'probe.cjs'
+    script.write_text(
+        "const assert = require('node:assert/strict');\n"
+        "const settlements = [];\n"
+        "require('node:child_process').execFileSync = (_, args, opts) => {\n"
+        "  const payload = JSON.parse(opts.input);\n"
+        "  if (args.at(-1) === 'reserve') return JSON.stringify({id: 'offline', request: payload.request});\n"
+        "  if (args.at(-1) === 'settle') {\n"
+        "    settlements.push(payload.body_complete);\n"
+        "    if (payload.body_complete) throw new Error('receipt mismatch');\n"
+        "  }\n"
+        "  return '{}';\n"
+        "};\n"
+        "globalThis.fetch = async () => new Response('{}');\n"
+        f"require({json.dumps(str(REPO / 'pacbench/direct_runtime/fetch.cjs'))});\n"
+        "(async () => {\n"
+        "  const r = await fetch('https://openrouter.ai/api/v1/chat/completions', {method: 'POST', "
+        "headers: {Authorization: 'Bearer pbdirect-test'}, body: '{}'});\n"
+        "  await assert.rejects(r.text(), /receipt mismatch/);\n"
+        "  assert.deepEqual(settlements, [true]);\n"
+        "  process.exit(0);\n"
+        "})().catch(err => { console.error(err); process.exit(1); });\n")
+    env = dict(PATH=os.environ['PATH'], PACBENCH_DIRECT='1', PACBENCH_DIRECT_UPSTREAM_KEY='offline',
+               PACBENCH_DIRECT_PYTHON='offline-helper', PACBENCH_DIRECT_REPO=str(REPO))
+    result = subprocess.run([node, str(script)], env=env, cwd=tmp_path, capture_output=True, text=True, timeout=20)
+    assert result.returncode == 0, result.stderr
+
+
 @pytest.mark.parametrize('end',['interrupt','partial-tail-with-cost'])
 @pytest.mark.parametrize('malformed_choices',[False,True])
 @pytest.mark.parametrize('tracking',[False,True])

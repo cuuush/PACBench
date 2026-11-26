@@ -1,10 +1,10 @@
-"""Admit stock representation retries after an observed, settled output rejection."""
+"""Admit stock representation retries after an observed terminal output rejection."""
 from contextvars import ContextVar
 from functools import wraps
 from hashlib import sha256
 
 from .dispatch_ownership import OwnershipConflict
-from .honcho_first_answer_admission import settled
+from .honcho_first_answer_admission import usable_response
 
 _physical_send = ContextVar('honcho_week_representation_send',default=None)
 PURPOSE = 'deriver.representation'
@@ -22,7 +22,7 @@ def _rejection(row):
     """Build the exact proof a matched native parser failure is allowed to record."""
     slot = row['workflow_slot']
     evidence = row.get('response_validation', {})
-    if (not _representation(slot) or not settled(row)
+    if (not _representation(slot) or not usable_response(row, allow_truncated=True)
             or evidence.get('finish_reasons') != ['length']
             or evidence.get('tool_call_fragments') != 0):
         return None
@@ -118,7 +118,7 @@ def reserve_retry(rows,row):
                 or any(earlier[key]!=native[key] for key in claim_keys) or earlier['native_attempt']!=ordinal
                 or old.get('retry_of')!=parent or not proof or old.get('honcho_validation_rejection')!=proof
                 or old['upstream_request_id'] in generations):
-            raise OwnershipConflict('Honcho representation retry lacks a settled, unchanged native validation rejection')
+            raise OwnershipConflict('Honcho representation retry lacks an exact native validation rejection')
         generations.add(old['upstream_request_id'])
         parent=old['id']
     return prior[-1]

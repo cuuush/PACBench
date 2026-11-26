@@ -225,3 +225,201 @@ def test_peer_native_model_attempt_needs_sdk_and_owned_claim(scoped, monkeypatch
     finally:
         gate._executor.reset(ctx)
         peer._read.reset(permit)
+
+
+@pytest.fixture
+def honcho_wire_journal(tmp_path, monkeypatch):
+    from pacbench.live_dispatch import CONDITION, sender_identity
+    from pacbench.observational_receipts import RunReceiptJournal
+
+    journal = RunReceiptJournal(tmp_path/'receipts.jsonl')
+    stop = tmp_path/'STOP'
+    monkeypatch.delenv('PACBENCH_DIRECT_STOP_ON_429', raising=False)
+    monkeypatch.setenv('PACBENCH_STOP_FILE', str(stop))
+
+    def observe(identifier, wire, *, complete=True, status=200, slot=None):
+        row = dict(id=identifier, project='offline-honcho-driver', state='reserved',
+                   dispatch_execution='ambiguous', dispatch_events=[{'kind': 'possible'}],
+                   dispatch_context={'operation_id': identifier}, dispatch_owner=sender_identity(),
+                   dispatch_tracking_condition=CONDITION, accounted='0',
+                   workflow_slot=slot or {'honcho_first_answer': {'tool_rounds': []}})
+        with journal.journal() as (_, append):
+            append('prepared', identifier, row)
+        journal.settle(identifier, status, wire, body_complete=complete)
+        return journal.get_attempt(identifier)
+
+    return observe, stop
+
+
+def test_honcho_terminal_tool_decision_does_not_require_cost(honcho_wire_journal, scoped):
+    observe, stop = honcho_wire_journal
+    _, current = scoped
+    call = dict(type='function', id='tool-1', function=dict(name='honcho_reasoning', arguments='{"query":"Query"}'))
+    first_frame = dict(id='gen-tool', model=MODEL, provider='Amazon Bedrock',
+                       choices=[dict(index=0, delta=dict(tool_calls=[call]), finish_reason='tool_calls')])
+    usage_frame = dict(id='gen-tool', choices=[], usage=dict(prompt_tokens=5, completion_tokens=2))
+    wire = f'data: {json.dumps(first_frame)}\n\ndata: {json.dumps(usage_frame)}\n\ndata: [DONE]\n\n'.encode()
+    proof = {'honcho_first_answer': {**current, 'tool_rounds': []}}
+    row = observe('one', wire, complete=False, slot=proof)
+    assert row['state'] == 'receipt_missing'
+    assert not row.get('billing_receipt') and not row.get('settled_charge_usd')
+    assert not answer.settled(row)
+    assert answer.usable_response(row)
+    answer.verify_receipts({'one': row})
+    answer.check_prepared({'one': row}, {'workflow_slot': {
+        'honcho_first_answer': {**current, 'tool_rounds': [row['honcho_selected_tools']]}}})
+    assert not stop.exists()
+
+    duplicate = observe('two', wire, complete=False)
+    with pytest.raises(OwnershipConflict, match='unique usable'):
+        answer.verify_receipts({'one': row, 'two': duplicate})
+    assert json.loads(stop.read_text())['reason'] == 'honcho_unusable_or_duplicate_terminal_response'
+
+
+@pytest.mark.parametrize('failure', ['wrong-route', 'parse', 'duplicate-id', 'missing-done',
+                                    'length', 'empty', 'no-request-id', 'refused', 'non-stream-driver'])
+def test_honcho_rejects_unusable_response_with_missing_cost(honcho_wire_journal, failure):
+    observe, stop = honcho_wire_journal
+    event = dict(id='gen-final', model=MODEL, provider='Amazon Bedrock',
+                 choices=[dict(index=0, delta={'content': 'answer'}, finish_reason='stop')])
+    if failure == 'wrong-route':
+        event['provider'] = 'Other provider'
+    if failure == 'length':
+        event['choices'][0]['finish_reason'] = 'length'
+    if failure == 'empty':
+        event['choices'][0]['delta']['content'] = ' '
+    if failure == 'no-request-id':
+        del event['id']
+    wire = f'data: {json.dumps(event)}\n\n'.encode()
+    if failure == 'parse':
+        wire += b'data: broken-json\n\n'
+    if failure == 'duplicate-id':
+        wire += b'data: {"id":"gen-foreign","choices":[]}\n\n'
+    if failure != 'missing-done':
+        wire += b'data: [DONE]\n\n'
+    if failure == 'non-stream-driver':
+        wire = json.dumps(event).encode()
+    row = observe('one', wire, status=403 if failure == 'refused' else 200)
+    assert not answer.usable_response(row)
+    with pytest.raises(OwnershipConflict, match='unique usable'):
+        answer.verify_receipts({'one': row})
+    assert stop.exists()
+
+
+def test_honcho_costless_json_completion_remains_operational(honcho_wire_journal):
+    observe, stop = honcho_wire_journal
+    event = dict(id='gen-source', model=MODEL, provider='Amazon Bedrock',
+                 choices=[dict(index=0, message={'content': '{"representation":"native output"}'}, finish_reason='stop')])
+    row = observe('source', json.dumps(event).encode(), slot={'honcho_daily_release': {'sha256': 'release'}})
+    assert row['state'] == 'receipt_missing'
+    assert row['error_label'] == 'actual_cost_unknown'
+    assert 'billing_receipt' not in row and 'settled_charge_usd' not in row
+    assert answer.usable_response(row)
+    answer.verify_receipts({'source': row})
+    assert not stop.exists()
+
+
+@pytest.mark.parametrize('full_week', [False, True])
+@pytest.mark.parametrize('fault', ['success', 'startup', 'native', 'snapshot', 'billing'])
+def test_honcho_launcher_preserves_failure_and_shutdown_evidence(tmp_path, monkeypatch, full_week, fault):
+    from contextlib import nullcontext
+    from unittest.mock import Mock
+
+    from pacbench import honcho_first_answer as first, honcho_week as week_runner
+
+    campaign = tmp_path/'campaign'
+    campaign.mkdir()
+    (campaign/'execution.lock').touch()
+    plugin_home = tmp_path/'plugin-home'
+    (plugin_home/'plugins').mkdir(parents=True)
+    (plugin_home/'plugins/.install-metadata.json').write_text('{}')
+    root = campaign/(week_runner.RUN if full_week else first.RUN)/'honcho'
+    upstream = dict(id='request', state='settled', http_status=200, finished='yes',
+                    response_body_complete=True, dispatch_execution='response_ended',
+                    served_model=MODEL, served_provider='Amazon Bedrock', upstream_request_id='gen',
+                    response_validation={'finish_reasons': ['stop']}, billing_receipt={'proof': True})
+
+    primary = {
+        'startup': RuntimeError('private startup detail'),
+        'native': TimeoutError('private native detail'),
+        'snapshot': OSError('private snapshot detail'),
+        'billing': ValueError('private billing detail'),
+    }.get(fault)
+    stop = Mock(side_effect=ChildProcessError('private shutdown detail') if fault in ('startup', 'native') else None)
+    verify_cleanup = Mock(return_value=True)
+    ledger = Mock()
+    ledger.snapshot.return_value = [upstream]
+    if fault == 'snapshot':
+        ledger.snapshot.side_effect = primary
+    billing = Mock(return_value={'complete_cost_usd': '0.001'})
+    if fault in ('startup', 'native', 'billing'):
+        billing.side_effect = primary if fault == 'billing' else ValueError('private billing detail')
+    execute = Mock(side_effect=primary if fault == 'native' else None)
+
+    def start(*args, register_stop, **kwargs):
+        register_stop(stop)
+        if fault == 'startup':
+            raise primary
+
+    monkeypatch.setenv('OPENROUTER_API_KEY', 'offline')
+    for name in (first.JOURNAL, 'PACBENCH_DIRECT', 'PACBENCH_DIRECT_UPSTREAM_KEY',
+                 'PACBENCH_OFFLINE_CONFORMANCE', 'PACBENCH_JUDGE_OUTPUT_RECOVERY'):
+        monkeypatch.delenv(name, raising=False)
+    for name, value in {
+        'version': lambda _: '2.9.0',
+        'PROFILE_NAME': first.capability.PROFILE,
+        'selected': lambda: None,
+        'validate_recall_environment': lambda: None,
+        'verify_retained_catalog_provider': lambda *_: None,
+        'fetch_catalog': lambda **_: None,
+        'read_prepaid_evidence': lambda *_: ({}, b'{}', {'receipt_sha256': 'offline'}),
+        'direct_environment': lambda _: nullcontext(),
+        'client_settings': lambda _: ('offline-url', 'offline-key'),
+        'upload': lambda *_: {'sha256': 'online-source'},
+        'check_stops': lambda *_: None,
+        'cleanup_verified': verify_cleanup,
+        'receipt_summary': billing,
+        'ask': execute,
+    }.items():
+        monkeypatch.setattr(first, name, value)
+    monkeypatch.setattr(week_runner, 'answers', execute)
+    monkeypatch.setattr(first.harness, 'provision_home', lambda home, **_: (home/'plugins').mkdir(parents=True))
+    monkeypatch.setattr(first.gate, 'materialize_canonical_files', lambda *_, **__: {'path': 'file', 'sha256': 'source'})
+    monkeypatch.setattr(first.gate, 'create', lambda *_, **__: {})
+    monkeypatch.setattr(first.capability, 'budget', lambda: ledger)
+    monkeypatch.setattr(first.capability, 'load', lambda: {
+        'projects': {'honcho': {'driver': 'driver', 'memory': 'memory'}}, 'plan': [{'source_ids': ['message']}]})
+    monkeypatch.setattr('provider_adapters.honcho_local.start', start)
+
+    if primary is None:
+        expected = 'stock-week-answers-complete' if full_week else 'stock-first-answer-qualified'
+        assert first.run(campaign, tmp_path, plugin_home, full_week=full_week)['state'] == expected
+    else:
+        with pytest.raises(type(primary)) as observed:
+            first.run(campaign, tmp_path, plugin_home, full_week=full_week)
+        assert observed.value is primary
+    result = json.loads((root/'result.json').read_text())
+    assert result['cleanup'] == 'owned-services-stopped'
+    assert 'private' not in json.dumps(result)
+    stop.assert_called_once()
+    verify_cleanup.assert_called_once_with(root)
+    ledger.snapshot.assert_called_once()
+    if fault == 'startup':
+        execute.assert_not_called()
+    else:
+        execute.assert_called_once()
+    if fault == 'snapshot':
+        billing.assert_not_called()
+    else:
+        billing.assert_called_once_with(root, [upstream], root.parent.name)
+    if primary is not None:
+        stage = {'startup': 'native_start', 'native': 'native_execution',
+                 'snapshot': 'receipt_snapshot', 'billing': 'receipt_summary'}[fault]
+        assert result['state'] == 'incomplete'
+        assert result['failure_type'] == type(primary).__name__
+        assert result['failure_stage'] == stage
+    if fault in ('startup', 'native'):
+        assert result['secondary_failures'] == [
+            {'stage': 'native_shutdown', 'failure_type': 'ChildProcessError'},
+            {'stage': 'receipt_summary', 'failure_type': 'ValueError'},
+        ]

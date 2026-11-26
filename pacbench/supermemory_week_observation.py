@@ -98,6 +98,8 @@ def wait_for_batch_processing(client, namespace, documents, acknowledgements, *,
 def read_release_processing(client, namespace, documents, *, deadline, other_ids=(),
                             before_read=None, native_readback=None, on_rejection=None):
     """Read processing state and content for one exact release without doing an add."""
+    from supermemory import APITimeoutError
+
     expected = {doc.filename: doc for doc in documents}
     if (not namespace or not expected or len(expected) != len(documents)
             or len({doc.cutoff for doc in documents}) != 1
@@ -111,7 +113,11 @@ def read_release_processing(client, namespace, documents, *, deadline, other_ids
                 continue
             if before_read is not None:
                 before_read()
-            row = _wire(client.documents.get(namespace, ident, request_options=_options(deadline)))
+            try:
+                response = client.documents.get(namespace, ident, request_options=_options(deadline))
+            except APITimeoutError:
+                continue  # Only retry this observation within the release deadline.
+            row = _wire(response)
             _options(deadline)
             if row['id'] != ident:
                 raise ValueError(f'foreign Supermemory document readback for {ident}')

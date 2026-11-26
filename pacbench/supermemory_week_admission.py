@@ -270,7 +270,7 @@ class WeekJournal(RunReceiptJournal):
             from .workflow_capability import load
 
             try:
-                row = next(r for r in self.snapshot() if r['id'] == identifier)
+                row = self.get_attempt(identifier)
                 scope = {key: val for key, val in row['workflow_slot'].items() if key != 'worker_round'}
                 if scope != memory_slot(load()) or sender != process_identity(os.getppid()):
                     raise OwnershipConflict('Supermemory native worker changed before dispatch')

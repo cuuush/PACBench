@@ -533,10 +533,18 @@ def run_current_week(condition, account, directory, *, judge=None, canary=False,
     if seven_daily_documents:
         from .workflow_daily_documents import compile_daily_week
 
-        if (account.evidence_kind != 'recording-fake' or canary or condition.track != 'nightly-document'
+        if (canary or condition.track != 'nightly-document'
                 or condition.state != 'continuing-account' or set(condition.channels) != {'email', 'imessage'}):
-            raise ValueError('seven daily files conformance requires the complete offline document condition')
+            raise ValueError('seven daily files require the complete continuing-account document condition')
+        native_daily = account.evidence_kind != 'recording-fake'
+        if native_daily and (account.evidence_kind != 'native' or condition.provider != 'supermemory'
+                             or resume or judge is not None):
+            raise ValueError('native seven daily files require a fresh qualified stock Supermemory Week without grading')
         spec, docs, turns, source_basis, daily_manifest = compile_daily_week()
+        if native_daily:
+            from .supermemory_week import verify_daily_execution
+
+            verify_daily_execution(condition, account, directory, docs, source_basis, daily_manifest)
     else:
         spec, docs, turns, source_basis = compile_week(condition.state)
     all_source_documents = docs

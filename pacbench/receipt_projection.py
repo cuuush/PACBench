@@ -6,6 +6,7 @@ import json
 import os
 from pathlib import Path
 import sqlite3
+import stat
 
 
 def account_refused(row):
@@ -38,8 +39,12 @@ CREATE INDEX IF NOT EXISTS offline ON attempts(offline) WHERE offline=1;
 
 
 class IndexedAttempts:
-    def __init__(self, db):
+    def __init__(self, db, *, strict=True):
         self.db = db
+        self.strict = strict
+
+    def __len__(self):
+        return self.db.execute('SELECT COUNT(*) FROM attempts').fetchone()[0]
 
     def __getitem__(self, ident):
         row = self.db.execute('SELECT payload FROM attempts WHERE id=?',(ident,)).fetchone()
@@ -55,9 +60,12 @@ class IndexedAttempts:
         return self.db.execute('SELECT 1 FROM attempts WHERE refused=1 LIMIT 1').fetchone() is not None
 
     def previous(self, project, operation):
-        return [json.loads(r[0]) for r in self.db.execute(
-            'SELECT payload FROM attempts WHERE project=? AND operation=? ORDER BY rowid LIMIT 3',
-            (project, operation))]
+        # Three attempts exhaust ordinary retry admission. Retain the actual
+        # last attempt for scope-specific checks that bind the predecessor.
+        latest = self.db.execute(
+            'SELECT payload FROM attempts WHERE project=? AND operation=? ORDER BY rowid DESC LIMIT 3',
+            (project, operation)).fetchall()
+        return [json.loads(row[0]) for row in reversed(latest)]
 
     def active(self):
         return self.db.execute('SELECT 1 FROM attempts WHERE active=1 LIMIT 1').fetchone() is not None
@@ -68,7 +76,7 @@ class IndexedAttempts:
             row = event['row']
             if row['id'] != ident:
                 raise ValueError('Prepared receipt identity differs')
-        elif event['kind'] in ('dispatch','response','outcome','classification'):
+        elif not self.strict or event['kind'] in ('dispatch','response','outcome','classification'):
             row = self[ident]
             row.update(event['patch'])
             if row['id'] != ident:
@@ -107,31 +115,60 @@ class Projection:
         self.path = Path(path)
         self.index = self.path.with_suffix('.index.sqlite3')
 
+    def require_complete(self):
+        """Check for an unfinished append while the caller holds the journal lock."""
+        try:
+            info = self.index.lstat()
+        except FileNotFoundError:
+            return
+        if not stat.S_ISREG(info.st_mode) or info.st_nlink != 1:
+            raise ValueError('Refusing a linked or non-regular receipt projection')
+        uri = self.index.absolute().as_uri() + '?mode=ro'
+        try:
+            with closing(sqlite3.connect(uri, uri=True)) as db:
+                pending = db.execute('SELECT pending IS NOT NULL FROM cursor WHERE id=1').fetchone()
+        except sqlite3.Error as exc:
+            raise ValueError('Cannot verify that the receipt journal has a complete append') from exc
+        if pending and pending[0]:
+            raise ValueError('Receipt journal has an unfinished append awaiting recovery')
+
     @contextmanager
-    def open(self, *, initialize=False):
+    def open(self, *, initialize=False, strict=True):
         # Keep the JSONL authoritative even if its companion is lost. A missing
         # populated journal can never be silently replaced under an existing index.
         flags = os.O_RDWR | os.O_APPEND | os.O_NOFOLLOW
-        if not self.index.exists():
+        if not os.path.lexists(self.index):
             flags |= os.O_CREAT
         with os.fdopen(os.open(self.path, flags, 0o600), 'r+b', buffering=0) as journal:
             fcntl.flock(journal, fcntl.LOCK_EX)
-            if self.index.is_symlink():
-                raise ValueError('Refusing symlinked receipt projection')
+            # Create the private cache before SQLite can create it with the
+            # process umask. SQLite inherits these permissions for its journal.
+            index_flags = os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW
+            try:
+                os.close(os.open(self.index, index_flags, 0o600))
+            except FileExistsError:
+                info = self.index.lstat()
+                if not stat.S_ISREG(info.st_mode) or info.st_nlink != 1:
+                    raise ValueError('Refusing a linked or non-regular receipt projection')
+                if stat.S_IMODE(info.st_mode) != 0o600:
+                    self.index.chmod(0o600)
             with closing(sqlite3.connect(self.index)) as db:
-                if os.stat(self.index).st_mode & 0o077:
-                    os.chmod(self.index, 0o600)
                 db.execute('PRAGMA synchronous=FULL')
                 if db.execute('PRAGMA journal_mode').fetchone()[0] != 'delete':
                     raise ValueError('Unexpected receipt projection journal mode')
                 version = db.execute('PRAGMA user_version').fetchone()[0]
+                # Existing MemCal projections use the default application ID.
+                # Keep generic legacy patch handling off those projections.
+                application_id = 0 if strict else 1
                 if not version:
                     if db.execute("SELECT 1 FROM sqlite_schema WHERE type='table' LIMIT 1").fetchone():
                         raise ValueError('Unrecognized receipt projection')
-                    db.executescript('BEGIN;'+SCHEMA+'PRAGMA user_version=1; COMMIT;')
+                    db.executescript('BEGIN;'+SCHEMA+f'PRAGMA application_id={application_id}; PRAGMA user_version=1; COMMIT;')
                 elif version != 1:
                     raise ValueError('Unsupported receipt projection version')
-                rows = IndexedAttempts(db)
+                if db.execute('PRAGMA application_id').fetchone()[0] != application_id:
+                    raise ValueError('Receipt projection belongs to a different journal protocol')
+                rows = IndexedAttempts(db, strict=strict)
                 cursor = db.execute('SELECT device,inode,end,mtime_ns,ctime_ns,tail_hash,change_counter,pending FROM cursor WHERE id=1').fetchone()
                 if cursor is None:
                     if os.fstat(journal.fileno()).st_mode & 0o777 != 0o600:
@@ -141,9 +178,9 @@ class Projection:
                     if os.fstat(journal.fileno()).st_size and not initialize:
                         raise ValueError('Initialize the existing receipt journal before dispatch')
                     next_counter = (_change_counter(self.index)+1) % (2**32)
-                    with db:
+                    with db, open(journal.fileno(), 'rb', closefd=False) as stream:
                         journal.seek(0)
-                        for line in journal:
+                        for line in stream:
                             if not line.endswith(b'\n'):
                                 raise ValueError('Incomplete event in existing receipt journal')
                             if line.strip():

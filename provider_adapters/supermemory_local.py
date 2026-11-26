@@ -4,11 +4,13 @@ import atexit
 import json
 import os
 import re
+import signal
 import socket
 import subprocess
 import time
 import urllib.request
 from pathlib import Path
+from uuid import uuid4
 from pacbench.followups import save
 from pacbench.gateway_client import validate_route
 
@@ -29,7 +31,7 @@ def plan_config(root, model, base, key, *, port):
 
 def start(root, env, model, base, key, *, resume=False):
     validate_route(base, key)
-    from pacbench.import_lifecycle import scan,cleanup
+    from pacbench.import_lifecycle import OWNER, cleanup, scan
     if scan(root,'supermemory-start-inspection')[0]:raise RuntimeError('Previous run-owned Supermemory processes are still alive')
     runtime=Path(__file__).resolve().parents[1]/'vendor/supermemory-local'
     binary=runtime/'supermemory-server-linux-x64'
@@ -63,27 +65,109 @@ def start(root, env, model, base, key, *, resume=False):
     endpoint=f'http://127.0.0.1:{port}'
     # Only local embeddings and the shared spending gateway. Do not inherit
     # alternative LLM providers from the host or use a hosted Supermemory key.
-    child={**os.environ, **env, **plan_config(root,model,base,key,port=port)}
+    owner = uuid4().hex
+    child={**os.environ, **env, **plan_config(root,model,base,key,port=port), OWNER:owner}
     for name in ('ANTHROPIC_API_KEY','GEMINI_API_KEY','GROQ_API_KEY','WORKERS_AI_API_KEY',
                  'CLOUDFLARE_ACCOUNT_ID','GOOGLE_VERTEX_PROJECT_ID','GOOGLE_VERTEX_LOCATION',
                  'SUPERMEMORY_API_KEY','SUPERMEMORY_BASE_URL'):
         child.pop(name,None)
     log_path=root/'supermemory-server.private.log'
     log_offset=log_path.stat().st_size if log_path.exists() else 0
-    log=log_path.open('ab');os.chmod(log_path,0o600)
-    process=subprocess.Popen([str(binary)],cwd=root,env=child,stdin=subprocess.DEVNULL,
-                             stdout=log,stderr=log);log.close()
+    process = None
+    owned = ()
+    verified = None
+    recorded = False
+    errors = []
+
     def stop():
-        if stock_source:
-            atexit.unregister(stop)
-        owned,_=scan(root,'supermemory-native-stop')
-        if process.poll() is None:
-            process.terminate()
-            try:process.wait(timeout=15)
-            except subprocess.TimeoutExpired:process.kill();process.wait(timeout=5)
-        stopped=cleanup(root,'supermemory-native-stop',known=owned)
-        save(root/'native-service-stop.json',stopped)
-    atexit.register(stop)
+        nonlocal owned, verified, recorded
+        if recorded:
+            return
+        primary = None
+
+        def failed(stage, error):
+            nonlocal primary
+            errors.append({'stage': stage, 'failure_type': type(error).__name__})
+            if primary is None:
+                primary = error
+            else:
+                primary.add_note(f'Additional Supermemory shutdown failure in {stage}: {type(error).__name__}')
+
+        if verified is None:
+            try:
+                found, _ = scan(root, owner, known=owned)
+                owned = found
+            except BaseException as error:
+                failed('process_inventory', error)
+            try:
+                _stop_group(process)
+            except BaseException as error:
+                failed('process_group', error)
+            stopped = {'state': 'cleanup-unverified'}
+            try:
+                stopped = cleanup(root, owner, known=owned)
+            except BaseException as error:
+                failed('process_cleanup', error)
+            if stopped['state'] == 'verified-inventory-stopped' and process.poll() is None:
+                stopped['state'] = 'cleanup-unverified'
+                failed('process_group', RuntimeError('Owned Supermemory process is still running'))
+            if stopped['state'] == 'verified-inventory-stopped':
+                verified = stopped
+        else:
+            stopped = verified
+
+        if errors:
+            stopped['shutdown_errors'] = list(errors)
+        try:
+            save(root/'native-service-stop.json', stopped)
+        except BaseException as error:
+            failed('receipt_write', error)
+        else:
+            if verified is not None:
+                recorded = True
+                atexit.unregister(stop)
+        if primary is not None:
+            raise primary
+
+    try:
+        with log_path.open('ab') as log:
+            os.chmod(log_path, 0o600)
+            process = subprocess.Popen([str(binary)], cwd=root, env=child, stdin=subprocess.DEVNULL,
+                                       stdout=log, stderr=log, start_new_session=True)
+            atexit.register(stop)
+        _configure_started(root, env, model, resume, runtime, log_path, log_offset, endpoint, port,
+                           namespace, stock_source, process)
+    except BaseException as error:
+        if process is not None:
+            try:
+                stop()
+            except BaseException as shutdown_error:
+                error.add_note(f'Supermemory shutdown during startup failed: {type(shutdown_error).__name__}')
+        raise
+    return stop
+
+
+def _stop_group(process):
+    # A live direct child keeps this session-leader PID from being reused until
+    # we reap it. After reaping, process inventory uses captured start ticks.
+    if process.poll() is not None:
+        return
+    try:
+        os.killpg(process.pid, signal.SIGTERM)
+    except ProcessLookupError:
+        pass
+    try:
+        process.wait(timeout=15)
+    except subprocess.TimeoutExpired:
+        try:
+            os.killpg(process.pid, signal.SIGKILL)
+        except ProcessLookupError:
+            pass
+        process.wait(timeout=5)
+
+
+def _configure_started(root, env, model, resume, runtime, log_path, log_offset, endpoint, port,
+                       namespace, stock_source, process):
     deadline=time.monotonic()+300
     native_key=None
     while time.monotonic()<deadline and process.poll() is None:
@@ -124,7 +208,7 @@ def start(root, env, model, base, key, *, resume=False):
         'reason':'Each document already contains a complete nightly batch; do not defer it for dynamic cross-document grouping',
         'native_default':'dynamic','model_processing_overrides':False}))
     if not native_key:
-        stop();raise RuntimeError('Supermemory startup did not produce its native API key; inspect private log')
+        raise RuntimeError('Supermemory startup did not produce its native API key; inspect private log')
     # README manual endpoint first, then the key emitted by real first boot.
     save(root/'hermes-home/supermemory.json',{'base_url':endpoint,'container_tag':namespace})
     from pacbench.prefetch_provenance import VERSION
@@ -133,4 +217,3 @@ def start(root, env, model, base, key, *, resume=False):
     save(root/'prefetch-provenance.json',declaration)
     env['PACBENCH_PREFETCH_PROVENANCE']=json.dumps(declaration)
     env.update(SUPERMEMORY_BASE_URL=endpoint,SUPERMEMORY_API_KEY=native_key)
-    return stop

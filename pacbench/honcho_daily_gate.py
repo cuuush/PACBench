@@ -493,7 +493,7 @@ def _check_release(root, scope, native, *, complete=False):
 
 def _successful(scope, row, release, queue_id):
     from .live_dispatch import operation_id
-    from .honcho_first_answer_admission import settled
+    from .honcho_first_answer_admission import usable_response
 
     slot = row.get('workflow_slot', {})
     return (row.get('workflow_root') == scope['root'] and row.get('project') == scope['projects']['honcho']['memory']
@@ -502,7 +502,7 @@ def _successful(scope, row, release, queue_id):
             and row.get('honcho_daily_attempt', {}).get('queue_id') == queue_id
             and row.get('dispatch_context', {}).get('operation_id') == operation_id(row)
             and row.get('dispatch_execution') == 'response_ended' and row.get('http_status') == 200
-            and bool(row.get('finished')) and (not chat_enabled(scope) or settled(row)))
+            and bool(row.get('finished')) and (not chat_enabled(scope) or usable_response(row)))
 
 
 def _source_completion(scope, rows, release, queue_id):

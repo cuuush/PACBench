@@ -52,29 +52,40 @@ def main(argv=None):
     if daily_manifest is not None:
         result.update(source_layout=daily_manifest['source_layout'],
                       document_index_sha256=daily_manifest['normalized_index_sha256'])
-    if args.action == 'conform':
-        args.output.mkdir(parents=True,mode=0o700,exist_ok=False)
+    output_created = False
+    performed_work = False
     for provider in ([args.provider] if args.provider else PROVIDERS):
         row = eligibility(provider,args.track)
         result['providers'][provider] = row
         covered = tuple(c for c in BOTH if c not in row['missing_channels'])
-        if args.action == 'plan' or not covered:
+        if args.action == 'plan':
             continue
+        if not covered:
+            row.update(result='conformance-unavailable', recorded_files=0, offline_recorded_turns=0,
+                       reason=f'No documented {args.track} route for the generic offline conformance workflow. '
+                              + row['boundary'])
+            continue
+        if not output_created:
+            args.output.mkdir(parents=True,mode=0o700,exist_ok=False)
+            output_created = True
         condition = Condition(provider,args.track,args.state,'recording frontend','recording sentinel',
                               'in-process','offline recording fake',PROVIDERS[provider].reviewed_version,
                               'no Hermes process','synthetic event clock',(),covered)
-        scoped = [d for d in docs if d.channel in covered]
+        scoped = docs if daily_manifest is not None else [d for d in docs if d.channel in covered]
         account = RecordingAccount(condition,scoped)
         try:
             scores = run_current_week(condition, account, args.output/provider,
                                       seven_daily_documents=args.seven_daily_documents)
-            row.update(offline_recorded_turns=sum(r['answered'] for r in scores.values()),
-                       recorded_files=len(account.files),
-                       result='offline-conformance' if covered==BOTH else 'channel-only import conformance')
+            row.update(offline_recorded_turns=sum(r['answered'] for r in scores.values()), recorded_files=len(account.files))
+            if row['recorded_files'] or row['offline_recorded_turns']:
+                row['result'] = 'offline-conformance' if covered == BOTH else 'channel-only import conformance'
+                performed_work = True
+            else:
+                row.update(result='conformance-unavailable', reason='Conformance recorded no source files or turns.')
         finally:
             account.close()
     print(json.dumps(result,indent=2))
-    return 0
+    return 2 if args.action == 'conform' and not performed_work else 0
 
 
 def sum_claims(turns):

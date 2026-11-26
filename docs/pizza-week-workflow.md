@@ -60,12 +60,24 @@ The seven-document conformance option asks the complete 49-turn schedule
 through the authored 31 chats on one account. It verifies native request
 shapes through recording fixtures for the supported generic upload adapters.
 Provider-specific launchers retain their own source, process, and admission
-requirements. MemCal's real Messages and Mail acquisition is a distinct
-connector condition.
+requirements. Honcho's native session file upload uses the specialized
+`pacbench.honcho_week` launcher. MemCal's real Messages and Mail acquisition is
+a distinct connector condition.
 
-Add `--provider` to exercise one declaration. Recording fakes call the submission adapters and read back the submitted data. Fake connectors expose successive synthetic source prefixes at a cursor. The offline answer is a sentinel and receives no semantic grade. Prompt caching and paid costs were unmeasured.
+Add `--provider` to exercise one declaration. An unsupported selection
+reports why generic conformance is unavailable and exits with status 2.
+Connector routes that cover one channel can still record imports with zero
+answered turns. Recording fakes call the submission adapters and read back
+the submitted data. Fake connectors expose successive synthetic source
+prefixes at a cursor. The offline answer is a sentinel and receives no
+semantic grade. Prompt caching and paid costs were unmeasured.
 
 For a provisioned synthetic deployment, [run_current_week](../pacbench/workflow_runner.py) accepts a declared condition, a bound account, a new evidence directory and an optional judge callable that records transport-backed attempts under the run’s `model-calls/` directory. [NativeAccount and WarmHermes](../pacbench/workflow_native.py) adapt the native uploader or source reader and normal CLI session. The native condition pins the offered Hermes tool catalog for each reviewed provider version. Every answer request must retain the approved model and route. The installer must bind native acceptance, completion and inventory inspection, connector grants/cursors, open-session idle and chat-end write readback, model route and retry lineage. Isolated copies additionally need a native readback of zero prior chats and conversational writes. Gmail routes need working official sync implementations supplied by the deployment. The offline CLI provisions none of these. A missing binding or failed proof leaves an arm unqualified.
+
+The stock Supermemory launcher uses this runner for its seven-document Week.
+The native path requires the launcher's stock account, owned gateway, campaign
+lock, and exact bound seven-document scope. It captures answers for separate
+grading. Earlier per-thread admissions retain their original source contract.
 
 ## Audit closure and verification boundaries
 
@@ -265,10 +277,11 @@ services; they do not establish new live readiness or change saved grades.
 
 The saved-answer overlay compares coverage and scores inside a shared source,
 release, question, session, and model condition. A retained single-chat Honcho
-Week belongs to its own comparison group. The `honcho_week` launcher has a
-separately named `--session-layout authored-chats` condition. It keeps one
-warm gateway and binds each fresh chat and continuation to the frozen
-schedule, including independent native close observations.
+Week belongs to its own comparison group. New `honcho_week` launches default
+to the 31 authored chats. The launcher keeps one warm gateway and binds each
+fresh chat and continuation to the frozen schedule, including independent
+native close observations. Select `--session-layout single-chat` to launch the
+historical condition with its original run naming and protocol.
 
 A recorded response journal using `pacbench-regrade-response-journal-v2`
 preserves a valid request/receipt pair with malformed model text as an

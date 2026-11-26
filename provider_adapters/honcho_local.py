@@ -160,7 +160,8 @@ def child_environment(inherited, env, overrides, model):
         child.pop('DERIVER_MODEL_CONFIG__MAX_OUTPUT_TOKENS', None)
     return child
 
-def start(root,env,model,base,key,*,resume=False,simulated_at=None,checkpoint=None,daily_documents=False):
+def start(root,env,model,base,key,*,resume=False,simulated_at=None,checkpoint=None,daily_documents=False,
+          register_stop=None):
     check_operator_condition(root)
     peer_key = None
     if daily_documents:
@@ -236,11 +237,6 @@ def start(root,env,model,base,key,*,resume=False,simulated_at=None,checkpoint=No
         *(['--entrypoint','/bin/sh'] if resume else []),PGVECTOR_IMAGE,
         *(['-c','test -f "$PGDATA/PG_VERSION" && exec /usr/local/bin/docker-entrypoint.sh postgres'] if resume else [])],
         env=docker_env,capture_output=True,text=True,timeout=60)
-    if proc.returncode == 0:
-        save(root/'native-container-ownership.json',{'container_id':proc.stdout.strip(),
-            'run_root':str(root.resolve()),'data_bind_mount':str(dbdir.resolve()),
-            'label_root':os.environ.get('PACBENCH_IMPORT_ROOT',str(root.resolve())),
-            'preserve_data_on_stop':True})
     owned_container_id=proc.stdout.strip() if proc.returncode == 0 else None
     processes=[]
     def stop():
@@ -259,7 +255,15 @@ def start(root,env,model,base,key,*,resume=False,simulated_at=None,checkpoint=No
                     any(m.get('Type')=='bind' and m.get('Source')==str(dbdir.resolve())
                         for m in rows[0].get('Mounts',[]))):
                     subprocess.run([*docker,'stop',owned_container_id],env=docker_env,capture_output=True,timeout=30)
-    atexit.register(stop)
+    if register_stop is None:
+        atexit.register(stop)
+    else:
+        register_stop(stop)
+    if proc.returncode == 0:
+        save(root/'native-container-ownership.json',{'container_id':proc.stdout.strip(),
+            'run_root':str(root.resolve()),'data_bind_mount':str(dbdir.resolve()),
+            'label_root':os.environ.get('PACBENCH_IMPORT_ROOT',str(root.resolve())),
+            'preserve_data_on_stop':True})
     if proc.returncode:raise RuntimeError('Honcho local database startup failed: '+proc.stderr)
     child=child_environment(os.environ,env,plan_config(root,model,base,key,db_port=db_port),model)
     for k in ('LLM_ANTHROPIC_API_KEY','LLM_GEMINI_API_KEY','ANTHROPIC_API_KEY','GEMINI_API_KEY'):
@@ -425,7 +429,8 @@ print(json.dumps({'native_defaults_verified':deriver_limit is None and deriver_t
         try:
             register(root, name, endpoint, native_processes)
         except Exception:
-            stop()
+            if register_stop is None:
+                stop()
             raise
     workspace = checkpoint['workspace'] if checkpoint else 'pacbench-'+identity
     save(root/'hermes-home/honcho.json',{'baseUrl':endpoint,'hosts':{'hermes':{
@@ -437,7 +442,8 @@ print(json.dumps({'native_defaults_verified':deriver_limit is None and deriver_t
         try:
             register(root.resolve(), native_processes['deriver'].pid,api_pid=native_processes['api'].pid,api_url=endpoint)
         except Exception:
-            stop()
+            if register_stop is None:
+                stop()
             raise
     env['PACBENCH_HONCHO_TRACE_FILE']=str(root/'honcho-reasoning-traces.jsonl')
     env.update(HONCHO_BASE_URL=endpoint,HONCHO_API_KEY='',HONCHO_WORKSPACE=workspace)

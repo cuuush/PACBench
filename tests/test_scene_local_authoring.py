@@ -2,7 +2,6 @@
 import copy
 import json
 import re
-import subprocess
 from dataclasses import replace
 from datetime import datetime
 from email import policy
@@ -15,7 +14,7 @@ import pytest
 from pacbench.corpus.authoring import (AuthoringError, ScenePlan, build_scene_observations,
     judge_scene, realize_scene, scene_prompt, scene_spec)
 from pacbench.corpus.prepare import (WEEKDAYS, normalize_week, realization_binding, resolve_spec, reuse_realization)
-from pacbench.followups import save
+from pacbench.followups import digest, save
 from pacbench.corpus.audit import audit_scenes
 
 
@@ -381,12 +380,24 @@ def test_visible_names_are_not_linked_by_nickname_evidence(tmp_path):
 
 
 def test_latest_refinement_preserves_all_questions_messages_and_clean_timing(tmp_path):
-    old=json.loads(subprocess.check_output(['git','show','51b2d8d:specs/pizza_week_assistant.json'],text=True))
-    new=json.loads(Path('specs/pizza_week_assistant.json').read_text())
-    def scenes(spec):return {r['id']:r for w in spec['weeks'] for d in w.values() for r in d.get('scenes',[])}
-    for key,r in scenes(old).items():
-        revised=scenes(new)[key]
-        assert r.get('messages')==revised.get('messages')
-        assert r.get('time')==revised.get('time')
-        assert r.get('message_range')==revised.get('message_range')
-    assert resolve_spec(old,tmp_path)[2]['checks']==resolve_spec(new,tmp_path)[2]['checks']
+    # Fingerprints from specs/pizza_week_assistant.json at 51b2d8dda35c2a96c0b163d0a144d3609c6983dd.
+    retained_ids = '''
+        draft-only preference-old namesake-reed visit-plan games-standing workshop-plan
+        jen-open appointments lunch-invite evening-control ben-original neighbors-start
+        leo-delayed studio-clarifies lunch-time lunch-relay lunch-venue jen-answer hall-expansion
+        tickets-invite namesake-chen roster-addition leo-withdraws ben-replaces fresh-time-old-quote
+        jen-delivery preference-correction concert-revealed concert-companion link-neighbor
+        unrelated-pizza personal-commitment jen-matinee-invite complete-roster ben-declined
+        ben-distinct-mail attendance-evidence game-context link-arrives date-history neighbors-new-speaker
+        proofreading-done visit-excursion low-priority-real-update old-preference-quote
+        jen-matinee-followup neighbors-later visit-end-change series-ends small-future-plan
+        future-pizza pending-invite quiet-chatter
+    '''.split()
+    spec_path = Path(__file__).resolve().parents[1] / 'specs/pizza_week_assistant.json'
+    spec = json.loads(spec_path.read_text())
+    scenes = {scene['id']: scene for week in spec['weeks'] for day in week.values()
+              for scene in day.get('scenes', [])}
+    retained = {scene_id: {field: scenes[scene_id].get(field) for field in ('messages', 'time', 'message_range')}
+                for scene_id in retained_ids}
+    assert digest(retained) == '9adb7870453df887b00a299f3a58a9bf8f0e0cf59fd3e5727997183c1b8d5e16'
+    assert digest(resolve_spec(spec, tmp_path)[2]['checks']) == '11faf03e1ad9a1ec949c01d771eae41f58ed845cbb2463dc6202a3ced05cc54d'

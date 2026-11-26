@@ -30,7 +30,14 @@ old={'id':'old','project':'old','state':'uncertain','accounted':'19.4'}
 params=catalog_parameters({'data':{'id':MODEL,'endpoints':[{'model_id':MODEL,'tag':ENDPOINT,'quantization':'unknown','service_tier':None,'context_length':1050000,'max_completion_tokens':128000,'supported_parameters':['tools','tool_choice','response_format'],'pricing':{'prompt':'0.0000001','completion':'0.0000005','input_cache_write':'0.000000125','web_search':'0.01','overrides':[{'min_prompt_tokens':272000,'prompt':'0.0000002','completion':'0.00000075','input_cache_write':'0.00000025'}]}}]}})
 register(params,'Explicit unit-test authorization',state_dir=p)
 b=DirectBudget(p/'ledger.json');r=b.reserve('unit-memory',{'model':MODEL,'messages':[]})
-assert b.snapshot()[0]=={**old,'accounted_upper_bound_usd':19.4}
+assert b.snapshot()[0]=={
+    **old,'accounted_upper_bound_usd':19.4,
+    'financials':{
+        'settled_charge_usd':None,'outstanding_reservation_usd':'0',
+        'unresolved_charge_ceiling_usd':'19.4','external_allocation_usd':'0',
+        'exposure_usd':'19.4','reservation_ceiling_usd':None,'charge_evidence':'unknown',
+    },
+}
 assert r['request']['provider']['only']==[ENDPOINT]
 try:b.reserve('another-memory',{'model':MODEL,'messages':[]})
 except RuntimeError as e:assert 'spending cap' in str(e)
@@ -40,7 +47,7 @@ except RuntimeError as e:assert 'import-only' in str(e)
 else:raise AssertionError('Benchmark scope was broadened')
 b.settle(r['id'],200,json.dumps({'model':MODEL,'usage':{'cost':'0.1','prompt_tokens':1,'completion_tokens':2},'choices':[]}).encode())
 try:b.reserve('full-memory',{'model':MODEL,'messages':[]})
-except RuntimeError:pass
+except RuntimeError as e:assert 'spending cap' in str(e)
 else:raise AssertionError('Full request cannot fit remaining headroom')
 capped=b.reserve('capped-memory',{'model':MODEL,'messages':[],'max_tokens':12000})
 print(json.dumps({'params':params,'bound':b.snapshot()[1]['reserved'],'capped_bound':b.snapshot()[-1]['reserved'],'old_preserved':json.loads((p/'ledger.json').read_text())['calls'][0]==old}))

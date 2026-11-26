@@ -1,5 +1,6 @@
 """Mixed routes exercise real reservations and client hooks against fake responses."""
 import json
+import os
 from concurrent.futures import ThreadPoolExecutor
 from decimal import Decimal
 from pathlib import Path
@@ -151,26 +152,57 @@ def test_cohort_limit_coordinates_roles_and_cannot_change_midrun(split,monkeypat
     assert len(json.loads(path.read_text())['calls'])==2
 
 
-def test_frozen_week_all333_targets_have_chronological_source_gates(tmp_path):
-    from pacbench.native_pilot import read_prepared
-    from pacbench.corpus.evaluation import load_evaluations
-    from pacbench.document_ingestion import prepare_sources,ready_sources,validate_evaluation_clocks
+def check_chronological_source_gates(messages, schedule, question_times, timezone):
+    from pacbench.document_ingestion import ready_sources, validate_evaluation_clocks
     from pacbench.providers import ACTIVE_PROVIDERS
     from datetime import datetime
-    source=Path(__file__).resolve().parents[1]/'artifacts/pizza-week-hybrid-stream-v7-20261113'
-    messages,contract,resolved=read_prepared(source,150)
-    plan,checks=load_evaluations(source,messages,resolved)
-    schedule=prepare_sources(tmp_path,messages,resolved['timezone'])
-    assert len(checks)==37 and len(ACTIVE_PROVIDERS)==9 and len(messages)==125
-    validate_evaluation_clocks(schedule,ACTIVE_PROVIDERS,[x['at'] for x,c,p in checks],resolved['timezone'],chronological=True)
+    timelines = validate_evaluation_clocks(schedule, ACTIVE_PROVIDERS, question_times, timezone, chronological=True)
     for provider in ACTIVE_PROVIDERS:
-        prior=set()
-        for row,c,p in checks:
-            visible={i for b in ready_sources(schedule,provider,row['at'],resolved['timezone']) for i in b['source_ids']}
-            assert prior<=visible
-            assert all(datetime.fromisoformat(m['collected_at'])<=datetime.fromisoformat(row['at']) for m in messages if m['source_id'] in visible)
-            prior=visible
-        assert len(prior)==125
+        prior = set()
+        for question_at in question_times:
+            ready = ready_sources(schedule, provider, question_at, timezone)
+            assert ready == timelines[provider].ready(question_at)
+            visible = {source_id for batch in ready for source_id in batch['source_ids']}
+            assert prior <= visible
+            assert all(datetime.fromisoformat(m['collected_at']) <= datetime.fromisoformat(question_at)
+                       for m in messages if m['source_id'] in visible)
+            prior = visible
+        assert prior == {message['source_id'] for message in messages}
+
+
+def test_checked_in_corpus_has_chronological_source_gates(tmp_path):
+    from pacbench.corpus.audit import open_prepared
+    from pacbench.document_ingestion import prepare_sources, ready_sources
+    from pacbench.providers import ACTIVE_PROVIDERS
+
+    source = Path(__file__).resolve().parents[1] / 'runs/bike-pickup-native-clock-20261105/preparation'
+    with open_prepared(source, portable=True) as corpus:
+        messages, timezone = corpus.messages, corpus.resolved['timezone']
+        question_times = [row['at'] for row, _, _ in corpus.questions]
+    schedule = prepare_sources(tmp_path, messages, timezone)
+    early_check = '2026-10-20T03:00:00-04:00'
+    midway = '2026-10-20T11:00:00-04:00'
+    check_chronological_source_gates(messages, schedule, [early_check, *question_times], timezone)
+    for provider in ACTIVE_PROVIDERS:
+        assert ready_sources(schedule, provider, early_check, timezone) == schedule[:1]
+        with pytest.raises(ValueError, match='precedes native processing'):
+            ready_sources(schedule, provider, midway, timezone)
+
+
+def test_frozen_week_all333_targets_have_chronological_source_gates(tmp_path):
+    from pacbench.corpus.audit import open_prepared
+    from pacbench.document_ingestion import prepare_sources
+    from pacbench.providers import ACTIVE_PROVIDERS
+
+    source = Path(__file__).resolve().parents[1] / 'artifacts/pizza-week-hybrid-stream-v7-20261113'
+    if not os.path.lexists(source):
+        pytest.skip('Extract the historical Pizza Week corpus per docs/pizza-week-continuation.md')
+    with open_prepared(source, portable=True, max_messages=150) as corpus:
+        assert corpus.corpus_hash == 'dd08b3e3bb17e887d25b9bee31dc562747b906d5a95f5d0575ccd22a055ded2d'
+        messages, timezone = corpus.messages, corpus.resolved['timezone']
+        question_times = [row['at'] for row, _, _ in corpus.questions]
+    assert len(ACTIVE_PROVIDERS) == 9 and len(question_times) == 37 and len(messages) == 125
+    check_chronological_source_gates(messages, prepare_sources(tmp_path, messages, timezone), question_times, timezone)
 
 
 def test_resumed_child_envelope_does_not_double_count_spent_or_unknown():

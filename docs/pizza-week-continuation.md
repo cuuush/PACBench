@@ -96,3 +96,18 @@ PACBench keeps the exact historical tips under their original names in
 git fetch --no-tags origin 'refs/archive/pizza-week-20261125/*:refs/archive/pizza-week-20261125/*'
 git for-each-ref --format='%(objectname) %(refname)' refs/archive/pizza-week-20261125/
 ```
+
+To run the older 333-target source-gate and reviewed-runtime tests, use the
+archived November 13 preparation. After fetching the refs above, extract the
+original corpus from the repository root into an unused destination. The
+tests use the commit for the exact reviewed runtime and verify the preparation's
+manifest and its sibling files.
+
+```sh
+test ! -e artifacts/pizza-week-hybrid-stream-v7-20261113 &&
+test ! -L artifacts/pizza-week-hybrid-stream-v7-20261113 &&
+git archive a7bc36729db23152f61b928df5cda2149e717859 \
+  artifacts/pizza-week-hybrid-stream-v7-20261113 | tar -x
+python3 -m pytest -q tests/test_reviewed_runtime.py \
+  tests/test_role_routes.py -k 'reviewed_pair or unreviewed_source or source_gates'
+```

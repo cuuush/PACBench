@@ -1,7 +1,7 @@
 """Freeze one authored corpus and run it through native memory providers."""
 import argparse
-from datetime import datetime
 import json
+import os
 from pathlib import Path
 import sys
 
@@ -10,7 +10,7 @@ from .providers import ACTIVE_PROVIDERS
 
 
 def plan_run(manifest, output, providers):
-    from .document_ingestion import daily_batches, validate_evaluation_clocks
+    from .document_ingestion import daily_releases, validate_evaluation_clocks
     from .followups import save
     from pacbench.corpus.audit import open_prepared
 
@@ -20,8 +20,7 @@ def plan_run(manifest, output, providers):
                      for row, item, _ in corpus.questions]
         chronological = bool(corpus.evaluations)
     zone = spec.get('timezone') or 'America/New_York'
-    schedule = [{'id': day, 'at': max((m['collected_at'] for m in batch), key=datetime.fromisoformat),
-                 'messages': len(batch)} for day, batch in daily_batches(messages, zone)]
+    schedule = [{'id': day, 'at': at, 'messages': len(batch)} for day, at, batch in daily_releases(messages, zone)]
     validate_evaluation_clocks(schedule, providers, [row['at'] for row in questions], zone, chronological=chronological)
     report = {'state': 'planned', 'corpus_hash': corpus_hash, 'selected_providers': providers,
               'message_count': len(messages), 'ingestion_days': len(schedule), 'ingestion_schedule': schedule,
@@ -36,18 +35,23 @@ def plan_run(manifest, output, providers):
 
 
 def run_from_args(args, parser):
+    from .corpus.audit import PreparedCorpusError
     from .native_pilot import run
 
+    if os.path.lexists(args.output):
+        parser.error(f'output already exists: {args.output}')
     manifest = args.corpus / 'week.json' if args.corpus.is_dir() else args.corpus
     if not manifest.is_file():
         parser.error(f'frozen corpus manifest not found at {manifest}')
     providers = args.providers or list(ACTIVE_PROVIDERS)
     if len(providers) != len(set(providers)):
         parser.error('select each provider only once')
-    if args.plan:
-        return plan_run(manifest, args.output, providers)
-
-    report = run(manifest, args.output, max_messages=None, providers=providers, report_blocked=True)
+    try:
+        if args.plan:
+            return plan_run(manifest, args.output, providers)
+        report = run(manifest, args.output, max_messages=None, providers=providers, report_blocked=True)
+    except PreparedCorpusError as exc:
+        parser.error(str(exc))
     results = {row['provider']: row for row in report['results']}
     for provider in providers:
         if provider in results:
@@ -74,10 +78,10 @@ def main(argv=None):
     native = commands.add_parser('run', help='evaluate a frozen corpus with native providers')
     native.add_argument('corpus', type=Path, help='prepared directory or its week.json manifest')
     native.add_argument('--output', type=Path, required=True, help='new destination for run evidence')
-    native.add_argument('--providers', nargs='+', choices=ACTIVE_PROVIDERS, help='subset of the nine active providers')
+    native.add_argument('--providers', nargs='+', choices=ACTIVE_PROVIDERS, help='subset of the active providers')
     native.add_argument('--plan', action='store_true', help='verify and summarize the corpus without starting providers or models')
     args = parser.parse_args(argv)
-    return prepare.generate_from_args(args) if args.command == 'generate' else run_from_args(args, native)
+    return prepare.generate_from_args(args, generator) if args.command == 'generate' else run_from_args(args, native)
 
 
 if __name__ == '__main__':

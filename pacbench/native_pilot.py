@@ -695,7 +695,7 @@ def smoke_succeeded(capability: dict) -> bool:
     return isinstance(output, dict) and "error" not in output and output.get("success") is not False
 
 
-def read_prepared(source: Path, max_messages: int | None, *, audited=False) -> tuple[list[dict], object, dict]:
+def read_prepared(source: Path, max_messages: int | None) -> tuple[list[dict], object, dict]:
     """Compatibility tuple for callers reading an existing prepared directory."""
     from pacbench.corpus.audit import open_prepared
 
@@ -802,17 +802,22 @@ def run(source: Path | None, output: Path, max_messages: int | None = 150,
     messages = contract = resolved = None
     evaluations = []
     if source:
-        from pacbench.corpus.audit import open_prepared
+        from pacbench.corpus.audit import PreparedCorpusError, open_prepared
 
-        with open_prepared(source, destination=output / 'preparation', max_messages=max_messages) as corpus:
-            source = corpus.root
-            messages, contract, resolved = corpus.messages, corpus.contract, corpus.resolved
-            evaluation_plan, evaluations = corpus.evaluation_plan, corpus.evaluations
-            if corpus.corpus_hash is not None:
-                report['corpus_hash'] = corpus.corpus_hash
-            report.update(input_hash=corpus.input_hash, contract_hash=corpus.summary['contract_hash'],
-                          bundle_hash=corpus.summary['bundle_hash'], message_count=len(messages),
-                          source=os.path.relpath(source, output))
+        try:
+            with open_prepared(source, destination=output / 'preparation', max_messages=max_messages) as corpus:
+                source = corpus.root
+                messages, contract, resolved = corpus.messages, corpus.contract, corpus.resolved
+                evaluation_plan, evaluations = corpus.evaluation_plan, corpus.evaluations
+                if corpus.corpus_hash is not None:
+                    report['corpus_hash'] = corpus.corpus_hash
+                report.update(input_hash=corpus.input_hash, contract_hash=corpus.summary['contract_hash'],
+                              bundle_hash=corpus.summary['bundle_hash'], message_count=len(messages),
+                              source=os.path.relpath(source, output))
+        except PreparedCorpusError as exc:
+            report.update(state='incomplete', failure_phase='input', reason=str(exc))
+            save(output / 'summary.json', report)
+            raise
         try:
             report["gateway_before"] = require_live_cost_boundary()
         except RuntimeError as exc:

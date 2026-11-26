@@ -252,6 +252,8 @@ Preparation writes a small plain-JSON `week.json` manifest with hashes of the ge
 
 `run` uses the full frozen corpus and selects all nine active providers by default. `--providers memcal mem0` selects a subset. `--plan` checks the corpus and writes its full source schedule and frozen question and criterion counts without model calls or provider startup. Conditional follow-ups are included in the frozen counts and can depend on what the provider answers during a run. Native execution requires the [runtime and model route setup](../vendor/README). Its summary reports unavailable arms and retains outcomes separately from semantic grades and retention evidence.
 
+For contributors, `pacbench/corpus/prepare.py` compiles and freezes the author spec, and `pacbench/corpus/audit.py` verifies the portable evidence. `pacbench/native_pilot.py` reads that verified corpus and coordinates native ingestion and recall through the provider adapters. Each arm writes its status, source receipts, and grading evidence under `repeat-1/<provider>` in the run directory. Frozen historical campaign definitions and operators live under `pacbench/campaigns/`.
+
 The minimal [Pizza Day](../specs/pizza_day.json) uses the same format for a one-day source smoke test. Preparation always runs separately from Hermes and native provider ingestion. All paid work goes through the shared gateway.
 
 ### Scene review output

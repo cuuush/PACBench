@@ -262,25 +262,43 @@ def audit_prepared(root: Path) -> dict:
     return report
 
 
+class PreparedCorpusError(ValueError):
+    """The supplied corpus cannot be safely used for a run."""
+
+
 def _materialize_week(source, root):
     from pacbench.followups import digest
     source, root = Path(source), Path(root)
-    manifest = source.read_bytes()
-    body = parse_json_object(manifest)
-    claimed = body.pop('corpus_hash')
-    if body.get('version') not in (1,2) or digest(body)!=claimed:raise ValueError('Frozen week hash/version mismatch')
+    try:
+        manifest = source.read_bytes()
+        body = parse_json_object(manifest)
+    except (OSError, ValueError) as exc:
+        raise PreparedCorpusError(f'Cannot read frozen corpus manifest {source}: {exc}') from exc
+    claimed = body.pop('corpus_hash', None)
+    if not isinstance(claimed, str) or not isinstance(body.get('files'), dict):
+        raise PreparedCorpusError('Expected a frozen corpus manifest. Run `python -m pacbench generate SPEC --output CORPUS` first.')
+    if body.get('version') not in (1, 2) or digest(body) != claimed:
+        raise PreparedCorpusError('Frozen week hash/version mismatch')
     files={}
     for name,value in body['files'].items():
         path=Path(name)
         if (path.is_absolute() or '..' in path.parts or path.suffix!='.json'
                 or name != path.as_posix() or name == 'week.json'):
-            raise ValueError('Unsafe frozen week path')
+            raise PreparedCorpusError('Unsafe frozen week path')
         if body['version']==2:
             original=source.parent/path
-            if not original.resolve().is_relative_to(source.parent.resolve()):raise ValueError('Unsafe frozen week path')
-            raw=original.read_bytes()
-            if hashlib.sha256(raw).hexdigest()!=value:raise ValueError('Frozen week file hash mismatch: '+name)
-            json.loads(raw)
+            if not original.resolve().is_relative_to(source.parent.resolve()):
+                raise PreparedCorpusError('Unsafe frozen week path')
+            try:
+                raw = original.read_bytes()
+            except OSError as exc:
+                raise PreparedCorpusError(f'Cannot read frozen corpus file {name}: {exc.strerror}') from exc
+            if hashlib.sha256(raw).hexdigest() != value:
+                raise PreparedCorpusError('Frozen week file hash mismatch: ' + name)
+            try:
+                json.loads(raw)
+            except ValueError as exc:
+                raise PreparedCorpusError(f'Invalid JSON in frozen corpus file {name}: {exc}') from exc
             files[path]=raw
         else:
             files[path]=(json.dumps(value,indent=2,ensure_ascii=False)+'\n').encode()
@@ -303,9 +321,9 @@ def open_prepared(source, *, portable=False, destination=None, max_messages=None
         report, corpus = _inspect_prepared(root)
         if corpus is None:
             prefix = 'Frozen week failed preparation audit' if corpus_hash else 'Preparation failed integrity audit'
-            raise ValueError(prefix+': '+str(report['errors']))
+            raise PreparedCorpusError(prefix+': '+str(report['errors']))
         if max_messages is not None and len(corpus.messages) > max_messages:
-            raise ValueError(f'message budget exceeded: {len(corpus.messages)} / {max_messages}')
+            raise PreparedCorpusError(f'message budget exceeded: {len(corpus.messages)} / {max_messages}')
         return replace(corpus, corpus_hash=corpus_hash)
 
     def materialize(root):

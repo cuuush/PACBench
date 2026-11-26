@@ -355,8 +355,15 @@ def load_scene_cache(root):
         for r in json.loads((root/'scenes.json').read_text())['scenes'] if r['scene_id'] in plans}
 
 
+class AuthorSpecError(ValueError):
+    """The authored scenario cannot be compiled."""
+
+
 def _prepare_body(spec: dict, root: Path, progress: dict) -> dict:
-    scenes, target, resolved = resolve_spec(spec, root,week_start=progress.get("week_start"))
+    try:
+        scenes, target, resolved = resolve_spec(spec, root, week_start=progress.get('week_start'))
+    except (ValueError, TypeError, KeyError) as exc:
+        raise AuthorSpecError(str(exc)) from exc
     if progress.get('imported_scenes') is not None and set(progress['imported_scenes']['scenes']) != {s.id for s in scenes}:
         raise ValueError('Imported scene IDs differ from the compiled source spec')
     cache=load_scene_cache(root) if progress.get('resume') else {}
@@ -641,9 +648,20 @@ def add_arguments(parser):
                         default='muse-gateway', help='Explicit author and verifier model route')
 
 
-def generate_from_args(args):
-    result = prepare(read_spec(args.spec), args.output.resolve(),resume=args.resume,week_start=args.week_start,
-                     inference_route=args.inference_route)
+def generate_from_args(args, parser):
+    if not args.resume and os.path.lexists(args.output):
+        parser.error(f'output already exists: {args.output}')
+    try:
+        spec = read_spec(args.spec)
+    except (OSError, ValueError) as exc:
+        parser.error(f'cannot read author spec {args.spec}: {exc}')
+    if 'corpus_hash' in spec and 'files' in spec:
+        parser.error('generate expects an author spec. Use `python -m pacbench run CORPUS --output RUN` for a frozen corpus.')
+    try:
+        result = prepare(spec, args.output.resolve(), resume=args.resume, week_start=args.week_start,
+                         inference_route=args.inference_route)
+    except AuthorSpecError as exc:
+        parser.error(str(exc))
     print(args.output)
     return 0 if result['state'] == 'prepared' else 1
 
@@ -651,7 +669,7 @@ def generate_from_args(args):
 def main(argv=None) -> int:
     parser = argparse.ArgumentParser(description="Generate, verify and freeze source messages.")
     add_arguments(parser)
-    return generate_from_args(parser.parse_args(argv))
+    return generate_from_args(parser.parse_args(argv), parser)
 
 
 if __name__ == "__main__":

@@ -72,6 +72,12 @@ def daily_batches(messages, timezone):
             for day,batch in sorted(groups.items())]
 
 
+def daily_releases(messages, timezone):
+    """Publish each dated batch at its latest collection time."""
+    for day, batch in daily_batches(messages, timezone):
+        yield day, max((row['collected_at'] for row in batch), key=datetime.fromisoformat), batch
+
+
 def document_text(batch, collected_at, *, version=VERSION):
     if version not in SUPPORTED_VERSIONS:raise ValueError('Unknown document format version')
     if version in (LEGACY_VERSION,NIGHTLY_JSON_VERSION):
@@ -104,12 +110,10 @@ def prepare_sources(output, messages, timezone, *, native_fixtures=True, members
                     observed_email_headers_only=False):
     from .imessage_fixture import append_messages
     from .email_fixture import append_emails
-    batches=daily_batches(messages,timezone)
     schedule=[]
     previous=None
     previous_mail=None
-    for day,batch in batches:
-        at=max((m['collected_at'] for m in batch),key=datetime.fromisoformat)
+    for day, at, batch in daily_releases(messages, timezone):
         root=output/'sources'/day
         root.mkdir(parents=True)
         text=document_text(batch,at)

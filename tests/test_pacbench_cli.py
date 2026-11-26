@@ -1,7 +1,10 @@
 """Exercise the two-command authoring and native entry point without traffic."""
 import json
+from contextlib import nullcontext
 from pathlib import Path
 import shutil
+import subprocess
+import sys
 from types import SimpleNamespace
 
 import pytest
@@ -132,8 +135,10 @@ def test_generate_and_run_one_new_author_spec(tmp_path, monkeypatch, capsys):
     monkeypatch.setattr(native_pilot, 'require_live_cost_boundary', fail_if_called)
     with (portable / 'bundle.json').open('a') as stream:
         stream.write('\n')
-    with pytest.raises(ValueError, match='file hash mismatch'):
+    with pytest.raises(SystemExit) as rejected:
         cli.main(['run', str(portable), '--output', str(tmp_path / 'tampered'), '--plan'])
+    assert rejected.value.code == 2
+    assert 'file hash mismatch' in capsys.readouterr().err
     assert not (tmp_path / 'tampered').exists()
 
 
@@ -186,3 +191,66 @@ def test_shared_prepared_loader_authenticates_portable_siblings_and_loads_checks
         with open_prepared(portable, portable=True, destination=tmp_path / 'tampered'):
             pytest.fail('corrupt portable corpus reached the auditor')
     assert calls == [output] and not (tmp_path / 'tampered').exists()
+
+
+@pytest.mark.parametrize(('command', 'corpus_text', 'existing', 'reason'), [
+    (['run'], '{"id":"author-spec","scenes":[]}', False, 'Run `python -m pacbench generate'),
+    (['run', '--plan'], '{"version":2,"corpus_hash":"x","files":[]}', False, 'Expected a frozen corpus manifest'),
+    (['run', '--plan'], '{', False, 'Cannot read frozen corpus manifest'),
+    (['run'], '{}', True, 'output already exists'),
+    (['generate'], '{}', True, 'output already exists'),
+    (['generate'], '{"version":2,"files":{},"corpus_hash":"x"}', False, 'generate expects an author spec'),
+])
+def test_cli_invalid_inputs_report_a_short_error(tmp_path, command, corpus_text, existing, reason):
+    source = tmp_path / 'input.json'
+    source.write_text(corpus_text)
+    output = tmp_path / 'output'
+    if existing:
+        output.mkdir()
+        (output / 'existing').touch()
+    result = subprocess.run([sys.executable, '-m', 'pacbench', *command, str(source), '--output', str(output)],
+                            capture_output=True, text=True)
+    assert result.returncode == 2 and reason in result.stderr
+    assert 'Traceback' not in result.stderr and 'KeyError' not in result.stderr
+    if existing:
+        assert list(output.iterdir()) == [output / 'existing']
+    elif command == ['run']:
+        report = read(output / 'summary.json')
+        assert report['state'] == 'incomplete' and report['failure_phase'] == 'input'
+        assert report['results'] == [] and reason in report['reason']
+
+
+def test_cli_preserves_unexpected_native_errors(tmp_path, monkeypatch):
+    source = tmp_path / 'week.json'
+    source.touch()
+
+    def unexpected(*_, **__):
+        raise ValueError('unexpected provider failure')
+
+    monkeypatch.setattr(native_pilot, 'run', unexpected)
+    with pytest.raises(ValueError, match='unexpected provider failure'):
+        cli.main(['run', str(source), '--output', str(tmp_path / 'native')])
+
+
+def test_plan_and_native_release_times_agree_for_unordered_mixed_offsets(tmp_path, monkeypatch):
+    from pacbench.corpus import audit
+    from pacbench.document_ingestion import prepare_sources
+
+    messages = [
+        {'source_id': 'latest', 'collected_at': '2026-10-05T18:00:00-04:00', 'written_at': '2026-10-05T18:00:00Z'},
+        {'source_id': 'tomorrow', 'collected_at': '2026-10-06T17:00:00-04:00', 'written_at': '2026-10-06T16:00:00-04:00'},
+        {'source_id': 'earlier', 'collected_at': '2026-10-05T23:30:00+02:00', 'written_at': '2026-10-05T20:00:00Z'},
+    ]
+    for row in messages:
+        row.update(channel='imessage', thread='a', sender='Sam', text='A message.', from_owner=False)
+    question = {'id': 'after', 'at': '2026-10-07T10:00:00-04:00'}
+    monkeypatch.setattr(audit, 'open_prepared', lambda *_, **__: nullcontext(SimpleNamespace(
+        messages=messages, resolved={'timezone': 'America/New_York'}, corpus_hash='fixture', evaluations=[],
+        questions=[(question, SimpleNamespace(claims=[]), {})],
+    )))
+    plan = tmp_path / 'plan'
+    assert cli.plan_run(tmp_path / 'week.json', plan, ['mem0']) == 0
+    planned = read(plan / 'summary.json')['ingestion_schedule']
+    native = prepare_sources(tmp_path / 'native', messages, 'America/New_York', native_fixtures=False)
+    expected = [('2026-10-05', '2026-10-05T18:00:00-04:00'), ('2026-10-06', '2026-10-06T17:00:00-04:00')]
+    assert [(row['id'], row['at']) for row in planned] == [(row['id'], row['at']) for row in native] == expected

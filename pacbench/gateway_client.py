@@ -97,10 +97,10 @@ def client_settings(project: str) -> tuple[str, str]:
         address = json.loads((STATE / 'address.json').read_text())
     except (OSError, ValueError) as exc:
         raise GatewayConfigurationError(
-            'The Muse gateway token or address file is unreadable. Check your authorized state directory and README.md.') from exc
+            'The Muse gateway token or address file is unreadable. Check your authorized state directory and CONTRIBUTING.md.') from exc
     base = address.get('base') if isinstance(address, dict) else None
     if not isinstance(base, str) or not key:
-        raise GatewayConfigurationError('Invalid Muse gateway address or client token. See the gateway setup in README.md.')
+        raise GatewayConfigurationError('Invalid Muse gateway address or client token. See the historical campaign setup in CONTRIBUTING.md.')
     return base + f'/p/{project}/v1', key
 
 

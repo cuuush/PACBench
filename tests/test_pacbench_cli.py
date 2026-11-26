@@ -384,7 +384,7 @@ def test_run_reports_missing_muse_history_without_creating_it(tmp_path, monkeypa
     with pytest.raises(gateway_client.GatewayConfigurationError) as missing:
         gateway_client.require_muse_state(state)
     assert report['reason'] == str(missing.value)
-    assert 'ledger.sqlite3' in report['reason'] and 'README.md' in report['reason']
+    assert 'ledger.sqlite3' in report['reason'] and 'CONTRIBUTING.md' in report['reason']
     printed = capsys.readouterr().out
     assert ', '.join(ACTIVE_PROVIDERS) + ' not run ' + report['reason'] in printed
     assert printed.count(report['reason']) == 1
@@ -484,6 +484,33 @@ def test_shared_prepared_loader_authenticates_portable_siblings_and_loads_checks
         with open_prepared(portable, portable=True, destination=tmp_path / 'tampered'):
             pytest.fail('corrupt portable corpus reached the auditor')
     assert calls == [output] and not (tmp_path / 'tampered').exists()
+
+
+def test_preparation_audit_cli_accepts_manifest_and_corpus_directory(tmp_path, monkeypatch, capsys):
+    from pacbench.corpus import audit
+
+    source = Path(__file__).resolve().parents[1] / 'datasets/pizza-week/week.json'
+    portable = tmp_path / 'portable'
+    portable.mkdir()
+    manifest = portable / 'week.json'
+    shutil.copyfile(source, manifest)
+
+    def check(path, status):
+        monkeypatch.setattr(sys, 'argv', ['preparation_audit', str(path)])
+        assert audit.main() == status
+        return json.loads(capsys.readouterr().out)
+
+    assert check(portable, 0) == check(manifest, 0) == {
+        'state': 'pass', 'errors': [],
+        'scope': 'frozen preparation integrity; no provider quality claim',
+    }
+    original = read(manifest)
+    save(manifest, {**original, 'corpus_hash': 'wrong'})
+    assert check(portable, 1)['errors'] == ['Frozen week hash/version mismatch']
+
+    incomplete = tmp_path / 'legacy-preparation'
+    incomplete.mkdir()
+    assert check(incomplete, 1) == audit.audit_prepared(incomplete)
 
 
 @pytest.mark.parametrize(('command', 'corpus_text', 'existing', 'reason'), [

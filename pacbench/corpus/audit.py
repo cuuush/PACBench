@@ -5,6 +5,7 @@ from contextlib import contextmanager
 from dataclasses import dataclass, replace
 import hashlib
 import json
+import os
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from pacbench.corpus.sources import load_bundle, messages_for, parse_json_object
@@ -253,8 +254,12 @@ def _inspect_prepared(root: Path):
                                     plan, evaluations)
     except (OSError, ValueError, KeyError, TypeError, RuntimeError, AttributeError, IndexError) as exc:
         errors.append(f'{type(exc).__name__}: {exc}')
+    return _audit_report(errors), corpus
+
+
+def _audit_report(errors):
     return {'state': 'pass' if not errors else 'fail', 'errors': errors,
-            'scope': 'frozen preparation integrity; no provider quality claim'}, corpus
+            'scope': 'frozen preparation integrity; no provider quality claim'}
 
 
 def audit_prepared(root: Path) -> dict:
@@ -343,10 +348,19 @@ def open_prepared(source, *, portable=False, destination=None, max_messages=None
 
 
 def main() -> int:
-    parser=argparse.ArgumentParser();parser.add_argument('root',type=Path)
-    result=audit_prepared(parser.parse_args().root)
-    print(json.dumps(result,indent=2))
-    return int(result['state']!='pass')
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('corpus', type=Path, help='prepared directory or its week.json manifest')
+    source = parser.parse_args().corpus
+    if source.is_file() or (source.is_dir() and os.path.lexists(source / 'week.json')):
+        try:
+            with open_prepared(source, portable=True, retain_manifest=False):
+                result = _audit_report([])
+        except (PreparedCorpusError, OSError) as exc:
+            result = _audit_report([str(exc)])
+    else:
+        result = audit_prepared(source)
+    print(json.dumps(result, indent=2))
+    return int(result['state'] != 'pass')
 
 
 if __name__=='__main__':raise SystemExit(main())

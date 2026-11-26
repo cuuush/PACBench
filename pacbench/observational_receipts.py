@@ -197,7 +197,7 @@ class ObservedBudget:
   if body.get('model')!=self.model:raise ValueError('Exact Luna model required')
   if os.environ.get('PACBENCH_LUNA_COMPATIBILITY')!='temperature-omitted-default-v1' or os.environ.get('PACBENCH_EFFECTIVE_OUTPUT_TOKENS')!='32768':raise ValueError('Established native inference condition required')
   request={k:v for k,v in body.items() if k!='temperature'}
-  from .workflow_tracks import MEMOS_OSS_LUNA_COMPAT
+  from .workflows.tracks import MEMOS_OSS_LUNA_COMPAT
   memos_compat=(project.endswith('-memos-memory') and
                 os.environ.get('PACBENCH_MEMOS_OSS_LUNA_COMPAT')==MEMOS_OSS_LUNA_COMPAT)
   if memos_compat:
@@ -241,20 +241,20 @@ class ObservedBudget:
    from .direct_http import _native_http_request
    original=_native_http_request.get()
    if honcho_daily or honcho_chat:
-    from .honcho_daily_gate import bind_attempt
+    from pacbench.providers.honcho.daily_gate import bind_attempt
     bind_attempt(row)
     if honcho_chat or row['honcho_daily_attempt'].get('native_attempt',1)>1:
-     from .honcho_first_answer_admission import verify_receipts
-     from .honcho_week_retry import reserve_retry
+     from pacbench.providers.honcho.first_answer_admission import verify_receipts
+     from pacbench.providers.honcho.week_retry import reserve_retry
      verify_receipts(rows)
      honcho_retry=reserve_retry(rows,row)
    elif honcho_answer:
-    from .honcho_first_answer_admission import check_prepared,verify_receipts
+    from pacbench.providers.honcho.first_answer_admission import check_prepared, verify_receipts
     verify_receipts(rows)
     check_prepared(rows,row)
    elif honcho_peer:
-    from .honcho_first_answer_admission import verify_receipts
-    from .honcho_first_answer_peer import bind_attempt
+    from pacbench.providers.honcho.first_answer_admission import verify_receipts
+    from pacbench.providers.honcho.first_answer_peer import bind_attempt
     verify_receipts(rows)
     bind_attempt(rows,row)
    elif original is not None and 'pacbench.honcho.daily-attempt' in original.extensions:
@@ -330,7 +330,7 @@ class ObservedBudget:
     'dispatch_execution':row['dispatch_execution'],'dispatch_events':row['dispatch_events']}
    slot=row.get('workflow_slot',{})
    if any(slot.get(key) for key in ('honcho_first_answer','honcho_daily_release','honcho_chat_work','honcho_peer_read')):
-    from .honcho_first_answer_admission import selected_tools,wire_identity
+    from pacbench.providers.honcho.first_answer_admission import selected_tools, wire_identity
     patch['honcho_wire_identity']=wire_identity(frames)
     if slot.get('honcho_first_answer') and status==200 and (body_complete or frames.sse_done_observed) and not errors and not validation['envelope_errors']:
      patch['honcho_selected_tools']=selected_tools(events)

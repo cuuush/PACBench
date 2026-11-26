@@ -14,7 +14,7 @@ from pathlib import Path
 
 from . import harness
 from .clock_context import judge_question
-from .evaluation import load_evaluations, judge_evidence
+from pacbench.corpus.evaluation import load_evaluations, judge_evidence
 from .followups import natural_eligibility, run_followups, save
 from .native_checks import diagnostic_inputs, session_key
 from .native_pilot import read_prepared

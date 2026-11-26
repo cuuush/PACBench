@@ -8,8 +8,10 @@ from types import SimpleNamespace
 import httpx
 import pytest
 
-from pacbench import honcho_daily_gate as gate, honcho_first_answer_admission as answer
-from pacbench import honcho_first_answer_peer as peer, workflow_capability
+from pacbench.providers.honcho import daily_gate as gate
+from pacbench.providers.honcho import first_answer_admission as answer
+from pacbench.workflows import capability as workflow_capability
+from pacbench.providers.honcho import first_answer_peer as peer
 from pacbench.canary_capability import digest, read
 from pacbench.dispatch_ownership import OwnershipConflict
 from pacbench.live_dispatch import operation_id, process_identity
@@ -112,7 +114,7 @@ def test_only_exact_stock_driver_prompt_and_context_are_admitted(scoped, monkeyp
     portal = pytest.importorskip('agent.portal_tags')
     from agent.memory_context import build_memory_context_block
     from providers import get_provider_profile
-    from pacbench import provider_loader
+    from pacbench import providers as provider_loader
 
     scope, current = scoped
     turn = answer.question(scope)
@@ -325,7 +327,8 @@ def test_honcho_launcher_preserves_failure_and_shutdown_evidence(tmp_path, monke
     from contextlib import nullcontext
     from unittest.mock import Mock
 
-    from pacbench import honcho_first_answer as first, honcho_week as week_runner
+    from pacbench.providers.honcho import first_answer as first
+    from pacbench.providers.honcho import week as week_runner
 
     campaign = tmp_path/'campaign'
     campaign.mkdir()

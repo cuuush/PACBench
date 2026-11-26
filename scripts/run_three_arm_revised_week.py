@@ -9,7 +9,7 @@ sys.path.insert(0,str(ROOT))
 
 def preflight():
  from pacbench import full_run_capability as cap
- from pacbench.checkpoint_canary import MEMCAL
+ from pacbench.campaigns.pizza_week_checkpoints import MEMCAL
  from pacbench.provider_versions import verify_memcal_source
  from pacbench.direct_accounting import live_budget,request_cost_bound
  from pacbench.funded_run_budget import selected,credit_snapshot,describe_admission
@@ -63,7 +63,7 @@ def main():
  if not a.execute:
   print(json.dumps({'state':plan['state'],'per_request_ceiling':display_usd(plan['per_request_ceiling_usd']) if plan['per_request_ceiling_usd'] is not None else 'not applied','new_paid_calls':0}));return
  subprocess.run(['git','diff','--quiet'],cwd=ROOT,check=True)
- from pacbench.checkpoint_full_run import run,serial_rows
+ from pacbench.campaigns.pizza_week_checkpoints import run_full
  from pacbench.openrouter_direct import direct_environment
  from pacbench.gateway_client import client_settings
  from pacbench.full_run_capability import ENV
@@ -74,7 +74,7 @@ def main():
   fcntl.flock(lease,fcntl.LOCK_EX|fcntl.LOCK_NB)
   try:
    with direct_environment(os.environ['OPENROUTER_API_KEY']):
-    report=run(a.output,dict(os.environ),settings=client_settings,budget=budget,resume_from=a.resume_from)
+    report=run_full(a.output,dict(os.environ),settings=client_settings,budget=budget,resume_from=a.resume_from)
   finally:
    rows=[r for r in budget.snapshot() if r.get('checkpoint_full_run_root')==str(a.output.resolve())]
    billing={'attempts':len(rows),'settled_actual_usd':str(sum((Decimal(r['settled_charge_usd']) for r in rows if r['state']=='settled' and r.get('settled_charge_usd') is not None),Decimal(0))),

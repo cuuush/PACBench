@@ -41,6 +41,25 @@ Public receipts support inspection of what happened. They do not include the
 private provider stores needed to repeat every native audit or resume an
 interrupted service.
 
+## Run your own scenario
+
+Use an existing [author spec](docs/authoring-options.md) or write one in the
+same format. With the [native runtime and model route configured](vendor/README),
+run these two commands from the repository root.
+
+```sh
+python -m pacbench generate specs/pizza_week.json --output artifacts/corpora/pizza-week
+python -m pacbench run artifacts/corpora/pizza-week --output runs/pizza-current
+```
+
+Keep the corpus directory together. The run checks `week.json` and the files
+it binds before sending source to a provider. The same commands accept Pizza
+Month, Bike Pickup, and new author specs. `run` selects all nine active providers.
+Use `--providers memcal mem0` to select a subset, or `--plan` to check the
+corpus and view its schedule and frozen question counts without model or
+provider calls. Execution records provider availability and evidence in the
+run's `summary.json` and provider subdirectories.
+
 ## How it works
 
 The [conversational workflow guide](docs/pizza-week-workflow.md) documents

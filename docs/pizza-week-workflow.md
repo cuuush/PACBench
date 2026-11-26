@@ -30,7 +30,7 @@ The **isolated control** uses all 42 original questions and 188 criteria, includ
 
 ## Provider routes
 
-These are candidate interfaces documented at the reviewed versions. The [capability manifest](../pacbench/workflow_tracks.py) gives the primary source for each route, the release evidence and required permissions. Deployment checks must record the actual installation. An email-only connector can exercise ingestion; it cannot answer the mixed-channel question set.
+These are candidate interfaces documented at the reviewed versions. The [capability manifest](../pacbench/workflows/tracks.py) gives the primary source for each route, the release evidence and required permissions. Deployment checks must record the actual installation. An email-only connector can exercise ingestion; it cannot answer the mixed-channel question set.
 
 | Arm and reviewed version | Nightly document route | First-party connection and qualification |
 | --- | --- | --- |
@@ -61,7 +61,7 @@ through the authored 31 chats on one account. It verifies native request
 shapes through recording fixtures for the supported generic upload adapters.
 Provider-specific launchers retain their own source, process, and admission
 requirements. Honcho's native session file upload uses the specialized
-`pacbench.honcho_week` launcher. MemCal's real Messages and Mail acquisition is
+`pacbench.providers.honcho.week` launcher. MemCal's real Messages and Mail acquisition is
 a distinct connector condition.
 
 Add `--provider` to exercise one declaration. An unsupported selection
@@ -72,12 +72,36 @@ the submitted data. Fake connectors expose successive synthetic source
 prefixes at a cursor. The offline answer is a sentinel and receives no
 semantic grade. Prompt caching and paid costs were unmeasured.
 
-For a provisioned synthetic deployment, [run_current_week](../pacbench/workflow_runner.py) accepts a declared condition, a bound account, a new evidence directory and an optional judge callable that records transport-backed attempts under the run’s `model-calls/` directory. [NativeAccount and WarmHermes](../pacbench/workflow_native.py) adapt the native uploader or source reader and normal CLI session. The native condition pins the offered Hermes tool catalog for each reviewed provider version. Every answer request must retain the approved model and route. The installer must bind native acceptance, completion and inventory inspection, connector grants/cursors, open-session idle and chat-end write readback, model route and retry lineage. Isolated copies additionally need a native readback of zero prior chats and conversational writes. Gmail routes need working official sync implementations supplied by the deployment. The offline CLI provisions none of these. A missing binding or failed proof leaves an arm unqualified.
+Pass `--prepared` a generated preparation directory or its `week.json` to
+use the same offline runner with another authored scenario. Keep the manifest
+and its evidence files together. The compiler verifies the existing
+preparation and uses its original collection clocks, frozen question text,
+and authored session boundaries. The journal records the spec, corpus,
+source, and evaluation digests. Conditional prompts are rehearsed as written
+without evaluating whether a model would trigger them.
+
+```sh
+python3 -m pacbench.workflow conform \
+  --prepared runs/bike-pickup-native-clock-20261105/preparation \
+  --track nightly-document --provider mem0 --output /tmp/pacbench-bike-conform
+```
+
+For a provisioned synthetic deployment, [run_compiled_workflow and run_current_week](../pacbench/workflows/runner.py) accept a declared condition, a bound account, a new evidence directory and an optional judge callable that records transport-backed attempts under the run’s `model-calls/` directory. [NativeAccount and WarmHermes](../pacbench/workflows/native.py) adapt the native uploader or source reader and normal CLI session. The native condition pins the offered Hermes tool catalog for each reviewed provider version. Every answer request must retain the approved model and route. The installer must bind native acceptance, completion and inventory inspection, connector grants/cursors, open-session idle and chat-end write readback, model route and retry lineage. Isolated copies additionally need a native readback of zero prior chats and conversational writes. Gmail routes need working official sync implementations supplied by the deployment. The offline CLI provisions none of these. A missing binding or failed proof leaves an arm unqualified.
 
 The stock Supermemory launcher uses this runner for its seven-document Week.
 The native path requires the launcher's stock account, owned gateway, campaign
 lock, and exact bound seven-document scope. It captures answers for separate
 grading. Earlier per-thread admissions retain their original source contract.
+
+### Adding a special admission protocol
+
+Add one entry under `_SPECIAL_ADMISSIONS` in [`workflows/capability.py`](../pacbench/workflows/capability.py)
+using the versioned admission ID written in the run scope. The owned module
+normally supplies `validate(scope, binding)` and `admit(scope, project, body)`.
+Name a journal class in the same entry if the mode needs one of its own. Leave
+the class unset to use the provider's usual receipt journal. Add a case in
+`tests/test_workflow_special_admissions.py` and test the mode's own evidence
+checks separately with offline fixtures.
 
 ## Audit closure and verification boundaries
 
@@ -91,7 +115,7 @@ grading. Earlier per-thread admissions retain their original source contract.
 | 6. Version, tooling and consent | Per-route source/version disclosures and explicit front end, grants, model route and patch identity. Unverified hosted versions remain unknown. | Check the installed integration, actual scoped grants, exact served tools and software identity. |
 | 7. Conformance | Recording fixtures exercise all nine declarations, both state policies and unsupported outcomes. A local native Hermes test resumes a three-turn chain with a loopback model/storage fixture and inspects its actual request and session DB. | These tests establish harness behavior. Native service readiness, connector fidelity, model accuracy, costs and caching require separate observation. |
 
-See [workflow regression cases](../tests/test_workflow_realism.py) and [delivery adapters](../pacbench/workflow_delivery.py). The private JSONL journal retains exact observed inputs for review. A partial or uncertain run keeps its evidence in its original directory and cannot silently replay an import or replace it with a score.
+See [workflow regression cases](../tests/test_workflow_realism.py) and [delivery adapters](../pacbench/workflows/delivery.py). The private JSONL journal retains exact observed inputs for review. A partial or uncertain run keeps its evidence in its original directory and cannot silently replay an import or replace it with a score.
 
 ## MemCal collection preflight
 
@@ -137,7 +161,7 @@ identity and file-descriptor checks. A provisioned site must supply the
 historical Apple roster and source-ID mapping, native as-of releases, and
 read-only IMAP access to both Inbox and Sent. The site interface, expected
 source observations and independently pinned mapping are documented in
-[workflow_memcal_source.py](../pacbench/workflow_memcal_source.py). The
+[source.py](../pacbench/providers/memcal/source.py). The
 site's Python module supplies `release(cutoff)`, `observe(cutoff)`,
 `deployment()`, `bindings_path` and `bindings_sha256`. The repository
 factory composes those site observations with the shipping MemCal readers,
@@ -145,7 +169,7 @@ stock native processing and the warm Hermes chat.
 
 Prepare the synthetic store under `CAMPAIGN/memcal/memcal-home`. The fresh
 campaign contains only that prepared arm. The site JSON uses the fields of
-`MemCalSite` in [workflow_memcal.py](../pacbench/workflow_memcal.py).
+`MemCalSite` in [site.py](../pacbench/providers/memcal/site.py).
 The billing confirmation contains the actual operator's `confirmed_by`,
 timezone-qualified `confirmed_at`, and observed `auto_recharge` value
 `off`. Keep the site module, source mapping, evidence and credentials outside

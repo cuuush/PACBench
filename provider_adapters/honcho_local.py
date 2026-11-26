@@ -166,10 +166,10 @@ def start(root,env,model,base,key,*,resume=False,simulated_at=None,checkpoint=No
     peer_key = None
     if daily_documents:
         from pacbench.direct_accounting import MARKER
-        from pacbench.honcho_daily_gate import controller
+        from pacbench.providers.honcho.daily_gate import controller
         from pacbench.live_dispatch import ENV as TRACKING, enabled
         from pacbench.openrouter_direct import active
-        from pacbench.workflow_capability import ENV, PROFILE, budget
+        from pacbench.workflows.capability import ENV, PROFILE, budget
 
         roles = controller(root.resolve())['projects']['honcho']
         project = roles['memory']
@@ -381,9 +381,9 @@ print(json.dumps({'native_defaults_verified':deriver_limit is None and deriver_t
     if configured.returncode:raise RuntimeError('Honcho native embedding schema configuration failed')
     endpoint=f'http://127.0.0.1:{api_port}'
     native_processes = {}
-    deriver = (['-m','pacbench.honcho_daily_gate','src.deriver',str(source)]
+    deriver = (['-m','pacbench.providers.honcho.daily_gate','src.deriver',str(source)]
                if daily_documents else ['-m','src.deriver'])
-    api = (['-m','pacbench.honcho_first_answer_peer',str(source),str(api_port)] if peer_key else
+    api = (['-m','pacbench.providers.honcho.first_answer_peer',str(source),str(api_port)] if peer_key else
            ['-m','uvicorn','src.main:app','--host','127.0.0.1','--port',str(api_port)])
     for label,args in [('api',api),('deriver',deriver)]:
         log=(root/f'honcho-{label}.log').open('ab')
@@ -438,7 +438,7 @@ print(json.dumps({'native_defaults_verified':deriver_limit is None and deriver_t
         'sessionStrategy':'per-session',
         'observationMode':'directional'}}})  # Current native setup default, not the legacy-file migration mode.
     if daily_documents:
-        from pacbench.honcho_daily_gate import register
+        from pacbench.providers.honcho.daily_gate import register
         try:
             register(root.resolve(), native_processes['deriver'].pid,api_pid=native_processes['api'].pid,api_url=endpoint)
         except Exception:

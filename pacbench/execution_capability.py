@@ -3,7 +3,7 @@ from functools import wraps
 import os
 from threading import Lock
 from . import canary_capability,full_run_capability,remaining_r2_capability
-from . import workflow_capability
+from pacbench.workflows import capability as workflow_capability
 from .hermes_gateway import GatewayLifecycleError
 CanaryBusy=canary_capability.CanaryBusy
 

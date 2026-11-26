@@ -40,7 +40,7 @@ def test_plain_receipt_and_missing_store_are_not_required_for_small_text(tmp_pat
 def test_compact_contracts_preserves_hashes_and_native_reuse(tmp_path):
     from pacbench.evidence_store import compact_contracts
     from pacbench.followups import digest
-    from pacbench.semantic_contract import load_contract
+    from pacbench.corpus.contract import load_contract
     from pacbench.native_pilot import copy_prepared_files
     import shutil
     root=tmp_path/'preparation';root.mkdir()

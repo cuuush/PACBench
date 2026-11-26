@@ -7,12 +7,15 @@ import urllib.request
 
 import pytest
 
-from pacbench import direct_http, openrouter_direct, question_shadow_live as live
-from pacbench import judge_development_live as prepaid, workflow_capability as cap
-from pacbench.question_judge import BASELINE, PROTOCOL
-from pacbench.question_shadow_development import REFERENCE, render, wire
+from pacbench import direct_http
+from pacbench import openrouter_direct
+from pacbench.judging import shadow_live as live
+from pacbench.judging import development_live as prepaid
+from pacbench.workflows import capability as cap
+from pacbench.judging.paired import BASELINE, PROTOCOL
+from pacbench.judging.shadow import REFERENCE, render, wire
 from tests.test_judge_calibration_live import Upstream
-from pacbench import judge_calibration_live as calibration
+from pacbench.judging import calibration_live as calibration
 from tests.test_judge_development_live import synthetic_checkpoint
 
 

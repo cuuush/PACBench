@@ -4,9 +4,9 @@ import json
 
 import pytest
 
-from pacbench.workflow_native import tool_provenance
-from pacbench.workflow_openviking import OpenVikingWitness, uri_rows
-from pacbench.workflow_spec import compile_week
+from pacbench.workflows.native import tool_provenance
+from pacbench.providers.openviking import OpenVikingWitness, uri_rows
+from pacbench.campaigns.pizza_week import compile_week
 
 
 def test_native_resources_refuses_truncation_and_future_canonical_names(tmp_path):

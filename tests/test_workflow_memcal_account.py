@@ -7,13 +7,15 @@ from types import SimpleNamespace
 
 import pytest
 
-from pacbench import workflow_memcal_account as factory
+from pacbench.providers.memcal import workflow as factory
 from pacbench.canary_capability import digest, sha
 
 
 def test_factory_preserves_synthetic_store_and_primary_failure(tmp_path, monkeypatch):
-    from pacbench import workflow_memcal, workflow_capability as cap, openrouter_route as route
-    from pacbench.workflow_memcal_source import frozen_messages_digest
+    from pacbench.providers.memcal import site as workflow_memcal
+    from pacbench.workflows import capability as cap
+    from pacbench import openrouter_route as route
+    from pacbench.providers.memcal.source import frozen_messages_digest
     from memcal import db
     root = tmp_path/'campaign/memcal'
     store = root/'memcal-home'
@@ -37,7 +39,7 @@ def test_factory_preserves_synthetic_store_and_primary_failure(tmp_path, monkeyp
         deployment=lambda:pytest.fail('fixture cannot qualify live'))
     scope = {'path':'binding','sha256':'fixture'}
     from pacbench.provider_versions import memcal_week_pin
-    from pacbench.workflow_tracks import memcal_week_tools
+    from pacbench.workflows.tracks import memcal_week_tools
     label, revision, version = memcal_week_pin()
     cfg = {'access':{'memcal_revision':revision}, 'root':str(root),'provider':'memcal', 'spec_sha256':spec_sha, 'frozen_inputs':frozen,'canary':True,
            'site_sha256':digest(asdict(site)),'account':site.account,'store':str(store),

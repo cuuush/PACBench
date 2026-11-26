@@ -4,7 +4,7 @@ from unittest.mock import patch
 
 import pytest
 
-from pacbench import harness, native_pilot, native_resume, live_trials
+from pacbench import harness, native_pilot, native_resume, providers as live_trials
 
 
 def test_live_entrypoints_stop_before_backend_and_gateway(tmp_path, monkeypatch):

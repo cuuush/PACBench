@@ -3,9 +3,9 @@ import json
 
 import pytest
 
-from pacbench import workflow_capability as cap
+from pacbench.workflows import capability as cap
 from pacbench.canary_capability import sha
-from pacbench.workflow_mem0 import HISTORY_WINDOW, append_history
+from pacbench.providers.mem0 import HISTORY_WINDOW, append_history
 
 
 @pytest.fixture(autouse=True)
@@ -74,7 +74,7 @@ def test_mem0_history_proves_new_writes_after_native_eviction(tmp_path):
 def mem0_idle(tmp_path):
     from types import SimpleNamespace
     from unittest.mock import Mock
-    from pacbench.workflow_mem0 import Mem0Witness, PROTOCOL
+    from pacbench.providers.mem0 import Mem0Witness, PROTOCOL
 
     witness = Mem0Witness.__new__(Mem0Witness)
     witness.owner = SimpleNamespace(home=tmp_path, witness={'pid':10, 'start_time':2},
@@ -102,7 +102,7 @@ def test_only_fresh_idle_samples_reconcile_all_nonjudge_receipts(mem0_idle, monk
         sample.update(next(updates))
         observer.write_text(json.dumps(sample))
 
-    monkeypatch.setattr('pacbench.workflow_mem0.time.sleep', advance)
+    monkeypatch.setattr('pacbench.providers.mem0.time.sleep', advance)
     witness.ledger.snapshot.side_effect = [
         [{'finished':False, 'accounting_role':'memory_provider'}],
         [{'finished':False, 'accounting_role':'judge'}],
@@ -128,14 +128,14 @@ def test_stale_busy_sample_still_fails_immediately(mem0_idle, fault):
 @pytest.mark.parametrize('broken_report', [False, True])
 def test_failed_mem0_run_keeps_primary_failure_and_terminal_evidence(tmp_path, monkeypatch, broken_report):
     from unittest.mock import Mock
-    from pacbench.workflow_mem0 import terminal_result
+    from pacbench.providers.mem0 import terminal_result
 
     ledger = Mock()
     ledger.snapshot.return_value = []
     billing = Mock(return_value={'complete_cost_usd':None})
     if broken_report:
         billing.side_effect = ValueError('private report detail')
-    monkeypatch.setattr('pacbench.workflow_receipts.receipt_summary', billing)
+    monkeypatch.setattr('pacbench.workflows.recording.receipt_summary', billing)
     with pytest.raises(TimeoutError):
         with terminal_result(tmp_path, ledger, 'test-run', False, 0):
             raise TimeoutError('private execution detail')
@@ -153,7 +153,7 @@ def test_failed_mem0_run_keeps_primary_failure_and_terminal_evidence(tmp_path, m
 ])
 def test_mem0_terminal_state_uses_one_reconciled_snapshot(tmp_path, monkeypatch, canary, cost, state):
     from unittest.mock import Mock
-    from pacbench.workflow_mem0 import terminal_result
+    from pacbench.providers.mem0 import terminal_result
 
     rows = [{'accounting_role':role, 'upstream_request_id':str(i)}
             for i, role in enumerate(['judge','hermes','memory_provider'])]
@@ -163,8 +163,8 @@ def test_mem0_terminal_state_uses_one_reconciled_snapshot(tmp_path, monkeypatch,
               'turns':[{'driver_attempt_coverage':{'coverage':'complete'}}]}
     summarize = Mock(return_value=report)
     reconcile = Mock(return_value={'complete_cost_usd':cost})
-    monkeypatch.setattr('pacbench.workflow_metrics.summarize', summarize)
-    monkeypatch.setattr('pacbench.workflow_receipts.receipt_summary', reconcile)
+    monkeypatch.setattr('pacbench.workflows.recording.summarize', summarize)
+    monkeypatch.setattr('pacbench.workflows.recording.receipt_summary', reconcile)
     with terminal_result(tmp_path, ledger, 'run', canary, 0) as record:
         record['cleanup'] = 'complete'
     assert json.loads((tmp_path/'result.json').read_bytes()) == record

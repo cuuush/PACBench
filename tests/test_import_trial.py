@@ -2,7 +2,9 @@
 import json
 from pathlib import Path
 import pytest
-from pacbench import import_trial as trial
+
+from pacbench import document_ingestion, gateway_client, native_pilot, usage
+from pacbench import measured_import as trial
 
 
 @pytest.mark.parametrize('failed_batch',[None,'one'])
@@ -11,18 +13,18 @@ def test_import_only_waits_for_every_batch_and_never_runs_benchmark(tmp_path,mon
     schedule=[{'id':n,'at':'2026-10-05T20:00:00-04:00','file':'ingestion/'+n+'.json'} for n in ['one','two']]
     messages=[{'source_id':'message-one'}]
     monkeypatch.setattr('pacbench.context_isolation.validate_recall_environment',lambda:None)
-    monkeypatch.setattr(trial,'require_live_cost_boundary',lambda:{'accounted_usd':1})
-    monkeypatch.setattr(trial,'read_prepared',lambda *a:(messages,None,{'timezone':'America/New_York'}))
-    monkeypatch.setattr(trial,'copy_prepared_files',lambda *a:None)
-    monkeypatch.setattr(trial,'prepare_sources',lambda *a:schedule)
-    monkeypatch.setattr(trial,'provision',lambda *a,**kw:{'PACBENCH_USAGE_ROLES':'{}'})
+    monkeypatch.setattr(gateway_client,'require_live_cost_boundary',lambda:{'accounted_usd':1})
+    monkeypatch.setattr(native_pilot,'read_prepared',lambda *a:(messages,None,{'timezone':'America/New_York'}))
+    monkeypatch.setattr(native_pilot,'copy_prepared_files',lambda *a:None)
+    monkeypatch.setattr(document_ingestion,'prepare_sources',lambda *a:schedule)
+    monkeypatch.setattr(native_pilot,'provision',lambda *a,**kw:{'PACBENCH_USAGE_ROLES':'{}'})
     def probe(*a,**kw):
         assert kw['smoke'] is False
         return {'available':True}
-    monkeypatch.setattr(trial,'probe',probe)
-    monkeypatch.setattr(trial,'snapshot',lambda *a:{'state':'captured','calls':[]})
-    monkeypatch.setattr(trial,'provider_model_health',lambda *a:{'state':'pass'})
-    stopped=[];monkeypatch.setattr(trial,'stop_arm_model_work',lambda root:stopped.append(root))
+    monkeypatch.setattr(native_pilot,'probe',probe)
+    monkeypatch.setattr(usage,'snapshot',lambda *a:{'state':'captured','calls':[]})
+    monkeypatch.setattr(usage,'provider_model_health',lambda *a:{'state':'pass'})
+    stopped=[];monkeypatch.setattr(native_pilot,'stop_arm_model_work',lambda root:stopped.append(root))
     audited=[]
     monkeypatch.setattr('pacbench.document_audit.audit_ingestion',lambda *a,**kw:audited.append(kw['import_only']) or [])
     def forbidden(*a,**kw):pytest.fail('Import-only validation invoked benchmark execution')
@@ -33,8 +35,8 @@ def test_import_only_waits_for_every_batch_and_never_runs_benchmark(tmp_path,mon
     def ingest(provider,source,*a,**kw):
         imported.append(source.name)
         return {'state':'failed' if source.name==failed_batch else 'ready','ready':source.name!=failed_batch}
-    monkeypatch.setattr(trial,'ingest_day',ingest)
-    result=trial.run(source,output,providers=['mem0'])
+    monkeypatch.setattr(document_ingestion,'ingest_day',ingest)
+    result=trial.run_trial(source,output,providers=['mem0'])
     assert result['benchmark_questions_sent']==result['judge_calls']==0
     assert result['semantic_review_state']=='pending'
     assert len(stopped)==1
@@ -50,7 +52,7 @@ def test_import_only_waits_for_every_batch_and_never_runs_benchmark(tmp_path,mon
 def test_conversation_probe_preserves_one_unit_and_refuses_future_day_duplicates():
     import copy
     import pytest
-    from pacbench.import_trial import select_conversation_probe
+    from pacbench.measured_import import select_conversation_probe
     rows=[{'source_id':str(i),'channel':'imessage','thread':'thread-one','collected_at':'2026-10-06T09:00:00-04:00',
            'written_at':f'2026-10-06T08:0{i}:00-04:00','sender':f'speaker-{i%2}','text':f'exact body {i}'} for i in range(4)]
     before=copy.deepcopy(rows)

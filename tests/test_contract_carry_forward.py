@@ -1,6 +1,8 @@
 import copy,hashlib
 import pytest
-from pacbench.contract_carry_forward import validate,APPROVED,VERSION
+from pacbench.corpus.contract import (
+    validate_carry_forward as validate, APPROVED_QUERY_SUBSTITUTIONS as APPROVED, CARRY_FORWARD_VERSION as VERSION,
+)
 from pacbench.followups import digest
 
 
@@ -42,7 +44,7 @@ def test_fail_closed_equivalence_witness(mutation):
  with pytest.raises(ValueError):validate(w,a,b,q,d,policy,model,corpus)
 
 def test_attribute_anchor_protocol_is_explicit_and_legacy_unchanged():
- from pacbench.semantic_contract import ContractClaim,shared_context_review_prompt
+ from pacbench.corpus.contract import ContractClaim,shared_context_review_prompt
  kwargs=dict(claims=[ContractClaim('time','The October 9 lunch starts at12:30.',('raw',))],
      author_facts=(),dialogue='raw',question_at='2026-10-08',user_question='What is the lunch time?',test_intent='Recall time')
  old=shared_context_review_prompt(**kwargs);new=shared_context_review_prompt(**kwargs,review_version='event-scoped-v8-attribute-anchors')
@@ -52,7 +54,7 @@ def test_attribute_anchor_protocol_is_explicit_and_legacy_unchanged():
 
 def test_scoped_expectation_can_constrain_explicit_atomic_facts(tmp_path):
  from tests.test_scene_local_authoring import week,exact
- from pacbench.prepare import resolve_spec
+ from pacbench.corpus.prepare import resolve_spec
  spec=week([exact()]);q=spec['days']['sunday']['conversations'][0]['turns'][0]
  q['expect']='Required Saturday outing only; Morgan’s stay is optional.'
  q['facts']=['The outing starts at 2 pm.','The outing ends at 2:30 pm.']
@@ -61,7 +63,7 @@ def test_scoped_expectation_can_constrain_explicit_atomic_facts(tmp_path):
 
 def test_native_copy_keeps_historical_model_receipts_separate_from_paid_arm_calls(tmp_path):
  import json
- from pacbench.contract_carry_forward import copy_review_evidence
+ from pacbench.corpus.contract import copy_review_evidence
  source=tmp_path/'source';dest=tmp_path/'dest';dest.mkdir()
  for folder in ['carry-forward','evaluations/later','model-calls']:(source/folder).mkdir(parents=True)
  (source/'carry-forward/later.json').write_text('{}')

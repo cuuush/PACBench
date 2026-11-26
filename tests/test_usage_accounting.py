@@ -74,7 +74,7 @@ class ParseTurnTokens(unittest.TestCase):
                           result.session_output_tokens), (30, 7))
 
     def test_timeout_turn_carries_no_tokens(self):
-        with mock.patch('pacbench.live_trials.require_live_trials_ready'), \
+        with mock.patch('pacbench.providers.require_live_trials_ready'), \
              mock.patch('pacbench.hermes_gateway.turn_gateway', return_value=nullcontext({'state': 'mock'})), \
              mock.patch('pacbench.gateway_client.client_settings',return_value=('http://127.0.0.1:8099/p/unit/v1','offline-test')), \
              tempfile.TemporaryDirectory(prefix="pacbench-tok-") as tmp:

@@ -6,7 +6,7 @@ from urllib.request import OpenerDirector
 
 import pytest
 
-from pacbench import honcho_regrade_live as v4
+from pacbench.providers.honcho import regrade_live as v4
 from pacbench.observational_receipts import replay_attempts
 from tests.test_cohort_regrade_live import offline
 

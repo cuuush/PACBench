@@ -249,7 +249,7 @@ def run_turn(prompt: str, *, at: str, home: Path, allowlist: str,
              extra_env: dict | None = None, timeout_s: float = 600.0,
              session_id: str | None = None, session_started_at: str | None = None) -> TurnResult:
     """Drive the verbatim question through a verified run-owned native gateway."""
-    from .live_trials import require_live_trials_ready
+    from .providers import require_live_trials_ready
     require_live_trials_ready()
     home = home.resolve()
     _check_paths(home)
@@ -435,7 +435,7 @@ def provider_trace_snapshot(env: dict) -> dict:
     honcho=env.get('PACBENCH_HONCHO_TRACE_FILE')
     if honcho and Path(honcho).exists():records[honcho]=Path(honcho).read_bytes()
     if env.get('HINDSIGHT_MODE')=='local_external':
-        from .hindsight_traces import KEY,snapshot
+        from .providers.hindsight.evidence import KEY,snapshot
         records[KEY]=snapshot(env)
     return records
 
@@ -460,7 +460,7 @@ def honcho_tool_trace(data, turn):
 def capture_provider_traces(turn: TurnResult, env: dict, before: dict) -> None:
     """Observe native provider task journals, including prefetch, without changing tools."""
     for filename, content in provider_trace_snapshot(env).items():
-        from .hindsight_traces import KEY,capture
+        from .providers.hindsight.evidence import KEY,capture
         if filename==KEY:
             turn.provider_traces.extend(capture(env,before.get(KEY,{}),turn))
             continue

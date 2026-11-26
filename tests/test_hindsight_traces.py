@@ -4,7 +4,7 @@ from unittest.mock import Mock
 
 import pytest
 
-from pacbench.hindsight_traces import convert,category,capture
+from pacbench.providers.hindsight.evidence import convert,category,capture
 from pacbench.followups import tool_profile
 from pacbench.usage import attribute_provider_paths
 
@@ -56,8 +56,8 @@ def test_legacy_native_tools_with_final_json_schema_remain_supported():
 
 
 def test_incomplete_native_reflection_traces_never_assert_clean_retention(monkeypatch):
-    monkeypatch.setattr('pacbench.hindsight_traces.read',lambda env:[])
-    monkeypatch.setattr('pacbench.hindsight_traces.time.monotonic',iter([0,7]).__next__)
+    monkeypatch.setattr('pacbench.providers.hindsight.evidence.read',lambda env:[])
+    monkeypatch.setattr('pacbench.providers.hindsight.evidence.time.monotonic',iter([0,7]).__next__)
     traces=capture({}, {'ids':[]}, make_turn())
     assert traces[0]['error']=='Native reflection trace coverage incomplete'
     turn=make_turn();turn.provider_traces=traces
@@ -104,8 +104,8 @@ def test_uniform_mixed_path_is_review_not_confirmed_source():
 
 def test_complete_traces_stop_after_native_flush_without_waiting_for_deadline(monkeypatch):
     read=Mock(return_value=recorded_rows({}))
-    monkeypatch.setattr('pacbench.hindsight_traces.read',read)
-    monkeypatch.setattr('pacbench.hindsight_traces.time.monotonic',iter([0,1]).__next__)
+    monkeypatch.setattr('pacbench.providers.hindsight.evidence.read',read)
+    monkeypatch.setattr('pacbench.providers.hindsight.evidence.time.monotonic',iter([0,1]).__next__)
     traces=capture({}, {'ids':[]}, make_turn())
     assert read.call_count==1
     assert len(traces)==1 and traces[0]['record']['complete']
@@ -184,7 +184,7 @@ def test_schema_ambiguous_or_changed_native_evidence_fails_closed(mutation):
 def test_raw_native_snapshot_survives_conversion_failure_privately(tmp_path,monkeypatch):
     import json,hashlib,stat
     rows=schema_rows();rows[1]['output']='incomplete JSON'
-    monkeypatch.setattr('pacbench.hindsight_traces.read',lambda env:rows)
+    monkeypatch.setattr('pacbench.providers.hindsight.evidence.read',lambda env:rows)
     traces=capture({'PACBENCH_HINDSIGHT_TRACE_DIR':str(tmp_path)}, {'ids':[]},make_turn())
     assert traces[0]['error'].startswith('Native trace observation failed:')
     witness=traces[0]['native_snapshot'];path=tmp_path/(witness['sha256']+'.json')

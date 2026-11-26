@@ -8,7 +8,7 @@ import sys
 import pytest
 
 from pacbench import week_spec_audit as audit
-from pacbench.judge_blind_controls import evaluate
+from pacbench.judging.controls import evaluate
 from pacbench.semantic_grade import CONTEXT_JUDGE_PROTOCOL
 
 

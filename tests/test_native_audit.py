@@ -8,7 +8,7 @@ import pytest
 
 from pacbench.context_isolation import actual_context, workspace_for
 from pacbench.document_ingestion import VERSION, prepare_sources, record_recall_isolation,processing_at
-from pacbench.frozen import write_bundle
+from pacbench.corpus.sources import write_bundle
 from pacbench.native_audit import audit
 from pacbench.source_policy import SOURCE_ARGUMENT_RULES
 
@@ -91,7 +91,7 @@ def test_missing_native_ingestion_cannot_pass(trace):
 
 def test_scored_recovery_attributes_existing_sessions_without_faking_empty_receipt(trace):
     from pacbench.document_audit import audit_ingestion
-    from pacbench.frozen import load_bundle,messages_for
+    from pacbench.corpus.sources import load_bundle,messages_for
     root,arm=trace;summary=json.loads((root/'summary.json').read_text())
     messages=messages_for(load_bundle(root/'bundle.json',summary['bundle_hash']),'test')
     save(arm/'pre-recall-isolation.json',{'hermes_sessions_before_recall':['recall'],'builtin_memory_before_recall':{}})
@@ -105,7 +105,7 @@ def test_scored_recovery_attributes_existing_sessions_without_faking_empty_recei
 
 def test_interrupted_native_input_needs_frozen_question_gate_and_actual_context(trace):
     from pacbench.document_audit import audit_ingestion
-    from pacbench.frozen import load_bundle,messages_for
+    from pacbench.corpus.sources import load_bundle,messages_for
     root,arm=trace;summary=json.loads((root/'summary.json').read_text())
     summary['question_prompt_protocol']='native-question-v2'
     turn=json.loads((arm/'recall.json').read_text());turn['prompt']='When is dinner?';save(arm/'recall.json',turn)
@@ -186,7 +186,7 @@ def test_sender_or_thread_only_exposure_change_cannot_pass(trace,field,value):
 def test_checkpoint_audit_keeps_native_conversation_and_source_state_independent(trace,compact):
     from pacbench.document_audit import audit_ingestion
     from pacbench.document_ingestion import source_state
-    from pacbench.frozen import load_bundle,messages_for
+    from pacbench.corpus.sources import load_bundle,messages_for
     root,arm=trace
     summary=json.loads((root/'summary.json').read_text())
     summary['evaluation_plan_hash']='checkpoint-test'
@@ -333,7 +333,7 @@ def test_audit_reads_private_session_bound_prompt_after_native_gc(trace):
 
 def test_import_only_audit_requires_no_queries_and_keeps_all_source_checks(trace):
     from pacbench.document_audit import audit_ingestion
-    from pacbench.frozen import load_bundle,messages_for
+    from pacbench.corpus.sources import load_bundle,messages_for
     root,arm=trace
     summary=json.loads((root/'summary.json').read_text());summary['mode']='native-import-validation'
     messages=messages_for(load_bundle(root/'bundle.json',summary['bundle_hash']),'test')

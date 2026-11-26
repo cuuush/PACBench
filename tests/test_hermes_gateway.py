@@ -108,7 +108,7 @@ def test_timed_out_turn_still_exits_gateway_context(tmp_path, monkeypatch):
         finally:
             witness['stopped'] = True
             events.append('stopped')
-    monkeypatch.setattr('pacbench.live_trials.require_live_trials_ready', lambda: None)
+    monkeypatch.setattr('pacbench.providers.require_live_trials_ready', lambda: None)
     monkeypatch.setattr('pacbench.hermes_gateway.turn_gateway', owned)
     monkeypatch.setattr(harness, '_check_paths', lambda home: None)
     monkeypatch.setattr('pacbench.context_isolation.workspace_for', lambda home: tmp_path)
@@ -137,7 +137,7 @@ def test_answer_receipt_precedes_cleanup_without_skipping_native_capture(tmp_pat
             assert witness.get('real_cli_result_received_at')
             observed.append('native-write-drain')
             witness.update(stopped=True,real_finished_at=datetime.now(timezone.utc).isoformat())
-    monkeypatch.setattr('pacbench.live_trials.require_live_trials_ready',lambda:None)
+    monkeypatch.setattr('pacbench.providers.require_live_trials_ready',lambda:None)
     monkeypatch.setattr('pacbench.hermes_gateway.turn_gateway',owned)
     monkeypatch.setattr(harness,'_check_paths',lambda home:None)
     monkeypatch.setattr('pacbench.context_isolation.workspace_for',lambda home:tmp_path)
@@ -159,7 +159,7 @@ def test_answer_receipt_precedes_cleanup_without_skipping_native_capture(tmp_pat
 
 def test_simulated_clock_is_blocked_before_native_clock_advance(tmp_path, monkeypatch):
     from pacbench import harness
-    monkeypatch.setattr('pacbench.live_trials.require_live_trials_ready', lambda: None)
+    monkeypatch.setattr('pacbench.providers.require_live_trials_ready', lambda: None)
     monkeypatch.setattr(harness, '_check_paths', lambda home: None)
     home = tmp_path / 'hermes-home'
     (tmp_path / 'provider-clock.json').write_text('{}')
@@ -176,7 +176,7 @@ def test_expired_startup_budget_never_launches_request(tmp_path, monkeypatch):
     @contextmanager
     def owned(*args, **kwargs):
         yield {'stopped': True}
-    monkeypatch.setattr('pacbench.live_trials.require_live_trials_ready', lambda: None)
+    monkeypatch.setattr('pacbench.providers.require_live_trials_ready', lambda: None)
     monkeypatch.setattr('pacbench.hermes_gateway.turn_gateway', owned)
     monkeypatch.setattr('pacbench.context_isolation.workspace_for', lambda home: tmp_path)
     monkeypatch.setattr('pacbench.context_isolation.actual_context', lambda *a, **kw: {'state': 'pass'})

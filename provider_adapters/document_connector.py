@@ -131,7 +131,7 @@ class ExtractionLog(logging.Handler):
 
 
 def mem0(source, root, at, processing_at):
-    from pacbench.provider_loader import provider_module
+    from pacbench.providers import provider_module
     from pacbench.gateway_client import validate_route
     cfg=json.loads((root/'hermes-home/mem0.json').read_text())
     from pacbench.openrouter_direct import active
@@ -348,7 +348,7 @@ def hindsight_operations(provider,client,bank_id,deadline):
 
 
 def hindsight(source,root,at,processing_at):
-    from pacbench.provider_loader import provider_module
+    from pacbench.providers import provider_module
     HindsightMemoryProvider = provider_module("hindsight").HindsightMemoryProvider
     from pacbench.gateway_client import validate_route
     from pacbench.document_ingestion import HINDSIGHT_PROCESSING_TIMEOUT_S
@@ -387,7 +387,7 @@ def hindsight(source,root,at,processing_at):
 
 
 def openviking(source,root,at,processing_at):
-    from pacbench.provider_loader import provider_module
+    from pacbench.providers import provider_module
     OpenVikingMemoryProvider = provider_module("openviking").OpenVikingMemoryProvider
     from pacbench.gateway_client import validate_route
     cfg=json.loads((root/'ov.conf').read_text())
@@ -499,7 +499,7 @@ def byterover(source,root,at,processing_at):
 def honcho(source,root,at,processing_at):
     from honcho import Honcho
     from honcho.api_types import SessionPeerConfig
-    from pacbench.provider_loader import provider_module
+    from pacbench.providers import provider_module
     HonchoClientConfig = provider_module("honcho", "client").HonchoClientConfig
     import hashlib
     cfg=json.loads((root/'hermes-home/honcho.json').read_text())
@@ -683,7 +683,7 @@ def wait_honcho_sessions(sessions,roles,minimum_work=None,*,batch_grace_s=0,read
 
 def supermemory(source,root,at,processing_at):
     from supermemory import Supermemory
-    from pacbench.provider_loader import provider_module
+    from pacbench.providers import provider_module
     plugin = provider_module("supermemory")
     from provider_adapters.supermemory_native import namespace, document
     cfg,tag=namespace(plugin,root/'hermes-home')
@@ -758,7 +758,7 @@ def main(args=None):
         print(json.dumps({'operator_stop': True}))
         return 75
     provider,src,arm,at,processing_at=args or sys.argv[1:]
-    from pacbench.provider_lineup import require_not_retired
+    from pacbench.providers import require_not_retired
     require_not_retired(provider)
     dispatch={'mem0':mem0,'memcal':memcal,'hindsight':hindsight,'openviking':openviking,'supermemory':supermemory,'honcho':honcho}
     if provider=='reme':

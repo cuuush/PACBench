@@ -1,7 +1,27 @@
 import json
+import subprocess
+import sys
 import pytest
 from pacbench.direct_accounting import DirectBudget
 from pacbench import role_routes
+
+
+def test_accounting_can_validate_render_scope_without_loading_the_writer():
+    probe = """
+import os
+import sys
+
+os.environ['PACBENCH_EXECUTION_SCOPE'] = 'source-render-v1'
+os.environ['PACBENCH_FUNDED_RUN_ID'] = 'offline'
+from pacbench.role_routes import validate_render_scope
+
+assert validate_render_scope('scored-week-roles', 'pacbench-authoring', 'luna-bedrock-global')
+assert 'pacbench.render_sources' not in sys.modules
+assert 'pacbench.corpus.authoring' not in sys.modules
+"""
+    result = subprocess.run([sys.executable, '-c', probe], capture_output=True, text=True, timeout=10)
+    assert result.returncode == 0, result.stderr
+
 
 @pytest.fixture
 def render_budget(tmp_path,monkeypatch):

@@ -89,7 +89,7 @@ def native_fixture(tmp_path,monkeypatch,*,now=BEFORE,joined=None):
     def resolve(name,submodule=None):
         assert (name,submodule)==('honcho','client')
         return plugin
-    monkeypatch.setattr('pacbench.provider_loader.provider_module',resolve)
+    monkeypatch.setattr('pacbench.providers.provider_module',resolve)
     monkeypatch.setenv(enrollment.ENVIRONMENT,enrollment.PROTOCOL)
     monkeypatch.delenv('PACBENCH_STOP_FILE',raising=False)
     def read(root,workspace,plans):

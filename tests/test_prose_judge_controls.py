@@ -3,8 +3,8 @@ import json
 
 import pytest
 
-from pacbench import judge_blind_controls as adapter
-from pacbench import prose_judge_controls as controls
+from pacbench.judging import controls as adapter
+from pacbench.judging import controls as controls
 from pacbench.semantic_grade import CONTEXT_JUDGE_PROTOCOL, UnusableJudgeResponse, question_context
 
 

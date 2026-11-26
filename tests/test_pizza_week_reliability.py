@@ -5,10 +5,10 @@ import json
 
 import pytest
 
-from pacbench.workflow_conformance import RecordingAccount
-from pacbench.workflow_daily_documents import compile_daily_week, daily_documents
-from pacbench.workflow_runner import Condition, Journal, captured_turn, run_workflow
-from pacbench.workflow_spec import Document, Turn
+from pacbench.workflows.conformance import RecordingAccount
+from pacbench.campaigns.pizza_week import compile_daily_week, daily_documents
+from pacbench.workflows.runner import Condition, Journal, captured_turn, run_workflow
+from pacbench.workflows.spec import Document, Turn
 
 AT = '2026-10-06T21:00:00-04:00'
 QUESTION = 'Did you find the lunch invite?'
@@ -69,7 +69,7 @@ def test_rejects_inconsistent_tool_round_even_when_final_answer_matches(fault):
 
 
 def test_duplicate_turn_id_is_rejected_before_any_provider_effect(tmp_path):
-    from pacbench.workflow_spec import compile_week
+    from pacbench.campaigns.pizza_week import compile_week
 
     _, docs, _, basis = compile_week('continuing-account')
     account = RecordingAccount(COND)
@@ -121,7 +121,7 @@ def test_retained_intake_rejects_later_release_submitted_before_question():
 
 
 def test_parallel_tool_provenance_uses_call_id_instead_of_return_order():
-    from pacbench.workflow_native import tool_provenance
+    from pacbench.workflows.native import tool_provenance
 
     calls = [{'tool_call_id': 'a', 'name': 'lookup', 'input': {}},
              {'tool_call_id': 'b', 'name': 'lookup', 'input': {}}]
@@ -135,7 +135,7 @@ def test_parallel_tool_provenance_uses_call_id_instead_of_return_order():
 
 
 def test_tool_status_is_joined_to_the_actual_native_row_before_provenance():
-    from pacbench.workflow_native import capture_tool_results
+    from pacbench.workflows.native import capture_tool_results
 
     native = [_result('a'), _result('b')]
     events = [{'tool_call_id': 'b', 'tool': 'lookup', 'success': False, 'text': 'preview'},
@@ -149,7 +149,7 @@ def test_tool_status_is_joined_to_the_actual_native_row_before_provenance():
 
 def test_spec_cli_validates_the_frozen_daily_layout(capsys):
     from pacbench.specs import main
-    from pacbench.workflow_daily_documents import DAILY_SPEC
+    from pacbench.campaigns.pizza_week import DAILY_SPEC
 
     assert main([str(DAILY_SPEC)]) == 0
     assert '7 | frozen | 47 | frozen' in capsys.readouterr().out

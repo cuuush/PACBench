@@ -160,7 +160,7 @@ def test_preclose_rejects_stale_empty_before_enqueue_and_failed_work():
 
 @pytest.mark.skipif(not PYTHON.exists() or not (ROOT/'vendor/reme').exists(), reason='requires provisioned Hermes and stock ReMe checkouts')
 def test_observation_close_requires_native_exit_and_no_live_process(tmp_path,monkeypatch):
- from pacbench.checkpoint_canary import close_observation_services
+ from pacbench.campaigns.pizza_week_checkpoints import close_observation_services
  monkeypatch.setattr('pacbench.hermes_gateway._live',lambda pid:False)
  good={'pid':42,'forced_kill':False,'returncode':0,'native_shutdown_complete':True}
  close_observation_services([(lambda:good,tmp_path)])

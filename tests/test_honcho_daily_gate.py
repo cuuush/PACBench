@@ -12,16 +12,17 @@ from types import SimpleNamespace
 import httpx
 import pytest
 
-from pacbench import direct_http, honcho_daily_gate as gate
+from pacbench import direct_http
+from pacbench.providers.honcho import daily_gate as gate
 from pacbench.canary_capability import CanaryBusy, binding, sha
 from pacbench.direct_accounting import MARKER
 from pacbench.document_ingestion import NIGHTLY_JSON_VERSION, document_text
 from pacbench.live_dispatch import CONDITION as TRACKING
 from pacbench.observational_receipts import RunReceiptJournal
 from pacbench.openrouter_route import CHAT_COMPLETIONS_URL, PROFILES
-from pacbench.workflow_capability import ENV, PROFILE, load
-from pacbench.workflow_memcal_account import _source_messages
-from pacbench.workflow_spec import instant
+from pacbench.workflows.capability import ENV, PROFILE, load
+from pacbench.providers.memcal.workflow import _source_messages
+from pacbench.workflows.spec import instant
 
 HOST = dict(workspace='owned', peerName='user', aiPeer='hermes')
 SESSION = 'daily-uploads'
@@ -243,8 +244,8 @@ def test_frozen_manifest_has_39_rows_in_one_file_and_no_early_or_duplicate_uploa
 @pytest.mark.parametrize('owned', ['shared'], indirect=True)
 def test_shared_renderer_crosses_stock_upload_and_readback_but_grants_no_driver(owned):
     sdk = pytest.importorskip('honcho')
-    from pacbench.workflow_capability import admission
-    from pacbench.workflow_daily_documents import compile_daily_week
+    from pacbench.workflows.capability import admission
+    from pacbench.campaigns.pizza_week import compile_daily_week
 
     scope = load()
     _, documents, turns, _, manifest = compile_daily_week()

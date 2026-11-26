@@ -5,7 +5,7 @@ import pytest
 
 from pacbench import native_pilot, openrouter_run
 from pacbench.openrouter_direct import provider_plan
-from pacbench.provider_lineup import ACTIVE_PROVIDERS
+from pacbench.providers import ACTIVE_PROVIDERS
 
 
 def test_retired_plugin_cannot_reenter_inventory(tmp_path,monkeypatch):

@@ -42,7 +42,7 @@ def admitted(url,headers,body,*,wait=True,method=None):
     if not body and parsed.path in {'/api/v1/models','/api/v1/key','/api/v1/credits'}:
         return {'headers':{**dict(headers),'Authorization':auth},'free':True}
     if parsed.path=='/api/alpha/decisions' and body and os.environ.get('PACBENCH_WORKFLOW_SCOPE'):
-        from .decisions_admission import admit_decisions
+        from .judging.decision_admission import admit_decisions
         identifier, budget = admit_decisions(project, method, str(url), body)
         return {'headers':{'Authorization':auth,'Content-Type':'application/json',
                            'Accept-Encoding':'identity','Content-Length':str(len(body))},

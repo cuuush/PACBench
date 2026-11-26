@@ -63,7 +63,7 @@ def direct_environment(key):
 
 
 def provider_plan(provider: str, root: Path) -> dict:
-    from .provider_lineup import require_not_retired
+    from .providers import require_not_retired
     require_not_retired(provider)
     from .native_pilot import memcal_model_settings, mem0_model_settings, hindsight_model_settings
     from provider_adapters import honcho_local, openviking_local, supermemory_local

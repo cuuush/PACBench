@@ -5,11 +5,11 @@ import json
 
 import pytest
 
-from pacbench import decisions_calibration as plan
+from pacbench.judging import decision_matrix as plan
 from pacbench import direct_http
 from pacbench import judge_development_challenge as challenge
-from pacbench import judge_development_live as prepaid
-from pacbench.decisions_admission import DecisionsAdmission, NAME, validate_response
+from pacbench.judging import development_live as prepaid
+from pacbench.judging.decision_admission import DecisionsAdmission, NAME, validate_response
 from tests.test_judge_development_live import synthetic_checkpoint
 
 

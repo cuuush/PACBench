@@ -11,10 +11,11 @@ from dataclasses import asdict, dataclass
 from enum import StrEnum
 import json
 
-from .frozen import bundle_hash
-from .prepare import read_spec, resolve_spec
-from .semantic_contract import ContractClaim
-from .workflow_spec import ROOT, compile_week, instant
+from pacbench.corpus.sources import bundle_hash
+from pacbench.corpus.prepare import read_spec, resolve_spec
+from pacbench.corpus.contract import ContractClaim
+from pacbench.campaigns.pizza_week import ROOT, compile_week
+from .workflows.spec import instant
 
 FIXTURES = ROOT / 'tests/fixtures'
 SPEC = FIXTURES / 'spec_first_role_reply_v1.json'

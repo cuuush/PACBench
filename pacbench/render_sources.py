@@ -7,8 +7,8 @@ REVIEW='4e0a248d181e92f5dc4aebfe1f3fe5cacd0de287'
 SPEC='specs/pizza_week_assistant.json'
 
 def render(spec,root,writer,verifier,*,model):
-    from .prepare import resolve_spec,realization_binding
-    from .authoring import realize_scene,build_scene_observations
+    from pacbench.corpus.prepare import resolve_spec,realization_binding
+    from pacbench.corpus.authoring import realize_scene,build_scene_observations
     from .followups import save
     plans,_,resolved=resolve_spec(spec,root)
     root.mkdir(exist_ok=False,parents=True);save(root/'resolved-spec.json',resolved)
@@ -41,8 +41,8 @@ def render(spec,root,writer,verifier,*,model):
 
 def main():
     ap=argparse.ArgumentParser(description=__doc__);ap.add_argument('--output',required=True,type=Path);args=ap.parse_args()
-    from .render_scope import active
-    if not active():raise RuntimeError('Explicit source-render-v1 scope required')
+    from .role_routes import RENDER_PROJECTS, RENDER_SCOPE, render_scope_active
+    if not render_scope_active():raise RuntimeError(f'Explicit {RENDER_SCOPE} scope required')
     limit=os.environ.get('PACBENCH_EFFECTIVE_OUTPUT_TOKENS','')
     if not limit.isdigit() or not 0<int(limit)<=32768 or os.environ.get('PACBENCH_RESERVATION_POLICY')!='openai-cache-total-shared-v1':
         raise RuntimeError('Render requires an explicit output ceiling <=32768 and reviewed prepaid reservation policy')
@@ -62,18 +62,18 @@ def main():
     key=os.environ['OPENROUTER_API_KEY']
     with direct_environment(key):
         clients=[]
-        for project in ['pacbench-authoring','pacbench-scene-verifier']:
+        for project in RENDER_PROJECTS:
             base,capability=client_settings(project)
             clients.append(ModelClient(key=capability,model='openai/gpt-6-luna',record_dir=args.output/'model-calls',
                 cache_dir=args.output/'model-cache',url=base+'/chat/completions',json_mode=True,
                 reasoning_effort='low',timeout_s=180,max_attempts=1))
         failures=render(json.loads(reviewed),args.output,*clients,model='openai/gpt-6-luna')
-    calls=[r for r in budget.snapshot() if r['id'] not in baseline and r['project'] in {'pacbench-authoring','pacbench-scene-verifier'}]
+    calls=[r for r in budget.snapshot() if r['id'] not in baseline and r['project'] in RENDER_PROJECTS]
     from decimal import Decimal
     save(args.output/'usage.private.json',{'calls':calls,'actual_settled_usd':str(sum((Decimal(r['accounted']) for r in calls if r['state']=='settled'),Decimal(0))),
         'unknown_bound_usd':str(sum((Decimal(r['accounted']) for r in calls if r['state']!='settled'),Decimal(0))),
         'roles_by_project':{'pacbench-authoring':'source_writer','pacbench-scene-verifier':'scene_verifier'},
-        'condition':{'scope':'source-render-v1','output_ceiling':os.environ.get('PACBENCH_EFFECTIVE_OUTPUT_TOKENS'),'reservation_policy':os.environ.get('PACBENCH_RESERVATION_POLICY')}})
+        'condition':{'scope':RENDER_SCOPE,'output_ceiling':os.environ.get('PACBENCH_EFFECTIVE_OUTPUT_TOKENS'),'reservation_policy':os.environ.get('PACBENCH_RESERVATION_POLICY')}})
     print(json.dumps({'state':'partial' if failures else 'rendered-scene-checked','calls':len(calls),'output':str(args.output)}))
 
 if __name__=='__main__':main()

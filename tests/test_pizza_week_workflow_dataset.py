@@ -3,7 +3,7 @@ import hashlib
 import json
 from dataclasses import asdict
 
-from pacbench.workflow_spec import ROOT, compile_week
+from pacbench.campaigns.pizza_week import ROOT, compile_week
 
 
 def export_hash(value):

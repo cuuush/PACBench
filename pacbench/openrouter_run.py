@@ -16,7 +16,7 @@ from pathlib import Path
 import urllib.request
 
 from .openrouter_route import MODEL, ENDPOINT, PROVIDER, CATALOG_URL, PROFILE, PROFILES, PROFILE_NAME
-from .provider_lineup import ACTIVE_PROVIDERS
+from .providers import ACTIVE_PROVIDERS
 
 
 def catalog_parameters(data, *, profile=None):
@@ -169,13 +169,13 @@ def main(argv=None):
     if not key:
         parser.error('OPENROUTER_API_KEY is missing')
     if args.prepared:
-        from .preparation_audit import audit_prepared
+        from pacbench.corpus.audit import audit_prepared
         root = args.prepared.parent if args.prepared.is_file() else args.prepared
         audit = audit_prepared(root)
         if audit['state'] != 'pass':
             parser.error('Preparation audit failed: '+str(audit['errors']))
     elif args.prepare_from_archive:
-        from .pizza_day_recovery import dialogue_import
+        from .campaigns.pizza_day_review import dialogue_import
         spec, imported = dialogue_import(args.prepare_from_archive)
     else:
         spec=json.loads(args.spec.read_text())
@@ -208,8 +208,8 @@ def main(argv=None):
                        if args.judge_reasoning_effort is not None else {})
         if args.prepared:
             if args.import_only:
-                from .import_trial import run as import_run
-                result=import_run(args.prepared,args.output,providers=args.providers,
+                from .measured_import import run_trial
+                result=run_trial(args.prepared,args.output,providers=args.providers,
                     honcho_clock=args.honcho_clock,max_messages=args.max_messages,probe_source_ids=args.probe_source_ids)
                 print(json.dumps(result,indent=2))
                 return int(result['state']!='processing-complete')
@@ -219,7 +219,7 @@ def main(argv=None):
             result=run(args.prepared,args.output,providers=args.providers,
                        inference_route='openrouter',honcho_clock=args.honcho_clock,max_messages=args.max_messages,**judge_options)
         else:
-            from .prepare import prepare
+            from pacbench.corpus.prepare import prepare
             result=prepare(spec,args.output,inference_route='openrouter',imported_scenes=imported,**judge_options)
     print(json.dumps(result,indent=2))
     return int(result.get('state') in ('incomplete','blocked','invalid'))

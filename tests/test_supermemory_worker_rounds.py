@@ -8,10 +8,11 @@ import subprocess
 
 import pytest
 
-from pacbench import execution_capability, supermemory_worker_rounds as rounds
+from pacbench import execution_capability
+from pacbench.providers.supermemory import worker as rounds
 from pacbench.dispatch_ownership import OwnershipConflict
-from pacbench.supermemory_source_admission import BINARY_SHA
-from pacbench.supermemory_week_admission import WeekJournal
+from pacbench.providers.supermemory.source_admission import BINARY_SHA
+from pacbench.providers.supermemory.week_admission import WeekJournal
 
 REPO = Path(__file__).resolve().parents[1]
 BINARY = REPO / 'vendor/supermemory-local/supermemory-server-linux-x64'

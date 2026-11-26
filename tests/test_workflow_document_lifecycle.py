@@ -7,15 +7,15 @@ from unittest.mock import Mock
 
 import pytest
 
-from pacbench import workflow_capability as cap
-from pacbench import workflow_document_lifecycle as lifecycle
+from pacbench.workflows import capability as cap
+from pacbench.workflows import lifecycle as lifecycle
 
 
 @pytest.fixture(params=['mem0', 'reme', 'cognee', 'hindsight', 'openviking', 'memos_oss'])
 def launcher(request, tmp_path, monkeypatch):
     name = request.param
     provider = 'memos' if name == 'memos_oss' else name
-    module = import_module(f'pacbench.workflow_{name}')
+    module = import_module(f'pacbench.providers.{provider}' + ('.workflow' if provider == 'hindsight' else ''))
     root = tmp_path/'canary'/provider
     args = {
         'mem0': ('offline-qdrant', 'offline-confirmation'),
@@ -72,11 +72,10 @@ def launcher(request, tmp_path, monkeypatch):
         'openrouter_direct.direct_environment': direct,
         'openrouter_route.PROFILE_NAME': cap.PROFILE,
         'openrouter_run.fetch_catalog': catalog,
-        'workflow_memcal_contract.verify_contract': Mock(),
-        'workflow_metrics.summarize': summarize,
-        'workflow_receipts.receipt_summary': billing,
-        'workflow_runner.run_current_week': execute,
-        'workflow_spec.compile_week': Mock(return_value=(None, [], [], {})),
+        'providers.memcal.contract.verify_contract': Mock(),
+        'workflows.recording.summarize': summarize,
+        'workflows.recording.receipt_summary': billing,
+        'workflows.runner.run_compiled_workflow': execute,
     }.items():
         monkeypatch.setattr(f'pacbench.{target}', value)
     monkeypatch.setattr(cap, 'confirm_setting', Mock())
@@ -178,13 +177,15 @@ def test_week_launch_keeps_qualification_route_and_native_account_inputs(launche
     if provider == 'openviking':
         assert launcher.environment['PACBENCH_OPENVIKING_IMPORT_CONDITION'] == 'native-defaults'
     if provider == 'memos':
-        from pacbench.workflow_tracks import MEMOS_OSS_LUNA_COMPAT
+        from pacbench.workflows.tracks import MEMOS_OSS_LUNA_COMPAT
 
         assert launcher.environment['PACBENCH_MEMOS_OSS_LUNA_COMPAT'] == MEMOS_OSS_LUNA_COMPAT
     launcher.judge.assert_called_once_with(key='key', model=MODEL, record_dir=root/'workflow/model-calls',
                                           url=CHAT_COMPLETIONS_URL, json_mode=True, max_attempts=1)
-    launcher.execute.assert_called_once_with('condition', 'account', root/'workflow',
-                                            judge='judge-instance', canary=False)
+    from pacbench.campaigns.pizza_week import compile_pizza_week
+
+    launcher.execute.assert_called_once_with(compile_pizza_week(), 'condition', 'account', root/'workflow',
+                                            judge='judge-instance')
     assert result['state'] == 'live-week-complete'
 
 

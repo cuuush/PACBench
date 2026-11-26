@@ -20,7 +20,7 @@ def test_direct_plans_do_not_claim_url_changes_pin_unsupported_clients():
 
 def test_entrypoint_uses_direct_environment_and_never_proxy(monkeypatch,tmp_path,capsys):
     monkeypatch.setenv('OPENROUTER_API_KEY','offline-secret')
-    monkeypatch.setattr('pacbench.preparation_audit.audit_prepared',lambda _: {'state':'pass'})
+    monkeypatch.setattr('pacbench.corpus.audit.audit_prepared',lambda _: {'state':'pass'})
     cfg=dict(prompt_per_million='1',completion_per_million='2',context_tokens=100,max_completion_tokens=50)
     monkeypatch.setattr(openrouter_run,'fetch_catalog',lambda: (cfg,{}))
     monkeypatch.setattr('pacbench.direct_accounting.live_budget',lambda: SimpleNamespace(config=cfg))

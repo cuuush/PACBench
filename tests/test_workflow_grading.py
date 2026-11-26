@@ -6,13 +6,13 @@ import sys
 
 import pytest
 
-from pacbench import workflow_grading as grading
+from pacbench.workflows import grading as grading
 from pacbench.canary_capability import binding, digest
 from pacbench.live_dispatch import process_identity
 from pacbench.model_calls import ModelOutput
-from pacbench.workflow_metrics import coverage, progress_metrics, summarize
-from pacbench.workflow_progress import WorkflowProgress
-from pacbench.workflow_spec import compile_week
+from pacbench.workflows.recording import coverage, progress_metrics, summarize
+from pacbench.workflows.progress import WorkflowProgress
+from pacbench.campaigns.pizza_week import compile_week
 
 
 class Recorder:
@@ -100,7 +100,7 @@ def test_reconcile_claim_does_not_request_a_second_judgment(tmp_path, monkeypatc
         assert grading.grade_verified(p, local_judge(tmp_path,calls), tmp_path, journal, limit=1)==0
         assert len(calls)==1
         if artifact == 'only-response':
-            from pacbench.workflow_answer_export import checkpoint_rows
+            from pacbench.workflows.answer_export import checkpoint_rows
             row, = checkpoint_rows(p, tmp_path, tmp_path/'offline-audit')
             assert row['answer'] == 'fixture' and row['criteria'] == p.grade_record(turns[0].id)['criteria']
             assert row['judge_attempts'][0]['request_id'] == 'offline-attempt-1'
@@ -163,7 +163,7 @@ def test_judge_recovery_owner_never_can_send_for_driver(tmp_path):
 
 def test_metrics_excludes_answer_visible_without_verification(tmp_path):
     from pacbench.canary_capability import sha
-    from pacbench.workflow_spec import SPEC
+    from pacbench.campaigns.pizza_week import SPEC
     _, _, turns, basis = compile_week('continuing-account')
     rows = [
         {'phase':'spec','sha256':sha(SPEC),'source_basis':basis,
@@ -215,10 +215,10 @@ def test_native_stream_first_answer_can_be_graded_after_second_dispatch_fails(tm
                                                                            judge_during_run):
     """Exercise real stream, progress, provenance checks, judge and CLI with in-memory site boundaries."""
     from types import SimpleNamespace
-    from pacbench import workflow_stream as stream
+    from pacbench.workflows import stream as stream
     from pacbench.openrouter_route import with_route
-    from pacbench.workflow_conformance import RecordingAccount
-    from pacbench.workflow_runner import Condition
+    from pacbench.workflows.conformance import RecordingAccount
+    from pacbench.workflows.runner import Condition
 
     _, docs, turns, basis = compile_week('continuing-account')
     condition = Condition('memcal','first-party-connector','continuing-account','unit fixture','openai/gpt-6-luna',
@@ -275,10 +275,12 @@ def test_document_campaign_stop_blocks_launch_and_judge_recovery(tmp_path, monke
     import os
     import urllib.request
 
-    from pacbench import observational_receipts, openrouter_route, workflow_capability as cap
-    from pacbench import workflow_reme
+    from pacbench import observational_receipts
+    from pacbench import openrouter_route
+    from pacbench.workflows import capability as cap
+    from pacbench.providers import reme as workflow_reme
     from pacbench.canary_capability import read, sha
-    from pacbench.workflow_document_progress import PROTOCOL
+    from pacbench.workflows.document_progress import PROTOCOL
 
     root = tmp_path/'campaign'/'week'/'reme'
     stop = tmp_path/'campaign'/'ACCOUNT_STOP'

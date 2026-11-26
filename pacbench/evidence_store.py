@@ -89,7 +89,7 @@ def compact_contracts(root):
 def compact_preparation(root):
     """Keep referenced receipts and store repeated exact prompt blocks once."""
     from .followups import save
-    from .preparation_audit import audit_prepared
+    from pacbench.corpus.audit import audit_prepared
     root=Path(root)
     if audit_prepared(root)['state']!='pass':raise ValueError('Refuse to compact invalid preparation')
     before=sum(p.stat().st_size for p in root.rglob('*') if p.is_file())

@@ -4,7 +4,7 @@ from unittest.mock import patch
 
 import pytest
 
-from pacbench.tool_policy import policy_record
+from pacbench.source_policy import policy_record
 from provider_adapters.reme_resource import ingest
 
 

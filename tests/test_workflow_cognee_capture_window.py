@@ -6,7 +6,7 @@ from uuid import UUID
 
 import pytest
 
-from pacbench.workflow_cognee import CogneeWitness
+from pacbench.providers.cognee import CogneeWitness
 
 
 @pytest.mark.parametrize(('indices','accepted'), [([0],True),([1,2],True),([0,1,2],True),([0,2],False)])
@@ -117,7 +117,7 @@ def test_checkpoint_reads_each_original_once_and_rechecks_seal_next_observation(
 ])
 def test_final_improve_poll_waits_for_current_terminal_row(monkeypatch, outcome, ready_at, expected_sleeps):
     from unittest.mock import Mock
-    from pacbench import workflow_cognee as workflow
+    from pacbench.providers import cognee as workflow
 
     doc = SimpleNamespace(cutoff='tonight', filename='file.txt', text='released')
     witness = workflow.CogneeWitness(None, None, None, 'local', 'ours', None, [doc], [], None)

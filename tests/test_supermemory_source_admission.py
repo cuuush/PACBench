@@ -5,15 +5,16 @@ import os
 
 import pytest
 
-from pacbench import supermemory_source_admission as source, workflow_capability as cap
+from pacbench.workflows import capability as cap
+from pacbench.providers.supermemory import source_admission as source
 from pacbench.canary_capability import binding, sha
 from pacbench.direct_accounting import live_budget
 from pacbench.dispatch_ownership import OwnershipConflict
 from pacbench.live_dispatch import CONDITION, process_identity
 from pacbench.openrouter_route import with_route
-from pacbench.supermemory_source_effect import BOUNDARY, SourceEffect
-from pacbench.supermemory_source_qualify import account_lock
-from pacbench.workflow_spec import SPEC
+from pacbench.providers.supermemory.source_effect import BOUNDARY, SourceEffect
+from pacbench.providers.supermemory.source_qualify import account_lock
+from pacbench.campaigns.pizza_week import SPEC
 
 DOCUMENT = 'd' * 22
 UPDATE = 'u' * 22

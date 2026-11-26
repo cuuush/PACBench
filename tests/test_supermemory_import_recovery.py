@@ -1,5 +1,5 @@
 import pytest
-from pacbench.supermemory_import_recovery import qualify
+from pacbench.providers.supermemory.import_recovery import qualify
 
 
 def test_accepted_recovery_requires_exact_source_and_both_native_phases():
@@ -15,7 +15,7 @@ def test_accepted_recovery_requires_exact_source_and_both_native_phases():
     with pytest.raises(ValueError):qualify({**raw,'content':'frozen source '},status,**kwargs)
 
 def test_pending_timeout_requires_an_identified_accepted_native_history():
-    from pacbench.supermemory_import_recovery import accepted_failure
+    from pacbench.providers.supermemory.import_recovery import accepted_failure
     row={'state':'failed','ready':False,'result':{'reason':'Native memory processing deadline exceeded',
         'result':{'id':'day','status':'queued'},'processing_status':[{'id':'day','status':'queued'}]}}
     assert accepted_failure(row)=='day'

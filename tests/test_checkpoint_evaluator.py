@@ -8,7 +8,7 @@ from pacbench.checkpoint_evaluator import launch,sha,verify_checkpoint
 from pacbench.gateway_reuse import PersistentGateway,clone_observation,tree_manifest
 from pacbench.hermes_gateway import GatewayLifecycleError
 from pacbench.checkpoint_clock import CheckpointClock
-from pacbench.semantic_contract import EvaluationContract,ContractClaim
+from pacbench.corpus.contract import EvaluationContract,ContractClaim
 from pacbench.followups import freeze_policy
 from tests.test_gateway_reuse import LocalNativeFixture,native_home,PYTHON
 

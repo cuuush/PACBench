@@ -129,7 +129,7 @@ def test_connector_writes_atomic_per_chunk_receipts_before_processing(tmp_path,m
     for name,value in [('honcho',native),('honcho.api_types',api)]:
         monkeypatch.setitem(sys.modules,name,value)
     resolver=Mock(return_value=plugin)
-    monkeypatch.setattr('pacbench.provider_loader.provider_module',resolver)
+    monkeypatch.setattr('pacbench.providers.provider_module',resolver)
     monkeypatch.setattr('pacbench.gateway_client.require_live_cost_boundary',lambda:{})
     monkeypatch.setattr('pacbench.stop.check_stop',lambda *a:None)
     monkeypatch.setattr('provider_adapters.honcho_clock.enabled',lambda r:True)

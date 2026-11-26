@@ -448,10 +448,9 @@ class DirectBudget:
         diagnostic=diagnostic_scope_for(project,self.profile_name)
         from .execution_capability import admission as canary_admission,serial as canary_serial,fields as capability_fields
         canary=canary_admission(project,self.profile_name,body)
-        from .role_routes import split_enabled, profile_for_project
+        from .role_routes import split_enabled, profile_for_project, validate_render_scope
         if split_enabled() and profile_for_project(project)!=self.profile_name:
             raise ValueError('Accounting capability/profile conflict')
-        from .render_scope import validate as validate_render_scope
         rendering=validate_render_scope(self.config.get('request_scope'),project,self.profile_name)
         if not rendering and self.config.get('request_scope')=='import-and-connectivity-probes' and not (project.endswith('-memory') or project.startswith('pacbench-route-probe-')):
             raise RuntimeError('Authorized route is import-only; benchmark and judge calls remain paused')
@@ -745,7 +744,8 @@ class DirectBudget:
 
 def live_budget(*, nonblocking=False, project=None, profile=None):
     if os.environ.get("PACBENCH_WORKFLOW_SCOPE"):
-        from . import execution_capability, workflow_capability
+        from pacbench import execution_capability
+        from pacbench.workflows import capability as workflow_capability
         if execution_capability.selected() is not workflow_capability or os.environ.get("PACBENCH_R2_LIVE_SCOPE"):
             raise ValueError("Conflicting live run scopes")
         return workflow_capability.budget(project=project, profile=profile)

@@ -5,13 +5,13 @@ import pytest
 
 from pacbench import native_pilot
 from pacbench.openrouter_route import MODEL, ENDPOINT
+from pacbench.providers import ACTIVE_PROVIDERS
 
 
-PROVIDERS = ['memcal', 'mem0', 'hindsight', 'openviking', 'supermemory', 'honcho']
 BASE = 'http://127.0.0.1:1/p/provider/v1'
 
 
-@pytest.mark.parametrize('provider', PROVIDERS)
+@pytest.mark.parametrize('provider', ACTIVE_PROVIDERS)
 def test_offline_plans_are_inert_and_have_exact_route(tmp_path, monkeypatch, provider):
     monkeypatch.setattr(native_pilot.subprocess, 'run', lambda *a, **k: pytest.fail('started subprocess'))
     monkeypatch.setattr(native_pilot, 'client_settings', lambda *a: pytest.fail('read live credentials'))
@@ -50,7 +50,7 @@ def test_direct_openrouter_provision_is_blocked_before_side_effects(tmp_path, mo
 
 
 def test_direct_openrouter_run_is_blocked_before_side_effects(tmp_path, monkeypatch):
-    monkeypatch.setattr('pacbench.live_trials.require_live_trials_ready', lambda: None)
+    monkeypatch.setattr('pacbench.providers.require_live_trials_ready', lambda: None)
     monkeypatch.setenv('PACBENCH_TRANSPORT', 'openrouter')
     monkeypatch.setattr(native_pilot, 'require_live_cost_boundary', lambda: (_ for _ in ()).throw(RuntimeError('task accounting unavailable')))
     root = tmp_path / 'new'

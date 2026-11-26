@@ -8,8 +8,8 @@ import sqlite3
 import pytest
 
 from pacbench.semantic_grade import Claim
-from pacbench.workflow_spec import Turn
-from pacbench.workflow_progress import UnknownEffect, WorkflowProgress
+from pacbench.workflows.spec import Turn
+from pacbench.workflows.progress import UnknownEffect, WorkflowProgress
 
 
 def plan(i, *, day='2026-01-01', session='chat'):

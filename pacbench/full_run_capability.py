@@ -137,7 +137,7 @@ def question(b,owner,prompt,at,observation,session_id):
   from .followups import load_combined_plan
   plan=read(binding(Path(s['question_directory'])/'followups/combined/question-plan.json'))
   # The production author/reviewer seals the plan before native dispatch.
-  from .semantic_contract import load_contract
+  from pacbench.corpus.contract import load_contract
   from .followups import load_questions,combined_binding
   prep,_,checks,_=frozen();_,contract,policy=next(c for c in checks if c[0]['id']==q['id'])
   from .semantic_grade import Grade,GradedClaim

@@ -82,7 +82,7 @@ def test_declared_dependency_failure_is_not_accepted(tmp_path, monkeypatch, cata
 
 def test_failed_preflight_leaves_provider_inactive_before_native_setup(tmp_path, monkeypatch):
     from pacbench import native_pilot
-    monkeypatch.setattr('pacbench.live_trials.require_live_trials_ready', lambda: None)
+    monkeypatch.setattr('pacbench.providers.require_live_trials_ready', lambda: None)
     monkeypatch.setattr(native_pilot, 'client_settings', lambda *_: ('http://127.0.0.1:1234/v1', 'test'))
     def home_setup(home, *, provider_name, **kwargs):
         assert provider_name == ''

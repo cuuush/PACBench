@@ -5,7 +5,7 @@ from pathlib import Path
 import pytest
 
 from pacbench.model_calls import ModelOutput
-from pacbench.rejudge import prepare, run, audit, controls, publish_audit, validate_published_audit
+from pacbench.judging.rejudge import prepare, run, audit, controls, publish_audit, validate_published_audit
 from pacbench.semantic_grade import Claim, grade_semantic, RETRY_GUIDANCE
 
 
@@ -64,7 +64,7 @@ def test_overlay_preserves_original_and_rejects_changed_inputs(tmp_path, protoco
 
 
 def test_stop_waits_for_saved_case_and_prevents_retry_until_resumed(tmp_path, monkeypatch):
-    import pacbench.rejudge as review
+    import pacbench.judging.rejudge as review
     overlay = tmp_path/'run'/'reviews'/'review'; overlay.mkdir(parents=True)
     cases = [{'judgment':'repeat-1/arm/turns/a/judgment.json'},
              {'judgment':'repeat-1/arm/turns/b/judgment.json'}]
@@ -93,7 +93,7 @@ def test_stop_waits_for_saved_case_and_prevents_retry_until_resumed(tmp_path, mo
 
 
 def test_stop_after_success_does_not_start_next_case(tmp_path, monkeypatch):
-    import pacbench.rejudge as review
+    import pacbench.judging.rejudge as review
     overlay=tmp_path/'run/reviews/review';overlay.mkdir(parents=True)
     cases=[{'judgment':f'repeat-1/arm/turns/{name}/judgment.json'} for name in ('a','b')]
     monkeypatch.setattr(review,'_manifest',lambda _:({'cases':cases},tmp_path/'run'))
@@ -109,7 +109,7 @@ def test_stop_after_success_does_not_start_next_case(tmp_path, monkeypatch):
 
 
 def test_review_stop_honors_inherited_operator_flag(tmp_path, monkeypatch):
-    import pacbench.rejudge as review
+    import pacbench.judging.rejudge as review
     overlay = tmp_path/'run/reviews/review'; overlay.mkdir(parents=True)
     flag = tmp_path/'global-stop'; flag.touch()
     monkeypatch.setenv('PACBENCH_STOP_FILE', str(flag))

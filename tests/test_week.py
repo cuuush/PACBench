@@ -3,11 +3,11 @@ import json
 from pathlib import Path
 
 import pytest
-from pacbench.prepare import resolve_spec, normalize_week, import_week
-from pacbench.evaluation import contract_evidence
+from pacbench.corpus.prepare import resolve_spec, normalize_week, import_week
+from pacbench.corpus.evaluation import contract_evidence
 from pacbench.document_ingestion import prepare_sources, ready_sources
 from pacbench.native_checks import run_checks, audit_checks
-from pacbench.authoring import scene_prompt
+from pacbench.corpus.authoring import scene_prompt
 from tests.test_evaluation import checkpoints, correct_judge
 from pacbench.harness import TurnResult
 from tests.test_document_ingestion import message
@@ -70,7 +70,7 @@ def test_noise_is_a_week_enum_and_high_is_per_member_not_per_group(tmp_path):
 
 
 def test_authored_noise_leaves_volume_to_scene_and_preserves_explicit_range(tmp_path):
-    from pacbench.authoring import scene_spec
+    from pacbench.corpus.authoring import scene_spec
     spec=json.loads(Path('specs/pizza_week.json').read_text())
     spec['noise']='authored'
     spec['days']['wednesday']['scenes'][1]['message_range']=[3, 7]
@@ -91,7 +91,7 @@ def test_authored_noise_leaves_volume_to_scene_and_preserves_explicit_range(tmp_
 
 
 def test_omitted_noise_is_authored_and_explicit_pizza_day_stays_low(tmp_path):
-    from pacbench.prepare import generation_spec
+    from pacbench.corpus.prepare import generation_spec
     spec=json.loads(Path('specs/pizza_day.json').read_text())
     legacy,_,_=resolve_spec(spec,tmp_path)
     assert legacy[0].noise=='low'
@@ -147,7 +147,7 @@ def test_execution_failure_skips_dependent_session_and_continues_independent(tmp
 
 def test_recovery_authoring_error_preserves_initial_grade_and_disjoint_counts(tmp_path,monkeypatch):
     from pacbench import native_checks
-    from pacbench.semantic_contract import EvaluationContract,ContractClaim
+    from pacbench.corpus.contract import EvaluationContract,ContractClaim
     from pacbench.followups import freeze_policy
     checks=checkpoints(tmp_path)
     row,old,_=checks[0]
@@ -254,8 +254,12 @@ def test_frozen_week_rejects_changed_content_before_execution(tmp_path):
 
 
 def test_frozen_week_preserves_readable_calls_without_private_replay(tmp_path, monkeypatch):
-    import pacbench.prepare as preparation
+    from dataclasses import replace
+    from pacbench.corpus import audit
+    import pacbench.corpus.prepare as preparation
     from pacbench.model_calls import ENCRYPTED_REDACTION
+    with audit.open_prepared(Path('runs/bike-pickup-native-clock-20261105/preparation')) as verified:
+        monkeypatch.setattr(audit, '_inspect_prepared', lambda root: ({'state':'pass'}, replace(verified, root=root)))
     monkeypatch.setattr(preparation, 'audit_prepared', lambda _: {'state':'pass'})
     root=tmp_path/'authoring';(root/'model-calls/private').mkdir(parents=True)
     record={'text':'Synthetic draft','response':{'encrypted_content':'opaque-replay'}}
@@ -275,8 +279,8 @@ def test_frozen_week_preserves_readable_calls_without_private_replay(tmp_path, m
 
 @pytest.mark.parametrize('change',['content','missing','escape'])
 def test_manifest_checks_all_references_before_creating_import(tmp_path,monkeypatch,change):
-    from pacbench.prepare import export_week
-    import pacbench.prepare as preparation
+    from pacbench.corpus.prepare import export_week
+    import pacbench.corpus.prepare as preparation
     monkeypatch.setattr(preparation,'audit_prepared',lambda _: {'state':'pass'})
     root=tmp_path/'original';root.mkdir()
     data=root/'spec.json';data.write_text('{"noise":"medium"}')
@@ -292,7 +296,7 @@ def test_manifest_checks_all_references_before_creating_import(tmp_path,monkeypa
 
 
 def test_manifest_refuses_unredacted_replay(tmp_path,monkeypatch):
-    import pacbench.prepare as preparation
+    import pacbench.corpus.prepare as preparation
     monkeypatch.setattr(preparation,'audit_prepared',lambda _: {'state':'pass'})
     (tmp_path/'model-calls').mkdir()
     (tmp_path/'model-calls/call.json').write_text('{"encrypted_content":"private"}')
@@ -302,7 +306,7 @@ def test_manifest_refuses_unredacted_replay(tmp_path,monkeypatch):
 
 
 def test_human_times_weekdays_and_dst_resolve_without_changing_author_file(tmp_path):
-    from pacbench.prepare import clock_on_day
+    from pacbench.corpus.prepare import clock_on_day
     from datetime import date
     assert clock_on_day(date(2026,10,5),'7:30 am')=='2026-10-05T07:30:00'
     assert clock_on_day(date(2026,10,5),'12 am').endswith('T00:00:00')
@@ -324,7 +328,7 @@ def test_human_times_weekdays_and_dst_resolve_without_changing_author_file(tmp_p
 
 @pytest.mark.parametrize('dedicated_draft',[False,True])
 def test_english_expectation_becomes_reviewed_criteria_without_a_fact_catalog(tmp_path,dedicated_draft):
-    from pacbench.evaluation import freeze_evaluations,load_evaluations,resolve_checks
+    from pacbench.corpus.evaluation import freeze_evaluations,load_evaluations,resolve_checks
     row={'id':'one','prompt':'What is the plan?','expect':'Dinner is at the cafe.','at':'2026-09-11T09:00:00-04:00'}
     resolved={**resolve_checks({'checks':[row]},row['at'],'America/New_York'),'question_at':row['at'],'timezone':'America/New_York'}
     messages=[{**message('m1'),'text':'Dinner at the cafe.','collected_at':'2026-09-10T18:00:00-04:00'}]
@@ -349,7 +353,7 @@ def test_english_expectation_becomes_reviewed_criteria_without_a_fact_catalog(tm
 
 
 def test_preparation_continues_after_one_contract_error_but_cannot_freeze_success(tmp_path):
-    from pacbench.evaluation import freeze_evaluations,resolve_checks
+    from pacbench.corpus.evaluation import freeze_evaluations,resolve_checks
     rows=[{'id':'bad','prompt':'Bad question','expect':'Dinner venue'},{'id':'good','prompt':'Good question','expect':'Dinner venue'}]
     resolved={**resolve_checks({'checks':rows},'2026-09-11T09:00:00-04:00','America/New_York')}
     calls=[]
@@ -371,10 +375,10 @@ def test_preparation_continues_after_one_contract_error_but_cannot_freeze_succes
 
 
 def test_portable_corpus_reuse_never_calls_a_model(tmp_path,monkeypatch):
-    from pacbench.frozen import write_bundle
+    from pacbench.corpus.sources import write_bundle
     from pacbench.followups import digest,freeze_policy
-    from pacbench.semantic_contract import ContractClaim,EvaluationContract
-    from pacbench.prepare import export_week
+    from pacbench.corpus.contract import ContractClaim,EvaluationContract
+    from pacbench.corpus.prepare import export_week
     from pacbench.native_pilot import read_prepared
     from pacbench.model_calls import ModelClient
     root=tmp_path/'original';root.mkdir()
@@ -453,7 +457,7 @@ def test_operator_stop_after_turn_preserves_answer_without_judging(tmp_path):
 
 
 def test_weekday_inline_recall_facts_are_frozen_as_authored(tmp_path):
-    from pacbench.semantic_contract import build_contract
+    from pacbench.corpus.contract import build_contract
     spec=json.loads(Path('specs/pizza_week.json').read_text())
     turn=next(t for day in spec['days'].values() for c in day.get('conversations',[]) for t in c['turns'])
     turn.pop('expect'); facts=['The call is at 10 am.','The call concerns a job application.'];turn['facts']=facts

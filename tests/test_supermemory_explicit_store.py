@@ -7,10 +7,10 @@ from types import SimpleNamespace
 
 import pytest
 
-from pacbench import supermemory_explicit_store as store
+from pacbench.providers.supermemory import explicit_store as store
 from pacbench.dispatch_ownership import OwnershipConflict
-from pacbench.supermemory_week import StockWeekWitness
-from pacbench.supermemory_week_observation import stock_temporal_metadata
+from pacbench.providers.supermemory.week import StockWeekWitness
+from pacbench.providers.supermemory.observation import stock_temporal_metadata
 
 
 def test_driver_receipts_can_be_read_during_locked_dispatch_confirmation(tmp_path):
@@ -24,7 +24,7 @@ def test_driver_receipts_can_be_read_during_locked_dispatch_confirmation(tmp_pat
         output = subprocess.run(
             [sys.executable, '-c', 'from pathlib import Path\n'
              'import sys\n'
-             'from pacbench.supermemory_explicit_store import driver_receipts\n'
+             'from pacbench.providers.supermemory.explicit_store import driver_receipts\n'
              'assert driver_receipts(Path(sys.argv[1]), {"attempt_id":"claim"})[0]["id"] == "parent"',
              str(tmp_path)], timeout=10, capture_output=True, text=True)
     assert output.returncode == 0, output.stderr

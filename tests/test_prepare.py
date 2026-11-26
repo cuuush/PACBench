@@ -3,12 +3,12 @@ import json
 from types import SimpleNamespace
 from datetime import datetime
 import pytest
-from pacbench.prepare import resolve_spec, prepare
+from pacbench.corpus.prepare import resolve_spec, prepare
 from pacbench.harness import _summarize_tool_result
-from pacbench.authoring import ScenePlan, judge_prompt, scene_prompt, spread_timestamps
+from pacbench.corpus.authoring import ScenePlan, judge_prompt, scene_prompt, spread_timestamps
 
 def test_corpus_review_temporal_instruction_and_rejection_path(tmp_path):
-    from pacbench.corpus_review import review_corpus, review_prompt
+    from pacbench.corpus.review import review_corpus, review_prompt
     resolved={'scenes': [], 'checks': []}
     base={'channel':'email','thread':'ben-email','sender':'Ben'}
     original=dict(base, source_id='original', written_at='2026-10-12T20:00:00-04:00',
@@ -33,14 +33,14 @@ def test_corpus_review_temporal_instruction_and_rejection_path(tmp_path):
     assert review_corpus([original,clear],resolved,lambda _: verdict(True),tmp_path)['state']=='pass'
 
 def test_saved_scene_bounds_compare_equal_for_resume():
-    from pacbench.authoring import scene_spec
+    from pacbench.corpus.authoring import scene_spec
     plan=ScenePlan(scene='A chat',participants=('Me','Sam'),
                    message_range=(4,12),messages_per_person=(2,6))
     before=scene_spec(plan)
     assert json.loads(json.dumps(before))==before
 
 def test_email_checker_can_verify_cross_channel_reference_without_writer_recap():
-    from pacbench.authoring import realize_scene,build_scene_observations
+    from pacbench.corpus.authoring import realize_scene,build_scene_observations
     plan=ScenePlan(scene='Ben moves dinner over email.',channel='email',thread='ben-email',
                    participants=('Me','Ben'),email_subject='Dinner',message_range=(2,4))
     prior=(('2026-10-05T18:00:00-04:00','imessage:ben','Ben','Dinner Thursday at Juniper?'),)
@@ -59,7 +59,7 @@ def test_email_checker_can_verify_cross_channel_reference_without_writer_recap()
 def test_email_reply_quotes_survive_as_one_body_with_the_actual_sender(tmp_path):
     from email import message_from_string
     from email.policy import default
-    from pacbench.authoring import realize_scene,build_scene_observations
+    from pacbench.corpus.authoring import realize_scene,build_scene_observations
     from pacbench.email_fixture import append_emails
     plan=ScenePlan(scene='Ben moves dinner to Saturday, quoting the old Thursday plan.',
         channel='email',thread='dinner',participants=('Me','Ben'),email_subject='Dinner',message_range=(2,4))
@@ -88,7 +88,7 @@ def test_noisy_thread_context_does_not_discard_the_original_plan():
 
 
 def test_group_noise_allows_a_speaker_to_exceed_their_target_share():
-    from pacbench.authoring import realize_scene
+    from pacbench.corpus.authoring import realize_scene
     plan=ScenePlan(scene='Friends catching up.',participants=('Me','Sam','Jordan'),
                    message_range=(6,9),messages_per_person=(2,3))
     lines=[(name,f'Message {i} from {name}') for name,n in [('Me',4),('Sam',2),('Jordan',2)] for i in range(n)]
@@ -99,7 +99,7 @@ def test_group_noise_allows_a_speaker_to_exceed_their_target_share():
 
 
 def test_group_noise_still_requires_each_member_minimum_and_a_bounded_total():
-    from pacbench.authoring import realize_scene,AuthoringError
+    from pacbench.corpus.authoring import realize_scene,AuthoringError
     plan=ScenePlan(scene='Friends catching up.',participants=('Me','Sam','Jordan'),
                    message_range=(6,9),messages_per_person=(2,3))
     for counts in ((5,2,1),(4,3,3)):
@@ -270,8 +270,8 @@ def test_ambiguous_local_clock_rejected(tmp_path):
 
 
 def test_cached_text_is_reverified_after_cross_chat_context_changes(tmp_path):
-    from pacbench.prepare import reuse_realization,realization_binding
-    from pacbench.authoring import SceneRecord,SceneJudgeError
+    from pacbench.corpus.prepare import reuse_realization,realization_binding
+    from pacbench.corpus.authoring import SceneRecord,SceneJudgeError
     plan=ScenePlan(id='group',channel='imessage',thread='group',participants=('Me','Maya','Leo'),
         scene='Leo joins the already agreed outing.',facts=("They are going to Rosa's.",),at='2026-10-13T09:00:00-04:00')
     lines=(('Maya',"Join us at Luigi's?"),('Me','Yes.'),('Leo','Count me in.'))
@@ -296,7 +296,7 @@ def test_cached_text_is_reverified_after_cross_chat_context_changes(tmp_path):
 
 
 def test_resume_checkpoint_preserves_unvisited_scenes_and_their_original_specs(tmp_path):
-    from pacbench.prepare import load_scene_cache
+    from pacbench.corpus.prepare import load_scene_cache
     from pacbench.followups import save
     old={'scenes':[{'id':'first','facts':['Old fact.']},{'id':'later','facts':['Later fact.']}]}
     rows=[{'scene_id':'first','lines':[['Me','First']]},{'scene_id':'later','lines':[['Me','Keep this render']]}]
@@ -310,8 +310,8 @@ def test_resume_checkpoint_preserves_unvisited_scenes_and_their_original_specs(t
 
 
 def test_frozen_sources_are_bound_to_the_actual_checked_transcript(tmp_path):
-    from pacbench.preparation_audit import audit_scenes
-    from pacbench.authoring import build_scene_observations,scene_spec
+    from pacbench.corpus.audit import audit_scenes
+    from pacbench.corpus.authoring import build_scene_observations,scene_spec
     from pacbench.followups import save,digest
     plan=ScenePlan(id='one',thread='chat',participants=('Me','Maya'),scene='Agree on pizza.',
         at='2026-10-12T18:00:00-04:00')
@@ -335,8 +335,8 @@ def test_frozen_sources_are_bound_to_the_actual_checked_transcript(tmp_path):
 
 
 def test_cast_is_private_scoped_and_bound_to_scene_cache(tmp_path):
-    from pacbench.prepare import generation_spec, realization_binding
-    from pacbench.authoring import scene_spec, build_scene_observations
+    from pacbench.corpus.prepare import generation_spec, realization_binding
+    from pacbench.corpus.authoring import scene_spec, build_scene_observations
     spec = json.loads(open('specs/bike_pickup.json').read())
     plans, _, _ = resolve_spec(spec, tmp_path, week_start='2026-10-19')
     plan = plans[0]
@@ -358,7 +358,7 @@ def scene_spec_input(plan):
 
 
 def test_scene_facts_share_one_checker_call():
-    from pacbench.authoring import judge_scene, SceneJudgeError
+    from pacbench.corpus.authoring import judge_scene, SceneJudgeError
     plan = ScenePlan(scene='A chat.', participants=('Me', 'Sam'), facts=('First', 'Second', 'Third'))
     calls = []
     def judge(prompt):
@@ -371,8 +371,8 @@ def test_scene_facts_share_one_checker_call():
 
 
 def test_cast_is_scoped_to_channel_and_absent_cast_preserves_spec(tmp_path):
-    from pacbench.authoring import scene_spec
-    from pacbench.prepare import normalize_week
+    from pacbench.corpus.authoring import scene_spec
+    from pacbench.corpus.prepare import normalize_week
     spec = json.loads(open('specs/bike_pickup.json').read())
     original = normalize_week(spec, '2026-10-19')
     spec['channels']['other'] = {'type': 'imessage', 'participants': ['Me', 'Sam']}
@@ -423,7 +423,7 @@ def test_resume_policy_accepts_unchanged_authored_and_explicit_legacy_or_migrati
     {'supported': True, 'evidence': [1], 'problem': ''},
 ])
 def test_scene_v11_never_infers_approval_from_incomplete_or_invalid_shape(tmp_path, verdict):
-    from pacbench.authoring import judge_scene, SceneJudgeError
+    from pacbench.corpus.authoring import judge_scene, SceneJudgeError
     plan=ScenePlan(id='shape-check',scene='A casual greeting.',facts=())
     calls=[]
     def checker(prompt):
@@ -437,7 +437,7 @@ def test_scene_v11_never_infers_approval_from_incomplete_or_invalid_shape(tmp_pa
 
 
 def test_scene_v11_empty_chatter_keeps_an_independent_whole_scene_judgment(tmp_path):
-    from pacbench.authoring import judge_scene, SceneJudgeError, JUDGE_PROMPT_VERSION
+    from pacbench.corpus.authoring import judge_scene, SceneJudgeError, JUDGE_PROMPT_VERSION
     plan=ScenePlan(id='chatter',at='2026-10-05T12:00:00-04:00',participants=('Me','Sam'),messages=({'sender':'Sam','text':'Nice film','at':'2026-10-05T12:00:00-04:00'},),facts=())
     prompt=judge_prompt(plan,[('Sam','Nice film')])
     assert JUDGE_PROMPT_VERSION=='scene-judge-v11'

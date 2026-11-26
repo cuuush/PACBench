@@ -1,7 +1,10 @@
 import copy,json
 from types import SimpleNamespace
 import pytest
-from pacbench.checkpoint_corpus_review import prompt,check_errors,review,audit
+from pacbench.corpus.review import (
+    checkpoint_prompt as prompt, checkpoint_errors as check_errors,
+    review_checkpoints as review, audit_checkpoints as audit,
+)
 from pacbench.followups import save
 
 @pytest.fixture
@@ -40,7 +43,7 @@ def test_receipt_audit_and_rejected_resume(case,tmp_path):
  with pytest.raises(ValueError,match='Rejected checkpoint'):review(m,r,model,tmp_path)
 
 def test_locator_binding_retains_failed_raw_receipt_and_recomputes(case,tmp_path):
- from pacbench.citation_binding import bind
+ from pacbench.corpus.review import bind_citation_locators as bind
  m,r,c,v=case;m[0]['source_id']='message-abcd2';v['assessments'][0]['source_evidence'][0]['source_id']='message-abcd'
  v['assessments'][0]['source_evidence'].append({**v['assessments'][0]['source_evidence'][0],'source_id':'message-abcd2'})
  raw=copy.deepcopy(v);receipt={'state':'fail','review':v,'validation_errors':check_errors(v,m,r,c)}
@@ -51,7 +54,7 @@ def test_locator_binding_retains_failed_raw_receipt_and_recomputes(case,tmp_path
 
 @pytest.mark.parametrize('defect',['existing','ambiguous','different_id','quote','timestamp','future','negative','category'])
 def test_locator_binding_cannot_repair_semantics_or_other_defects(case,defect):
- from pacbench.citation_binding import bind
+ from pacbench.corpus.review import bind_citation_locators as bind
  m,r,c,v=case;m[0]['source_id']='message-abcd2';cite=v['assessments'][0]['source_evidence'][0];cite['source_id']='message-abcd'
  if defect=='existing':m.append({**m[0],'source_id':'message-abcd','text':'Different.'})
  if defect=='ambiguous':m.append({**m[0],'source_id':'message-another'})
@@ -65,7 +68,7 @@ def test_locator_binding_cannot_repair_semantics_or_other_defects(case,defect):
  with pytest.raises(ValueError):bind(receipt,m,r,c,b'r',b'c')
 
 def test_bound_protocol_audits_raw_call_and_derived_binding(case,tmp_path):
- from pacbench.checkpoint_corpus_review import BOUND_VERSION
+ from pacbench.corpus.review import BOUND_CHECKPOINT_VERSION as BOUND_VERSION
  m,r,c,v=case;r['checks']=[c];m[0]['source_id']='message-abcd2'
  cites=v['assessments'][0]['source_evidence'];cites[0]['source_id']='message-abcd';cites.append({**cites[0],'source_id':'message-abcd2'})
  (tmp_path/'model-calls').mkdir()

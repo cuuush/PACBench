@@ -126,14 +126,14 @@ def install(home):
     def shutdown(manager):
         result=original_shutdown(manager)
         if os.environ.get('PACBENCH_R2_LIVE_SCOPE') and any(p.name=='memtensor' for p in manager.providers):
-            from pacbench.provider_loader import provider_module
+            from pacbench.providers import provider_module
             registry=provider_module('memtensor').SHARED_BRIDGE_REGISTRY
             states=registry.status()
             if any(s['leases'] or s['inFlight'] for s in states):
                 with lock:failures.add('MemOS bridge still holds native leases or requests')
             else:
                 registry.close_all()
-                from pacbench.provider_loader import provider_module
+                from pacbench.providers import provider_module
                 daemon=provider_module('memtensor','daemon_manager')
                 viewer=daemon._viewer_process
                 homes={p._runtime_home for p in manager.providers if p.name=='memtensor'}

@@ -113,7 +113,7 @@ def test_supermemory_ingestion_waits_for_memory_and_uses_native_namespace(tmp_pa
         _load_supermemory_config=lambda path:{'base_url':'http://127.0.0.1:1234','container_tag':'raw-tag'},
         _expand_container_tag=resolve,_sanitize_tag=lambda value:value)
     resolver=Mock(return_value=plugin)
-    monkeypatch.setattr('pacbench.provider_loader.provider_module',resolver)
+    monkeypatch.setattr('pacbench.providers.provider_module',resolver)
     add=Mock(return_value=SimpleNamespace(
         id='doc-1',model_dump=lambda **kw:{'id':'doc-1'}))
     statuses=iter([{'status':'done'}] if dreaming_field is None else [
@@ -178,7 +178,7 @@ def test_honcho_daily_batch_preserves_real_speakers_text_and_times(tmp_path,monk
         from_global_config=lambda:SimpleNamespace(ai_observe_me=True,ai_observe_others=True,
             user_observe_me=True,user_observe_others=True)))
     resolver=Mock(return_value=plugin)
-    monkeypatch.setattr('pacbench.provider_loader.provider_module',resolver)
+    monkeypatch.setattr('pacbench.providers.provider_module',resolver)
     monkeypatch.setattr('provider_adapters.honcho_local.queue_errors',lambda root:[])
     result=honcho(source,home.parent,'now','now')
     resolver.assert_called_once_with('honcho','client')

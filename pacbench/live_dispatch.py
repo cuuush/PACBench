@@ -25,6 +25,13 @@ def enabled():
     return value == CONDITION
 
 
+def holds_flock(pid, fd):
+    lines = (Path('/proc')/str(pid)/'fdinfo'/str(fd)).read_text().splitlines()
+    return any(line.startswith('lock:') and 'FLOCK' in line.split() and 'WRITE' in line.split()
+               and str(pid) in line.split() for line in lines)
+
+
+
 def process_identity(pid=None):
     pid = os.getpid() if pid is None else pid
     if type(pid) is not int or pid <= 1:
@@ -146,28 +153,28 @@ def mark_possible(row, at, sender=None):
         return
     slot = row.get('workflow_slot') or {}
     if slot.get('honcho_daily_release') or slot.get('honcho_chat_work'):
-        from .honcho_daily_gate import confirm_sender
+        from pacbench.providers.honcho.daily_gate import confirm_sender
         confirm_sender(row)
     elif slot.get('honcho_first_answer'):
-        from .honcho_first_answer_admission import confirm_sender
+        from pacbench.providers.honcho.first_answer_admission import confirm_sender
         confirm_sender(row)
     elif slot.get('honcho_peer_read'):
-        from .honcho_first_answer_peer import confirm_sender
+        from pacbench.providers.honcho.first_answer_peer import confirm_sender
         confirm_sender(row)
     elif slot.get('provider') == 'memcal' and slot.get('checkpoint_effect'):
-        from .workflow_capability import confirm_memcal_sender
+        from .workflows.capability import confirm_memcal_sender
         confirm_memcal_sender(row)
     elif slot.get('provider') in ('mem0','hindsight','openviking','reme','cognee','memos') and slot.get('journal_stage_sha256'):
-        from .workflow_capability import confirm_document_sender
+        from .workflows.capability import confirm_document_sender
         confirm_document_sender(row)
     elif slot.get('kind') == 'judge' and slot.get('checkpoint_effect'):
-        from .workflow_capability import confirm_workflow_judge_sender
+        from .workflows.capability import confirm_workflow_judge_sender
         confirm_workflow_judge_sender(row)
     elif slot.get('supermemory_first_question'):
-        from .supermemory_question_admission import confirm_sender
-        from .workflow_capability import load
+        from pacbench.providers.supermemory.question_admission import confirm_sender
+        from .workflows.capability import load
         if slot.get('supermemory_week_claim'):
-            from .supermemory_week_admission import answer_slot
+            from pacbench.providers.supermemory.week_admission import answer_slot
             confirm_sender(row, load(), slot_factory=answer_slot)
         else:
             confirm_sender(row, load())

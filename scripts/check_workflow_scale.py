@@ -18,10 +18,10 @@ import time
 from unittest.mock import patch
 
 from pacbench.semantic_grade import Claim
-from pacbench.workflow_progress import WorkflowProgress
-from pacbench.workflow_runner import Condition, Journal
-from pacbench.workflow_spec import Document, Turn
-from pacbench.workflow_stream import run_account_stream
+from pacbench.workflows.progress import WorkflowProgress
+from pacbench.workflows.runner import Condition, Journal
+from pacbench.workflows.spec import Document, Turn
+from pacbench.workflows.stream import run_account_stream
 
 
 EPOCH = datetime(2020, 1, 1, 20, tzinfo=timezone.utc)

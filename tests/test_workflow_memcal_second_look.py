@@ -7,14 +7,15 @@ import urllib.request
 
 import pytest
 
-from pacbench import direct_http, workflow_capability
+from pacbench import direct_http
+from pacbench.workflows import capability as workflow_capability
 from pacbench.live_dispatch import CONDITION, OwnershipConflict
 from pacbench.observational_receipts import IndexedRunReceiptJournal
-from pacbench.workflow_delivery import MemCalReaders
-from pacbench.workflow_memcal_fixture import CHAT, fixture
-from pacbench.workflow_memcal_source import MemCalSourceWitness
-from pacbench.workflow_spec import compile_week
-from pacbench.workflow_memcal_account import _source_messages
+from pacbench.workflows.delivery import MemCalReaders
+from pacbench.providers.memcal.fixture import CHAT, fixture
+from pacbench.providers.memcal.source import MemCalSourceWitness
+from pacbench.campaigns.pizza_week import compile_week
+from pacbench.providers.memcal.workflow import _source_messages
 
 MODEL = 'openai/gpt-6-luna'
 PROJECT = 'offline-second-look-memory'
@@ -125,7 +126,7 @@ def test_first_three_canonical_nights_reach_stock_dream_readiness(tmp_path, monk
     from functools import partial
     from memcal import config, db
     from memcal.sources import imessage
-    from pacbench.workflow_memcal import verify_memcal_mailbox
+    from pacbench.providers.memcal.site import verify_memcal_mailbox
 
     ledger, slot, requests, _ = offline_wire
     campaign = tmp_path/'three-nights'

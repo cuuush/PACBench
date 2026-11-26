@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pytest
 
-from pacbench.frozen import bundle_hash, load_bundle, messages_for, write_bundle
+from pacbench.corpus.sources import bundle_hash, load_bundle, messages_for, write_bundle
 
 
 def test_bundle_round_trip_and_tamper(tmp_path: Path):

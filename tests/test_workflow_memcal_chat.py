@@ -12,11 +12,11 @@ from pacbench import api_input_trace
 from pacbench.checkpoint_clock import CheckpointClock
 from pacbench.gateway_reuse import PersistentGateway
 from pacbench.provider_versions import memcal_week_pin
-from pacbench.workflow_memcal_chat import MemCalChatWitness, verify_resume
-from pacbench.workflow_native import WarmHermes
-from pacbench.workflow_runner import Condition, captured_turn
-from pacbench.workflow_spec import compile_week
-from pacbench.workflow_tracks import memcal_week_tools
+from pacbench.providers.memcal.chat import MemCalChatWitness, verify_resume
+from pacbench.workflows.native import WarmHermes
+from pacbench.workflows.runner import Condition, captured_turn
+from pacbench.campaigns.pizza_week import compile_week
+from pacbench.workflows.tracks import memcal_week_tools
 from tests.test_gateway_reuse import LocalNativeFixture, PYTHON, ROOT, native_home
 
 

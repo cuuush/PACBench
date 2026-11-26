@@ -4,13 +4,14 @@ from pathlib import Path
 
 import pytest
 
-from pacbench import workflow_capability as cap, workflow_memcal
+from pacbench.workflows import capability as cap
+from pacbench.providers.memcal import site as workflow_memcal
 from pacbench.canary_capability import binding
 from pacbench.live_dispatch import fresh_effect, mark_possible, operation_id, process_identity
 from pacbench.openrouter_route import with_route
 from pacbench.provider_versions import MEMCAL_REVISION, MEMCAL_WEEK_REVISION, MEMCAL_WEEK_CONDITION
-from pacbench.workflow_memcal_tools import manifest
-from pacbench.workflow_progress import WorkflowProgress
+from pacbench.providers.memcal.contract import manifest
+from pacbench.workflows.progress import WorkflowProgress
 
 
 def setup_site(tmp_path):
@@ -49,7 +50,7 @@ def scope(tmp_path, monkeypatch, request):
     bound = cap.create_memcal_scope(campaign, site, **kwargs)
     monkeypatch.setenv(cap.ENV,json.dumps(bound))
     c = cap.load()
-    from pacbench.workflow_source_plan import SourcePlan
+    from pacbench.workflows.source_plan import SourcePlan
     docs, turns, _ = cap.schedule(c['spec_sha256'], c['canary'])
     all_docs, _, _ = cap.schedule(c['spec_sha256'],False)
     with SourcePlan(campaign/'workflow',docs,turns,all_source_documents=all_docs) as plan:
@@ -136,7 +137,7 @@ def test_live_callback_binds_role_attempt_frozen_release_and_final_dispatch(scop
                     assert operation_id(row) != operation_id(other)
                     with pytest.raises(ValueError,match='changed before dispatch'):
                         cap.confirm_memcal_sender(other)
-                    from pacbench.workflow_dream_waves import observed_dream
+                    from pacbench.providers.memcal.capability import observed_dream
                     with observed_dream() as observe:
                         observe('propose_wave', {'kind':'main','entities':['person:fixture'],'requests':1})
                         assert cap.admission(projects['memory'],cap.PROFILE,body)['slot'] == slot
@@ -272,7 +273,7 @@ def test_foreign_process_cannot_consume_native_sender_lease(scope):
             with fresh_effect(p,'dream',cutoff,claim['attempt_id']):
                 with cap.memcal_operation(p,'dream',cutoff,accepted):
                     cmd = """
-from pacbench import workflow_capability as cap
+from pacbench.workflows import capability as cap
 scope=cap.load()
 try:
     cap._native_lease(scope,scope['projects']['memcal']['memory'])

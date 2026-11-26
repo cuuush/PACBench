@@ -7,10 +7,10 @@ import sys
 
 import pytest
 
-from pacbench.question_judge import BASELINE, PROTOCOL, fingerprint
+from pacbench.judging.paired import BASELINE, PROTOCOL, fingerprint
 from pacbench.semantic_grade import judge_prompt
-from pacbench.workflow_runner import judge_options
-from pacbench.workflow_spec import compile_week
+from pacbench.workflows.runner import judge_options
+from pacbench.campaigns.pizza_week import compile_week
 
 
 def synthetic_export(layout):
@@ -148,11 +148,11 @@ def test_refuses_bad_native_export(tmp_path, fault):
 
 
 def test_verified_reader_projection_and_no_implied_legacy_binding(tmp_path):
-    from pacbench.question_judge_week import Week
+    from pacbench.judging.week import Week
 
     _, rows = synthetic_export('logical')
     week = Week()
-    from pacbench.workflow_stream import fingerprint as schedule_fingerprint
+    from pacbench.workflows.stream import fingerprint as schedule_fingerprint
     docs = [dict(filename=d.filename, sha256=d.sha256, cutoff=d.cutoff, source_ids=list(d.source_ids),
                  bodies=list(d.bodies)) for d in week.documents]
     binding = dict(document_schedule_sha256=schedule_fingerprint(
@@ -223,7 +223,8 @@ fixture.cohort([fixture.make_run('cognee',count=49,seal=True)])
     assert result['manifest']['retained_origin']['cohort_manifest_sha256'] == hashlib.sha256(cohort.read_bytes()).hexdigest()
     assert result['manifest']['retained_origin']['entry_manifest_sha256'] == json.loads(cohort.read_text())['runs'][0]['sha256']
 
-    from pacbench.workflow_spec import compile_week, instant
+    from pacbench.campaigns.pizza_week import compile_week
+    from pacbench.workflows.spec import instant
 
     journal = tmp_path/'cognee/workflow/workflow.jsonl'
     first_turn = compile_week('continuing-account')[2][0]
@@ -250,7 +251,8 @@ fixture.cohort([fixture.make_run('cognee',count=49,seal=True)])
 
 def test_export_refuses_an_unreviewed_reader_before_opening_input(tmp_path, monkeypatch):
     from types import SimpleNamespace
-    from pacbench import cohort_regrade, question_judge_batch
+    from pacbench import cohort_regrade
+    from pacbench.judging import batch as question_judge_batch
 
     changed = tmp_path/'changed_reader.py'
     changed.write_text('# unreviewed reader\n')

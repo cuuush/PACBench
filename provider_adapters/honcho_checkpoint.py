@@ -8,7 +8,7 @@ import subprocess
 import time
 
 from pacbench.gateway_reuse import atomic
-from pacbench.pizza_week_dataset import ORIGINAL, load
+from pacbench.campaigns.pizza_week import ORIGINAL, load
 from provider_adapters.honcho_local import PGVECTOR_IMAGE, verify_persisted_messages
 
 DOCKER = ['docker', '--host=unix:///var/run/docker.sock']

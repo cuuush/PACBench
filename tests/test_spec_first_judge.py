@@ -7,7 +7,7 @@ import sys
 import pytest
 
 from pacbench import spec_first_pilot as pilot
-from pacbench.judge_blind_controls import evaluate
+from pacbench.judging.controls import evaluate
 from pacbench.semantic_grade import CONTEXT_JUDGE_PROTOCOL
 
 

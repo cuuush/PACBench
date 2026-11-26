@@ -7,13 +7,13 @@ import sys
 
 import pytest
 
-from pacbench.question_judge import (BASELINE, PROTOCOL, Source, UnavailableAnswer, assertions,
+from pacbench.judging.paired import (BASELINE, PROTOCOL, Source, UnavailableAnswer, assertions,
                                      build_pair, fingerprint, interpret)
-from pacbench.question_judge_comparison import compare, comparison_plan
-from pacbench.question_judge_week import Week
+from pacbench.judging.comparison import compare, comparison_plan
+from pacbench.judging.week import Week
 from pacbench.semantic_grade import Claim, judge_prompt
-from pacbench.workflow_runner import judge_options
-from pacbench.workflow_spec import Turn
+from pacbench.workflows.runner import judge_options
+from pacbench.workflows.spec import Turn
 
 
 @pytest.fixture(scope='module')

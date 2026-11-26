@@ -42,8 +42,10 @@ def test_stop_checks_environment_and_explicit_path(tmp_path, monkeypatch):
 
 @pytest.mark.parametrize('mode',['operator',401,403])
 def test_terminal_first_arm_does_not_start_independent_arm(tmp_path, monkeypatch,mode):
+    from contextlib import nullcontext
     from types import SimpleNamespace
-    from pacbench import native_pilot, document_ingestion, native_audit, usage, live_trials
+    from pacbench import native_pilot, document_ingestion, native_audit, usage, providers as live_trials
+    from pacbench.corpus import audit as corpus_audit
     monkeypatch.setattr(live_trials, 'require_live_trials_ready', lambda: None)
     source = tmp_path/'prepared'
     source.mkdir()
@@ -55,8 +57,11 @@ def test_terminal_first_arm_does_not_start_independent_arm(tmp_path, monkeypatch
     check = {'id': 'one', 'at': '2026-10-01T12:00:00-04:00'}
     monkeypatch.setenv('META_API_KEY', 'test')
     monkeypatch.setattr(native_pilot, 'provider_names', lambda: ['memcal', 'mem0'])
-    monkeypatch.setattr(native_pilot, 'read_prepared', lambda *_: ([], SimpleNamespace(contract_hash='contract'), {'timezone':'America/New_York'}))
-    monkeypatch.setattr(native_pilot, 'load_evaluations', lambda *_: ({'plan_hash':'plan','context':'shared'}, [(check, object(), {})]))
+    corpus = SimpleNamespace(root=source, messages=[], contract=SimpleNamespace(contract_hash='contract'),
+                             resolved={'timezone':'America/New_York'}, corpus_hash=None, input_hash='inputs',
+                             summary={'bundle_hash':'bundle', 'contract_hash':'contract'},
+                             evaluation_plan={'plan_hash':'plan','context':'shared'}, evaluations=[(check, object(), {})])
+    monkeypatch.setattr(corpus_audit, 'open_prepared', lambda *a, **kw: nullcontext(corpus))
     monkeypatch.setattr(native_pilot, 'require_live_cost_boundary', lambda: {})
     monkeypatch.setattr(native_pilot, 'load_driver', lambda: SimpleNamespace(model_id='test'))
     monkeypatch.setattr(native_pilot, 'client_settings', lambda *_: ('http://localhost', 'test'))

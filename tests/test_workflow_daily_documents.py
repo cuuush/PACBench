@@ -4,10 +4,11 @@ import json
 
 import pytest
 
-from pacbench.frozen import load_bundle
-from pacbench.pizza_week_dataset import ROOT
-from pacbench.workflow_daily_documents import compile_daily_week, daily_documents, message_metadata
-from pacbench.workflow_spec import Document, compile_week
+from pacbench.corpus.sources import load_bundle
+from pacbench.campaigns.pizza_week import ROOT
+from pacbench.campaigns.pizza_week import compile_daily_week, daily_documents, message_metadata
+from pacbench.campaigns.pizza_week import compile_week
+from pacbench.workflows.spec import Document
 
 
 def test_seven_verified_source_files_retain_the_original_evaluation():

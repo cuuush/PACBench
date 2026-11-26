@@ -130,7 +130,7 @@ class FixtureModel(BaseHTTPRequestHandler):
 
 
 def run(campaign, plugin_home, case):
-    from pacbench import supermemory_week as candidate
+    from pacbench.providers.supermemory import week as candidate
     from pacbench.canary_capability import binding
     from pacbench.direct_accounting import now
 
@@ -203,7 +203,7 @@ def run(campaign, plugin_home, case):
 
 def verify(campaign, case):
     from pacbench.observational_receipts import replay_attempts
-    from pacbench.supermemory_week_admission import WEEK_RUN, plan
+    from pacbench.providers.supermemory.week_admission import WEEK_RUN, plan
 
     root = campaign / WEEK_RUN / 'supermemory'
     result = json.loads((root / 'result.json').read_text())
@@ -259,7 +259,7 @@ def main():
     os.environ.clear()
     os.environ.update(allowed, PACBENCH_OPENROUTER_PROFILE='luna-bedrock-global',
                       OPENROUTER_API_KEY=TOKEN, PYTHONDONTWRITEBYTECODE='1')
-    from pacbench.supermemory_week_admission import plan
+    from pacbench.providers.supermemory.week_admission import plan
 
     os.umask(0o077)
     campaign = args.campaign.resolve()

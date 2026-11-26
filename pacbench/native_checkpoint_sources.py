@@ -15,7 +15,7 @@ PROTOCOL='native-source-snapshot-v1'
 REOPEN='''
 import json,os,sys,hashlib,sqlite3
 from pathlib import Path
-from pacbench.provider_loader import provider_module
+from pacbench.providers import provider_module
 root=Path(sys.argv[1]);home=Path(os.environ['HERMES_HOME'])
 cfg=json.loads((home/'mem0.json').read_text())
 backend=provider_module('mem0','_backend').OSSBackend(cfg['oss'])

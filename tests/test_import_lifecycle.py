@@ -11,8 +11,7 @@ import uuid
 import pytest
 
 from pacbench import import_lifecycle as lc
-from pacbench.import_metrics import ImportMetrics
-from pacbench.measured_import import supervise, observations
+from pacbench.measured_import import ImportMetrics, supervise, observations
 
 
 def test_path_ownership_rejects_similarly_prefixed_sibling(tmp_path):

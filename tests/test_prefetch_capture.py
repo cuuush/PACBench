@@ -46,7 +46,7 @@ def test_rotated_trace_does_not_prove_current_context(tmp_path):
 
 @pytest.mark.parametrize('timeout', [False, True])
 def test_run_turn_captures_native_hook_on_both_exit_paths(tmp_path, monkeypatch, timeout):
-    monkeypatch.setattr('pacbench.live_trials.require_live_trials_ready', lambda: None)
+    monkeypatch.setattr('pacbench.providers.require_live_trials_ready', lambda: None)
     home=tmp_path/'home'
     home.mkdir()
     path=tmp_path/'context.jsonl'

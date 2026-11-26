@@ -9,7 +9,7 @@ sys.path.insert(0,str(ROOT))
 
 def preflight():
  from pacbench import canary_capability as cap
- from pacbench.checkpoint_canary import MEMCAL
+ from pacbench.campaigns.pizza_week_checkpoints import MEMCAL
  from pacbench.provider_versions import verify_memcal_source
  from pacbench.direct_accounting import live_budget,request_cost_bound
  from pacbench.funded_run_budget import selected,credit_snapshot,describe_admission
@@ -55,17 +55,17 @@ def main():
   print(json.dumps({'state':plan['state'],'per_request_ceiling':display_usd(plan['per_request_ceiling_usd']),'new_paid_calls':0}));return
  # No new ledger, allocation, key, provider route or general scoring permission.
  subprocess.run(['git','diff','--quiet'],cwd=ROOT,check=True)
- from pacbench.checkpoint_canary import run,serial_rows
+ from pacbench.campaigns.pizza_week_checkpoints import run_canary, canary_receipts
  from pacbench.openrouter_direct import direct_environment
  from pacbench.gateway_client import client_settings
  key=os.environ['OPENROUTER_API_KEY']
  with (budget.path.parent/'native-diagnostic-owner.lock').open('a') as lease:
   fcntl.flock(lease,fcntl.LOCK_EX|fcntl.LOCK_NB)
-  initial_ids={r['id'] for r in serial_rows(budget,a.output.resolve())} if a.output.exists() else set()
+  initial_ids={r['id'] for r in canary_receipts(budget,a.output.resolve())} if a.output.exists() else set()
   with direct_environment(key):
    env=dict(os.environ)
    if a.resume_tool_wiring or a.resume_reme_preclose:
-    serial_rows(budget,a.output.resolve())
+    canary_receipts(budget,a.output.resolve())
     from pacbench.hermes_gateway import _live
     prior=json.loads((a.output/'report.json').read_text())
     pids={json.loads(Path(t['receipt']).read_text())['hermes_gateway']['pid'] for arm in prior['providers'].values() for t in arm['turns']}
@@ -76,8 +76,8 @@ def main():
     reason='reme-native-shutdown-drain-unverified' if a.resume_reme_preclose else 'canary-empty-provider-tool-allowlist'
     if json.loads(stopped.read_text()).get('reason')!=reason:raise RuntimeError('Recovery cannot waive unrelated stop')
     stopped.rename(a.output/('STOP.preclose-order-fixed.json' if a.resume_reme_preclose else 'STOP.tool-wiring-fixed.json'))
-   report=run(a.output,env,settings=client_settings,budget=budget,resume=a.resume_tool_wiring or a.resume_reme_preclose,only_reme=a.resume_reme_preclose,preclose_recovery=a.resume_reme_preclose)
-  rows=serial_rows(budget,a.output.resolve())
+   report=run_canary(a.output,env,settings=client_settings,budget=budget,resume=a.resume_tool_wiring or a.resume_reme_preclose,only_reme=a.resume_reme_preclose,preclose_recovery=a.resume_reme_preclose)
+  rows=canary_receipts(budget,a.output.resolve())
   actual=sum((Decimal(r['settled_charge_usd']) for r in rows),Decimal(0))
   report['billing']={'new_stage_actual_settled_usd':str(sum((Decimal(r['settled_charge_usd']) for r in rows if r['id'] not in initial_ids),Decimal(0))),
    'new_stage_attempts':sum(r['id'] not in initial_ids for r in rows),'actual_settled_usd':str(actual),'attempts':len(rows),'unknown_outcomes':0,

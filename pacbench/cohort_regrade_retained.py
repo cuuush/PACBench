@@ -1,21 +1,21 @@
 """Read retained Pizza Week inputs using the contracts that wrote them."""
 from collections import defaultdict
 from dataclasses import asdict, dataclass
-from functools import lru_cache
 import hashlib
 from io import StringIO
 import json
 from pathlib import Path
 
 from .provider_versions import MEMCAL_WEEK_VERSION
-from .workflow_capability import DOCUMENT_ARMS, MEMCAL_SCOPE, _memcal_schedule
-from .workflow_document_progress import PROTOCOL as DOCUMENT_PROGRESS, PROVIDERS
-from .workflow_daily_documents import LAYOUT as NORMALIZED_DAILY, compile_daily_week
-from .workflow_memcal_tools import manifest as memcal_product, verify_captured_driver
-from .workflow_runner import Condition, captured_turn, inspect_source_cutoff, judge_options
-from .workflow_source_plan import SourcePlan
-from .workflow_spec import Document, SPEC, Turn, compile_week, instant
-from .workflow_stream import fingerprint
+from .workflows.capability import DOCUMENT_ARMS, MEMCAL_SCOPE, _memcal_schedule
+from .workflows.document_progress import PROTOCOL as DOCUMENT_PROGRESS, PROVIDERS
+from pacbench.campaigns.pizza_week import LAYOUT as NORMALIZED_DAILY, compile_daily_week
+from pacbench.providers.memcal.contract import manifest as memcal_product, verify_captured_driver
+from .workflows.runner import Condition, captured_turn, inspect_source_cutoff, judge_options
+from .workflows.source_plan import SourcePlan
+from pacbench.campaigns.pizza_week import SPEC, compile_pizza_week
+from .workflows.spec import Document, Turn, instant
+from .workflows.stream import fingerprint
 
 MEMCAL_PROGRESS = 'memcal-incremental-v1'
 WEEK = 'pizza-week-conversation-v2'
@@ -72,25 +72,20 @@ def journal(path):
     return events, sha, bool(lines[-1])
 
 
-@lru_cache(maxsize=4)
 def _plan(spec_sha, state, canary, channels):
     raw, actual_sha = read_bytes(SPEC)
     if spec_sha != actual_sha:
         raise ValueError('compiled spec SHA-256 differs from the retained run; use its original reviewed tree')
-    spec, documents, turns, basis = compile_week(state)
-    if spec['version'] != WEEK:
+    if canary and state != 'continuing-account':
+        raise ValueError('canary is not a continuing-account schedule')
+    plan = compile_pizza_week(state, canary=canary)
+    if plan.spec['version'] != WEEK:
         raise ValueError('unsupported compiled Week revision')
-    if canary:
-        if state != 'continuing-account':
-            raise ValueError('canary is not a continuing-account schedule')
-        turns = turns[:4]
-        documents = [d for d in documents if instant(d.cutoff) <= instant(turns[-1].at)]
-    documents = [d for d in documents if d.channel in channels]
-    if set(channels) != {'email', 'imessage'}:
-        turns = []
+    documents = plan.documents_for(channels)
+    turns = list(plan.turns) if set(channels) == set(plan.channels) else []
     dataset = SPEC.parents[1] / json.loads(raw)['dataset'] / 'manifest.json'
     dataset_manifest, dataset_sha = read_json(dataset)
-    return documents, turns, basis, dataset_manifest['dataset_sha256'], dataset_sha
+    return documents, turns, plan.source_basis, dataset_manifest['dataset_sha256'], dataset_sha
 
 
 def _daily_documents(documents, dataset_manifest, manifest_sha, events):
@@ -472,7 +467,7 @@ def bound_json(path, proof):
 
 
 def _honcho_response_binding(root, scope, scope_sha, row, role):
-    from .honcho_first_answer_admission import usable_response
+    from pacbench.providers.honcho.first_answer_admission import usable_response
     from .live_dispatch import operation_id
 
     context = row.get('dispatch_context', {})
@@ -486,7 +481,7 @@ def _honcho_response_binding(root, scope, scope_sha, row, role):
 def _honcho_ingest_response(root, scope, scope_sha, rows, attempt, ready, sealed):
     if 'honcho_wire_identity' in attempt:
         from .dispatch_ownership import OwnershipConflict
-        from .honcho_daily_gate import _source_completion
+        from pacbench.providers.honcho.daily_gate import _source_completion
 
         if not _honcho_response_binding(root, scope, scope_sha, attempt, 'memory'):
             return False
@@ -557,9 +552,9 @@ def _honcho_releases(root, scope, scope_sha, documents, rows):
 def honcho_checkpoint(root, scope, scope_sha, expected_admission, projection):
     """Read the native Honcho Week seal without opening its service or provider state."""
     from .observational_receipts import replay_attempts
-    from .honcho_week_state import AUTHORED_CHATS, plan_for
+    from pacbench.providers.honcho.week_state import AUTHORED_CHATS, plan_for
     from .openrouter_route import validate_request
-    from .workflow_tracks import HERMES_TOOLS
+    from .workflows.tracks import HERMES_TOOLS
 
     if (scope['root'] != str(root) or scope['run_id'] != root.parent.name
             or scope['provider'] != 'honcho' or scope['protocol'] != WEEK
@@ -590,7 +585,7 @@ def honcho_checkpoint(root, scope, scope_sha, expected_admission, projection):
         raise ValueError('Honcho receipt journal is incomplete')
     rows = replay_attempts(StringIO(raw.decode()))
     if any('honcho_wire_identity' in row for row in rows.values()):
-        from .honcho_first_answer_admission import usable_response
+        from pacbench.providers.honcho.first_answer_admission import usable_response
 
         generations = {row.get('upstream_request_id') for row in rows.values()}
         if len(generations) != len(rows) or not all(map(usable_response, rows.values())):

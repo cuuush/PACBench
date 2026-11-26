@@ -244,13 +244,13 @@ For multiple weeks, replace `days` with a `weeks` array of complete Monday–Sun
 Concrete dates are assigned during preparation from the spec's `week_start` Monday. `--week-start` explicitly overrides it; update any prose containing concrete dates when moving a scenario. Legacy unpinned inputs can still prepare relative to the host week, but the inventory requires a fixed date. Eastern defaults to `America/New_York`, including daylight saving time. Dates and offsets are frozen in the compiled corpus.
 
 ```sh
-python -m pacbench.specs
-python -m pacbench.prepare specs/pizza_week.json --output artifacts/corpora/pizza-week
-python -m pacbench.preparation_audit artifacts/corpora/pizza-week
-python -m pacbench.native_pilot --prepared artifacts/corpora/pizza-week/week.json --providers memcal --output runs/pizza-current
+python -m pacbench generate specs/pizza_week.json --output artifacts/corpora/pizza-week
+python -m pacbench run artifacts/corpora/pizza-week --output runs/pizza-current
 ```
 
-Preparation writes a small plain-JSON `week.json` manifest with hashes of the generated messages, verification receipts, questions and evidence-cited judging contracts beside it. Keep the prepared directory together to reuse it across providers and runs; the manifest references these files rather than embedding a second copy. Provider execution checks every referenced file before importing it, without authoring or verifying messages again. Older self-contained JSON bundles remain readable. `--resume` reuses unchanged verified scenes and accepted contracts when fixing an interrupted preparation. Changed sources, questions, expectations or clocks require fresh contract review; a changed scene requires fresh source verification. Failed scenes are recorded, dependent source continuations skip, and independent scenes continue. Incomplete preparation cannot become a runnable frozen corpus.
+Preparation writes a small plain-JSON `week.json` manifest with hashes of the generated messages, verification receipts, questions and evidence-cited judging contracts beside it. Keep the prepared directory together to reuse it across providers and runs. `run` accepts the directory or its `week.json`, verifies every referenced file, and imports the corpus without new authoring or model reviews. Older self-contained manifests remain readable. `generate --resume` reuses unchanged verified scenes and accepted contracts when fixing an interrupted preparation. Changed sources, questions, expectations or clocks require fresh contract review. A changed scene requires fresh source verification. Failed scenes are recorded, dependent source continuations skip, and independent scenes continue. Incomplete preparation cannot become a runnable frozen corpus.
+
+`run` uses the full frozen corpus and selects all nine active providers by default. `--providers memcal mem0` selects a subset. `--plan` checks the corpus and writes its full source schedule and frozen question and criterion counts without model calls or provider startup. Conditional follow-ups are included in the frozen counts and can depend on what the provider answers during a run. Native execution requires the [runtime and model route setup](../vendor/README). Its summary reports unavailable arms and retains outcomes separately from semantic grades and retention evidence.
 
 The minimal [Pizza Day](../specs/pizza_day.json) uses the same format for a one-day source smoke test. Preparation always runs separately from Hermes and native provider ingestion. All paid work goes through the shared gateway.
 

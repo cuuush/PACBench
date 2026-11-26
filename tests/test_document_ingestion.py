@@ -142,7 +142,7 @@ def test_openviking_resource_ready_waits_for_background_global_completion(tmp_pa
         _client=Client()
         def initialize(self,*a,**kw):pass
         def shutdown(self):stages.append('shutdown')
-    monkeypatch.setattr('pacbench.provider_loader.provider_module',lambda _:SimpleNamespace(OpenVikingMemoryProvider=Provider))
+    monkeypatch.setattr('pacbench.providers.provider_module',lambda _:SimpleNamespace(OpenVikingMemoryProvider=Provider))
     monkeypatch.setattr('pacbench.gateway_client.validate_route',lambda *a:None)
     value=dc.openviking(source,root,'at','processing-at')
     assert value['ready'] is (not global_error and not artifact_failure)
@@ -552,3 +552,59 @@ def test_openviking_native_silent_leaf_partial_and_merge_failures_are_not_ready(
     p=tmp_path/'server.log';p.write_text('Native queue healthy\nERROR '+marker+' native resource\n')
     check=openviking_failure_log(p)
     assert check['state']=='incomplete' and check['failures']==[{'line':2,'marker':marker}]
+
+
+@pytest.mark.parametrize('days', [7, 70])
+def test_readiness_prepares_each_provider_batch_once(monkeypatch, days):
+    from datetime import datetime, timedelta, timezone
+
+    from pacbench import document_ingestion as ingestion
+    from pacbench.providers import ACTIVE_PROVIDERS
+
+    first = datetime(2026, 10, 5, 20, tzinfo=timezone.utc)
+    schedule = [{'id': str(day), 'at': (first + timedelta(days=day)).isoformat()} for day in range(days)]
+    morning = datetime(2026, 10, 6, 12, tzinfo=timezone.utc)
+    questions = [(morning + timedelta(days=day, minutes=minute)).isoformat()
+                 for day in range(days) for minute in range(7)]
+    original = ingestion.processing_at
+    calls = []
+
+    def counted(at, provider, zone, *, version):
+        calls.append((provider, at))
+        return original(at, provider, zone, version=version)
+
+    monkeypatch.setattr(ingestion, 'processing_at', counted)
+    timelines = ingestion.validate_evaluation_clocks(schedule, ACTIVE_PROVIDERS, questions, 'America/New_York',
+                                                     chronological=True)
+    for provider in ACTIVE_PROVIDERS:
+        for index, clock in enumerate(questions):
+            assert timelines[provider].ready(clock) == schedule[:index//7+1]
+    assert len(calls) == len(ACTIVE_PROVIDERS)*days
+
+
+@pytest.mark.parametrize('provider', ['memcal', 'mem0'])
+@pytest.mark.parametrize('version', ['daily-source-documents-v1', 'daily-source-documents-v2', 'daily-source-documents-v3'])
+def test_prepared_readiness_matches_one_shot_lookup_across_dst(provider, version):
+    from pacbench import document_ingestion as ingestion
+
+    schedule = [
+        {'id': 'later', 'at': '2026-11-01T20:00:00-05:00'},
+        {'id': 'earlier', 'at': '2026-10-31T20:00:00-04:00'},
+    ]
+    zone = 'America/New_York'
+    final = '2026-11-02T08:00:00+00:00'
+    timeline = ingestion.validate_evaluation_clocks(schedule, [provider], [final], zone,
+                                                    chronological=True, version=version)[provider]
+    for clock in ('2026-10-31T19:59:59-04:00', '2026-10-31T20:00:00-04:00',
+                  '2026-11-01T01:00:00-04:00', '2026-11-01T01:00:00-05:00',
+                  '2026-11-01T07:59:59+00:00', '2026-11-01T08:00:00+00:00', final):
+        try:
+            expected = ingestion.ready_sources(schedule, provider, clock, zone, version=version)
+        except ValueError as original:
+            with pytest.raises(ValueError) as prepared:
+                timeline.ready(clock)
+            assert str(prepared.value) == str(original)
+        else:
+            assert timeline.ready(clock) == expected
+    assert timeline.ready(final) == schedule
+    assert ingestion.validate_evaluation_clocks([], [provider], [final], zone, version=version)[provider].ready(final) == []

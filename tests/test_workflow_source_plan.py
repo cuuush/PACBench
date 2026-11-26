@@ -4,9 +4,9 @@ import json
 import pytest
 
 from pacbench.semantic_grade import Claim
-from pacbench.workflow_runner import inspect_source_cutoff
-from pacbench.workflow_source_plan import SourcePlan
-from pacbench.workflow_spec import Document, Turn
+from pacbench.workflows.runner import inspect_source_cutoff
+from pacbench.workflows.source_plan import SourcePlan
+from pacbench.workflows.spec import Document, Turn
 
 
 T1 = '2026-11-01T21:00:00-05:00'

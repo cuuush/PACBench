@@ -129,7 +129,7 @@ def test_registry_guard_blocks_before_registry_or_hooks(monkeypatch):
 
 
 def test_retained_memory_policy_excludes_every_memcal_source_reader():
-    from pacbench.tool_policy import policy_record
+    from pacbench.source_policy import policy_record
     from pacbench.followups import tool_category, SOURCE_CATEGORIES
     tools=['memcal_open','memcal_search_wiki','memcal_activity','memcal_conversation',
            'memcal_search_archive','memcal_open_source']
@@ -141,7 +141,7 @@ def test_retained_memory_policy_excludes_every_memcal_source_reader():
 
 @pytest.mark.parametrize('name',['memcal_activity','memcal_conversation','memcal_search_archive','memcal_open_source'])
 def test_actual_dispatch_blocks_source_rescue_before_execution(monkeypatch,name):
-    from pacbench.tool_policy import retained_tools
+    from pacbench.source_policy import retained_tools
     allowed,_=retained_tools(['memcal_open',name])
     monkeypatch.setenv('PACBENCH_PROVIDER_ONLY','1')
     monkeypatch.setenv('PACBENCH_TOOL_ALLOWLIST',','.join(allowed))
@@ -152,7 +152,7 @@ def test_actual_dispatch_blocks_source_rescue_before_execution(monkeypatch,name)
 
 
 def test_mixed_document_reader_is_excluded_from_grant():
-    from pacbench.tool_policy import retained_tools
+    from pacbench.source_policy import retained_tools
     assert retained_tools(['viking_read','viking_search'])==(['viking_search'],['viking_read'])
 
 
@@ -162,7 +162,7 @@ def test_mixed_document_reader_is_excluded_from_grant():
     ('openviking',['viking_search','viking_read'],'viking_read',{'uri':'viking://resources/day/messages.txt','level':'full'}),
 ])
 def test_native_source_access_is_permitted_and_penalized_without_exposing_os_tools(monkeypatch,tmp_path,provider,native,source,arguments):
-    from pacbench.tool_policy import policy_record
+    from pacbench.source_policy import policy_record
     from pacbench.followups import tool_profile,recovery_score
     from pacbench.semantic_grade import Grade,GradedClaim
     grant=policy_record(provider,native)
@@ -210,7 +210,7 @@ def test_normal_memcal_event_open_keeps_retention_credit_with_source_access():
     ('memcal',['memcal_open','memcal_open_source','memcal_search_archive'],['memcal_open']),
 ])
 def test_real_hermes_schema_filter_hides_document_readers_keeps_event_open(monkeypatch,tmp_path,provider,native,expected):
-    from pacbench.tool_policy import policy_record
+    from pacbench.source_policy import policy_record
     grant=policy_record(provider,native,version='retained-memory-only-v2')
     monkeypatch.setenv('PACBENCH_PROVIDER_ONLY','1')
     monkeypatch.setenv('PACBENCH_TOOL_ALLOWLIST',','.join(grant['allowed_tools']))
@@ -228,7 +228,7 @@ def test_real_hermes_schema_filter_hides_document_readers_keeps_event_open(monke
 
 @pytest.mark.parametrize('names',[None,[],[None],['memcal_open',1],['memcal*'],'memcal_open'])
 def test_malformed_native_schemas_fail_closed(names):
-    from pacbench.tool_policy import retained_tools
+    from pacbench.source_policy import retained_tools
     with pytest.raises(ValueError):
         retained_tools(names)
 
@@ -282,7 +282,7 @@ def test_actual_mixed_reader_guards_before_native_execution(monkeypatch,argument
 
 
 def test_honcho_original_messages_are_excluded_but_native_reasoning_remains():
-    from pacbench.tool_policy import retained_tools
+    from pacbench.source_policy import retained_tools
     from pacbench.followups import tool_category
     assert retained_tools(['honcho_search','honcho_context','honcho_profile',
                            'honcho_reasoning','honcho_conclude']) == (

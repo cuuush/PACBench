@@ -15,7 +15,7 @@ def plan_config(root, model, base, key):
             '--base-url', base, '--api-key', key, '--model', model, '--format', 'json']]
 
 def configure(root,env,model,base,key):
-    from pacbench.provider_lineup import require_not_retired
+    from pacbench.providers import require_not_retired
     require_not_retired('byterover')
     validate_route(base,key)
     binary=Path(__file__).resolve().parents[1]/'vendor/byterover-local/node_modules/.bin/brv'

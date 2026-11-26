@@ -6,11 +6,11 @@ from . import memos_reuse_runtime
 
 def main():
     if os.environ.get('PACBENCH_WORKFLOW_SCOPE'):
-        from ..honcho_daily_gate import CONDITION, chat_enabled
-        from ..workflow_capability import load
+        from pacbench.providers.honcho.daily_gate import CONDITION, chat_enabled
+        from pacbench.workflows.capability import load
         scope = load()
         if scope['admission'] == CONDITION and chat_enabled(scope):
-            from ..honcho_first_answer_peer import install_gateway
+            from pacbench.providers.honcho.first_answer_peer import install_gateway
             install_gateway()
     previous = memos_reuse_runtime.provider_state
 

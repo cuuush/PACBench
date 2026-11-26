@@ -7,8 +7,8 @@ import pytest
 from pacbench import publish_run
 from pacbench.followups import save
 from pacbench.followups import digest,freeze_policy
-from pacbench.frozen import write_bundle
-from pacbench.semantic_contract import ContractClaim,EvaluationContract
+from pacbench.corpus.sources import write_bundle
+from pacbench.corpus.contract import ContractClaim,EvaluationContract
 from tests.test_document_ingestion import message
 
 
@@ -55,7 +55,7 @@ def component(repo,name,provider):
 
 def test_publishing_preserves_colliding_records_privacy_and_reusable_corpus(repo,monkeypatch):
     from pacbench.model_calls import ModelClient
-    from pacbench.prepare import import_week
+    from pacbench.corpus.prepare import import_week
     from pacbench.native_pilot import read_prepared
     def forbid(*args,**kwargs):raise AssertionError('Publishing/reusing a corpus must not call a model')
     monkeypatch.setattr(ModelClient,'__call__',forbid)
@@ -76,8 +76,8 @@ def test_publishing_preserves_colliding_records_privacy_and_reusable_corpus(repo
 
 def test_publication_shares_contract_text_without_changing_executed_hash(repo):
     from pacbench.evidence_store import read_json,MARKER,compact_contracts
-    from pacbench.semantic_contract import load_contract
-    from pacbench.prepare import import_week
+    from pacbench.corpus.contract import load_contract
+    from pacbench.corpus.prepare import import_week
     root=component(repo,'long-review','memcal')
     original=read_json(root/'contract.json')
     original.pop('contract_hash')
@@ -162,8 +162,8 @@ def test_provider_condition_copy_cannot_bypass_public_symlink_exclusion(repo,kin
 
 @pytest.mark.parametrize('change',['none','override','failed','missing','malformed','wrong-source','wrong-validation','wrong-scope'])
 def test_corpus_review_requires_the_actual_successful_model_verdict(repo,change):
-    from pacbench.preparation_audit import audit_prepared
-    from pacbench.corpus_review import VERSION, review_prompt
+    from pacbench.corpus.audit import audit_prepared
+    from pacbench.corpus.review import VERSION, review_prompt
     root=component(repo,'review','memcal')/'preparation'
     resolved=json.loads((root/'resolved-spec.json').read_text())
     resolved['scenes']=[]
@@ -189,8 +189,8 @@ def test_corpus_review_requires_the_actual_successful_model_verdict(repo,change)
 
 
 def test_declared_corpus_review_cannot_be_deleted(repo):
-    from pacbench.preparation_audit import audit_prepared
-    from pacbench.corpus_review import VERSION
+    from pacbench.corpus.audit import audit_prepared
+    from pacbench.corpus.review import VERSION
     root=component(repo,'review-missing','memcal')/'preparation'
     summary=json.loads((root/'summary.json').read_text())
     save(root/'summary.json',{**summary,'corpus_review_version':VERSION})

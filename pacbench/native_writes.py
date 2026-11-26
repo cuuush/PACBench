@@ -27,7 +27,7 @@ ASYNC={'supermemory','openviking','honcho'}
 
 def capture_description(inputs):
     """Pure native text/config transformation; no clients are instantiated."""
-    from .provider_loader import provider_module
+    from .providers import provider_module
     provider=inputs['provider']
     if provider=='honcho':
         plugin=provider_module(provider)
@@ -497,7 +497,7 @@ def worker(args):
         provider=inputs['provider']
         if provider=='supermemory':
             from supermemory import Supermemory
-            from pacbench.provider_loader import provider_module
+            from pacbench.providers import provider_module
             plugin = provider_module("supermemory")
             from provider_adapters.supermemory_native import namespace
             cfg,tag=namespace(plugin,root/'hermes-home')
@@ -520,7 +520,7 @@ def worker(args):
             observe=lambda:openviking_status(endpoint,headers,inputs['accepted_ids'],inputs['sessions'],
                 root=root,captures=inputs.get('captures'))
         elif provider=='honcho':
-            from pacbench.provider_loader import provider_module
+            from pacbench.providers import provider_module
             HonchoClientConfig = provider_module("honcho", "client").HonchoClientConfig
             sanitize_peer_id = provider_module("honcho", "session_peers").sanitize_peer_id
             assistant_peer_id_for = provider_module("honcho", "session_peers").assistant_peer_id_for

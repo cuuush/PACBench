@@ -68,7 +68,7 @@ def test_native_production_canary_all_three_offline(tmp_path,monkeypatch):
  from tests.offline_native_wire import NativeWire
  from tests.test_memcal_native_diagnostic import empty_review
  from tests.test_reme_native_checkpoints import write_response
- from pacbench.checkpoint_canary import run
+ from pacbench.campaigns.pizza_week_checkpoints import run_canary as run
  from pacbench.gateway_client import client_settings
  def respond(body):
   raw=json.dumps(body['messages'])
@@ -169,7 +169,7 @@ def test_cross_scope_and_unavailable_embedding_endpoint_fail_closed(tmp_path,mon
 def test_exact_memcal_condition_pin_cleanliness_and_copied_plugin(tmp_path,monkeypatch):
  import shutil,subprocess
  from pacbench.observation_adapters import native_source
- from pacbench.checkpoint_canary import MEMCAL,PYTHON,ROOT
+ from pacbench.campaigns.pizza_week_checkpoints import MEMCAL, PYTHON, ROOT
  if not MEMCAL.exists():pytest.skip('requires historical MemCal c19d216 source checkout')
  home=tmp_path/'hermes-home';(home/'plugins').mkdir(parents=True)
  shutil.copytree(MEMCAL/'integrations/hermes/memcal',home/'plugins/memcal')
@@ -213,7 +213,7 @@ def test_only_reme_preclose_recovery_uses_actual_production_path(tmp_path,monkey
  from tests.offline_native_wire import NativeWire
  from tests.test_reme_native_checkpoints import write_response
  from pacbench.gateway_client import client_settings
- from pacbench.checkpoint_canary import run
+ from pacbench.campaigns.pizza_week_checkpoints import run_canary as run
  from pacbench.gateway.preclose import ENV,CONDITION
  def respond(body):
   if 'Target note path:' in json.dumps(body['messages']):return write_response(body)

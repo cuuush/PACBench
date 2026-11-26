@@ -20,7 +20,7 @@ class SimulatedSessionStart(unittest.TestCase):
             captured.append(kwargs['env'])
             raise subprocess.TimeoutExpired('hermes', 1)
 
-        with TemporaryDirectory() as tmp, patch('pacbench.live_trials.require_live_trials_ready'), \
+        with TemporaryDirectory() as tmp, patch('pacbench.providers.require_live_trials_ready'), \
              patch('pacbench.hermes_gateway.turn_gateway', return_value=nullcontext({'state': 'mock'})), \
              patch.object(harness, '_check_paths'), \
              patch('pacbench.context_isolation.workspace_for', return_value=Path(tmp)), \

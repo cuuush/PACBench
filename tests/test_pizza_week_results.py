@@ -4,8 +4,8 @@ from hashlib import sha256
 import json
 from pathlib import Path
 
-from pacbench.workflow_spec import SPEC, compile_week
-from pacbench.workflow_memcal_contract import verify_contract
+from pacbench.campaigns.pizza_week import SPEC, compile_week
+from pacbench.providers.memcal.contract import verify_contract
 
 ROOT = Path(__file__).resolve().parents[1]
 

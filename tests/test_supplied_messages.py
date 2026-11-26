@@ -8,11 +8,11 @@ from types import SimpleNamespace
 
 import pytest
 
-from pacbench.authoring import (AuthoringError, SceneJudgeError, ScenePlan,
+from pacbench.corpus.authoring import (AuthoringError, SceneJudgeError, ScenePlan,
     build_scene_observations, realize_scene, scene_spec)
 from pacbench.followups import digest, save
 from pacbench.model_calls import ModelOutput
-from pacbench.prepare import (generation_spec, import_week, prepare,
+from pacbench.corpus.prepare import (generation_spec, import_week, prepare,
     realization_binding, resolve_spec, reuse_realization)
 
 
@@ -60,9 +60,9 @@ def checker(root, calls, *, reject=False, model='offline-stub'):
 
 @pytest.mark.parametrize('route', ['openrouter', 'codex-subscription'])
 def test_exact_source_skips_writer_on_existing_preparation_routes(tmp_path, monkeypatch, route):
-    import pacbench.prepare as module
+    import pacbench.corpus.prepare as module
     import pacbench.codex_model_calls as codex
-    from pacbench.preparation_audit import audit_prepared
+    from pacbench.corpus.audit import audit_prepared
     root = tmp_path / 'prepared'
     calls, clients = [], []
     def model_client(**options):
@@ -122,7 +122,7 @@ def test_supplied_source_preserves_exact_lines_clocks_and_checker(count, tmp_pat
     'reverse', 'equal-clocks', 'duplicate-body', 'quota', 'no-members',
 ])
 def test_invalid_supplied_messages_stop_before_model_setup(tmp_path, monkeypatch, mutation):
-    import pacbench.prepare as module
+    import pacbench.corpus.prepare as module
     spec = supplied_spec(3)
     scene = spec['scenes'][0]
     messages = scene['messages']
@@ -178,7 +178,7 @@ def test_supplied_changes_invalidate_cache_and_line_edits_are_rejected(tmp_path)
 
 @pytest.mark.parametrize('resume', [False, True])
 def test_rejected_supplied_source_is_not_rewritten_or_rejudged(tmp_path, monkeypatch, resume):
-    import pacbench.prepare as module
+    import pacbench.corpus.prepare as module
     spec = supplied_spec()
     root = tmp_path / 'rejected'
     calls = []
@@ -208,7 +208,7 @@ def test_rejected_supplied_source_is_not_rewritten_or_rejudged(tmp_path, monkeyp
 
 def fake_contract(**kwargs):
     """Only contract authoring is stubbed; normal freeze and audits still execute."""
-    from pacbench.semantic_contract import load_contract
+    from pacbench.corpus.contract import load_contract
     messages = kwargs['observations']
     body = {'claims': [{'id': 'fact-1', 'statement': 'Pizza Friday at six.',
                        'evidence': [messages[0]['source_id']]}],
@@ -220,11 +220,11 @@ def fake_contract(**kwargs):
 @pytest.mark.parametrize('count', [1, 3])
 @pytest.mark.parametrize('mixed', [False, True])
 def test_supplied_scene_uses_normal_freeze_portable_audit_and_native_sources(tmp_path, monkeypatch, count, mixed):
-    import pacbench.prepare as module
+    import pacbench.corpus.prepare as module
     from pacbench.document_ingestion import prepare_sources
     from pacbench.imessage_fixture import apple_ns
     from pacbench.native_pilot import read_prepared
-    from pacbench.preparation_audit import audit_prepared, audit_scenes
+    from pacbench.corpus.audit import audit_prepared, audit_scenes
     root = tmp_path / 'prepared'
     spec = supplied_spec(count)
     if mixed:
@@ -278,7 +278,7 @@ def test_supplied_scene_uses_normal_freeze_portable_audit_and_native_sources(tmp
 
 
 def test_next_day_single_reply_is_checked_against_actual_prior_source(tmp_path, monkeypatch):
-    import pacbench.prepare as module
+    import pacbench.corpus.prepare as module
     from pacbench.document_ingestion import daily_batches
     from pacbench.native_pilot import read_prepared
     spec = supplied_spec()

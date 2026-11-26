@@ -19,21 +19,21 @@ def _combined_fixture(model):
     return call
 
 
-from pacbench.evaluation import resolve_checks
+from pacbench.corpus.evaluation import resolve_checks
 from pacbench.followups import freeze_policy
 from pacbench.harness import TurnResult
 from pacbench.native_checks import audit_checks, run_checks
-from pacbench.semantic_contract import ContractClaim, EvaluationContract, build_contract
+from pacbench.corpus.contract import ContractClaim, EvaluationContract, build_contract
 
 
 @pytest.mark.parametrize('story',['pizza_week','bike_pickup'])
 @pytest.mark.parametrize('review_rejects',[False,True])
 def test_recheck_normalizes_days_or_weeks_and_requires_fresh_corpus_review(tmp_path,monkeypatch,story,review_rejects):
     from pathlib import Path
-    from pacbench import evaluation
+    from pacbench.corpus import evaluation
     from pacbench.followups import save
-    from pacbench.prepare import resolve_spec
-    from pacbench.corpus_review import VERSION
+    from pacbench.corpus.prepare import resolve_spec
+    from pacbench.corpus.review import VERSION
     source=tmp_path/'source';source.mkdir()
     authored=json.loads(Path('specs',story+'.json').read_text())
     _,_,original=resolve_spec(authored,source,week_start='2026-10-19')
@@ -56,8 +56,8 @@ def test_recheck_normalizes_days_or_weeks_and_requires_fresh_corpus_review(tmp_p
         if review_rejects:raise ValueError('Independent corpus review rejected')
         save(output/'realism-review.json',{'state':'pass','review_version':VERSION})
     monkeypatch.setattr(evaluation,'freeze_evaluations',freeze)
-    monkeypatch.setattr('pacbench.corpus_review.review_corpus',review)
-    monkeypatch.setattr('pacbench.preparation_audit.audit_prepared',lambda r:{'state':'pass'})
+    monkeypatch.setattr('pacbench.corpus.review.review_corpus',review)
+    monkeypatch.setattr('pacbench.corpus.audit.audit_prepared',lambda r:{'state':'pass'})
     output=tmp_path/'rechecked'
     spec={k:original[k] for k in ('checks','question_at','evaluation_context')}
     if review_rejects:
@@ -74,9 +74,9 @@ def test_recheck_normalizes_days_or_weeks_and_requires_fresh_corpus_review(tmp_p
 @pytest.mark.parametrize('tamper',['bundle','verifier'])
 def test_recheck_resume_rejects_changed_frozen_source_before_any_model_call(tmp_path,monkeypatch,tamper):
     from pathlib import Path
-    from pacbench.evaluation import prepare_existing
+    from pacbench.corpus.evaluation import prepare_existing
     from pacbench.followups import save
-    from pacbench.prepare import resolve_spec
+    from pacbench.corpus.prepare import resolve_spec
     source=tmp_path/'source';source.mkdir()
     authored=json.loads(Path('specs/bike_pickup.json').read_text())
     _,_,resolved=resolve_spec(authored,source,week_start='2026-10-19')
@@ -84,7 +84,7 @@ def test_recheck_resume_rejects_changed_frozen_source_before_any_model_call(tmp_
                        'contract':{'contract_hash':'original'}}.items():save(source/(name+'.json'),value)
     monkeypatch.setattr('pacbench.native_pilot.read_prepared',lambda *a:([],None,resolved))
     output=tmp_path/'resumed';output.mkdir()
-    from pacbench.prepare import normalize_week
+    from pacbench.corpus.prepare import normalize_week
     spec={k:resolved[k] for k in ('checks','question_at','evaluation_context')}
     save(output/'spec.json',{**normalize_week(authored,'2026-10-19'),**spec})
     save(output/'resolved-spec.json',resolved)
@@ -94,7 +94,7 @@ def test_recheck_resume_rejects_changed_frozen_source_before_any_model_call(tmp_
         save(output/'scene-verifications/check.json',{'supported':False})
     save(output/'recheck-provenance.json',{'original_contract_hash':'original'})
     def forbidden(*a,**kw):raise AssertionError('Changed source must not reach a model')
-    monkeypatch.setattr('pacbench.evaluation.freeze_evaluations',forbidden)
+    monkeypatch.setattr('pacbench.corpus.evaluation.freeze_evaluations',forbidden)
     with pytest.raises(ValueError,match='unchanged source and questions|verification evidence changed'):
         prepare_existing(source,spec,output,forbidden,resume=True)
 
@@ -109,7 +109,7 @@ def test_authored_prerequisites_reject_unknown_forward_duplicate_or_invalid_ids(
 
 @pytest.mark.parametrize('change', ['unchanged', 'source', 'prompt', 'expect', 'at', 'facts', 'corruption', 'authoring_version'])
 def test_resume_reuses_only_unchanged_hash_verified_contracts(tmp_path, change):
-    from pacbench.evaluation import freeze_evaluations
+    from pacbench.corpus.evaluation import freeze_evaluations
     observations = [{'source_id':'m1', 'written_at':'2026-09-10T18:00:00-04:00',
                      'collected_at':'2026-09-10T18:00:00-04:00', 'sender':'Me', 'text':'Breakfast at the cafe.'}]
     check = {'id':'breakfast', 'at':'2026-09-11T09:00:00-04:00',
@@ -144,7 +144,7 @@ def test_resume_reuses_only_unchanged_hash_verified_contracts(tmp_path, change):
 
 
 def test_frozen_contract_keeps_authored_prerequisites_even_without_conditional_citations(tmp_path):
-    from pacbench.evaluation import freeze_evaluations,load_evaluations
+    from pacbench.corpus.evaluation import freeze_evaluations,load_evaluations
     from pacbench.followups import digest,save
     at='2026-10-22T10:00:00-04:00'
     rows=[{'id':'first','session':'early','prompt':'Remember breakfast is at the cafe.','expect':'Breakfast is at the cafe.'},
@@ -166,7 +166,7 @@ def test_frozen_contract_keeps_authored_prerequisites_even_without_conditional_c
 
 
 def test_english_behavior_uses_exact_citation_aliases_and_reuses_verified_contract(tmp_path):
-    from pacbench.evaluation import freeze_evaluations
+    from pacbench.corpus.evaluation import freeze_evaluations
     from pacbench.followups import digest,save
     at='2026-10-22T10:00:00-04:00'
     row={'id':'correction','session':'morning','kind':'behavior','at':at,
@@ -183,7 +183,7 @@ def test_english_behavior_uses_exact_citation_aliases_and_reuses_verified_contra
     assert not first.get('errors') and len(calls)==2
     body=json.loads((tmp_path/'evaluations/correction/contract.json').read_text())
     assert body['author_fact_count']==0
-    from pacbench.semantic_contract import BEHAVIOR_REVIEW_VERSION
+    from pacbench.corpus.contract import BEHAVIOR_REVIEW_VERSION
     assert body['behavior_review_version']==BEHAVIOR_REVIEW_VERSION
     assert body['claims'][0]['evidence']==['assistant-user:correction']
     calls.clear()
@@ -363,8 +363,8 @@ def test_rejected_english_criteria_get_one_independently_reviewed_repair(tmp_pat
 
 
 def test_judge_session_fields_follow_execution_context_not_turn_ids():
-    from pacbench.evaluation import contract_evidence
-    from pacbench.semantic_contract import _dialogue
+    from pacbench.corpus.evaluation import contract_evidence
+    from pacbench.corpus.contract import _dialogue
     checks=[{'id':'details','session':'same','at':'2026-10-15T10:00:00-04:00','prompt':'What is the plan with Maya?'},
             {'id':'other','session':'same','at':'2026-10-15T10:02:00-04:00','prompt':'Is Rosa’s still the place?'},
             {'id':'fresh','at':'2026-10-15T10:04:00-04:00','prompt':'What about Friday?'}]
@@ -380,7 +380,7 @@ def test_judge_session_fields_follow_execution_context_not_turn_ids():
 
 def test_diagnostic_inputs_use_only_visible_bounded_material():
     from pacbench.native_checks import diagnostic_inputs
-    from pacbench.semantic_contract import EvaluationContract, ContractClaim
+    from pacbench.corpus.contract import EvaluationContract, ContractClaim
     turn = TurnResult(prompt='q', at='now', answer='a', tool_calls=[{'name': 'search'}],
         tool_results=[{'text': 'x' * 16001}, {'text': 'unmatched'}], policy_blocks=0,
         latency_s=0, returncode=0, stderr_tail='', raw_events=0, prefetch_context='brief',
@@ -431,8 +431,8 @@ def test_answer_evidence_diagnostic_audits_frozen_sources(tmp_path, diagnostic_v
 
 
 def test_judge_evidence_preserves_frozen_session_semantics(tmp_path):
-    from pacbench.evaluation import judge_evidence
-    from pacbench.semantic_contract import EVIDENCE_VERSION
+    from pacbench.corpus.evaluation import judge_evidence
+    from pacbench.corpus.contract import EVIDENCE_VERSION
     rows = [{'id': 'a', 'prompt': 'Save this', 'kind': 'behavior', 'at': '2026-09-11T09:00:00-04:00'},
             {'id': 'b', 'prompt': 'Recall it', 'at': '2026-09-11T10:00:00-04:00'}]
     directory = tmp_path / 'evaluations' / 'b'
@@ -447,7 +447,7 @@ def test_judge_evidence_preserves_frozen_session_semantics(tmp_path):
 
 
 def test_v2_source_evidence_includes_frozen_metadata():
-    from pacbench.evaluation import source_evidence
+    from pacbench.corpus.evaluation import source_evidence
     row = {'source_id': 'm1', 'text': 'Friday', 'sender': 'Lee', 'written_at': '2026-10-01',
            'channel': 'imessage', 'thread': 'team'}
     assert source_evidence([row], 'answer-visible-evidence-v1')['m1'] == 'Friday'
@@ -458,7 +458,7 @@ def test_v2_source_evidence_includes_frozen_metadata():
 def test_v2_provider_evidence_does_not_count_user_request_or_tool_arguments():
     from pacbench.native_checks import diagnostic_inputs
     from pacbench.semantic_grade import Claim, grade_semantic, DIAGNOSTIC_VERSION
-    from pacbench.semantic_contract import EvaluationContract, ContractClaim
+    from pacbench.corpus.contract import EvaluationContract, ContractClaim
     turn = TurnResult(prompt='Move pickup to Sunday at 11.', at='now', answer='Moved to Sunday at 11.',
         tool_calls=[{'name': 'update', 'input': {'time': 'Sunday at 11'}}],
         tool_results=[{'text': 'Update accepted.'}], policy_blocks=0, latency_s=0,

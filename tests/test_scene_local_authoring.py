@@ -12,11 +12,11 @@ from types import SimpleNamespace
 
 import pytest
 
-from pacbench.authoring import (AuthoringError, ScenePlan, build_scene_observations,
+from pacbench.corpus.authoring import (AuthoringError, ScenePlan, build_scene_observations,
     judge_scene, realize_scene, scene_prompt, scene_spec)
-from pacbench.prepare import (WEEKDAYS, normalize_week, realization_binding, resolve_spec, reuse_realization)
+from pacbench.corpus.prepare import (WEEKDAYS, normalize_week, realization_binding, resolve_spec, reuse_realization)
 from pacbench.followups import save
-from pacbench.preparation_audit import audit_scenes
+from pacbench.corpus.audit import audit_scenes
 
 
 def week(rows):
@@ -264,9 +264,9 @@ def test_guide_mixed_example_compiles_offline(tmp_path):
 
 @pytest.mark.parametrize('imported', [False, True])
 def test_prepare_new_exact_generated_cache_portable_audit_with_stubs(tmp_path,monkeypatch,imported):
-    import pacbench.prepare as module
-    from pacbench.preparation_audit import audit_prepared
-    from pacbench.prepare import prepare,export_week,import_week
+    import pacbench.corpus.prepare as module
+    from pacbench.corpus.audit import audit_prepared
+    from pacbench.corpus.prepare import prepare,export_week,import_week
     from tests.test_supplied_messages import supplied_spec,checker,fake_contract
     root=tmp_path/'prepared';spec=supplied_spec();row=spec['scenes'][0]
     row.pop('facts');row['test_intent']='Recall the lunch invitation.'
@@ -317,7 +317,7 @@ def test_prepare_new_exact_generated_cache_portable_audit_with_stubs(tmp_path,mo
 
 
 def test_legacy_review_cannot_be_dropped_on_resume_before_writes(tmp_path,monkeypatch):
-    from pacbench.prepare import prepare
+    from pacbench.corpus.prepare import prepare
     from tests.test_supplied_messages import supplied_spec
     root=tmp_path/'old';root.mkdir();old=supplied_spec();_,_,resolved=resolve_spec(old,root)
     save(root/'resolved-spec.json',resolved)

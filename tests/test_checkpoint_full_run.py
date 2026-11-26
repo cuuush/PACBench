@@ -60,7 +60,7 @@ def test_full_r2_production_cross_day_three_native_arms(tmp_path,monkeypatch):
  from tests.test_memcal_native_diagnostic import empty_review
  from tests.test_reme_native_checkpoints import write_response
  from tests.test_evaluation import correct_judge
- from pacbench.checkpoint_full_run import run
+ from pacbench.campaigns.pizza_week_checkpoints import run_full as run
  from pacbench.gateway_client import client_settings
  def respond(body):
   raw=json.dumps(body['messages']);prompt=body['messages'][0].get('content','')
@@ -127,7 +127,7 @@ def test_live_full_run_cannot_hide_a_shortened_cohort(tmp_path,monkeypatch):
 
 @pytest.mark.usefixtures('historical_checkpoint_archive')
 def test_prefix_cannot_drop_required_cross_day_session(tmp_path):
- from pacbench.checkpoint_full_run import prepare_prefix
+ from pacbench.campaigns.pizza_week_checkpoints import prepare_prefix
  _,schedule,checks,plan=cap.frozen()
  count=next(i+1 for i,c in enumerate(checks) if c[0]['id']=='lunch-snapshot')
  folder=tmp_path/'old/mem0/evaluation';folder.mkdir(parents=True)
@@ -171,7 +171,7 @@ def test_full_production_mem0_interrupted_recovery_reuses_only_valid_answer(tmp_
  from tests.test_memcal_native_diagnostic import empty_review
  from tests.test_reme_native_checkpoints import write_response
  from tests.test_evaluation import correct_judge
- from pacbench.checkpoint_full_run import run
+ from pacbench.campaigns.pizza_week_checkpoints import run_full as run
  from pacbench.gateway_client import client_settings
  def respond(body):
   raw=json.dumps(body['messages']);prompt=body['messages'][0].get('content','')
@@ -210,7 +210,7 @@ def test_full_production_mem0_interrupted_recovery_reuses_only_valid_answer(tmp_
 
 
 def test_recovered_prefix_resolves_sources_from_verified_ancestry(tmp_path,monkeypatch):
- from pacbench.checkpoint_full_run import source_proof
+ from pacbench.campaigns.pizza_week_checkpoints import source_proof
  prior=tmp_path/'prior';ancestor=tmp_path/'ancestor'
  old=ancestor/'mem0/checkpoint-1/source-proof.json';old.parent.mkdir(parents=True);old.write_text('{}')
  monkeypatch.setattr(cap,'load',lambda:'verified')

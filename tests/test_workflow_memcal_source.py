@@ -9,8 +9,8 @@ import sqlite3
 
 import pytest
 
-from pacbench.workflow_memcal_source import MemCalSourceWitness, digest, frozen_messages_digest
-from pacbench.workflow_spec import nightly_documents
+from pacbench.providers.memcal.source import MemCalSourceWitness, digest, frozen_messages_digest
+from pacbench.workflows.spec import nightly_documents
 
 
 @pytest.fixture

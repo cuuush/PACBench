@@ -3,7 +3,7 @@ from types import SimpleNamespace
 
 import pytest
 from pacbench.stop import communicate_until_stop,OperatorStop
-from pacbench import workflow_native
+from pacbench.workflows import native as workflow_native
 
 
 def test_admission_stop_reaps_stuck_native_cli_promptly(tmp_path):

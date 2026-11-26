@@ -8,14 +8,14 @@ from types import SimpleNamespace
 import httpx
 import pytest
 
-from pacbench import supermemory_week as runner
-from pacbench import supermemory_week_admission as week
+from pacbench.providers.supermemory import week as runner
+from pacbench.providers.supermemory import week_admission as week
 from pacbench.dispatch_ownership import OwnershipConflict
-from pacbench.supermemory_week import StockWeekWitness
-from pacbench.supermemory_week_observation import stock_temporal_metadata
-from pacbench.workflow_daily_documents import compile_daily_week
-from pacbench.workflow_delivery import submit_document
-from pacbench.workflow_progress import WorkflowProgress
+from pacbench.providers.supermemory.week import StockWeekWitness
+from pacbench.providers.supermemory.observation import stock_temporal_metadata
+from pacbench.campaigns.pizza_week import compile_daily_week
+from pacbench.workflows.delivery import submit_document
+from pacbench.workflows.progress import WorkflowProgress
 
 
 @pytest.mark.parametrize('transient_timeout', [False, True])
@@ -66,7 +66,7 @@ def test_stock_sdk_add_and_readback_of_one_complete_day(tmp_path, transient_time
 ])
 def test_week_terminal_result_survives_drain_and_shutdown_failures(
         monkeypatch, tmp_path, native_failure, ledger_failure, stop_failure):
-    from pacbench import workflow_metrics
+    from pacbench.workflows import recording as workflow_metrics
     from provider_adapters import supermemory_local
 
     contract = {'turns': 1}
@@ -152,9 +152,9 @@ def test_week_terminal_result_survives_drain_and_shutdown_failures(
 
 def test_run_native_binds_the_daily_layout_for_retained_verification(monkeypatch, tmp_path):
     sdk = pytest.importorskip('supermemory')
-    from pacbench import workflow_document_progress
+    from pacbench.workflows import document_progress as workflow_document_progress
     from pacbench.canary_capability import binding, sha
-    from pacbench.workflow_runner import run_current_week
+    from pacbench.workflows.runner import run_current_week
 
     _, docs, turns, basis, manifest = compile_daily_week()
     root = tmp_path / runner.WEEK_RUN / runner.PROVIDER
@@ -180,7 +180,7 @@ def test_run_native_binds_the_daily_layout_for_retained_verification(monkeypatch
         assert directory == root / 'workflow'
         assert source == all_source == docs
         assert scheduled == turns and frozen == basis and spec_hash == sha(runner.SPEC)
-        assert daily_manifest is manifest
+        assert daily_manifest == manifest
         assert judge is None and not canary and not resume
         bound_accounts.append(account)
         return {'verified_turns': len(scheduled)}
@@ -228,7 +228,7 @@ def test_run_native_binds_the_daily_layout_for_retained_verification(monkeypatch
 
 @pytest.mark.parametrize('provider', ['mem0', 'supermemory'])
 def test_native_daily_entry_rejects_unqualified_generic_account(tmp_path, provider):
-    from pacbench.workflow_runner import run_current_week
+    from pacbench.workflows.runner import run_current_week
 
     owner = SimpleNamespace(pins=dict(hermes='offline', hermes_isolation_sha256='offline'))
     condition = replace(runner._stock_week_condition(owner), provider=provider)

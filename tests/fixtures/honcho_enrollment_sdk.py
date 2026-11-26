@@ -43,7 +43,7 @@ honcho.Honcho = lambda **kwargs: NativeHoncho(**kwargs,
 module = ModuleType('plugins.memory.honcho.client')
 module.HonchoClientConfig = SimpleNamespace(from_global_config=lambda: SimpleNamespace(
     user_observe_me=True,user_observe_others=False,ai_observe_me=False,ai_observe_others=True))
-from pacbench import provider_loader
+from pacbench import providers as provider_loader
 def resolve(name, submodule=None):
     assert (name,submodule)==('honcho','client')
     return module

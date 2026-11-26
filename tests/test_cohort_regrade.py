@@ -19,12 +19,13 @@ from pacbench.canary_capability import binding, digest as wire_digest
 from pacbench.cohort_regrade import Overlay, main, snapshot
 from pacbench.cohort_regrade_journal import FORMAT, SCHEMA, load as load_judge_journal
 from pacbench.cohort_regrade_retained import ADMISSIONS, DAILY_FILES, DOCUMENT_PROGRESS, MEMCAL_PROGRESS, THREAD_FILES, WEEK
-from pacbench.workflow_capability import _memcal_schedule
-from pacbench.workflow_memcal_tools import TOOLS, manifest as memcal_product
-from pacbench.workflow_progress import WorkflowProgress
-from pacbench.workflow_source_plan import SourcePlan
-from pacbench.workflow_spec import Document, SPEC, compile_week, instant
-from pacbench.workflow_stream import fingerprint
+from pacbench.workflows.capability import _memcal_schedule
+from pacbench.providers.memcal.contract import TOOLS, manifest as memcal_product
+from pacbench.workflows.progress import WorkflowProgress
+from pacbench.workflows.source_plan import SourcePlan
+from pacbench.campaigns.pizza_week import SPEC, compile_week
+from pacbench.workflows.spec import Document, instant
+from pacbench.workflows.stream import fingerprint
 
 REVISION = 'luna-context-v4-v1'
 NEUTRAL_REVISION = 'explicit-criteria-v1'

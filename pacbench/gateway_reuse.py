@@ -116,7 +116,7 @@ class PersistentGateway:
             if observation_clock is None or self.env.get('LD_PRELOAD') or any(k.startswith('FAKETIME') for k in self.env) or (self.home.parent/'provider-clock.json').exists():
                 raise GatewayLifecycleError('Persistent simulated-clock scoring requires a new versioned request-bound clock protocol')
         if self.env.get('PACBENCH_DIRECT')=='1':
-            from . import workflow_capability
+            from pacbench.workflows import capability as workflow_capability
             if self.env.get(workflow_capability.ENV):
                 if canary or full_run:
                     raise GatewayLifecycleError('Conflicting workflow and legacy gateway owners')
@@ -260,7 +260,7 @@ class PersistentGateway:
         if not continuation or authored_resume:
             if (self.provider=='openviking' and observation.get('native_resource_uris') and
                     observation['snapshot_manifest']['sha256']==self.checkpoint):
-                from .openviking_checkpoint import verify_open_clone
+                from .providers.openviking import verify_open_clone
                 startup=verify_open_clone(observation,manifest)
             elif self.provider=='supermemory' and observation.get('documents') and observation['snapshot_manifest']['sha256']==self.checkpoint:
                 import re
@@ -443,15 +443,15 @@ class PersistentGateway:
                            for s in drain['sessions'] if s['session_id']==turn.session_id
                            for p in s['providers'] if p['name']=='hindsight'):
                     raise GatewayLifecycleError('Native Hindsight observation bank was not used')
-                from .hindsight_checkpoint import settled
-                drain['native_bank_operations']=settled(observation['endpoint'],observation['bank'])
+                from .providers.hindsight.evidence import settled_operations
+                drain['native_bank_operations']=settled_operations(observation['endpoint'],observation['bank'])
             if self.provider=='supermemory':
                 if not any(p.get('namespace')==observation['namespace'] and p.get('endpoint')==observation['endpoint']
                            for s in drain['sessions'] if s['session_id']==turn.session_id
                            for p in s['providers'] if p['name']=='supermemory'):
                     raise GatewayLifecycleError('Native Supermemory observation store was not used')
-                from .supermemory_checkpoint import settled
-                drain['native_document_statuses']=settled(observation['endpoint'],self.env['SUPERMEMORY_API_KEY'],observation['namespace'])
+                from .providers.supermemory.observation import wait_for_settled_checkpoint
+                drain['native_document_statuses']=wait_for_settled_checkpoint(observation['endpoint'],self.env['SUPERMEMORY_API_KEY'],observation['namespace'])
             preclose_binding=({'path':str(folder/'preclose.json'),'sha256':hashlib.sha256((folder/'preclose.json').read_bytes()).hexdigest()} if preclose else None)
             atomic(folder/'cleanup.json',{'protocol':PROTOCOL,'state':'drained','post_answer_cleanup_s':time.monotonic()-ready,
                 'native_observation':drain,'preclose':preclose_binding})

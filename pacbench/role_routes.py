@@ -11,6 +11,28 @@ ALL_LUNA = 'luna-all-roles-v1'
 CONDITIONS = (CONDITION, ALL_LUNA)
 
 
+RENDER_SCOPE = 'source-render-v1'
+RENDER_PROJECTS = ('pacbench-authoring', 'pacbench-scene-verifier')
+
+
+def render_scope_active():
+    scope = os.environ.get('PACBENCH_EXECUTION_SCOPE')
+    if scope not in (None, RENDER_SCOPE):
+        raise ValueError('Unknown execution scope')
+    return scope == RENDER_SCOPE
+
+
+def validate_render_scope(config_scope, project, profile):
+    if config_scope not in (None, 'import-and-connectivity-probes', 'scored-week-roles'):
+        raise RuntimeError('Unknown ledger request scope')
+    if not render_scope_active():
+        return False
+    if (profile != 'luna-bedrock-global' or project not in RENDER_PROJECTS
+            or config_scope != 'scored-week-roles' or not os.environ.get('PACBENCH_FUNDED_RUN_ID')):
+        raise RuntimeError('Render scope requires prepaid Luna authoring or scene-verifier capability')
+    return True
+
+
 def split_enabled():
     condition = os.environ.get('PACBENCH_ROLE_ROUTES')
     if not condition:
@@ -22,9 +44,8 @@ def split_enabled():
 
 
 def profile_for_project(project):
-    from .render_scope import active,PROJECTS
-    if active():
-        if PROFILE_NAME!='luna-bedrock-global' or project not in PROJECTS:
+    if render_scope_active():
+        if PROFILE_NAME!='luna-bedrock-global' or project not in RENDER_PROJECTS:
             raise ValueError('Unknown render role or non-Luna render route')
         return 'luna-bedrock-global'
     from .execution_capability import selected
@@ -56,9 +77,8 @@ def is_memory_model(model):
 
 
 def record():
-    from .render_scope import active
-    if active():
-        return {'condition':'source-render-v1','source_writer':dict(PROFILES['luna-bedrock-global']),
+    if render_scope_active():
+        return {'condition':RENDER_SCOPE,'source_writer':dict(PROFILES['luna-bedrock-global']),
             'scene_verifier':dict(PROFILES['luna-bedrock-global']),
             'selection':'Only source authoring and scene-verifier capabilities; provider and scored roles denied.'}
     if not split_enabled():

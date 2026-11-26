@@ -5,16 +5,16 @@ import pytest
 from tests.test_evaluation import _combined_fixture
 
 
-from pacbench.authoring import (ScenePlan, SceneRenderError,
+from pacbench.corpus.authoring import (ScenePlan, SceneRenderError,
                                 build_scene_observations, parse_scene_lines,
                                 scene_prompt, judge_scene, SceneJudgeError,
                                 realize_scene)
 from pacbench.semantic_grade import Claim, grade_semantic
-from pacbench.semantic_contract import build_contract, load_contract
+from pacbench.corpus.contract import build_contract, load_contract
 
 
 def test_contract_source_view_preserves_chat_context_for_unnamed_cancellations():
-    from pacbench.semantic_contract import _dialogue
+    from pacbench.corpus.contract import _dialogue
     shared={'written_at':'2026-10-06T07:00:00-04:00','sender':'Jen','text':"I can't make it today"}
     rendered=_dialogue([
         {**shared,'source_id':'group-1','channel':'imessage','thread':'pond-crew'},
@@ -131,7 +131,7 @@ def test_test_intent_is_author_prose_and_private_to_scene_writer():
 def test_pizza_day_facts_keep_date_and_time_separate_without_requiring_year():
     from pathlib import Path
     spec = json.loads((Path(__file__).parents[1] / "specs/pizza_day.json").read_text())
-    from pacbench.prepare import resolve_spec
+    from pacbench.corpus.prepare import resolve_spec
     plan = resolve_spec(spec, Path("scratch"))[0][0]
     assert len(plan.facts) == 5
     assert plan.facts[3] == "The pizza plan is for Friday, September 11."

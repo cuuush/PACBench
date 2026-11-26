@@ -1,6 +1,7 @@
 """Daily raw source delivery, without Hermes ingestion or fact extraction."""
 from __future__ import annotations
 
+from bisect import bisect_right
 import hashlib
 import json
 import os
@@ -181,18 +182,54 @@ def ready_sources(schedule, provider, at, timezone, *, version=VERSION):
     return ready
 
 
+class _ReadinessTimeline:
+    def __init__(self, schedule, provider, timezone, version):
+        self.rows = tuple(schedule)
+        boundaries = [
+            (datetime.fromisoformat(row['at']),
+             datetime.fromisoformat(processing_at(row['at'], provider, timezone, version=version)))
+            for row in self.rows
+        ]
+        self.finishes = [finished for _, finished in boundaries]
+        self.sorted_finishes = sorted(self.finishes)
+        self.in_finish_order = self.finishes == self.sorted_finishes
+        processing = [(started, finished) for started, finished in boundaries if started < finished]
+        self.processing_starts = sorted(started for started, _ in processing)
+        self.processing_finishes = sorted(finished for _, finished in processing)
+
+    def ready_count(self, clock):
+        # Count processing intervals whose inclusive start, but not end, has passed.
+        if bisect_right(self.processing_starts, clock) > bisect_right(self.processing_finishes, clock):
+            raise ValueError('Evaluation precedes native processing; do not use future memory state')
+        return bisect_right(self.sorted_finishes, clock)
+
+    def ready(self, at):
+        clock = datetime.fromisoformat(at)
+        count = self.ready_count(clock)
+        if not count:
+            return []
+        if self.in_finish_order or count == len(self.rows):
+            return list(self.rows[:count])
+        return [row for row, finished in zip(self.rows, self.finishes, strict=True) if finished <= clock]
+
+
 def validate_evaluation_clocks(schedule,providers,question_times,timezone, *, chronological=False,version=VERSION):
-    """Only completed daily batches may precede a checkpoint; never import its future."""
-    questions=[datetime.fromisoformat(value) for value in question_times]
+    """Verify source eligibility and return the same timelines for native import."""
+    questions = [datetime.fromisoformat(value) for value in question_times]
     if not questions or any(value.utcoffset() is None for value in questions):
         raise ValueError('Evaluation clocks require explicit timezone offsets')
+    final = max(questions)
+    timelines = {}
     for provider in providers:
-        for at in question_times:
-            ready=ready_sources(schedule,provider,at,timezone,version=version)
-            if not chronological and len(ready)!=len(schedule):
+        timeline = _ReadinessTimeline(schedule, provider, timezone, version)
+        for clock in questions:
+            count = timeline.ready_count(clock)
+            if not chronological and count != len(schedule):
                 raise ValueError('Evaluation precedes source availability; chronological checkpoint ingestion is required')
-        if len(ready_sources(schedule,provider,max(questions).isoformat(),timezone,version=version))!=len(schedule):
+        if timeline.ready_count(final) != len(schedule):
             raise ValueError('Final evaluation precedes source availability or native processing')
+        timelines[provider] = timeline
+    return timelines
 
 
 def ingest_day(provider, source, root, env, at, timezone, *, timeout_s=None):

@@ -235,12 +235,12 @@ def verify_prefix(output,report,checks,*,allow_complete=False):
 
 def resume(output,*,terminal_only=False):
     from .native_pilot import read_prepared,provision,probe,smoke_succeeded,stop_arm_model_work,ingest_pending
-    from .evaluation import load_evaluations,judge_evidence
+    from pacbench.corpus.evaluation import load_evaluations,judge_evidence
     from .native_checks import run_checks
     from .gateway_client import client_settings,require_live_cost_boundary
     from .model_calls import ModelClient
     from .document_ingestion import ready_sources,ingest_day,source_state
-    from .tool_policy import policy_record
+    from .source_policy import policy_record
     from .stop import check_stop
     from .usage import snapshot
     from .native_audit import audit

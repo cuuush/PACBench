@@ -6,9 +6,10 @@ from pathlib import Path
 
 import pytest
 
-from pacbench import judge_development_challenge as sesame, question_judge_spans as spans
-from pacbench.question_judge import BASELINE, PROTOCOL, fingerprint, interpret
-from pacbench.question_shadow_development import CONTROL_ANSWER, SPAN_REFERENCE, render
+from pacbench import judge_development_challenge as sesame
+from pacbench.judging import spans as spans
+from pacbench.judging.paired import BASELINE, PROTOCOL, fingerprint, interpret
+from pacbench.judging.shadow import CONTROL_ANSWER, SPAN_REFERENCE, render
 
 ANSWER = '📅 Friday Oct 9:\n- Parcel at 9.\n- Lunch with Maya at 12:30.\n- Pizza at 6.'
 RULES = [dict(id=k, mode='affirm') for k in ('date', 'time', 'street')]

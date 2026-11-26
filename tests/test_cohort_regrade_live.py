@@ -9,7 +9,7 @@ import pytest
 
 from pacbench import cohort_regrade_live as live, direct_http, openrouter_run
 from pacbench.observational_receipts import replay_attempts
-from pacbench.workflow_spec import CONTEXT_JUDGE_PROTOCOL
+from pacbench.workflows.spec import CONTEXT_JUDGE_PROTOCOL
 from tests.test_judge_development_live import synthetic_checkpoint
 
 

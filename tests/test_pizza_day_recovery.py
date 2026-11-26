@@ -2,13 +2,23 @@ import hashlib
 import json
 from pathlib import Path
 import shutil
+import subprocess
+import sys
 
 import pytest
 
-from pacbench.pizza_day_recovery import review_packet, dialogue_import
-from pacbench.frozen import messages_for, load_bundle
+from pacbench.campaigns.pizza_day_review import review_packet, dialogue_import
+from pacbench.corpus.sources import messages_for, load_bundle
 
 ARCHIVE = Path('/workspace/pacbench-restore-20261112/pacbench-transfer-20261112/pizza-day-archive/runs/pizza-clean-context-mem0-20261007/preparation')
+
+
+@pytest.mark.parametrize('arguments', [
+    ['pacbench.campaigns.pizza_day', 'review'], ['pacbench.pizza_day_recovery'],
+])
+def test_offline_review_help_is_available(arguments):
+    cli = subprocess.run([sys.executable, '-m', *arguments, '--help'], capture_output=True, check=True, text=True)
+    assert '--source-only' in cli.stdout
 
 
 @pytest.fixture
@@ -36,7 +46,7 @@ def test_packet_preserves_archive_and_blocks_execution(archive):
     assert packet['source_messages'] == original
     assert len(original) == 25
     assert len(packet['proposed_claims']) == 5
-    from pacbench.corpus_review import VERSION
+    from pacbench.corpus.review import VERSION
     assert packet['fresh_review_inputs']['corpus_realism']['review_version'] == VERSION
     assert original[0]['text'] in packet['fresh_review_inputs']['corpus_realism']['prompt']
     assert packet['compiled_spec']['checks'][0]['prompt'] in packet['fresh_review_inputs']['combined_claim_and_question']['prompt']

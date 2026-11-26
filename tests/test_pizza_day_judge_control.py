@@ -3,12 +3,12 @@ import json
 
 import pytest
 
-from pacbench import pizza_day_control as control
+from pacbench.campaigns import pizza_day_review as control
 from pacbench.openrouter_route import with_route
-from pacbench.pizza_day_controller import QUESTION, QUESTION_AT
+from pacbench.campaigns.pizza_day import QUESTION, QUESTION_AT
 from pacbench.semantic_grade import Claim, judge_prompt
-from pacbench.workflow_runner import judge_options
-from pacbench.workflow_spec import Turn
+from pacbench.workflows.runner import judge_options
+from pacbench.workflows.spec import Turn
 
 
 @pytest.mark.parametrize('context, admitted', [
@@ -19,8 +19,9 @@ from pacbench.workflow_spec import Turn
     ('\n\n<memory-context>\nFirst.\n</memory-context>\n<memory-context>\nSecond.\n</memory-context>', False),
 ])
 def test_native_day_admission_requires_one_complete_context_block(tmp_path, monkeypatch, context, admitted):
-    from pacbench import pizza_day_lineup as lineup, workflow_progress
-    from pacbench.workflow_tracks import HERMES_TOOLS
+    from pacbench.campaigns import pizza_day as lineup
+    from pacbench.workflows import progress as workflow_progress
+    from pacbench.workflows.tracks import HERMES_TOOLS
 
     root = tmp_path/'mem0'
     scope = {'root': str(root), 'run_id': 'run', 'run_key': 'key', 'projects': lineup.projects(root),
@@ -53,17 +54,19 @@ def test_native_day_admission_requires_one_complete_context_block(tmp_path, monk
                        'tools': [{'function': {'name': name}} for name in HERMES_TOOLS['mem0']]},
                       profile='luna-bedrock-global')
     if admitted:
-        assert lineup.admit(scope, project, body)['slot']['kind'] == 'answer'
+        assert lineup.admit_lineup(scope, project, body)['slot']['kind'] == 'answer'
     else:
         with pytest.raises(ValueError, match='question or tools differ'):
-            lineup.admit(scope, project, body)
+            lineup.admit_lineup(scope, project, body)
 
 
 def test_day_judge_send_rechecks_scope_and_live_claim(tmp_path, monkeypatch):
-    from pacbench import live_dispatch, workflow_capability as cap, workflow_grading
-    from pacbench.pizza_day_lineup import SCOPE
+    from pacbench import live_dispatch
+    from pacbench.workflows import capability as cap
+    from pacbench.workflows import grading as workflow_grading
+    from pacbench.campaigns.pizza_day import LINEUP_ADMISSION
 
-    scope = {'admission': SCOPE, 'root': str(tmp_path/'honcho'), 'provider': 'honcho'}
+    scope = {'admission': LINEUP_ADMISSION, 'root': str(tmp_path/'honcho'), 'provider': 'honcho'}
     bound = {'sha256': 'scope'}
     effect = {'attempt_id': 'judge-attempt'}
     row = {'workflow_root': scope['root'], 'workflow_capability': bound,
@@ -91,7 +94,7 @@ def test_day_receipt_summary_reconciles_a_settled_attempt(tmp_path):
     from pacbench.canary_capability import binding, sha
     from pacbench.live_dispatch import operation_id
     from pacbench.response_receipts import PROTOCOL
-    from pacbench.workflow_receipts import receipt_summary
+    from pacbench.workflows.recording import receipt_summary
 
     root = tmp_path/'honcho'
     receipts = root/'billing-receipts'
@@ -139,8 +142,8 @@ def test_control_admits_only_exact_wrong_answer_judge_request(monkeypatch):
 def test_unsent_judge_requires_absence_of_prepared_transport(tmp_path, previous_judge):
     import json
     from types import SimpleNamespace
-    from pacbench.pizza_day_honcho import unsent_judge
-    from pacbench.pizza_day_lineup import SCOPE
+    from pacbench.campaigns.pizza_day_retained import unsent_judge
+    from pacbench.campaigns.pizza_day import LINEUP_ADMISSION
     from pacbench.canary_capability import digest
 
     root = tmp_path/'honcho'
@@ -161,7 +164,7 @@ def test_unsent_judge_requires_absence_of_prepared_transport(tmp_path, previous_
     progress = SimpleNamespace(directory=directory, execution_sealed=True, grade_states=lambda: {'claimed':1},
                                get_claimed_grade=lambda _: (turn,surface), active_grade=lambda _: claim,
                                binding=bindings.get, bind=bindings.__setitem__)
-    scope = dict(provider='honcho',root=str(root),admission=SCOPE,projects={'honcho':{'judge':'test-judge'}})
+    scope = dict(provider='honcho',root=str(root),admission=LINEUP_ADMISSION,projects={'honcho':{'judge':'test-judge'}})
     rows = [dict(id='original-answer',state='settled',accounting_role='hermes', project='test-driver')]
     if previous_judge:
         rows.append(dict(id='possible-judge', state='receipt_pending', accounting_role='judge', project='test-judge'))

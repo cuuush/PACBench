@@ -5,7 +5,7 @@ from . import memos_reuse_runtime
 
 def main():
     import os
-    from pacbench import supermemory_explicit_store as explicit
+    from pacbench.providers.supermemory import explicit_store as explicit
 
     if os.environ.get(explicit.ENV) == explicit.PROTOCOL:
         explicit.observe_gateway()

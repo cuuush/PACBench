@@ -2,20 +2,50 @@
 from __future__ import annotations
 import argparse
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from datetime import datetime, timezone
+from contextlib import contextmanager
+from datetime import datetime, timedelta, timezone
 from decimal import Decimal
 import hashlib, json, os, signal, subprocess, sys, threading, time, uuid
 from pathlib import Path
 
 from .import_lifecycle import OWNER, scan, cleanup, identity, alive
-from .import_timings import union_seconds
+from .import_timings import stamp, union_seconds
 
 PROVIDERS = ['memcal','mem0','hindsight','supermemory','openviking','honcho','reme','cognee','memos']
 REPO = Path(__file__).resolve().parents[1]
+EVENT_LOG = 'import-events.jsonl'
 
 
 def now(): return datetime.now(timezone.utc).isoformat()
-def stamp(value): return datetime.fromisoformat(value).timestamp()
+
+
+class ImportMetrics:
+    def __init__(self, output):
+        self.path = Path(output) / EVENT_LOG
+
+    def emit(self, event, **values):
+        row = {'event': event, 'utc': now(),
+               'monotonic_s': time.monotonic(), **values}
+        fd = os.open(self.path, os.O_WRONLY | os.O_APPEND | os.O_CREAT, 0o600)
+        with os.fdopen(fd, 'a') as stream:
+            stream.write(json.dumps(row, sort_keys=True) + '\n')
+            stream.flush(); os.fsync(stream.fileno())
+        return row
+
+    @contextmanager
+    def phase(self, name, **values):
+        identifier = str(uuid.uuid4())
+        start = self.emit('phase-start', phase=name, phase_id=identifier, **values)
+        try:
+            yield
+        except BaseException as exc:
+            self.emit('phase-end', phase=name, phase_id=identifier,
+                      duration_s=time.monotonic()-start['monotonic_s'],
+                      state='failed', error_class=type(exc).__name__, **values)
+            raise
+        else:
+            self.emit('phase-end', phase=name, phase_id=identifier,
+                      duration_s=time.monotonic()-start['monotonic_s'], state='complete', **values)
 
 
 def read_events(path):
@@ -39,7 +69,7 @@ def observations(component, calls):
     arm = component / 'repeat-1' / provider
     project = 'pacbench-' + hashlib.sha256(str(arm.resolve()).encode()).hexdigest()[:12] + '-' + provider + '-memory'
     own = [c for c in calls if c.get('project') == project]
-    events,event_errors = read_events(component / 'import-events.jsonl')
+    events,event_errors = read_events(component / EVENT_LOG)
     starts = {e['phase_id']: e for e in events if e['event'] == 'phase-start'}
     ends = {e['phase_id']: e for e in events if e['event'] == 'phase-end'}
     phases = [{**start, 'end_utc': ends.get(key, {}).get('utc'),
@@ -156,7 +186,7 @@ def supervise(command, component, *, stop, stop_file, timeout_s, grace_s=5, cont
     parse_errors=[]
     try: summary = json.loads((component/'summary.json').read_text()) if (component/'summary.json').exists() else {}
     except (OSError,ValueError): summary={};parse_errors.append('summary-unreadable-or-interrupted')
-    events,event_errors=read_events(component/'import-events.jsonl');parse_errors+=event_errors
+    events,event_errors=read_events(component/EVENT_LOG);parse_errors+=event_errors
     ready = next((e for e in events if e['event']=='native-all-batches-ready'), None)
     first_batch=next((e for e in events if e.get('event')=='phase-start' and e.get('phase')=='native-batch-import-through-readiness'),None)
     complete=(not reason and child.returncode==0 and summary.get('state')=='processing-complete'
@@ -173,6 +203,120 @@ def supervise(command, component, *, stop, stop_file, timeout_s, grace_s=5, cont
             'cleanup': cleaned, 'benchmark_questions_sent': summary.get('benchmark_questions_sent'),
             'judge_calls': summary.get('judge_calls'), 'stores_preserved': True,
             'condition': 'Fresh stores, concurrent functional imports; includes initialization and native background processing. Readiness excludes subsequent shutdown. Not a controlled hardware latency ranking.'}
+
+
+def select_conversation_probe(messages,source_ids,timezone):
+    """One existing four-message conversation at one visibility checkpoint."""
+    from zoneinfo import ZoneInfo
+    if len(source_ids)!=4 or len(set(source_ids))!=4:raise ValueError('Probe requires four distinct source IDs')
+    wanted=set(source_ids);selected=[m for m in messages if m['source_id'] in wanted]
+    if len(selected)!=4:raise ValueError('Probe contains unknown source IDs')
+    if len({(m['channel'],m['thread']) for m in selected})!=1:
+        raise ValueError('Probe must remain one conversation')
+    days={datetime.fromisoformat(m['collected_at']).astimezone(ZoneInfo(timezone)).date() for m in selected}
+    if len(days)!=1:raise ValueError('Probe cannot combine different daily visibility checkpoints')
+    return selected
+
+
+def run_trial(source, output, *, providers, honcho_clock='real', max_messages=150, probe_source_ids=None):
+    """Import and audit native source without running questions or a judge."""
+    from .followups import save
+    from .gateway_client import require_live_cost_boundary
+    from .native_pilot import (
+        read_prepared, copy_prepared_files, provision, probe, ingest_pending, stop_arm_model_work,
+    )
+    from .document_ingestion import prepare_sources, ingest_day, processing_at, record_recall_isolation, VERSION
+    from .usage import snapshot, provider_model_health
+    from .openrouter_route import MODEL
+    from .context_isolation import validate_recall_environment
+    from pacbench.corpus.prepare import import_week
+    from .document_audit import audit_ingestion
+    validate_recall_environment()
+    require_live_cost_boundary()
+    output=Path(output).resolve();output.mkdir(exist_ok=False)
+    metrics=ImportMetrics(output);metrics.emit('import-start')
+    with metrics.phase('source-preparation'):
+        source=Path(source)
+        if source.is_file():source=import_week(source,output/'preparation')
+        messages,_,resolved=read_prepared(source,max_messages)
+        copy_prepared_files(source,output)
+        zone=resolved.get('timezone') or 'America/New_York'
+        if probe_source_ids is not None:messages=select_conversation_probe(messages,probe_source_ids,zone)
+        schedule=prepare_sources(output,messages,zone)
+    report={'version':'native-import-validation-v1','mode':'native-import-validation',
+        'state':'running','benchmark_questions_sent':0,'judge_calls':0,
+        'semantic_review_state':'pending','message_count':len(messages),
+        'input_hash':hashlib.sha256(json.dumps(messages,sort_keys=True,ensure_ascii=False).encode()).hexdigest(),
+        'ingestion_schedule':schedule,'ingestion_version':VERSION,'process_timezone':zone,
+        'gateway_before':require_live_cost_boundary(),'results':[],
+        'probe_source_ids':probe_source_ids,
+        'scope':('Isolated four-message conversation import probe from the unchanged frozen Week; not a full Week import or score.' if probe_source_ids else 'Full-week import qualification only. These stores cannot be used for chronological benchmark questions.')}
+    save(output/'summary.json',report)
+    for provider in providers:
+        root=output/'repeat-1'/provider
+        result={'provider':provider,'repetition':1,'state':'running','completed_batches':[],
+                'semantic_review_state':'pending','benchmark_questions_sent':0}
+        report['results'].append(result);env=None
+        try:
+            options={}
+            if provider=='honcho' and honcho_clock=='simulated':
+                from provider_adapters.honcho_enrollment import initial_at
+                from provider_adapters.honcho_enrollment import PROTOCOL as MEMBERSHIP
+                from provider_adapters.honcho_clock import VERSION as CLOCK_VERSION
+                options['honcho_simulated_at']=initial_at(messages)
+                report['provider_clocks']={'honcho':CLOCK_VERSION}
+                report['provider_membership_protocols']={'honcho':MEMBERSHIP}
+            with metrics.phase('provider-provision',provider=provider):
+                env=provision(root,provider,MODEL,local_timezone=zone,inference_route='openrouter',**options)
+            if provider=='hindsight':
+                result['native_request_timeout_s']=int(env.get('HINDSIGHT_API_LLM_TIMEOUT','120'))
+            env['PACBENCH_STOP_FILE']=os.environ.get('PACBENCH_STOP_FILE',str(output/'STOP'))
+            with metrics.phase('native-probe',provider=provider):
+                capability=probe(root,provider,env,smoke=False)
+            save(root/'preflight.json',capability)
+            if not capability['available']:raise RuntimeError('Native provider initialization failed')
+            roles=json.loads(env['PACBENCH_USAGE_ROLES'])
+            def health():
+                require_live_cost_boundary()
+                status=provider_model_health(snapshot(roles))
+                save(root/'provider-model-health.json',status)
+                if status['state']=='stop':raise RuntimeError(status['reason'])
+            failed=set()
+            for index,batch in enumerate(schedule):
+                if provider=='honcho' and honcho_clock=='simulated':
+                    horizon=(processing_at(schedule[index+1]['at'],provider,zone)
+                        if index+1<len(schedule) else
+                        (datetime.fromisoformat(processing_at(batch['at'],provider,zone))+timedelta(days=1)).isoformat())
+                    env['PACBENCH_CLOCK_HORIZON']=horizon
+                with metrics.phase('native-batch-import-through-readiness',provider=provider,batch=batch['id']):
+                    ingest_pending([batch],result['completed_batches'],failed,output,root,provider,env,
+                        zone,env['PACBENCH_STOP_FILE'],ingest_day,health)
+                save(root/'status.json',result);save(output/'summary.json',report)
+            result['native_ready_observed']=metrics.emit('native-all-batches-ready',provider=provider)
+            with metrics.phase('input-integrity-audit',provider=provider):
+                record_recall_isolation(root)
+                errors=audit_ingestion(output,root,messages,report,import_only=True)
+            result['ingestion_audit']={'state':'fail' if errors else 'pass','errors':errors}
+            result['state']='incomplete' if errors else 'processing-complete'
+            result['stored_fact_review']='pending; processing receipts are not semantic verification'
+        except Exception as exc:
+            reason=str(exc)
+            for name,value in {**os.environ,**(env or {})}.items():
+                if value and len(value)>8 and any(part in name.upper() for part in ('KEY','TOKEN','SECRET','PASSWORD')):
+                    reason=reason.replace(value,'<redacted>')
+            result.update(state='incomplete',error_class=type(exc).__name__,reason=reason)
+        finally:
+            with metrics.phase('native-shutdown',provider=provider):
+                if env is not None:
+                    try:save(root/'pre-shutdown-model-usage.json',snapshot(json.loads(env['PACBENCH_USAGE_ROLES'])))
+                    finally:stop_arm_model_work(root)
+                else:stop_arm_model_work(root)
+            save(root/'status.json',result);save(output/'summary.json',report)
+    report['state']='processing-complete' if all(r['state']=='processing-complete' for r in report['results']) else 'incomplete'
+    report['gateway_after']=require_live_cost_boundary()
+    save(output/'summary.json',report)
+    metrics.emit('import-terminal',state=report['state'])
+    return report
 
 
 def main():

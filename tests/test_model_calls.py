@@ -8,7 +8,7 @@ from unittest import mock
 
 import pytest
 
-from pacbench.authoring import AuthoringError, ScenePlan, realize_scene
+from pacbench.corpus.authoring import AuthoringError, ScenePlan, realize_scene
 from pacbench.model_calls import ModelClient, ResponsesWriter, public_record
 
 

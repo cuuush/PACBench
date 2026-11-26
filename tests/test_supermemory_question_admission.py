@@ -6,18 +6,19 @@ import sqlite3
 
 import pytest
 
-from pacbench import supermemory_question_admission as question, workflow_capability as cap
+from pacbench.workflows import capability as cap
+from pacbench.providers.supermemory import question_admission as question
 from pacbench.api_input_trace import record
 from pacbench.canary_capability import binding, digest, sha
 from pacbench.direct_accounting import live_budget
 from pacbench.dispatch_ownership import OwnershipConflict
 from pacbench.live_dispatch import CONDITION, process_identity
 from pacbench.openrouter_route import with_route
-from pacbench.supermemory_source_admission import source_release
-from pacbench.supermemory_source_effect import BOUNDARY
-from pacbench.supermemory_source_qualify import account_lock
-from pacbench.workflow_spec import SPEC
-from pacbench.workflow_tracks import HERMES_TOOLS
+from pacbench.providers.supermemory.source_admission import source_release
+from pacbench.providers.supermemory.source_effect import BOUNDARY
+from pacbench.providers.supermemory.source_qualify import account_lock
+from pacbench.campaigns.pizza_week import SPEC
+from pacbench.workflows.tracks import HERMES_TOOLS
 
 
 CALL = {'id': 'call-1', 'type': 'function',

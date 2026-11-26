@@ -5,13 +5,14 @@ from pathlib import Path
 
 import pytest
 
-from pacbench import honcho_daily_gate as gate, honcho_week_state as week
+from pacbench.providers.honcho import daily_gate as gate
+from pacbench.providers.honcho import week_state as week
 from pacbench.canary_capability import binding, read
 from pacbench.dispatch_ownership import OwnershipConflict
-from pacbench.honcho_daily_gate import _source_completion
-from pacbench.honcho_first_answer_admission import check_prepared, verify_prior
-from pacbench.honcho_week import RUN, cohort_name
-from pacbench.honcho_week_retry import REJECTION, SOURCE_REJECTION, reserve_retry
+from pacbench.providers.honcho.daily_gate import _source_completion
+from pacbench.providers.honcho.first_answer_admission import check_prepared, verify_prior
+from pacbench.providers.honcho.week import RUN, cohort_name
+from pacbench.providers.honcho.week_retry import REJECTION, SOURCE_REJECTION, reserve_retry
 from pacbench.live_dispatch import operation_id
 
 
@@ -24,7 +25,7 @@ def test_cohort_label_keeps_the_protocol_prefix_and_rejects_paths():
 
 
 def test_launcher_defaults_to_authored_chats_with_explicit_legacy_layout(tmp_path, monkeypatch):
-    from pacbench import honcho_week
+    from pacbench.providers.honcho import week as honcho_week
 
     def launch(*paths, full_week, cohort_suffix, week_session_layout, week_first_four):
         assert full_week and paths == (tmp_path,)*3
@@ -193,7 +194,7 @@ def test_daily_ready_binds_the_successful_receipt_at_the_tail_of_the_stock_chain
 
 
 def test_authored_layout_keeps_the_same_schedule_and_uses_only_the_chat_predecessor(tmp_path, monkeypatch):
-    from pacbench import honcho_week_state as harness
+    from pacbench.providers.honcho import week_state as harness
 
     _, turns, old = harness.plan()
     _, authored_turns, new = harness.plan(harness.AUTHORED_CHATS)
@@ -274,7 +275,7 @@ def test_authored_chat_canary_owns_only_day_one_and_exactly_four_turns(tmp_path,
 
 
 def test_honcho_stock_capture_inventory_is_bound_per_durable_session(tmp_path, monkeypatch):
-    from pacbench import honcho_week_capture as capture
+    from pacbench.providers.honcho import week_capture as capture
 
     intents = [{'session': 'sid-a', 'question': 'turn-one', 'chunks': [{'peer': 'p', 'sha256': 'a'}]},
                {'session': 'sid-b', 'question': 'turn-two', 'chunks': [{'peer': 'p', 'sha256': 'b'}]},
@@ -294,7 +295,7 @@ def test_honcho_stock_capture_inventory_is_bound_per_durable_session(tmp_path, m
 
 
 def test_authored_chat_close_observes_only_its_manager():
-    from pacbench.honcho_week_capture import _closed_manager
+    from pacbench.providers.honcho.week_capture import _closed_manager
 
     provider = dict(name='honcho', session_key='selected', pending=0, writer_queue=0, active_flushes=0,
                     workers=['honcho-async-writer'], clean=False)
@@ -307,7 +308,7 @@ def test_authored_chat_close_observes_only_its_manager():
 
 
 def test_deferred_chat_requires_a_matching_native_ineligible_batch():
-    from pacbench.honcho_week_capture import deferred_batch_evidence
+    from pacbench.providers.honcho.week_capture import deferred_batch_evidence
 
     item = dict(unit='owned-chat', type='representation', claim=None)
     batch = dict(unit='owned-chat', type='representation', pending_count=2,
@@ -326,6 +327,7 @@ def test_cost_incomplete_terminal_source_and_answer_keep_retained_bindings(tmp_p
 
     from pacbench.canary_capability import digest
     from pacbench.cohort_regrade_retained import _honcho_answer_response, _honcho_ingest_response
+    from pacbench.observational_receipts import RunReceiptJournal
 
     root = tmp_path/'honcho'
     root.mkdir()
@@ -362,6 +364,15 @@ def test_cost_incomplete_terminal_source_and_answer_keep_retained_bindings(tmp_p
                                    final, {'release': release}, {'queue_id': 43})
     assert not _honcho_ingest_response(root, scope, scope_proof['sha256'], {first['id']: first, final['id']: final},
                                        final, {'release': release}, {'queue_id': 44})
+
+    with RunReceiptJournal(root/'receipts.jsonl').journal() as (rows, append):
+        append('prepared', first['id'], first)
+        assert reserve_retry(rows, final) == first
+        append('prepared', final['id'], final)
+        assert _honcho_ingest_response(root, scope, scope_proof['sha256'], rows, final,
+                                       {'release': release}, {'queue_id': 43})
+        assert not _honcho_ingest_response(root, scope, scope_proof['sha256'], rows, final,
+                                           {'release': release}, {'queue_id': 44})
     mismatched_retry = {**final, 'request_sha256': sha256(b'different request').hexdigest()}
     assert not _honcho_ingest_response(root, scope, scope_proof['sha256'],
                                        {first['id']: first, final['id']: mismatched_retry}, mismatched_retry,

@@ -5,8 +5,7 @@ from pacbench.direct_accounting import DirectBudget
 from pacbench.observational_receipts import ObservedBudget,MODE
 from pacbench.live_dispatch import CONDITION
 from pacbench.direct_http import before_send
-from pacbench.receipt_costs import summarize
-from pacbench.live_receipts import direct_evidence
+from pacbench.receipt_costs import direct_evidence, summarize
 
 @pytest.fixture
 def observed(tmp_path,monkeypatch):

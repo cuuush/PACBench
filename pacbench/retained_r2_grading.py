@@ -8,14 +8,14 @@ from .checkpoint_evaluator import audit_transport
 from .semantic_grade import grade_native_semantic,Claim,DATE_SCOPED_JUDGE_PROTOCOL,DIAGNOSTIC_VERSION
 from .native_checks import diagnostic_inputs,extend_history,session_key
 from .clock_context import judge_question
-from .evaluation import judge_evidence
+from pacbench.corpus.evaluation import judge_evidence
 from .model_calls import ModelClient
 
 
 def run(output,original,budget,settings):
  output=Path(output).resolve();existing=output.exists();output.mkdir(exist_ok=True)
  original=Path(original).resolve();prep,schedule,checks,plan=cap.frozen()
- from .checkpoint_full_run import verify_completed
+ from .campaigns.pizza_week_checkpoints import verify_completed
  verify_completed(original,'memcal',checks,plan,schedule)
  previous=cap.read(cap.binding(original/'capability.json'))
  projects={p:{r:'pacbench-'+hashlib.sha256(str(output/p).encode()).hexdigest()[:12]+'-'+p+'-'+r for r in ['memory','driver','judge']} for p in cap.PROVIDERS}

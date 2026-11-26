@@ -14,7 +14,7 @@ def connector(tmp_path,monkeypatch,add):
     (root/'hermes-home/mem0.json').write_text(json.dumps(cfg));closed=[]
     llm=SimpleNamespace(client=SimpleNamespace(base_url='http://127.0.0.1:9',api_key='inert'))
     backend=SimpleNamespace(_memory=SimpleNamespace(llm=llm,add=add),close=lambda:closed.append(True))
-    monkeypatch.setattr('pacbench.provider_loader.provider_module',lambda *a:SimpleNamespace(OSSBackend=lambda _:backend))
+    monkeypatch.setattr('pacbench.providers.provider_module',lambda *a:SimpleNamespace(OSSBackend=lambda _:backend))
     monkeypatch.setattr('pacbench.gateway_client.validate_route',lambda *a:None)
     monkeypatch.setattr('pacbench.openrouter_direct.active',lambda:False)
     monkeypatch.setenv('OPENAI_API_KEY','inert')

@@ -13,7 +13,7 @@ from pathlib import Path
 from . import harness
 from .context_isolation import outside_project
 from .gateway_client import STATE, require_live_cost_boundary
-from .preparation_audit import audit_prepared
+from pacbench.corpus.audit import audit_prepared
 
 
 def provider_inventory(repo: Path = harness.REPO) -> dict:

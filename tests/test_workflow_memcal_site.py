@@ -9,8 +9,8 @@ from http.server import BaseHTTPRequestHandler, HTTPServer
 import pytest
 
 from pacbench.email_fixture import MailboxServer
-from pacbench.workflow_delivery import MemCalReaders
-from pacbench import workflow_memcal as module
+from pacbench.workflows.delivery import MemCalReaders
+from pacbench.providers.memcal import site as module
 
 
 def site(tmp_path, monkeypatch):

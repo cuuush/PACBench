@@ -289,7 +289,7 @@ def freeze_inputs(preparation,schedule,provider,expected):
     expected contains independently retained raw file hashes, not a hash made up
     by a runtime after it has already ingested the corpus.
     """
-    from .semantic_contract import load_contract
+    from pacbench.corpus.contract import load_contract
     from .followups import load_questions
     from .observation_adapters import checkpoint_plan
     root=Path(preparation)

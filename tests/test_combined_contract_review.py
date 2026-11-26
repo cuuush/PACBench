@@ -3,7 +3,7 @@ import json
 import pytest
 
 from pacbench.model_calls import ModelOutput
-from pacbench.semantic_contract import build_contract, load_contract
+from pacbench.corpus.contract import build_contract, load_contract
 
 
 def inputs(tmp_path, *, generate=None, verify=None):
@@ -98,7 +98,7 @@ def test_behavior_keeps_its_existing_review_sequence(tmp_path):
 
 
 def prepared_review_fixture(tmp_path):
-    from pacbench.preparation_audit import audit_combined_contract_review
+    from pacbench.corpus.audit import audit_combined_contract_review
     calls=tmp_path/'model-calls'; calls.mkdir()
     def reviewer(prompt):
         text=json.dumps(accepted())
@@ -131,7 +131,7 @@ def test_combined_review_audit_rejects_changed_receipt_or_frozen_input(tmp_path,
 
 
 def test_original_v7_combined_review_receipt_remains_auditable(tmp_path):
-    from pacbench.semantic_contract import ContractClaim, _dialogue, combined_review_prompt, contract_review_prompts
+    from pacbench.corpus.contract import ContractClaim, _dialogue, combined_review_prompt, contract_review_prompts
     audit, doc, observations, check = prepared_review_fixture(tmp_path)
     claims = tuple(ContractClaim(c['id'], c['statement'], tuple(c['evidence'])) for c in doc['claims'])
     prompts = contract_review_prompts(claims=claims, author_facts=(), dialogue=_dialogue(observations),
@@ -158,7 +158,7 @@ def test_old_contract_reviews_keep_legacy_audit(version,tmp_path):
 
 
 def test_three_scene_facts_are_checked_in_one_independent_request():
-    from pacbench.authoring import ScenePlan, judge_scene
+    from pacbench.corpus.authoring import ScenePlan, judge_scene
     plan=ScenePlan(id='coffee',scene='Coffee plans',facts=('Sunday','Nine','Maple Mug'),
         window_start='2026-10-19T10:00:00-04:00',window_end='2026-10-19T10:20:00-04:00')
     calls=[]

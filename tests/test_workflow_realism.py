@@ -7,14 +7,16 @@ from types import SimpleNamespace
 
 import pytest
 
-from pacbench import api_input_trace, workflow_native
+from pacbench import api_input_trace
+from pacbench.workflows import native as workflow_native
 from pacbench.workflow import main
-from pacbench.workflow_conformance import RecordingAccount, RecordingClient
-from pacbench.workflow_delivery import submit_document
-from pacbench.workflow_runner import Condition, Journal, captured_turn, deliver, grade_turn, qualify_account, run_workflow
-from pacbench.workflow_spec import SPEC, Turn, compile_week, nightly_documents, instant
-from pacbench.workflow_trace import clip_evidence, retry_activity, tool_activity
-from pacbench.workflow_tracks import BOTH, PROVIDERS, eligibility
+from pacbench.workflows.conformance import RecordingAccount, RecordingClient
+from pacbench.workflows.delivery import submit_document
+from pacbench.workflows.runner import Condition, Journal, captured_turn, deliver, grade_turn, qualify_account, run_workflow
+from pacbench.campaigns.pizza_week import SPEC, compile_week
+from pacbench.workflows.spec import Turn, nightly_documents, instant
+from pacbench.workflows.recording import clip_evidence, retry_activity, tool_activity
+from pacbench.workflows.tracks import BOTH, PROVIDERS, eligibility
 
 
 @pytest.fixture(scope='module')
@@ -230,7 +232,7 @@ def test_clipping_repeats_and_retry_ancestry():
 
 
 def test_workflow_journal_uses_elapsed_time_between_phases(tmp_path, monkeypatch):
-    from pacbench import workflow_runner
+    from pacbench.workflows import runner as workflow_runner
 
     ticks = iter([1000.0, 1002.0, 1007.0])
     monkeypatch.setattr(workflow_runner.time, 'monotonic', lambda: next(ticks))
@@ -314,7 +316,7 @@ def test_actual_request_observer_keeps_tool_payload(tmp_path,monkeypatch):
 
 def test_warm_hermes_cli_resumes_native_sqlite_session(tmp_path,monkeypatch):
     import sqlite3
-    from pacbench.workflow_native import WarmHermes
+    from pacbench.workflows.native import WarmHermes
 
     home=tmp_path/'hermes-home'
     home.mkdir()
@@ -372,7 +374,7 @@ def test_warm_hermes_cli_resumes_native_sqlite_session(tmp_path,monkeypatch):
 
 
 def test_current_entry_reports_separate_denominators_and_no_fake_scores(tmp_path):
-    from pacbench.workflow_runner import run_current_week
+    from pacbench.workflows.runner import run_current_week
     c=condition()
     account=RecordingAccount(c)
     try:
@@ -430,7 +432,7 @@ def test_conformance_cli_reports_unsupported_track_and_accepts_channel_only_impo
 
 
 def test_conformance_cli_reports_a_supported_route_that_records_no_work(tmp_path, capsys, monkeypatch):
-    monkeypatch.setattr('pacbench.workflow.run_current_week', lambda *args, **kwargs: {})
+    monkeypatch.setattr('pacbench.workflow.run_compiled_workflow', lambda *args, **kwargs: {})
     assert main(['conform', '--provider', 'mem0', '--track', 'nightly-document',
                  '--output', str(tmp_path/'empty')]) == 2
     row = json.loads(capsys.readouterr().out)['providers']['mem0']
@@ -439,7 +441,7 @@ def test_conformance_cli_reports_a_supported_route_that_records_no_work(tmp_path
 
 
 def test_open_chat_clock_never_forces_shutdown(monkeypatch):
-    from pacbench.workflow_native import OpenChatClockOwner
+    from pacbench.workflows.native import OpenChatClockOwner
     monkeypatch.setattr(workflow_native,'_identity',lambda *a:None)
     owner=SimpleNamespace(home=Path('/synthetic'),env={},witness={'pid':123,'start_time':99},
                           fence=lambda:pytest.fail('called shutdown-only fence'))
@@ -452,7 +454,7 @@ def test_open_chat_clock_never_forces_shutdown(monkeypatch):
 
 
 def test_native_exclusion_before_unverified_mac_or_grant():
-    from pacbench.workflow_native import NativeAccount
+    from pacbench.workflows.native import NativeAccount
     c=condition('memcal','first-party-connector')
     class Witness:
         def verify_deployment(self,condition,identity):
@@ -529,7 +531,7 @@ def test_local_warm_gateway_for_current_conversation(tmp_path, monkeypatch):
 
 
 def test_memos_shipped_clip_uses_same_field_as_model_saw():
-    from pacbench.workflow_trace import tool_text_boundary
+    from pacbench.workflows.recording import tool_text_boundary
     raw='start'+'x'*1500+'end'
     excerpt=raw[:1200]+'...'
     out=tool_text_boundary({'stored':raw,'native':excerpt,'field_path':['meta','userText']},
@@ -662,8 +664,8 @@ def test_isolated_clone_qualifies_its_own_store_and_kind(tmp_path, fault):
 
 
 def test_caller_and_deployment_agreeing_on_generic_tool_is_insufficient():
-    from pacbench.workflow_native import NativeAccount
-    from pacbench.workflow_tracks import HERMES_TOOLS
+    from pacbench.workflows.native import NativeAccount
+    from pacbench.workflows.tracks import HERMES_TOOLS
     c = replace(condition('mem0'), version=PROVIDERS['mem0'].reviewed_version,
                 tool_names=(*HERMES_TOOLS['mem0'], 'terminal'))
     class Witness:
@@ -706,7 +708,7 @@ def test_missing_receipts_keeps_answer_and_reports_incomplete_coverage(tmp_path,
 @pytest.mark.parametrize('receipt', ['missing', 'wrong-route', 'valid'])
 def test_native_grade_requires_matching_transport_receipt(tmp_path, week, receipt):
     from pacbench.model_calls import ModelOutput
-    from pacbench.workflow_runner import UnverifiedJudgment
+    from pacbench.workflows.runner import UnverifiedJudgment
     turn, surface = next(x for x in run(tmp_path, condition(), week[1], week[2]) if x[0].id=='weekend-uptake')
     def judge(prompt):
         verdict = json.dumps({'verdicts':[{'id':'scope','verdict':'correct','reason':'test response'}]})
@@ -732,7 +734,7 @@ def test_native_grade_requires_matching_transport_receipt(tmp_path, week, receip
 
 
 def test_terminal_judge_failure_stops_at_first_dispatch(tmp_path, monkeypatch, week):
-    from pacbench import workflow_runner as runner
+    from pacbench.workflows import runner as runner
     from pacbench.gateway_client import SpendingBlocked
     c = condition()
     account = RecordingAccount(c)
@@ -792,7 +794,7 @@ def test_connector_cannot_substitute_later_watermark_or_other_channels(tmp_path,
 
 
 def test_supermemory_submits_one_evening_before_waiting_for_consolidation(tmp_path, week):
-    from pacbench.workflow_runner import deliver
+    from pacbench.workflows.runner import deliver
     c = condition('supermemory')
     docs = [d for d in week[1] if d.cutoff == week[1][0].cutoff]
     account = RecordingAccount(c)

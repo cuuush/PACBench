@@ -7,7 +7,7 @@ import pytest
 
 from pacbench import checkpoint_clock as clock
 from pacbench.python_provider_clock import clock_value_ns, shared_time_ns
-from pacbench.workflow_spec import compile_week
+from pacbench.campaigns.pizza_week import compile_week
 
 
 @pytest.mark.parametrize('bounded', [False, True])

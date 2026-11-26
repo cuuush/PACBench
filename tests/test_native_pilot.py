@@ -6,8 +6,8 @@ from unittest.mock import patch
 import pytest
 
 from pacbench.native_pilot import provision, read_prepared, run
-from pacbench.authoring import AuthoringError, ScenePlan, scene_prompt
-from pacbench.prepare import main, resolve_spec
+from pacbench.corpus.authoring import AuthoringError, ScenePlan, scene_prompt
+from pacbench.corpus.prepare import main, resolve_spec
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -80,13 +80,13 @@ assert not {'max_tokens','max_completion_tokens','temperature','reasoning_effort
 
 
 def test_live_budget_block_happens_before_any_model_call(tmp_path):
-    with patch("pacbench.live_trials.require_live_trials_ready"), \
-         patch("pacbench.native_pilot.read_prepared", return_value=([], None, {})), \
+    source = ROOT / 'runs/bike-pickup-native-clock-20261105/preparation'
+    with patch("pacbench.providers.require_live_trials_ready"), \
          patch("pacbench.native_pilot.require_live_cost_boundary", side_effect=RuntimeError("cannot enforce $10 total spend")), \
          patch("pacbench.native_pilot.load_driver") as driver, \
          patch("pacbench.native_pilot.harness.run_turn") as turn:
         with pytest.raises(RuntimeError, match="10 total spend"):
-            run(tmp_path, tmp_path / "out")
+            run(source, tmp_path / "out")
         driver.assert_not_called()
         turn.assert_not_called()
     assert json.loads((tmp_path / "out/summary.json").read_text())["state"] == "blocked"
@@ -96,7 +96,7 @@ def test_cli_audit_failure_cannot_be_success(tmp_path):
     path = tmp_path / "spec.json"
     path.write_text("{}")
     with patch("sys.argv", ["runner", str(path), "--output", str(tmp_path / "out")]), \
-         patch("pacbench.prepare.prepare", return_value={
+         patch("pacbench.corpus.prepare.prepare", return_value={
              "state": "incomplete", "results": [{"state": "valid"}]}):
         assert main() == 1
 
@@ -148,7 +148,7 @@ def test_native_smoke_error_cannot_be_a_wiring_pass(smoke):
 
 
 def test_codex_provision_routes_hermes_separately_from_provider(tmp_path, monkeypatch):
-    monkeypatch.setattr('pacbench.live_trials.require_live_trials_ready', lambda: None)
+    monkeypatch.setattr('pacbench.providers.require_live_trials_ready', lambda: None)
     # Routing-only test: provider qualification has separate fail-closed coverage.
     monkeypatch.setattr('pacbench.native_pilot.require_trial_provider', lambda *a, **kw: None)
     from unittest.mock import patch
@@ -166,7 +166,7 @@ def test_codex_provision_routes_hermes_separately_from_provider(tmp_path, monkey
 
 
 def test_native_pilot_rejects_unknown_route_before_creating_output(tmp_path, monkeypatch):
-    monkeypatch.setattr('pacbench.live_trials.require_live_trials_ready', lambda: None)
+    monkeypatch.setattr('pacbench.providers.require_live_trials_ready', lambda: None)
     from pacbench.native_pilot import run
     output = tmp_path / 'output'
     with pytest.raises(ValueError, match='Unknown inference route'):
@@ -175,9 +175,121 @@ def test_native_pilot_rejects_unknown_route_before_creating_output(tmp_path, mon
 
 
 def test_codex_native_pilot_fails_before_creating_output(tmp_path, monkeypatch):
-    monkeypatch.setattr('pacbench.live_trials.require_live_trials_ready', lambda: None)
+    monkeypatch.setattr('pacbench.providers.require_live_trials_ready', lambda: None)
     output = tmp_path / 'output'
     with patch('pacbench.native_pilot.provider_names', return_value=['holographic']):
         with pytest.raises(RuntimeError, match='provision/login/resume'):
             run(tmp_path / 'prepared', output, providers=['holographic'], inference_route='codex-subscription')
     assert not output.exists()
+
+
+@pytest.mark.parametrize(('provider', 'module_name', 'model', 'passes_resume'), [
+    ('openviking', 'openviking_local', 'muse-spark-1.3-contributor', False),
+    ('honcho', 'honcho_local', 'muse-spark-1.3-contributor', True),
+    ('reme', 'reme_local', 'unconfigured', False),
+    ('cognee', 'cognee_runtime', 'unconfigured', False),
+    ('memos', 'memos_local', 'unconfigured', True),
+    ('supermemory', 'supermemory_local', 'muse-spark-1.3-contributor', True),
+])
+def test_native_service_receives_its_route_and_resume_arguments(tmp_path, monkeypatch, provider, module_name,
+                                                              model, passes_resume):
+    from hashlib import sha256
+    from importlib import import_module
+    from unittest.mock import Mock
+
+    from pacbench import native_pilot
+    from provider_adapters.honcho_enrollment import ENVIRONMENT, PROTOCOL
+
+    root = tmp_path/'arm'
+    root.mkdir()
+    tree = tmp_path/'hermes'
+    plugin = tree/'plugins/memory'/provider
+    plugin.mkdir(parents=True)
+    (plugin/'plugin.yaml').touch()
+    monkeypatch.setattr(native_pilot.harness, 'ISOLATED_TREE', tree)
+    monkeypatch.setattr('pacbench.providers.require_live_trials_ready', lambda: None)
+    with patch('pacbench.native_pilot.harness.provision_home') as bootstrap:
+        ready = []
+
+        def settings(project):
+            ready.append(project)
+            role = project.rsplit('-', 1)[-1]
+            return f'http://127.0.0.1:1/p/{role}/v1', f'scoped-{role}-key'
+
+        monkeypatch.setattr(native_pilot, 'client_settings', settings)
+        stop = Mock()
+        start = Mock(return_value=stop)
+        monkeypatch.setattr(import_module(f'provider_adapters.{module_name}'), 'start', start)
+        registry = {}
+        monkeypatch.setattr(native_pilot, '_ARM_SHUTDOWNS', registry)
+        checkpoint = {'sha256': 'retained-honcho-checkpoint'}
+        simulated_at = '2026-10-07T21:00:00-04:00'
+        env = native_pilot.provision(root, provider, local_timezone='America/New_York',
+                                     honcho_simulated_at=simulated_at, honcho_checkpoint=checkpoint)
+
+        prefix = f'pacbench-{sha256(str(root).encode()).hexdigest()[:12]}-{provider}'
+        assert ready == [prefix+'-driver', prefix+'-memory', prefix+'-memory']
+        assert bootstrap.call_args.kwargs['model_base_url'] == 'http://127.0.0.1:1/p/driver/v1'
+        assert env['HOME'] == str(root/'fallback-home') and env['TZ'] == 'America/New_York'
+        assert env['OPENAI_API_KEY'] == 'scoped-memory-key' and env['META_API_KEY'] == 'scoped-driver-key'
+        options = {'resume': False} if passes_resume else {}
+        if provider == 'honcho':
+            options.update(simulated_at=simulated_at, checkpoint=checkpoint)
+            assert env[ENVIRONMENT] == PROTOCOL
+        start.assert_called_once_with(root, env, model, 'http://127.0.0.1:1/p/memory/v1',
+                                      'scoped-memory-key', **options)
+        assert registry == {root: stop}
+        if provider == 'honcho':
+            home = root/'hermes-home'
+            home.mkdir()
+            (home/'config.yaml').touch()
+            bootstrap.reset_mock()
+            start.reset_mock()
+            resumed_env = native_pilot.provision(root, provider, resume=True,
+                                                  honcho_simulated_at=simulated_at, honcho_checkpoint=checkpoint)
+            bootstrap.assert_not_called()
+            start.assert_called_once_with(root, resumed_env, model, 'http://127.0.0.1:1/p/memory/v1',
+                                          'scoped-memory-key', **{**options, 'resume': True})
+
+
+def test_memcal_provision_keeps_provider_settings_before_bootstrap(tmp_path, monkeypatch):
+    from types import SimpleNamespace
+    from unittest.mock import Mock
+
+    from pacbench import native_pilot, openrouter_route, provider_versions, role_routes
+
+    root = tmp_path/'memcal'
+    root.mkdir()
+    monkeypatch.setattr('pacbench.providers.require_live_trials_ready', lambda: None)
+    monkeypatch.setattr(native_pilot, 'require_trial_provider', lambda *a, **kw: None)
+    monkeypatch.setattr(native_pilot, 'require_live_cost_boundary', lambda: None)
+    monkeypatch.setattr(provider_versions, 'verify_memcal_source', lambda _: None)
+    monkeypatch.setattr(role_routes, 'memory_model', lambda: 'fixture-memory-model')
+    monkeypatch.setattr(role_routes, 'split_enabled', lambda: True)
+    monkeypatch.setattr(role_routes, 'record', lambda: {})
+    monkeypatch.setenv('PACBENCH_TRANSPORT', 'openrouter')
+
+    def settings(project):
+        role = project.rsplit('-', 1)[-1]
+        return f'http://127.0.0.1:1/p/{role}/v1', f'scoped-{role}-key'
+
+    monkeypatch.setattr(native_pilot, 'client_settings', settings)
+    home = Mock()
+    monkeypatch.setattr(native_pilot.harness, 'provision_home', home)
+    start = Mock(return_value=SimpleNamespace(returncode=0))
+    monkeypatch.setattr(native_pilot.subprocess, 'run', start)
+
+    env = native_pilot.provision(root, 'memcal', openrouter_route.MODEL, inference_route='openrouter')
+    assert home.call_args.kwargs['model'] == openrouter_route.MODEL
+    assert env['OPENROUTER_API_KEY'] == 'scoped-driver-key'
+    assert (root/'memcal-home/.env').read_text().splitlines() == [
+        'MEMCAL_MAX_PARALLEL=1',
+        'MEMCAL_LLM_PROVIDER=openai-compatible',
+        'MEMCAL_OPENAI_BASE_URL=http://127.0.0.1:1/p/memory/v1',
+        'MEMCAL_PROPOSE_MODEL=fixture-memory-model',
+        'MEMCAL_SWEEP_MODEL=fixture-memory-model',
+        'MEMCAL_MATCH_MODEL=fixture-memory-model',
+        'OPENAI_COMPAT_API_KEY=scoped-memory-key',
+    ]
+    child = start.call_args.kwargs['env']
+    assert child['MEMCAL_MATCH_MODEL'] == 'fixture-memory-model' and child['OPENAI_COMPAT_API_KEY'] == 'scoped-memory-key'

@@ -12,10 +12,10 @@ import sys
 from tempfile import TemporaryDirectory
 
 from pacbench.semantic_grade import Claim
-from pacbench.workflow_conformance import RecordingAccount
-from pacbench.workflow_document_progress import run
-from pacbench.workflow_progress import WorkflowProgress
-from pacbench.workflow_spec import Document, Turn
+from pacbench.workflows.conformance import RecordingAccount
+from pacbench.workflows.document_progress import run
+from pacbench.workflows.progress import WorkflowProgress
+from pacbench.workflows.spec import Document, Turn
 from tests.test_workflow_realism import condition
 
 

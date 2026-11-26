@@ -4,8 +4,8 @@ from types import SimpleNamespace
 
 import pytest
 
-from pacbench.workflow_memos_oss import MemosWitness, native_transport_drained
-from pacbench.workflow_tracks import MEMOS_OSS_VERSION, eligibility
+from pacbench.providers.memos import MemosWitness, native_transport_drained
+from pacbench.workflows.tracks import MEMOS_OSS_VERSION, eligibility
 
 
 @pytest.mark.parametrize('tool', ['memos_get', 'memos_search'])
@@ -103,7 +103,7 @@ def test_stock_raw_capture_requires_exact_accepted_pair_and_bound_request(tmp_pa
 @pytest.mark.parametrize('materialized', [False, True])
 def test_answer_uses_only_successful_post_drain_graph_and_next_dispatch_reads_again(tmp_path, monkeypatch, materialized):
     from unittest.mock import Mock
-    from pacbench.workflow_memos_oss import MemosAccount
+    from pacbench.providers.memos import MemosAccount
 
     prompt, answer = 'question', 'response'
     receipt = dict(session_id='chat', at='now', cube_id='user', memory_ids=['native'],
@@ -123,7 +123,7 @@ def test_answer_uses_only_successful_post_drain_graph_and_next_dispatch_reads_ag
     witness.observed = {'released':{}}
     witness.idle = Mock(return_value={'readback':{'native_scheduler':{}}})
     witness.working_memory_processed = Mock(side_effect=[[], ['attempt']])
-    monkeypatch.setattr('pacbench.workflow_memos_oss.time.sleep', lambda _:None)
+    monkeypatch.setattr('pacbench.providers.memos.time.sleep', lambda _:None)
     account = MemosAccount('fixture', 'memos', 'scope', None, None, witness)
     assert account.source_inventory() == ['released']
     trace = dict(session_id='chat', answer=answer, question_at='now', history=[{'role':'user','content':prompt}],

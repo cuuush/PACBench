@@ -196,7 +196,7 @@ The Week audit checks the archived 49-turn, 192-criterion schedule and matches
 the authored fact lists to their scored tracks. It reports versioned scope
 exceptions and checks cited evidence against the archived release times.
 
-For the synthetic booking comparison, `pacbench.prose_judge_controls.prepare_cases()`
+For the synthetic booking comparison, `pacbench.judging.controls.prepare_cases()`
 provides each question, answer, ordered claims and references visible by the
 cutoff. The [expected verdicts](../tests/fixtures/prose_booking_key_v1.json) stay
 separate from judge inputs. The offline tests check rendering and comparison

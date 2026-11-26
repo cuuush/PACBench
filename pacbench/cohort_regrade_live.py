@@ -7,14 +7,14 @@ from decimal import Decimal
 from pathlib import Path
 
 from . import cohort_regrade as regrade
-from . import judge_development_live as prepaid
+from pacbench.judging import development_live as prepaid
 from .canary_capability import binding, read, sha
 from .chat_stream import parse_chat_stream
 from .cohort_regrade_journal import _require_complete_arms
 from .live_dispatch import CONDITION, process_identity
 from .observational_receipts import COHORT_STOP, ENV as JOURNAL, RunReceiptJournal
 from .openrouter_route import CHAT_COMPLETIONS_URL, PROFILES, with_route
-from .workflow_receipts import receipt_summary
+from .workflows.recording import receipt_summary
 
 SCOPE = 'pizza-week-luna-explicit-overlay-v1'
 PROJECT = 'pacbench-pizza-week-explicit-overlay-judge'
@@ -77,7 +77,7 @@ def _wire_binding(scope):
 
 
 def validate(scope, bound):
-    from .workflow_capability import confirm_setting
+    from .workflows.capability import confirm_setting
 
     root = prepaid.CAMPAIGN/SCOPE
     if (scope.get('admission') != SCOPE or scope.get('root') != str(root) or root != root.resolve()
@@ -107,7 +107,7 @@ def validate(scope, bound):
 
 
 def admit(scope, project, body):
-    from .workflow_capability import ENV
+    from .workflows.capability import ENV
 
     active = os.environ.get(ACTIVE_CELL)
     expected = next((row for row in _wire_binding(scope)['cells'] if row['id'] == active), None)
@@ -125,7 +125,7 @@ def _matches(row, cell):
 
 class OverlayJournal(RunReceiptJournal):
     def prepare(self, project, body, **kwargs):
-        from .workflow_capability import admission
+        from .workflows.capability import admission
 
         # Refuse changes to the caller's body even when transport would normalize them.
         admission(project, PROFILE, body)
@@ -140,7 +140,7 @@ class OverlayJournal(RunReceiptJournal):
             raise RuntimeError('only the next unused saved-answer cell can dispatch after settled predecessors')
 
     def mark_dispatch_possible(self, identifier, **kwargs):
-        from .workflow_capability import load
+        from .workflows.capability import load
 
         load()
         super().mark_dispatch_possible(identifier, **kwargs)
@@ -177,8 +177,8 @@ def _write_new(path, value):
 def _grade(root, scope, overlay, plan, wire, *, stop_on_invalid=False):
     from .gateway_client import client_settings
     from .model_calls import ModelClient
-    from .workflow_capability import budget
-    from .workflow_memcal_live import run_environment
+    from .workflows.capability import budget
+    from pacbench.providers import run_environment
 
     journal = budget()
     project = scope['projects'][scope['provider']]['judge']
@@ -227,12 +227,12 @@ def _grade(root, scope, overlay, plan, wire, *, stop_on_invalid=False):
 
 
 def run(manifest, expected_plan):
-    from . import workflow_capability as capability
+    from pacbench.workflows import capability as capability
     from .execution_capability import selected
     from .openrouter_direct import direct_environment
     from .openrouter_route import PROFILE_NAME
     from .openrouter_run import fetch_catalog
-    from .workflow_memcal_live import run_environment
+    from pacbench.providers import run_environment
 
     root = prepaid.CAMPAIGN/SCOPE
     if PROFILE_NAME != PROFILE or selected() is not None or any(os.environ.get(var) for var in (

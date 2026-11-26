@@ -9,12 +9,13 @@ from dataclasses import asdict, dataclass
 from enum import StrEnum
 import json
 
-from .frozen import bundle_hash
-from .pizza_week_dataset import checked_file
-from .prepare import read_spec
+from pacbench.corpus.sources import bundle_hash
+from pacbench.campaigns.pizza_week import checked_file
+from pacbench.corpus.prepare import read_spec
 from .spec_first_pilot import EXCEPTION, FIXTURES, audit_scope, authored_questions, scope_pair
-from .workflow_memcal_contract import member_digest, verify_contract
-from .workflow_spec import ROOT, compile_week, instant
+from pacbench.providers.memcal.contract import member_digest, verify_contract
+from pacbench.campaigns.pizza_week import ROOT, compile_week
+from .workflows.spec import instant
 
 PRIMARY = 'continuing-account'
 CONTROL = 'isolated-control'

@@ -6,14 +6,13 @@ import hashlib
 import json
 from pathlib import Path
 
-from .frozen import load_bundle, messages_for
-from .semantic_contract import load_contract
+from pacbench.corpus.sources import load_bundle, messages_for
+from pacbench.corpus.contract import load_contract
 from .followups import load_questions, audit_followups
 from .harness import TurnResult, question_prompt, PROMPT_PROTOCOL, LEGACY_PROMPT_PROTOCOL
-from .evaluation import load_evaluations
+from pacbench.corpus.evaluation import load_evaluations
 from .native_checks import audit_checks
-from .tool_policy import SUPPORTED_VERSIONS, policy_record
-from .source_policy import source_read_blocked
+from .source_policy import SUPPORTED_VERSIONS, policy_record, source_read_blocked
 from .clock_context import judge_question
 
 
@@ -194,7 +193,7 @@ def audit(root: Path, *, providers=None) -> dict:
                 except (OSError,ValueError,KeyError,TypeError) as exc:
                     errors.append(f'{label}: ingestion audit {type(exc).__name__}')
                 if evaluations:
-                    from .evaluation import judge_evidence
+                    from pacbench.corpus.evaluation import judge_evidence
                     def evidence_for_check(row):
                         return judge_evidence(root, messages, spec, row, evaluation_plan['context'], diagnostic_version=summary.get('evidence_diagnostic_protocol', LEGACY_DIAGNOSTIC_VERSION))
                     errors.extend(f'{label}: {e}' for e in audit_checks(
@@ -225,7 +224,7 @@ def audit(root: Path, *, providers=None) -> dict:
                 if summary.get('evidence_diagnostic_protocol'):
                     from .native_checks import diagnostic_inputs
                     from .semantic_grade import Claim, validate_diagnostic, judge_prompt
-                    from .evaluation import source_evidence
+                    from pacbench.corpus.evaluation import source_evidence
                     observed_turn = TurnResult(**recall)
                     inputs = diagnostic_inputs(observed_turn, contract, source_evidence(messages, summary['evidence_diagnostic_protocol']), diagnostic_version=summary['evidence_diagnostic_protocol'])
                     claims = tuple(Claim(c.id, c.statement, c.evidence) for c in contract.claims)

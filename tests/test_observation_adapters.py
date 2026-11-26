@@ -53,7 +53,7 @@ def test_native_mem0_oss_qdrant_and_history_follow_distinct_observations(tmp_pat
     script='''
 import json,sys,os,importlib.metadata
 from pathlib import Path
-from pacbench.provider_loader import provider_module
+from pacbench.providers import provider_module
 home=Path(os.environ['HERMES_HOME']);plans=json.loads(sys.argv[1]);alias=Path(os.environ['MEM0_DIR'])
 native=provider_module('mem0');rows=[]
 assert importlib.metadata.version('mem0ai')=='2.2.1'

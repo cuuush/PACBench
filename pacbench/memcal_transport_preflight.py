@@ -11,12 +11,13 @@ from contextlib import closing
 from datetime import datetime, timezone
 from pathlib import Path
 
-from . import frozen
+import pacbench.corpus.sources as frozen
 from .document_ingestion import prepare_sources
 from .imessage_membership import CONDITION
 from .native_checkpoint_sources import memcal_archive_readback
 from .provider_versions import verify_memcal_source
-from .workflow_spec import SPEC, nightly_documents
+from pacbench.campaigns.pizza_week import SPEC
+from .workflows.spec import nightly_documents
 
 ROOT = Path(__file__).resolve().parents[1]
 COLLECT = """

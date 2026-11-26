@@ -1,5 +1,7 @@
 """An indexed view of a run's append-only JSONL, serialized by the journal flock."""
+from collections.abc import Callable, Iterable
 from contextlib import closing, contextmanager
+from dataclasses import dataclass
 import fcntl
 import hashlib
 import json
@@ -37,11 +39,51 @@ CREATE INDEX IF NOT EXISTS active ON attempts(role) WHERE active=1;
 CREATE INDEX IF NOT EXISTS offline ON attempts(offline) WHERE offline=1;
 """
 
+ADMISSION_SCHEMA = (
+    'CREATE TABLE admission_profile(name TEXT NOT NULL)',
+    '''CREATE TABLE admission_verdicts(
+        attempt INTEGER PRIMARY KEY, generation TEXT, invalid INTEGER NOT NULL
+    )''',
+    'CREATE INDEX admission_invalid ON admission_verdicts(attempt) WHERE invalid != 0',
+    'CREATE TABLE admission_generations(id TEXT PRIMARY KEY, uses INTEGER NOT NULL)',
+    'CREATE INDEX admission_duplicate ON admission_generations(uses) WHERE uses > 1',
+    '''CREATE TABLE admission_scopes(
+        kind TEXT NOT NULL, scope TEXT NOT NULL, attempt INTEGER NOT NULL,
+        PRIMARY KEY(kind, scope, attempt)
+    ) WITHOUT ROWID''',
+    'CREATE INDEX admission_attempt_scopes ON admission_scopes(attempt)',
+)
+
+
+@dataclass(frozen=True)
+class AdmissionSpec:
+    # The name versions the verdicts and selectors persisted for a provider.
+    name: str
+    generation: Callable[[dict], str | None]
+    invalid: Callable[[dict], bool]
+    scopes: Callable[[dict], Iterable[tuple[str, object]]]
+
+
+def _admission_spec(name):
+    if name == 'honcho-v1':
+        from pacbench.providers.honcho.receipt_index import HONCHO_RECEIPTS
+        return HONCHO_RECEIPTS
+    if name == 'supermemory-week-v1':
+        from pacbench.providers.supermemory.week_admission import ADMISSION_SPEC
+        return ADMISSION_SPEC
+    raise ValueError('Unrecognized receipt admission projection')
+
+
+def _scope_key(value):
+    return json.dumps(value, separators=(',', ':'))
+
 
 class IndexedAttempts:
-    def __init__(self, db, *, strict=True):
+    def __init__(self, db, *, strict=True, index=None, spec=None):
         self.db = db
         self.strict = strict
+        self.index = index
+        self.spec = spec
 
     def __len__(self):
         return self.db.execute('SELECT COUNT(*) FROM attempts').fetchone()[0]
@@ -70,6 +112,94 @@ class IndexedAttempts:
     def active(self):
         return self.db.execute('SELECT 1 FROM attempts WHERE active=1 LIMIT 1').fetchone() is not None
 
+    def enable_admission(self, spec):
+        """Materialize the provider's derived admission data under the journal lock."""
+        if self.strict or spec is not _admission_spec(spec.name):
+            raise ValueError('Unsupported receipt admission projection')
+        if self.spec is not None:
+            if self.spec is not spec:
+                raise ValueError('Receipt admission projection belongs to a different provider')
+            return
+        next_counter = (_change_counter(self.index) + 1) % (2**32)
+        with self.db:
+            self.db.execute('BEGIN')
+            for statement in ADMISSION_SCHEMA:
+                self.db.execute(statement)
+            for attempt, payload in self.db.execute('SELECT rowid,payload FROM attempts'):
+                self._apply_admission(spec, attempt, json.loads(payload))
+            self.db.execute('INSERT INTO admission_profile VALUES(?)', (spec.name,))
+            self.db.execute('UPDATE cursor SET change_counter=? WHERE id=1', (next_counter,))
+            self.db.execute('PRAGMA user_version=2')
+        self.spec = spec
+
+    def duplicate_generations(self):
+        return self.db.execute('SELECT 1 FROM admission_generations WHERE uses > 1 LIMIT 1').fetchone() is not None
+
+    def invalid_terminal_responses(self):
+        result = self.db.execute(
+            'SELECT attempt,invalid FROM admission_verdicts WHERE invalid != 0 ORDER BY attempt LIMIT 1'
+        ).fetchone()
+        if result is None:
+            return False
+        attempt, invalid = result
+        if invalid == 2:
+            payload = self.db.execute('SELECT payload FROM attempts WHERE rowid=?', (attempt,)).fetchone()[0]
+            return bool(self.spec.invalid(json.loads(payload)))
+        return True
+
+    def for_scope(self, kind, *keys):
+        if not keys:
+            return []
+        placeholders = ','.join('?' for _ in keys)
+        result = self.db.execute(
+            'SELECT payload FROM attempts WHERE rowid IN '
+            f'(SELECT attempt FROM admission_scopes WHERE kind=? AND scope IN ({placeholders})) ORDER BY rowid',
+            (kind, *map(_scope_key, keys)),
+        )
+        return [json.loads(row[0]) for row in result]
+
+    def last_for_scope(self, kind, key):
+        result = self.db.execute(
+            'SELECT payload FROM attempts WHERE rowid = '
+            '(SELECT attempt FROM admission_scopes WHERE kind=? AND scope=? ORDER BY attempt DESC LIMIT 1)',
+            (kind, _scope_key(key)),
+        ).fetchone()
+        return None if result is None else json.loads(result[0])
+
+    def count_for_scope(self, kind, key):
+        return self.db.execute(
+            'SELECT COUNT(*) FROM admission_scopes WHERE kind=? AND scope=?',
+            (kind, _scope_key(key)),
+        ).fetchone()[0]
+
+    def _apply_admission(self, spec, attempt, row):
+        generation = spec.generation(row)
+        try:
+            invalid = int(bool(spec.invalid(row)))
+        except (KeyError, TypeError, ValueError, AttributeError):
+            # Evidence must remain appendable even when legacy terminal fields
+            # cannot satisfy admission. Re-evaluate that row on the failing gate.
+            invalid = 2
+        previous = self.db.execute(
+            'SELECT generation FROM admission_verdicts WHERE attempt=?', (attempt,)
+        ).fetchone()
+        old_generation = previous[0] if previous else None
+        if old_generation != generation:
+            if old_generation is not None:
+                self.db.execute('UPDATE admission_generations SET uses=uses-1 WHERE id=?', (old_generation,))
+                self.db.execute('DELETE FROM admission_generations WHERE id=? AND uses=0', (old_generation,))
+            if generation is not None:
+                self.db.execute(
+                    'INSERT INTO admission_generations VALUES(?,1) ON CONFLICT(id) DO UPDATE SET uses=uses+1',
+                    (generation,),
+                )
+        self.db.execute('INSERT OR REPLACE INTO admission_verdicts VALUES(?,?,?)', (attempt, generation, invalid))
+        self.db.execute('DELETE FROM admission_scopes WHERE attempt=?', (attempt,))
+        self.db.executemany(
+            'INSERT OR IGNORE INTO admission_scopes VALUES(?,?,?)',
+            ((kind, _scope_key(key), attempt) for kind, key in spec.scopes(row)),
+        )
+
     def apply(self, event):
         ident = event['id']
         if event['kind'] == 'prepared':
@@ -90,6 +220,9 @@ class IndexedAttempts:
             self.db.execute('INSERT INTO attempts(payload,project,operation,role,refused,active,offline,id) VALUES(?,?,?,?,?,?,?,?)', fields)
         else:
             self.db.execute('UPDATE attempts SET payload=?,project=?,operation=?,role=?,refused=?,active=?,offline=? WHERE id=?', fields)
+        if self.spec is not None:
+            attempt = self.db.execute('SELECT rowid FROM attempts WHERE id=?', (ident,)).fetchone()[0]
+            self._apply_admission(self.spec, attempt, row)
 
 
 def _change_counter(path):
@@ -164,13 +297,19 @@ class Projection:
                     if db.execute("SELECT 1 FROM sqlite_schema WHERE type='table' LIMIT 1").fetchone():
                         raise ValueError('Unrecognized receipt projection')
                     db.executescript('BEGIN;'+SCHEMA+f'PRAGMA application_id={application_id}; PRAGMA user_version=1; COMMIT;')
-                elif version != 1:
+                elif version not in (1, 2) or (strict and version == 2):
                     raise ValueError('Unsupported receipt projection version')
                 if db.execute('PRAGMA application_id').fetchone()[0] != application_id:
                     raise ValueError('Receipt projection belongs to a different journal protocol')
-                rows = IndexedAttempts(db, strict=strict)
+                spec = None
+                if version == 2:
+                    name, = db.execute('SELECT name FROM admission_profile').fetchone()
+                    spec = _admission_spec(name)
+                rows = IndexedAttempts(db, strict=strict, index=self.index, spec=spec)
                 cursor = db.execute('SELECT device,inode,end,mtime_ns,ctime_ns,tail_hash,change_counter,pending FROM cursor WHERE id=1').fetchone()
                 if cursor is None:
+                    if spec is not None:
+                        raise ValueError('Receipt admission projection lost its cursor')
                     if os.fstat(journal.fileno()).st_mode & 0o777 != 0o600:
                         os.fchmod(journal.fileno(), 0o600)
                     if rows.db.execute('SELECT 1 FROM attempts LIMIT 1').fetchone():

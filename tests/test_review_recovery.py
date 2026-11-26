@@ -1,6 +1,6 @@
 import json
 import pytest
-from pacbench.workflow_metrics import summarize
+from pacbench.workflows.recording import summarize
 
 
 def test_torn_utf8_tail_keeps_prior_stop(tmp_path):
@@ -21,10 +21,10 @@ def test_torn_utf8_tail_keeps_prior_stop(tmp_path):
 
 def test_document_close_crash_preserves_grade_queue_and_denominator(tmp_path):
     from tests.test_workflow_realism import condition
-    from pacbench.workflow_conformance import RecordingAccount
-    from pacbench.workflow_runner import run_current_week
-    from pacbench.workflow_progress import WorkflowProgress
-    from pacbench.workflow_spec import compile_week
+    from pacbench.workflows.conformance import RecordingAccount
+    from pacbench.workflows.runner import run_current_week
+    from pacbench.workflows.progress import WorkflowProgress
+    from pacbench.campaigns.pizza_week import compile_week
     _, docs, turns, _ = compile_week('continuing-account')
     route = condition(p='reme')
 
@@ -48,11 +48,11 @@ def test_document_close_crash_preserves_grade_queue_and_denominator(tmp_path):
 
 
 def test_private_export_checks_grade_and_returns_only_counts(tmp_path):
-    from pacbench.workflow_answer_export import comparison_row, export
-    from pacbench.workflow_grading import grade_verified
+    from pacbench.workflows.answer_export import comparison_row, export
+    from pacbench.workflows.grading import grade_verified
     from tests.test_workflow_grading import checkpoints, Recorder, local_judge
-    from pacbench.workflow_stream import fingerprint
-    from pacbench.workflow_progress import WorkflowProgress
+    from pacbench.workflows.stream import fingerprint
+    from pacbench.workflows.progress import WorkflowProgress
     run = tmp_path/'workflow'
     with checkpoints(run, verified=1) as (p, turns):
         grade_verified(p, local_judge(run, []), run, Recorder(), limit=1)
@@ -79,7 +79,7 @@ def test_private_export_checks_grade_and_returns_only_counts(tmp_path):
 
 def test_blind_packet_and_saved_verdict_comparison():
     from pathlib import Path
-    from pacbench.judge_blind_controls import evaluate
+    from pacbench.judging.controls import evaluate
     from pacbench.semantic_grade import CONTEXT_JUDGE_PROTOCOL, DATE_SCOPED_JUDGE_PROTOCOL
     root = Path(__file__).parent/'fixtures/grader-review'
     cases = json.loads((root/'cases.json').read_text())
@@ -145,11 +145,11 @@ def test_shutdown_observation_preserves_primary_failure_and_both_cleanup_errors(
 
 
 def test_document_return_and_trace_survive_failed_native_write_barrier(tmp_path):
-    from pacbench.workflow_native import NativeAccount
-    from pacbench.workflow_conformance import RecordingAccount
-    from pacbench.workflow_runner import run_current_week
-    from pacbench.workflow_progress import WorkflowProgress
-    from pacbench.workflow_spec import compile_week
+    from pacbench.workflows.native import NativeAccount
+    from pacbench.workflows.conformance import RecordingAccount
+    from pacbench.workflows.runner import run_current_week
+    from pacbench.workflows.progress import WorkflowProgress
+    from pacbench.campaigns.pizza_week import compile_week
     from tests.test_workflow_realism import condition
     route = condition(p='reme')
     _, docs, turns, _ = compile_week(route.state)
@@ -173,8 +173,8 @@ def test_document_return_and_trace_survive_failed_native_write_barrier(tmp_path)
     assert calls == [turns[0].prompt]
 
 def test_benchmark_rerun_keeps_published_judge_and_denominator():
-    from pacbench.workflow_runner import judge_options
-    from pacbench.workflow_spec import compile_week
+    from pacbench.workflows.runner import judge_options
+    from pacbench.campaigns.pizza_week import compile_week
     spec, _, turns, _ = compile_week('continuing-account')
     options = judge_options(turns[0], {'history':[{'role':'user','content':turns[0].prompt}],
                                      'conversation_times':[turns[0].at]})
@@ -183,10 +183,10 @@ def test_benchmark_rerun_keeps_published_judge_and_denominator():
 
 def test_full_document_schedule_captures_all_turns_and_only_planned_grades(tmp_path):
     from tests.test_workflow_realism import condition
-    from pacbench.workflow_conformance import RecordingAccount
-    from pacbench.workflow_runner import run_current_week
-    from pacbench.workflow_progress import WorkflowProgress
-    from pacbench.workflow_spec import compile_week
+    from pacbench.workflows.conformance import RecordingAccount
+    from pacbench.workflows.runner import run_current_week
+    from pacbench.workflows.progress import WorkflowProgress
+    from pacbench.campaigns.pizza_week import compile_week
     route = condition(p='reme')
     _, docs, turns, _ = compile_week(route.state)
     dest = tmp_path/'full'
@@ -212,8 +212,8 @@ def test_document_judge_can_consume_verified_answer_with_original_controller_ali
     import sys
     from pacbench.canary_capability import binding
     from pacbench.live_dispatch import process_identity
-    from pacbench.workflow_document_progress import PROTOCOL
-    from pacbench.workflow_grading import judge_only_owner, claimed_request, grade_verified
+    from pacbench.workflows.document_progress import PROTOCOL
+    from pacbench.workflows.grading import judge_only_owner, claimed_request, grade_verified
     from tests.test_workflow_grading import checkpoints, Recorder, local_judge
     root = tmp_path/'reme'
     directory = root/'workflow'
@@ -240,10 +240,10 @@ def test_document_judge_can_consume_verified_answer_with_original_controller_ali
 
 
 def test_legacy_partial_exports_verified_prefix_without_inventing_grade(tmp_path):
-    from pacbench.workflow_answer_export import export
-    from pacbench.workflow_conformance import RecordingAccount
-    from pacbench.workflow_runner import run_current_week
-    from pacbench.workflow_spec import compile_week
+    from pacbench.workflows.answer_export import export
+    from pacbench.workflows.conformance import RecordingAccount
+    from pacbench.workflows.runner import run_current_week
+    from pacbench.campaigns.pizza_week import compile_week
     from tests.test_workflow_realism import condition
     route = condition(p='reme')
     docs = compile_week(route.state)[1]
@@ -261,8 +261,8 @@ def test_legacy_partial_exports_verified_prefix_without_inventing_grade(tmp_path
 
 
 def test_claimed_grade_exports_returned_attempt_without_awarding_criteria(tmp_path,monkeypatch):
-    from pacbench.workflow_answer_export import checkpoint_rows
-    from pacbench.workflow_grading import grade_verified
+    from pacbench.workflows.answer_export import checkpoint_rows
+    from pacbench.workflows.grading import grade_verified
     from tests.test_workflow_grading import checkpoints, Recorder, local_judge
     with checkpoints(tmp_path,verified=1) as (progress, turns):
         def crashed(*args,**kwargs):
@@ -283,7 +283,7 @@ def test_claimed_grade_exports_returned_attempt_without_awarding_criteria(tmp_pa
 
 
 def test_financial_torn_tail_does_not_discard_known_answers(tmp_path):
-    from pacbench.workflow_answer_export import financial_evidence
+    from pacbench.workflows.answer_export import financial_evidence
     (tmp_path/'workflow-scope.json').write_text(json.dumps(dict(run_id='fixture',root=str(tmp_path))))
     journal = tmp_path/'receipts.jsonl'
     tail = b'{"kind":"prep'

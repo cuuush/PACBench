@@ -3,8 +3,9 @@ import json
 
 import pytest
 
-from pacbench import live_dispatch, workflow_capability as cap
-from pacbench.workflow_tracks import MEMOS_OSS_LUNA_COMPAT
+from pacbench import live_dispatch
+from pacbench.workflows import capability as cap
+from pacbench.workflows.tracks import MEMOS_OSS_LUNA_COMPAT
 
 
 @pytest.mark.parametrize('provider', ['reme', 'memos', 'cognee', 'openviking', 'hindsight', 'mem0'])
@@ -71,12 +72,12 @@ def test_legacy_direct_arm_scope_uses_its_parent_campaign_stop(tmp_path, admissi
 
 
 @pytest.mark.parametrize(('provider', 'admission', 'module'), [
-    ('mem0', 'mem0-native-oss-document-week-v1', '.workflow_mem0'),
-    ('hindsight', 'hindsight-native-file-document-week-v1', '.workflow_hindsight'),
-    ('openviking', 'openviking-native-file-document-week-v1', '.workflow_openviking'),
-    ('reme', 'reme-native-watched-resource-week-v1', '.workflow_reme'),
-    ('cognee', 'cognee-native-permanent-document-week-v1', '.workflow_cognee'),
-    ('memos', 'memos-oss-native-file-document-week-v1', '.workflow_memos_oss'),
+    ('mem0', 'mem0-native-oss-document-week-v1', '.providers.mem0'),
+    ('hindsight', 'hindsight-native-file-document-week-v1', '.providers.hindsight.workflow'),
+    ('openviking', 'openviking-native-file-document-week-v1', '.providers.openviking'),
+    ('reme', 'reme-native-watched-resource-week-v1', '.providers.reme'),
+    ('cognee', 'cognee-native-permanent-document-week-v1', '.providers.cognee'),
+    ('memos', 'memos-oss-native-file-document-week-v1', '.providers.memos'),
 ])
 def test_document_scope_preserves_qualification_and_project_names(tmp_path, monkeypatch, provider, admission, module):
     from hashlib import sha256

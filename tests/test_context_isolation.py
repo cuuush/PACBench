@@ -75,7 +75,7 @@ def test_recall_launches_outside_benchmark_without_disabling_memory_hooks(tmp_pa
         native_prompt(home, workspace, 'Native provider instructions')
         event = {'type': 'system', 'subtype': 'init', 'session_id': 'native-session'}
         return subprocess.CompletedProcess(args, 0, json.dumps(event), '')
-    with patch('pacbench.live_trials.require_live_trials_ready'), \
+    with patch('pacbench.providers.require_live_trials_ready'), \
          patch('pacbench.hermes_gateway.turn_gateway', return_value=nullcontext({'state': 'mock'})), \
          patch('pacbench.harness.subprocess.run', side_effect=run):
         turn = harness.run_turn('Recall my plan', at='2026-09-11T09:00:00-04:00',
@@ -109,7 +109,7 @@ def test_turn_env_discards_inherited_and_explicit_prompt_overrides(tmp_path, mon
 
 @pytest.mark.parametrize('protocol',['user-clock-prefix-v1','ephemeral-system-clock-v2','unknown'])
 def test_historical_instruction_conditions_cannot_execute_again(tmp_path,protocol, monkeypatch):
-    monkeypatch.setattr('pacbench.live_trials.require_live_trials_ready', lambda: None)
+    monkeypatch.setattr('pacbench.providers.require_live_trials_ready', lambda: None)
     home=tmp_path/'hermes-home';home.mkdir()
     with patch('pacbench.harness.subprocess.run') as launch:
         with pytest.raises(ValueError,match='New execution requires native-question-v2'):

@@ -60,7 +60,7 @@ figure above is reference arithmetic for the original offline proposal.
 ## Harder development comparison
 
 The frozen synthetic challenge has 24 single-criterion cases across six
-families. `pacbench.decisions_calibration.render_plan(seed)` renders 96 requests
+families. `pacbench.judging.decision_matrix.render_plan(seed)` renders 96 requests
 in balanced order. Each blind case ID receives both existing Luna rubric
 prompts on Bedrock Global and the explicit rubric through two Decisions routes.
 The Decisions prompts use the typed choice output contract. The model-visible

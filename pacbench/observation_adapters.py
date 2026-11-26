@@ -128,7 +128,7 @@ def switch_alias(alias,target,drain):
 def checkpoint_plan(resolved,schedule,provider,*,contracts=None):
     """Keep every exact question time; restart at a changed ingestion boundary."""
     from .document_ingestion import ready_sources
-    from .semantic_contract import EvaluationContract
+    from pacbench.corpus.contract import EvaluationContract
     if provider not in {'memcal','mem0','reme'}:raise ValueError('Unknown staged provider')
     questions=sorted(resolved['checks'],key=lambda q:datetime.fromisoformat(q['at']))
     if len({q['id'] for q in questions})!=len(questions):raise ValueError('Duplicate question identity')

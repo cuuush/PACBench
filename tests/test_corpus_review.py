@@ -4,7 +4,7 @@ from types import SimpleNamespace
 
 import pytest
 
-from pacbench.corpus_review import review_corpus, review_prompt
+from pacbench.corpus.review import review_corpus, review_prompt
 
 
 def test_legacy_review_binding_is_unchanged_and_new_protocol_handles_scripted_inputs():
@@ -43,7 +43,7 @@ def test_realism_rejection_is_preserved_and_stops_preparation(tmp_path):
 
 
 def test_v6_requires_source_grounded_complete_temporal_assessments():
-    from pacbench.corpus_review import review_prompt, verdict_passes
+    from pacbench.corpus.review import review_prompt, verdict_passes
     msg={'source_id':'m','written_at':'2026-10-13T10:00:00-04:00',
          'collected_at':'2026-10-13T10:00:00-04:00','channel':'email','thread':'ben',
          'sender':'Ben','from_owner':False,'structured':{'email_subject':'Dinner'},
@@ -72,7 +72,7 @@ def test_v6_requires_source_grounded_complete_temporal_assessments():
 
 
 def test_v7_blinds_authored_intent_and_checks_unique_citations():
-    from pacbench.corpus_review import review_prompt, verdict_passes
+    from pacbench.corpus.review import review_prompt, verdict_passes
     msg={'source_id':'m1','written_at':'2026-10-13T10:00:00-04:00',
          'collected_at':'2026-10-13T10:00:00-04:00','channel':'email','thread':'opaque',
          'sender':'Ben','from_owner':False,'structured':{'email_subject':'Dinner'},
@@ -96,7 +96,7 @@ def test_v7_blinds_authored_intent_and_checks_unique_citations():
     assert verdict_passes(verdict,[msg],resolved,version='source-realism-v9')
     duplicate={**msg,'source_id':'m2','thread':'another'}
     assert not verdict_passes(verdict,[msg,duplicate],resolved,version='source-realism-v9')
-    from pacbench.corpus_review import validation_errors
+    from pacbench.corpus.review import validation_errors
     assert validation_errors(verdict,[msg,duplicate],resolved,version='source-realism-v9')==[
         {'path':'assessments[dinner].source_evidence[0]','code':'timestamp_quote_ambiguous_match'}]
     assert not verdict_passes({**verdict,'assessments':[{**item,'ambiguous':True}]},[msg],resolved,version='source-realism-v9')
@@ -123,7 +123,7 @@ def test_v7_receipt_reports_bad_quote_without_altering_model_verdict(tmp_path):
 
 
 def test_v8_quotes_public_updates_but_rejects_future_or_conditional_inputs():
-    from pacbench.corpus_review import validation_errors,review_prompt
+    from pacbench.corpus.review import validation_errors,review_prompt
     update={'id':'change','at':'2026-10-26T16:10:00-04:00','kind':'behavior',
             'prompt':'Move the pickup to Sunday at 11.'}
     recall={'id':'recall','at':'2026-10-26T17:00:00-04:00','prompt':'What is on Sunday?'}
@@ -145,7 +145,7 @@ def test_v8_quotes_public_updates_but_rejects_future_or_conditional_inputs():
 
 
 def test_public_input_order_dependencies_and_cross_session_intended_state():
-    from pacbench.corpus_review import validation_errors
+    from pacbench.corpus.review import validation_errors
     rows=[{'id':'first','at':'2026-10-26T16:00:00-04:00','prompt':'The pickup is Sunday at 11am.',
            'session':'one'},
           {'id':'second','at':'2026-10-26T16:00:00-04:00','prompt':'What about Sunday?',

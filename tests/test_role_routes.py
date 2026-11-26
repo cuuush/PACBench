@@ -115,7 +115,7 @@ def test_node_cli_settles_by_original_row_even_after_role_env_removed(split,monk
 
 def test_provision_keeps_hermes_deepseek_and_native_service_luna(split,monkeypatch,tmp_path):
     import pacbench.native_pilot as pilot
-    import pacbench.live_trials as trials
+    import pacbench.providers as trials
     import pacbench.catalog_plugins as catalog
     import provider_adapters.cognee_runtime as native
     monkeypatch.setenv('PACBENCH_TRANSPORT','openrouter');monkeypatch.setenv('PACBENCH_DIRECT','1')
@@ -153,9 +153,9 @@ def test_cohort_limit_coordinates_roles_and_cannot_change_midrun(split,monkeypat
 
 def test_frozen_week_all333_targets_have_chronological_source_gates(tmp_path):
     from pacbench.native_pilot import read_prepared
-    from pacbench.evaluation import load_evaluations
+    from pacbench.corpus.evaluation import load_evaluations
     from pacbench.document_ingestion import prepare_sources,ready_sources,validate_evaluation_clocks
-    from pacbench.provider_lineup import ACTIVE_PROVIDERS
+    from pacbench.providers import ACTIVE_PROVIDERS
     from datetime import datetime
     source=Path(__file__).resolve().parents[1]/'artifacts/pizza-week-hybrid-stream-v7-20261113'
     messages,contract,resolved=read_prepared(source,150)

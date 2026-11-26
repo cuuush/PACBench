@@ -13,9 +13,9 @@ import tempfile
 from .semantic_grade import Claim, CONTEXT_JUDGE_PROTOCOL, VERDICTS, judge_prompt, grade_semantic
 from . import cohort_regrade_retained as retained
 from . import cohort_regrade_journal as response_journal
-from .workflow_progress import WorkflowProgress, _turn
-from .workflow_stream import fingerprint
-from .workflow_spec import instant
+from .workflows.progress import WorkflowProgress, _turn
+from .workflows.stream import fingerprint
+from .workflows.spec import instant
 
 # Registration is code-reviewed; arbitrary rubric paths or silent latest aliases are forbidden.
 REVISIONS = {'luna-context-v4-v1': {'protocol': CONTEXT_JUDGE_PROTOCOL,

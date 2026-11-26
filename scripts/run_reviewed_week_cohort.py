@@ -6,7 +6,7 @@ from decimal import Decimal
 import json,os,subprocess,threading,hashlib
 import sys
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]))
-from pacbench.preparation_audit import audit_prepared
+from pacbench.corpus.audit import audit_prepared
 from pacbench.direct_accounting import live_budget,money
 from pacbench.provider_versions import verify_memcal_source,verify_memos_package
 from pacbench.openrouter_run import fetch_catalog

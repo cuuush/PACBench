@@ -7,7 +7,7 @@ import json
 from pathlib import Path
 from urllib.parse import quote
 
-from .frozen import bundle_hash, messages_for
+from pacbench.corpus.sources import bundle_hash, messages_for
 from .model_calls import public_record
 
 
@@ -37,7 +37,7 @@ def reviewed_overlay(run_dir: Path):
             raise ValueError('selected protocol differs from overlay')
         if (overlay / manifest['source_root']).resolve() != run_dir.resolve():
             raise ValueError('overlay source does not match this run')
-        from .rejudge import validate_published_audit, _case_dir
+        from .judging.rejudge import validate_published_audit, _case_dir
         validate_published_audit(overlay)
         cases = {}
         for case in manifest['cases']:
@@ -172,7 +172,7 @@ def native_run(run_dir: Path, runs_dir: Path, *, include_preflight=True):
             'model_usage': model_usage,
             'model_usage_after_settlement': settled_usage,
             'turn': exchanges[0]['turn'] if exchanges else None}
-        from .provider_lineup import RETIRED_PROVIDERS
+        from .providers import RETIRED_PROVIDERS
         if provider in RETIRED_PROVIDERS:
             collection[key]['label'] += ' · historical only'
             collection[key]['provider_lifecycle'] = 'retired'

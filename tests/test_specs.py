@@ -3,7 +3,7 @@ from pathlib import Path
 
 import pytest
 
-from pacbench.prepare import normalize_week, prepare, resolve_spec
+from pacbench.corpus.prepare import normalize_week, prepare, resolve_spec
 from pacbench.specs import inspect_spec, main, read_spec
 
 
@@ -12,7 +12,7 @@ def small_spec():
 
 
 def test_catalog_checks_sixty_specs_without_calls_or_output_files(tmp_path, monkeypatch, capsys):
-    import pacbench.prepare as module
+    import pacbench.corpus.prepare as module
     monkeypatch.setattr(module, 'load_driver', lambda: pytest.fail('Validation called the model driver'))
     for index in range(60):
         spec = small_spec()
@@ -65,7 +65,7 @@ def test_authored_start_is_fixed_and_cli_override_is_explicit(tmp_path):
     {'type': 'imessage', 'participants': ['Devon', 'Maya']},
 ])
 def test_unused_bad_channel_stops_before_paid_generation(tmp_path, monkeypatch, channel):
-    import pacbench.prepare as module
+    import pacbench.corpus.prepare as module
     monkeypatch.setattr(module, 'load_driver', lambda: pytest.fail('Invalid spec reached the model driver'))
     spec = small_spec()
     spec['channels']['unused'] = channel
@@ -74,7 +74,7 @@ def test_unused_bad_channel_stops_before_paid_generation(tmp_path, monkeypatch, 
 
 
 def test_bad_thread_fails_before_an_earlier_good_scene_is_generated(tmp_path, monkeypatch):
-    import pacbench.prepare as module
+    import pacbench.corpus.prepare as module
     monkeypatch.setattr(module, 'load_driver', lambda: pytest.fail('Invalid thread reached the model driver'))
     spec = {'question_at': '2026-09-11T09:00:00', 'scenes': [
         {'id': 'first', 'at': '2026-09-10T17:00:00', 'scene': 'They plan lunch.', 'facts': ['Lunch is Friday.']},
@@ -86,7 +86,7 @@ def test_bad_thread_fails_before_an_earlier_good_scene_is_generated(tmp_path, mo
 
 @pytest.mark.parametrize('scene_id', ['../../escaped', '', '/absolute', 'nested/scene'])
 def test_bad_scene_ids_stop_before_any_model_calls(tmp_path, monkeypatch, scene_id):
-    import pacbench.prepare as module
+    import pacbench.corpus.prepare as module
     monkeypatch.setattr(module, 'load_driver', lambda: pytest.fail('Invalid id reached the model driver'))
     spec = small_spec()
     spec['days']['thursday']['scenes'][1]['id'] = scene_id

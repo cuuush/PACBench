@@ -11,7 +11,8 @@ from unittest.mock import patch
 
 import pytest
 
-from pacbench import judge_development_live as pilot, workflow_capability as cap
+from pacbench.judging import development_live as pilot
+from pacbench.workflows import capability as cap
 from pacbench.canary_capability import binding
 from pacbench.direct_accounting import live_budget
 from pacbench.observational_receipts import replay_attempts
@@ -227,7 +228,7 @@ def test_production_cli_checks_the_real_shared_lock_and_receipts(tmp_path, mode)
     lock_path.touch()
     key, _, _ = synthetic_checkpoint(tmp_path/'pizza-v2-handoff/billing-resume')
     shim = Path(__file__).resolve().parent/'fixtures/judge_development_cli'
-    repo = Path(pilot.__file__).resolve().parents[1]
+    repo = Path(pilot.__file__).resolve().parents[2]
     proc = subprocess.run([sys.executable, '-m', 'pacbench.judge_development_live'],
                           cwd=repo, capture_output=True, text=True, timeout=20,
                           env={**{k: os.environ[k] for k in ('PATH', 'HOME') if k in os.environ},

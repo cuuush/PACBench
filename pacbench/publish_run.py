@@ -197,7 +197,7 @@ def publish(sources,destination,*,preflight=None,selection=None,retain_replaced=
         # Native execution imports the portable corpus into ordinary files.
         # Re-export those audited, frozen bytes so a clean checkout can reuse
         # the same corpus without any authoring or verification model calls.
-        from .prepare import export_week
+        from pacbench.corpus.prepare import export_week
         for name in ('bundle.json','contract.json','resolved-spec.json'):
             if not same_frozen(staging/'preparation'/name,staging/name):
                 raise ValueError('Published preparation differs from the executed frozen files')

@@ -9,8 +9,7 @@ import pytest
 from pacbench.direct_accounting import DirectBudget, MODEL
 from pacbench.live_dispatch import CONDITION, OwnershipConflict
 from pacbench.direct_http import Capture, before_send
-from pacbench.live_receipts import direct_evidence
-from pacbench.receipt_costs import request_record
+from pacbench.receipt_costs import direct_evidence, request_record
 from tests.test_direct_accounting import budget, reply
 
 

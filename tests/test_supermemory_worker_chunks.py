@@ -10,11 +10,12 @@ from types import SimpleNamespace
 
 import pytest
 
-from pacbench import supermemory_week_admission as week, supermemory_worker_chunks as chunks
+from pacbench.providers.supermemory import week_admission as week
+from pacbench.providers.supermemory import worker as chunks
 from pacbench.dispatch_ownership import OwnershipConflict
-from pacbench.supermemory_source_admission import BINARY_SHA
-from pacbench.supermemory_source_effect import SourceEffect
-from pacbench.workflow_progress import WorkflowProgress
+from pacbench.providers.supermemory.source_admission import BINARY_SHA
+from pacbench.providers.supermemory.source_effect import SourceEffect
+from pacbench.workflows.progress import WorkflowProgress
 from .test_supermemory_worker_rounds import BINARY, REPO, stock_fragments
 
 DOC, UPDATE = 'd' * 22, 'u' * 22
@@ -22,7 +23,7 @@ DOC, UPDATE = 'd' * 22, 'u' * 22
 
 def anchor(readback, revision, publication, at_ms=1):
     return dict(native_id=DOC, namespace='week', session_id='hermes-warm', revision=revision,
-                readback=dict(chunk_anchor=dict(protocol=chunks.PROTOCOL, at_ms=at_ms, revision=revision,
+                readback=dict(chunk_anchor=dict(protocol=chunks.CHUNK_PROTOCOL, at_ms=at_ms, revision=revision,
                                                 publication=publication, chunks=readback)))
 
 

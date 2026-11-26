@@ -3,7 +3,7 @@ import sqlite3
 
 import pytest
 
-from pacbench.workflow_delivery import completed_dream
+from pacbench.workflows.delivery import completed_dream
 
 
 @pytest.mark.parametrize('state', ['completed', 'dry-run', 'failed', 'unfinished', 'missing', 'pending'])

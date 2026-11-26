@@ -4,8 +4,8 @@ from unittest.mock import Mock
 
 import pytest
 
-from pacbench import workflow_document_canary as canary
-from pacbench.workflow_tracks import HERMES_TOOLS, MEMOS_OSS_TOOLS, MEMOS_OSS_VERSION
+from pacbench.workflows import document_canary as canary
+from pacbench.workflows.tracks import HERMES_TOOLS, MEMOS_OSS_TOOLS, MEMOS_OSS_VERSION
 
 
 @pytest.mark.parametrize(('provider', 'version'), [
@@ -18,7 +18,7 @@ def test_shared_audit_uses_one_journal_read_and_preserves_retained_shapes(tmp_pa
     journal.parent.mkdir(parents=True)
     spec_sha = canary.sha(canary.SPEC)
     documents, turns, frozen = canary.schedule(spec_sha, True)
-    checkout = Path(canary.__file__).resolve().parents[1]
+    checkout = Path(canary.__file__).resolve().parents[2]
     revision = next(line.split('=', 1)[1] for line in (checkout/'vendor/HERMES_PIN').read_text().splitlines()
                     if line.startswith('HERMES_PIN='))
     tools = list(MEMOS_OSS_TOOLS if provider == 'memos' else HERMES_TOOLS[provider])

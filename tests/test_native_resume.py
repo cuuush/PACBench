@@ -48,7 +48,7 @@ def test_resume_rejects_partial_processing_or_prior_evaluation(tmp_path,damage):
 
 def test_catalog_resume_rejects_unverified_home_before_bootstrap(tmp_path, monkeypatch):
     from pacbench.native_pilot import provision
-    monkeypatch.setattr('pacbench.live_trials.require_live_trials_ready', lambda: None)
+    monkeypatch.setattr('pacbench.providers.require_live_trials_ready', lambda: None)
     monkeypatch.setattr('pacbench.native_pilot.client_settings',lambda project:('http://127.0.0.1:8099/p/unit/v1','offline-test'))
     home=tmp_path/'hermes-home';home.mkdir();(home/'config.yaml').write_text('original config')
     with patch('pacbench.native_pilot.harness.provision_home') as bootstrap, \
@@ -63,7 +63,7 @@ def test_catalog_resume_rejects_unverified_home_before_bootstrap(tmp_path, monke
 
 
 def test_changed_frozen_identity_blocks_resume_before_backend_or_paid_work(tmp_path, monkeypatch):
-    monkeypatch.setattr('pacbench.live_trials.require_live_trials_ready', lambda: None)
+    monkeypatch.setattr('pacbench.providers.require_live_trials_ready', lambda: None)
     from types import SimpleNamespace
     from pacbench.native_resume import resume
     rows,root,report=checkpoint(tmp_path)
@@ -99,7 +99,7 @@ def test_resume_renews_deleted_workspace_only_before_any_native_session(tmp_path
 
 @pytest.mark.parametrize('key', ['provenance_version', 'evidence_diagnostic_protocol', 'judge_protocol'])
 def test_resume_rejects_unknown_protocol_before_model_access(tmp_path, key, monkeypatch):
-    monkeypatch.setattr('pacbench.live_trials.require_live_trials_ready', lambda: None)
+    monkeypatch.setattr('pacbench.providers.require_live_trials_ready', lambda: None)
     import json
     from pacbench.native_resume import resume
     (tmp_path / 'summary.json').write_text(json.dumps({key: 'unknown-protocol'}))
@@ -109,7 +109,7 @@ def test_resume_rejects_unknown_protocol_before_model_access(tmp_path, key, monk
 
 @pytest.mark.parametrize('protocol', [None, 'simulated-now-prefix-v1', 'unknown'])
 def test_resume_rejects_changed_question_condition_before_model_access(tmp_path, protocol, monkeypatch):
-    monkeypatch.setattr('pacbench.live_trials.require_live_trials_ready', lambda: None)
+    monkeypatch.setattr('pacbench.providers.require_live_trials_ready', lambda: None)
     from pacbench.native_resume import resume
     summary = {} if protocol is None else {'question_prompt_protocol': protocol}
     save(tmp_path / 'summary.json', summary)

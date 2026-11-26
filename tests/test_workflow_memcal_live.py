@@ -2,9 +2,9 @@ from types import SimpleNamespace
 
 import pytest
 
-from pacbench import workflow_memcal_live as launcher
-from pacbench.workflow_memcal_contract import verify_contract
-from pacbench.workflow_spec import compile_week
+from pacbench.providers.memcal import workflow as launcher
+from pacbench.providers.memcal.contract import verify_contract
+from pacbench.campaigns.pizza_week import compile_week
 
 
 def test_launch_requires_exact_original_binding():
@@ -27,7 +27,7 @@ def test_prepared_store_is_claimed_once_and_old_outputs_are_preserved(tmp_path):
 
 
 def test_launch_blocked_before_credit_or_model_access(tmp_path, monkeypatch):
-    from pacbench.workflow_memcal import MemCalSite, MemCalSiteError
+    from pacbench.providers.memcal.site import MemCalSite, MemCalSiteError
     site = MemCalSite('dedicated', str(tmp_path/'absent'), str(tmp_path/'absent-store'),
                       'chatdb', '127.0.0.1', 1993, 'synthetic@example.invalid')
     monkeypatch.setattr(launcher, '_run', lambda *a: pytest.fail('opened a paid or account path'))
@@ -37,7 +37,7 @@ def test_launch_blocked_before_credit_or_model_access(tmp_path, monkeypatch):
 
 
 def test_request_source_verifier_uses_registered_connection(tmp_path):
-    from pacbench.workflow_source_plan import SourcePlan
+    from pacbench.workflows.source_plan import SourcePlan
     _, docs, turns, _ = compile_week('continuing-account')
     with SourcePlan(tmp_path, docs, turns) as plan:
         with SourcePlan.from_connection(plan.db, plan.digest) as view:
@@ -48,7 +48,7 @@ def test_request_source_verifier_uses_registered_connection(tmp_path):
 
 
 def test_appended_wire_trace_rejects_replacement_and_keeps_only_current_turn(tmp_path):
-    from pacbench.workflow_native import appended_rows, trace_position
+    from pacbench.workflows.native import appended_rows, trace_position
     path = tmp_path/'wire.jsonl'
     path.write_bytes(b'{"previous":true}\n')
     cursor = trace_position(path)

@@ -1,7 +1,7 @@
 import pytest
 
 from pacbench.dispatch_ownership import OwnershipConflict
-from pacbench.supermemory_source_effect import SourceEffect, check_update_history
+from pacbench.providers.supermemory.source_effect import SourceEffect, check_update_history
 
 DOCUMENT = 'd' * 22
 UPDATE = 'u' * 22

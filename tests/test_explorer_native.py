@@ -9,7 +9,7 @@ from http.server import ThreadingHTTPServer
 import pytest
 
 from pacbench import explorer_data as explorer
-from pacbench.frozen import write_bundle
+from pacbench.corpus.sources import write_bundle
 
 
 def save(path, value):

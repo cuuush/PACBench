@@ -1,7 +1,7 @@
 """Uncertain world state needs grounded complete-history evidence, not certainty."""
 import pytest
-from pacbench.corpus_review import review_prompt,verdict_passes,validation_errors
-from pacbench.corpus_epistemic import VERSION,eligible_evidence
+from pacbench.corpus.review import review_prompt,verdict_passes,validation_errors
+from pacbench.corpus.review import VERSION,eligible_evidence
 from pacbench.followups import digest
 
 
@@ -93,7 +93,7 @@ def test_exact_identity_and_quote_are_both_required():
 
 
 def test_schema_requires_each_public_input_including_declarative_reports():
-    from pacbench.corpus_epistemic import response_schema
+    from pacbench.corpus.review import response_schema
     messages,resolved,_=fixture()
     resolved['checks'].insert(0,{'id':'update','at':'2026-10-06T09:00:00-04:00','kind':'behavior',
         'prompt':'The pickup is Sunday at 11. Please remember it.','session':'old'})

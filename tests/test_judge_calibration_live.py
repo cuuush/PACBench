@@ -8,10 +8,14 @@ import urllib.request
 
 import pytest
 
-from pacbench import decisions_admission, direct_http, judge_calibration_live as live
-from pacbench import judge_development_challenge as challenge, judge_development_live as prepaid
-from pacbench import openrouter_direct, workflow_capability
-from pacbench import decisions_calibration as matrix
+from pacbench.judging import decision_admission as decisions_admission
+from pacbench import direct_http
+from pacbench.judging import calibration_live as live
+from pacbench import judge_development_challenge as challenge
+from pacbench.judging import development_live as prepaid
+from pacbench import openrouter_direct
+from pacbench.workflows import capability as workflow_capability
+from pacbench.judging import decision_matrix as matrix
 from tests.test_judge_development_live import synthetic_checkpoint
 
 

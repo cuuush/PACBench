@@ -186,11 +186,11 @@ python -m pacbench.openrouter_run \
   --output runs/my-direct-pizza-trial --providers memcal --spend-limit-usd 20
 ```
 
-For the historical Pizza Day archive, prepare fresh review inputs without
-changing the sources or copying old approvals:
+Use the historical Pizza Day campaign command to prepare fresh review inputs
+from the archive.
 
 ```sh
-python -m pacbench.pizza_day_recovery <historical-preparation-directory>
+python -m pacbench.campaigns.pizza_day review <historical-preparation-directory>
 ```
 
 This prints the original messages, a proposed current check and exact contract
@@ -198,6 +198,8 @@ and corpus review prompts. Add `--source-only` to emit just the source records
 and public question for independent review. The archive's source IDs and timing
 differ from the current compiler; the output remains blocked until provenance
 compatibility, current reviews and the actual preparation audit are resolved.
+The earlier `python -m pacbench.pizza_day_recovery` command still opens the
+same review tool.
 
 Before a Memcal canary, inspect the local prerequisites without inference:
 
@@ -378,7 +380,7 @@ migration; do not infer access, reconstruct ownership or launch with a new ledge
 
 The revised Pizza Week runner uses the standalone receipt and staged
 ownership modules. Its Python urllib/HTTPX and Node/Bun fetch hooks retain immutable, sanitized generation/cost metadata as responses arrive.
-`pacbench.live_receipts.direct_evidence` verifies direct billing receipt hashes
+`pacbench.receipt_costs.direct_evidence` verifies direct billing receipt hashes
 and attempt identities before feeding the receipt-only report. An accounting
 hold or settled label without a supported receipt never substitutes for a cost.
 Sidecar failures are flagged while primary response evidence remains available.

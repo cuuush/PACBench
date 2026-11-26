@@ -3,7 +3,7 @@ from types import SimpleNamespace
 
 import pytest
 
-from pacbench import provider_loader
+from pacbench import providers as provider_loader
 
 
 def test_catalog_resolver_receives_provider_and_submodule(monkeypatch):

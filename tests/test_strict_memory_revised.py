@@ -46,7 +46,7 @@ def test_ungraded_gate_precedes_judge_and_is_independently_audited(tmp_path,prov
 
 def test_logical_document_transport_preserves_join_without_apple_fixture(tmp_path):
  from tests.test_scene_local_authoring import week,exact,built
- from pacbench.prepare import resolve_spec
+ from pacbench.corpus.prepare import resolve_spec
  from pacbench.document_ingestion import prepare_sources
  plans=resolve_spec(week([exact(participants=['Me','Sam','Robin']),exact(id='join',time='7 pm',joins=['Nora'])]),tmp_path)[0]
  messages=[m for p in plans for m in built(p)]

@@ -14,7 +14,7 @@ import pytest
 from pacbench.corpus.authoring import (AuthoringError, ScenePlan, build_scene_observations,
     judge_scene, realize_scene, scene_prompt, scene_spec)
 from pacbench.corpus.prepare import (WEEKDAYS, normalize_week, realization_binding, resolve_spec, reuse_realization)
-from pacbench.followups import digest, save
+from pacbench.evidence_store import binding_digest as digest, save
 from pacbench.corpus.audit import audit_scenes
 
 
@@ -96,7 +96,7 @@ def test_exact_appearance_silent_members_and_later_generated_roster(tmp_path):
     assert 'Nora' in scene_prompt(plans[1]) and 'Silent' in scene_prompt(plans[1])
     with pytest.raises(AuthoringError,match='Unknown source participant'):
         build_scene_observations('life',plans[1],[('Invented','hello'),('Me','Hi')])
-    from pacbench.document_ingestion import document_text
+    from pacbench.workflows.source_plan import document_text
     text=document_text(messages,messages[-1]['collected_at'])
     old,new=text.split('Participants: Me, Sam, Silent, Nora')
     assert 'Nora' not in old
@@ -290,7 +290,7 @@ def test_prepare_new_exact_generated_cache_portable_audit_with_stubs(tmp_path,mo
             'generated':[['Sam','Nice film.'],['Me','I liked it.']]}}
     result=prepare(spec,root,**kwargs)
     assert result['state']=='prepared' and audit_prepared(root)['state']=='pass'
-    from pacbench.native_pilot import read_prepared
+    from pacbench.workflows.native_run import read_prepared
     received,_,_=read_prepared(root,100)
     assert all('source_review' not in m and 'facts' not in m for m in received)
     rows=json.loads((root/'scenes.json').read_text())['scenes']

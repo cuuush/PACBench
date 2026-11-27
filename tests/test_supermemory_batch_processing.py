@@ -6,9 +6,9 @@ from types import SimpleNamespace
 import httpx
 import pytest
 
-from pacbench.providers.supermemory import observation as observation
+from pacbench.providers import supermemory as observation
 from pacbench.workflows.delivery import submit_document
-from pacbench.campaigns.pizza_week import compile_week
+from pacbench.corpus.r2 import compile_week
 
 
 @pytest.mark.parametrize(('fault', 'error'), [

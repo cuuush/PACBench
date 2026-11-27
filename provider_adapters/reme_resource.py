@@ -7,7 +7,7 @@ import json
 from pathlib import Path
 import time
 
-from pacbench.stop import check_stop
+from pacbench.process_cleanup import check_stop
 from provider_adapters.reme_memos_documents import document
 
 

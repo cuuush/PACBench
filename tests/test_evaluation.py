@@ -20,9 +20,10 @@ def _combined_fixture(model):
 
 
 from pacbench.corpus.evaluation import resolve_checks
-from pacbench.followups import freeze_policy
+from pacbench.judging.recovery import freeze_policy
 from pacbench.harness import TurnResult
-from pacbench.native_checks import audit_checks, run_checks
+from pacbench.native_audit import audit_checks
+from pacbench.workflows.native_run import run_checks
 from pacbench.corpus.contract import ContractClaim, EvaluationContract, build_contract
 
 
@@ -31,7 +32,7 @@ from pacbench.corpus.contract import ContractClaim, EvaluationContract, build_co
 def test_recheck_normalizes_days_or_weeks_and_requires_fresh_corpus_review(tmp_path,monkeypatch,story,review_rejects):
     from pathlib import Path
     from pacbench.corpus import evaluation
-    from pacbench.followups import save
+    from pacbench.evidence_store import save
     from pacbench.corpus.prepare import resolve_spec
     from pacbench.corpus.review import VERSION
     source=tmp_path/'source';source.mkdir()
@@ -42,7 +43,7 @@ def test_recheck_normalizes_days_or_weeks_and_requires_fresh_corpus_review(tmp_p
     save(source/'contract.json',{'contract_hash':'original-contract'})
     save(source/'bundle.json',{'source':'unchanged'})
     messages=[{'source_id':'m1','text':'Unchanged verified source'}]
-    monkeypatch.setattr('pacbench.native_pilot.read_prepared',lambda *a:(messages,None,original))
+    monkeypatch.setattr('pacbench.workflows.native_run.read_prepared',lambda *a:(messages,None,original))
     seen=[]
     def freeze(resolved,actual,target,model,output,**kwargs):
         assert resolved['scenes']==original['scenes'] and actual==messages
@@ -75,14 +76,14 @@ def test_recheck_normalizes_days_or_weeks_and_requires_fresh_corpus_review(tmp_p
 def test_recheck_resume_rejects_changed_frozen_source_before_any_model_call(tmp_path,monkeypatch,tamper):
     from pathlib import Path
     from pacbench.corpus.evaluation import prepare_existing
-    from pacbench.followups import save
+    from pacbench.evidence_store import save
     from pacbench.corpus.prepare import resolve_spec
     source=tmp_path/'source';source.mkdir()
     authored=json.loads(Path('specs/bike_pickup.json').read_text())
     _,_,resolved=resolve_spec(authored,source,week_start='2026-10-19')
     for name,value in {'spec':authored,'resolved-spec':resolved,'bundle':{'source':'original'},
                        'contract':{'contract_hash':'original'}}.items():save(source/(name+'.json'),value)
-    monkeypatch.setattr('pacbench.native_pilot.read_prepared',lambda *a:([],None,resolved))
+    monkeypatch.setattr('pacbench.workflows.native_run.read_prepared',lambda *a:([],None,resolved))
     output=tmp_path/'resumed';output.mkdir()
     from pacbench.corpus.prepare import normalize_week
     spec={k:resolved[k] for k in ('checks','question_at','evaluation_context')}
@@ -133,7 +134,7 @@ def test_resume_reuses_only_unchanged_hash_verified_contracts(tmp_path, change):
         path=tmp_path/'evaluations/breakfast/contract.json'
         path.write_text(path.read_text().replace('Breakfast is', 'Lunch is'))
     elif change=='authoring_version':
-        from pacbench.followups import digest
+        from pacbench.evidence_store import binding_digest as digest
         path=tmp_path/'evaluations/breakfast/contract.json'
         old=json.loads(path.read_text());old.pop('contract_hash');old['authoring_version']='old'
         path.write_text(json.dumps({**old,'contract_hash':digest(old)}))
@@ -145,7 +146,7 @@ def test_resume_reuses_only_unchanged_hash_verified_contracts(tmp_path, change):
 
 def test_frozen_contract_keeps_authored_prerequisites_even_without_conditional_citations(tmp_path):
     from pacbench.corpus.evaluation import freeze_evaluations,load_evaluations
-    from pacbench.followups import digest,save
+    from pacbench.evidence_store import binding_digest as digest, save
     at='2026-10-22T10:00:00-04:00'
     rows=[{'id':'first','session':'early','prompt':'Remember breakfast is at the cafe.','expect':'Breakfast is at the cafe.'},
           {'id':'later','session':'fresh','prompt':'Where is breakfast?','expect':'Breakfast is at the cafe.','requires':['first']}]
@@ -167,7 +168,7 @@ def test_frozen_contract_keeps_authored_prerequisites_even_without_conditional_c
 
 def test_english_behavior_uses_exact_citation_aliases_and_reuses_verified_contract(tmp_path):
     from pacbench.corpus.evaluation import freeze_evaluations
-    from pacbench.followups import digest,save
+    from pacbench.evidence_store import binding_digest as digest, save
     at='2026-10-22T10:00:00-04:00'
     row={'id':'correction','session':'morning','kind':'behavior','at':at,
          'prompt':'Actually, Sunday at 11.','expect':'Acknowledge the correction.','facts':[]}
@@ -215,7 +216,7 @@ def correct_judge(prompt):
 @pytest.mark.parametrize('context', ['shared', 'isolated'])
 @pytest.mark.parametrize('clock_protocol', ['user-clock-prefix-v1', 'ephemeral-system-clock-v2'])
 def test_sequence_continuity_and_source_access_cannot_be_laundered(tmp_path, context, clock_protocol):
-    from pacbench.clock_context import expected_prompt, instruction
+    from pacbench.context_isolation import expected_prompt, instruction
     checks, calls = checkpoints(tmp_path), []
     def runner(prompt, **kwargs):
         calls.append(kwargs)
@@ -379,7 +380,7 @@ def test_judge_session_fields_follow_execution_context_not_turn_ids():
 
 
 def test_diagnostic_inputs_use_only_visible_bounded_material():
-    from pacbench.native_checks import diagnostic_inputs
+    from pacbench.workflows.turn_evidence import diagnostic_inputs
     from pacbench.corpus.contract import EvaluationContract, ContractClaim
     turn = TurnResult(prompt='q', at='now', answer='a', tool_calls=[{'name': 'search'}],
         tool_results=[{'text': 'x' * 16001}, {'text': 'unmatched'}], policy_blocks=0,
@@ -456,8 +457,8 @@ def test_v2_source_evidence_includes_frozen_metadata():
 
 
 def test_v2_provider_evidence_does_not_count_user_request_or_tool_arguments():
-    from pacbench.native_checks import diagnostic_inputs
-    from pacbench.semantic_grade import Claim, grade_semantic, DIAGNOSTIC_VERSION
+    from pacbench.workflows.turn_evidence import diagnostic_inputs
+    from pacbench.judging.grade import Claim, grade_semantic, DIAGNOSTIC_VERSION
     from pacbench.corpus.contract import EvaluationContract, ContractClaim
     turn = TurnResult(prompt='Move pickup to Sunday at 11.', at='now', answer='Moved to Sunday at 11.',
         tool_calls=[{'name': 'update', 'input': {'time': 'Sunday at 11'}}],
@@ -482,7 +483,7 @@ def test_v2_provider_evidence_does_not_count_user_request_or_tool_arguments():
 @pytest.mark.parametrize('first_case_exhausted', [False, True])
 def test_native_date_judge_retries_and_audits_attempts(tmp_path, first_case_exhausted):
     from pacbench.model_calls import ModelOutput
-    from pacbench.semantic_grade import DATE_SCOPED_JUDGE_PROTOCOL, RETRY_GUIDANCE
+    from pacbench.judging.grade import DATE_SCOPED_JUDGE_PROTOCOL, RETRY_GUIDANCE
     checks = checkpoints(tmp_path)[:2]
     calls = []
     def runner(prompt, **kwargs):

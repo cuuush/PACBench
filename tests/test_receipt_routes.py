@@ -1,5 +1,5 @@
 """Offline provenance checks; no default origin, model name or ID shape proves a route."""
-from pacbench.phase_costs import report
+from pacbench.usage import phase_cost_report as report
 from pacbench.receipt_costs import request_record
 
 
@@ -94,7 +94,7 @@ def test_generation_identity_contradictions_withhold_named_upstream():
 def test_cli_generation_index_requires_supported_source_and_observed_receipt(tmp_path, monkeypatch):
     import json
     import pytest
-    from pacbench.phase_costs import main
+    from pacbench.usage import phase_cost_main as main
     component = tmp_path / 'component'
     component.mkdir()
     (component / 'summary.json').write_text('{"state":"interrupted"}')

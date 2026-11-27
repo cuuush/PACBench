@@ -1,4 +1,5 @@
 """Setup checks never create a gateway, run a model, or certify recall."""
+import pacbench.providers.provision as provider_setup
 import json
 from pathlib import Path
 
@@ -23,9 +24,9 @@ def test_provider_inventory_is_read_only_and_reports_route_gaps(tmp_path, monkey
 
 
 def test_offline_provider_catalog_does_not_require_vendor_checkout(tmp_path, monkeypatch):
-    from pacbench import native_pilot
+    from pacbench.workflows import native_run as native_pilot
     monkeypatch.setattr(native_pilot.harness, 'ISOLATED_TREE', tmp_path / 'missing')
-    assert {'memcal', 'mem0', 'hindsight', 'openviking', 'supermemory', 'honcho', 'reme', 'cognee', 'memos'} <= set(native_pilot.provider_names())
+    assert {'memcal', 'mem0', 'hindsight', 'openviking', 'supermemory', 'honcho', 'reme', 'cognee', 'memos'} <= set(provider_setup.provider_names())
 
 
 @pytest.fixture
@@ -72,35 +73,28 @@ def test_missing_state_blocks_without_network_or_replacement(setup, monkeypatch)
     assert 'SECRET_DO_NOT_PRINT' not in json.dumps(result)
 
 
-def test_openrouter_missing_ledger_is_independent_of_muse(setup, monkeypatch):
+def test_openrouter_missing_credential_is_independent_of_muse(setup, monkeypatch):
     repo, prepared, state = setup
-    monkeypatch.setattr('pacbench.openrouter_task.STATE', state)
-    monkeypatch.setenv('OPENROUTER_API_KEY', 'SECRET_DO_NOT_PRINT')
+    monkeypatch.delenv('OPENROUTER_API_KEY', raising=False)
     result = preflight.inspect(prepared, repo=repo, inference_route='openrouter')
     assert result['state'] == 'blocked'
-    assert states(result)['existing_openrouter_accounting']['state'] == 'blocked'
+    assert states(result)['openrouter_credential']['state'] == 'blocked'
     assert 'existing_gateway_state' not in states(result)
     assert 'driver_configuration' not in states(result)
     assert not state.exists()
-    assert 'SECRET_DO_NOT_PRINT' not in json.dumps(result)
 
 
-def test_openrouter_accounting_check_preserves_every_byte(setup, monkeypatch):
-    from pacbench.openrouter_route import MODEL, ENDPOINT
+def test_openrouter_preflight_refuses_inherited_campaign_scope(setup, monkeypatch):
     repo, prepared, state = setup
-    state.mkdir()
-    monkeypatch.setattr('pacbench.openrouter_task.STATE', state)
-    monkeypatch.setenv('OPENROUTER_API_KEY', 'secret')
-    ledger = state / 'ledger.json'
-    ledger.write_text(json.dumps({'version': 1, 'config': {'cap':'20', 'model':MODEL, 'endpoint':ENDPOINT},
-        'calls': [{'state':'uncertain','accounted':'0.175'}, {'state':'allocated','accounted':'3'}]}, indent=4))
-    (state / 'authorization.json').write_text(json.dumps({'task':'pacbench-pizza-day-20261112',
-        'model':MODEL,'endpoint':ENDPOINT,'approved_total_usd':'20'}))
-    before = ledger.read_bytes()
+    monkeypatch.setenv('OPENROUTER_API_KEY', 'SECRET_DO_NOT_PRINT')
     result = preflight.inspect(prepared, repo=repo, inference_route='openrouter')
     assert result['state'] == 'prerequisites-pass'
-    assert states(result)['existing_openrouter_accounting']['detail']['accounted_upper_bound_usd'] == '3.175'
-    assert ledger.read_bytes() == before
+    assert states(result)['openrouter_credential']['detail'] == {'present': True, 'access_verified': False}
+    monkeypatch.setenv('PACBENCH_WORKFLOW_SCOPE', 'previous-campaign')
+    result = preflight.inspect(prepared, repo=repo, inference_route='openrouter')
+    assert result['state'] == 'blocked' and states(result)['openrouter_transport']['state'] == 'blocked'
+    assert result['inference_calls'] == 0 and not state.exists()
+    assert 'SECRET_DO_NOT_PRINT' not in json.dumps(result)
 
 
 def test_present_files_are_not_claimed_as_recovered_history(setup, monkeypatch):

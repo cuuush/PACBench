@@ -4,7 +4,7 @@ from pathlib import Path
 import pytest
 
 from pacbench.corpus.prepare import normalize_week, prepare, resolve_spec
-from pacbench.specs import inspect_spec, main, read_spec
+from pacbench.corpus.prepare import inspect_spec, specs_main as main, read_spec
 
 
 def small_spec():

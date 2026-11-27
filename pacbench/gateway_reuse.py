@@ -3,19 +3,22 @@
 The new observation-clock condition never migrates historical scored r2 or
 steps its canonical ingestion clock. Paid execution remains separately gated.
 """
-from datetime import datetime,timezone
+from __future__ import annotations
+
 import hashlib
 import json
 import os
-from pathlib import Path
-import subprocess
 import shutil
+import subprocess
 import time
 import uuid
+from copy import deepcopy
+from datetime import datetime, timezone
+from pathlib import Path
 
-from .hermes_gateway import GatewayLifecycleError,_identity,_live,turn_gateway
-from .gateway.reuse_runtime import PROTOCOL
+from pacbench.gateway.observer import PROTOCOL
 
+from .hermes_gateway import GatewayLifecycleError, _identity, _live, turn_gateway
 
 NATIVE_CHAT_CLOSE = ('import asyncio,sys;from hermes_cli.gateway_client import connect_gateway;'
                   '\nasync def main():\n async with connect_gateway() as c:\n'
@@ -82,9 +85,8 @@ class PersistentGateway:
         self.home=Path(home).resolve();self.python=Path(python);self.env=dict(env);self.cwd=Path(cwd)
         self.checkpoint=checkpoint;self.cleanup_timeout=cleanup_timeout
         self.provider=provider
-        self.canary=canary
-        self.full_run=full_run
-        if canary is not None and full_run is not None:raise GatewayLifecycleError('Conflicting execution capabilities')
+        if canary is not None or full_run is not None or self.env.get('PACBENCH_DIRECT') == '1':
+            raise GatewayLifecycleError('This campaign requires its original reviewed checkout and private state')
         if provider not in {'reme','mem0','memcal','memos','openviking','hindsight','supermemory','honcho','cognee'}:raise GatewayLifecycleError('Unknown native observation provider')
         self.alias=None
         workflow_memcal = provider == 'memcal' and self.env.get('PACBENCH_WORKFLOW_CAPTURE') == 'pizza-week-conversation-v2'
@@ -97,7 +99,8 @@ class PersistentGateway:
             self.alias=self.home.parent/(provider+'-observation')
             self.env[{'mem0':'MEM0_DIR','memcal':'MEMCAL_HOME','memos':'MEMOS_HOME'}[provider]]=str(self.alias)
         if provider=='memcal' and observation_clock is not None:self.env.pop('MEMCAL_TODAY',None)
-        from .gateway.preclose import ENV,CONDITION
+        from pacbench.hermes_gateway import PRECLOSE_CONDITION as CONDITION
+        from pacbench.hermes_gateway import PRECLOSE_ENV as ENV
         self.preclose_condition=self.env.get(ENV)
         if self.preclose_condition is not None and (self.preclose_condition!=CONDITION or provider!='reme' or observation_clock is None):
             raise GatewayLifecycleError('Unknown pre-close lifecycle condition or missing exact clock')
@@ -115,19 +118,6 @@ class PersistentGateway:
             any(k.startswith('FAKETIME') for k in self.env) or (self.home.parent/'provider-clock.json').exists()):
             if observation_clock is None or self.env.get('LD_PRELOAD') or any(k.startswith('FAKETIME') for k in self.env) or (self.home.parent/'provider-clock.json').exists():
                 raise GatewayLifecycleError('Persistent simulated-clock scoring requires a new versioned request-bound clock protocol')
-        if self.env.get('PACBENCH_DIRECT')=='1':
-            from pacbench.workflows import capability as workflow_capability
-            if self.env.get(workflow_capability.ENV):
-                if canary or full_run:
-                    raise GatewayLifecycleError('Conflicting workflow and legacy gateway owners')
-                workflow_capability.owner(self.env,self.home,checkpoint,provider,observation_clock)
-            elif canary is None and full_run is None:raise GatewayLifecycleError('Funded scored execution cannot use the unqualified fixed-clock reuse condition')
-        if canary is not None:
-            from .canary_capability import owner
-            owner(canary,self.env,self.home,checkpoint,provider,observation_clock)
-        if full_run is not None:
-            from .full_run_capability import owner
-            owner(full_run,self.env,self.home,checkpoint,provider,observation_clock)
         if not checkpoint or not self.env.get('PACBENCH_NOW'):
             raise GatewayLifecycleError('An explicit fixed checkpoint is required')
         if self.env.get('PACBENCH_NO_BUILTIN_MEMORY')!='1' or self.env.get('PACBENCH_NO_SESSION_SEARCH')!='1':
@@ -146,19 +136,13 @@ class PersistentGateway:
             git(tree,'diff','--abbrev=8','HEAD')!=(repo/'patches/hermes-isolated.diff').read_text() or
             git(tree,'ls-files','--others','--exclude-standard').strip()):
             raise GatewayLifecycleError('Persistent owner requires the exact pinned Hermes isolation tree')
-        from .observation_adapters import native_source
         self.pins={'hermes':pin,**native_source(provider,self.home,repo,self.env,self.python),
             'hermes_isolation_sha256':hashlib.sha256((repo/'patches/hermes-isolated.diff').read_bytes()).hexdigest()}
-        self.runtime_observer='memos_reuse_runtime' if provider in {'memos','openviking'} else 'reuse_runtime'
-        self.pins['reuse_observer_sha256']=hashlib.sha256((repo/'pacbench/gateway'/(self.runtime_observer+'.py')).read_bytes()).hexdigest()
-        if provider in {'hindsight','supermemory','honcho','cognee'}:
-            self.runtime_observer=provider+'_reuse_runtime'
-            self.pins['provider_observer_adapter_sha256']=hashlib.sha256((repo/'pacbench/gateway'/(self.runtime_observer+'.py')).read_bytes()).hexdigest()
-            self.pins['reuse_observer_sha256']=hashlib.sha256((repo/'pacbench/gateway/memos_reuse_runtime.py').read_bytes()).hexdigest()
+        self.pins['reuse_observer_sha256'] = hashlib.sha256((repo / 'pacbench/gateway/observer.py').read_bytes()).hexdigest()
 
     def __enter__(self):
         self.owner=turn_gateway(self.home,self.python,self.env,cwd=self.cwd,
-            shutdown_timeout=self.cleanup_timeout,runtime_module='pacbench.gateway.'+self.runtime_observer)
+            shutdown_timeout=self.cleanup_timeout,runtime_module='pacbench.gateway.observer')
         self.witness=self.owner.__enter__();return self
 
     def __exit__(self,*exc):return self.owner.__exit__(*exc)
@@ -196,7 +180,7 @@ class PersistentGateway:
             time.sleep(.02)
 
     def adopt_session(self,binding,session_id,observation,question):
-        from .checkpoint_sessions import verify
+        from pacbench.judging.retained_week import verify
         row=verify(binding,self,session_id)
         if session_id in self.session_context:raise GatewayLifecycleError('Native session already admitted')
         self.session_context[session_id]={'initial_at':row['session_started_at'],'session_started_at':row['session_started_at'],
@@ -211,12 +195,6 @@ class PersistentGateway:
         source fixture and provider-native settings must be checked separately.
         """
         if self.failed:raise GatewayLifecycleError('Owner requires checkpoint recovery; no replay')
-        if self.canary is not None:
-            from .canary_capability import question
-            question(self.canary,self,prompt,at,observation,session_id)
-        if self.full_run is not None:
-            from .full_run_capability import question
-            question(self.full_run,self,prompt,at,observation,session_id)
         if (hashlib.sha256(self.config_path.read_bytes()).hexdigest()!=self.config_sha256 or
             hashlib.sha256(json.dumps(self.env,sort_keys=True).encode()).hexdigest()!=self.environment_sha256):
             self.failed=True
@@ -224,7 +202,7 @@ class PersistentGateway:
         drain=self.fence()
         continuation=None;prior_users=[];session_origin=None
         if session_id:
-            from .checkpoint_clock import history
+            from pacbench.provider_clock import history
             context=self.session_context.get(session_id)
             if not context or (context['followups'] and not authored_resume) or observation!=context['observation']:
                 raise GatewayLifecycleError('Follow-up requires this question\'s exact session/store and a single unused continuation')
@@ -275,7 +253,8 @@ class PersistentGateway:
                 startup={'changed_storage_files':sorted(changed),'native_documents':observation['documents']}
             elif manifest!=observation.get('snapshot_manifest') or manifest['sha256']!=self.checkpoint:
                 raise GatewayLifecycleError('Observation is not an exact checkpoint clone')
-        from .observation_adapters import plan,switch_alias
+        from pacbench.gateway_reuse import observation_plan as plan
+        from pacbench.gateway_reuse import switch_alias
         config_path=self.home/('reme/config.json' if self.provider=='reme' else 'mem0.json')
         config=json.loads(config_path.read_text()) if self.provider in {'mem0','reme'} else {}
         binding=plan(self.provider,config,observation['workspace'],endpoint=observation.get('endpoint'))
@@ -380,13 +359,18 @@ class PersistentGateway:
                 db.row_factory=sqlite3.Row
                 visible=[dict(row) for row in db.execute('SELECT role,content,api_content,tool_name FROM messages WHERE session_id=? ORDER BY id',(turn.session_id,))]
             if questions!=[(q,) for q in [*prior_users,prompt]]:raise GatewayLifecycleError('Session transcript contains an unexpected sender or altered input')
-            from .harness import capture_prefetch,capture_prefetch_provenance,capture_provider_traces,_recover_tool_results
+            from .harness import (
+                _recover_tool_results,
+                capture_prefetch,
+                capture_prefetch_provenance,
+                capture_provider_traces,
+            )
             capture_prefetch(turn,context_trace,context_before);capture_prefetch_provenance(turn,self.env)
             _recover_tool_results(turn,self.home/'state.db');capture_provider_traces(turn,trace_env,provider_before)
             from dataclasses import asdict
             clock_evidence=None
             if clock_descriptor:
-                from .checkpoint_clock import audit_question
+                from pacbench.provider_clock import audit_question
                 if self.env.get('PACBENCH_R2_LIVE_SCOPE'):
                     clock_descriptor=json.loads((self.observation_clock.folder/'questions'/(clock_descriptor['nonce']+'.json')).read_text())
                     question_at=clock_descriptor['at']
@@ -414,7 +398,7 @@ class PersistentGateway:
             code=NATIVE_CHAT_CLOSE
             preclose=None
             if self.preclose_condition:
-                from .gateway.preclose import drain_then_close
+                from pacbench.hermes_gateway import drain_then_close
                 preclose=drain_then_close(self,turn,folder,clock_evidence)
             else:
                 # Native Cognee can still finish a cache write while ending the
@@ -443,14 +427,14 @@ class PersistentGateway:
                            for s in drain['sessions'] if s['session_id']==turn.session_id
                            for p in s['providers'] if p['name']=='hindsight'):
                     raise GatewayLifecycleError('Native Hindsight observation bank was not used')
-                from .providers.hindsight.evidence import settled_operations
+                from pacbench.providers.hindsight_evidence import settled_operations
                 drain['native_bank_operations']=settled_operations(observation['endpoint'],observation['bank'])
             if self.provider=='supermemory':
                 if not any(p.get('namespace')==observation['namespace'] and p.get('endpoint')==observation['endpoint']
                            for s in drain['sessions'] if s['session_id']==turn.session_id
                            for p in s['providers'] if p['name']=='supermemory'):
                     raise GatewayLifecycleError('Native Supermemory observation store was not used')
-                from .providers.supermemory.observation import wait_for_settled_checkpoint
+                from pacbench.providers.supermemory import wait_for_settled_checkpoint
                 drain['native_document_statuses']=wait_for_settled_checkpoint(observation['endpoint'],self.env['SUPERMEMORY_API_KEY'],observation['namespace'])
             preclose_binding=({'path':str(folder/'preclose.json'),'sha256':hashlib.sha256((folder/'preclose.json').read_bytes()).hexdigest()} if preclose else None)
             atomic(folder/'cleanup.json',{'protocol':PROTOCOL,'state':'drained','post_answer_cleanup_s':time.monotonic()-ready,
@@ -467,7 +451,7 @@ class PersistentGateway:
             turn.lifecycle_timing={'protocol':'turn-lifecycle-timing-v1','runner_wall_s':time.monotonic()-start,
                 'answer_ready_latency_s':ready-start,'post_answer_cleanup_s':time.monotonic()-ready,'gateway_persisted':True,
                 'preclose_wait_s':preclose['preclose_wait_s'] if preclose else 0}
-            from .checkpoint_clock import history
+            from pacbench.provider_clock import history
             history_sha=history(self.home,turn.session_id)['sha256']
             if not continuation:self.session_context[turn.session_id]={'initial_at':initial_at,'horizon':horizon,'history_sha256':history_sha,
                 'observation':json.loads(json.dumps(observation)),'user_texts':[prompt],'followups':0}
@@ -504,3 +488,123 @@ class PersistentGateway:
                 'lifecycle_evidence':{'path':str(diagnostic),'sha256':diagnostic_sha},
                 'answer_ready_preserved':(folder/'answer-ready.json').exists(),'automatic_replay':False})
             raise
+
+
+MEM0_PLUGIN_SHA256='0d32999bc684e79fcd243e9f05f3e04fb8b1e1d4442045d2a28817575e09bdfc'
+
+
+def native_source(provider,home,repo,env,python):
+    plugin=Path(home)/'plugins'/provider
+    if provider=='reme':
+        from pacbench.providers.reme import PINS
+        source=repo/'vendor/reme';expected=PINS['reme'][1]
+        if plugin.resolve()!=source.resolve()/'integrations/hermes_agent':raise ValueError('Native ReMe plugin path differs')
+    elif provider=='memcal':
+        from pacbench.provider_versions import (
+            MEMCAL_OPERATIONS_CONDITION,
+            MEMCAL_OPERATIONS_REVISION,
+            MEMCAL_REVISION,
+            MEMCAL_WEEK_CONDITION,
+            MEMCAL_WEEK_REVISION,
+        )
+        source=Path(env['MEMCAL_SRC']).resolve()
+        workflow = env.get('PACBENCH_WORKFLOW_CAPTURE') == 'pizza-week-conversation-v2'
+        label = env.get('PACBENCH_MEMCAL_CONDITION')
+        week_revision = MEMCAL_WEEK_REVISION if label == MEMCAL_WEEK_CONDITION else MEMCAL_REVISION
+        expected = env.get('PACBENCH_MEMCAL_REUSE_REVISION', week_revision if workflow else 'dac7214006b84ec364ecbcd9472daca7db588a25')
+        stable = expected == MEMCAL_REVISION and env.get('PACBENCH_MEMCAL_CONDITION') == 'stable-0.8.11' and (workflow or bool(env.get('PACBENCH_R2_LIVE_SCOPE')))
+        current_week = workflow and expected == MEMCAL_WEEK_REVISION and label == MEMCAL_WEEK_CONDITION
+        if workflow and not (stable or current_week):
+            raise ValueError('Continuing MemCal workflow requires its reviewed stable condition')
+        if not (stable or current_week) and expected not in {'dac7214006b84ec364ecbcd9472daca7db588a25','da58057eb00f79082dfcf8f59baa264267c83ca1',MEMCAL_OPERATIONS_REVISION}:
+            raise ValueError('Unknown MemCal review condition')
+        if expected==MEMCAL_OPERATIONS_REVISION and env.get('PACBENCH_MEMCAL_CONDITION')!=MEMCAL_OPERATIONS_CONDITION:
+            raise ValueError('MemCal observation revision needs its explicit reviewed condition')
+        if {f.name for f in plugin.glob('*.py')}!={f.name for f in (source/'integrations/hermes/memcal').glob('*.py')}:
+            raise ValueError('MemCal plugin file set differs')
+        for file in (source/'integrations/hermes/memcal').glob('*.py'):
+            if hashlib.sha256(file.read_bytes()).digest()!=hashlib.sha256((plugin/file.name).read_bytes()).digest():raise ValueError('MemCal plugin differs from the selected tree')
+    elif provider in {'openviking','hindsight','supermemory','honcho'}:
+        from pacbench.catalog_plugins import CATALOG, verify_retained_catalog_provider
+        verify_retained_catalog_provider(provider,Path(home))
+        return {provider:CATALOG[provider][1]}
+    elif provider=='cognee':
+        from pacbench.providers.cognee import PINS
+        source=repo/'vendor/cognee-integrations';expected=PINS['cognee']['commit']
+        installed=plugin/'cognee_integration_hermes/provider.py'
+        original=source/'integrations/hermes-agent/cognee_integration_hermes/provider.py'
+        if not installed.is_file() or installed.read_bytes()!=original.read_bytes():
+            raise ValueError('Native Cognee installed provider differs from the pinned source')
+    elif provider=='memos':
+        if env.get('PACBENCH_MEMOS_OSS_CONFIG'):
+            source=Path(env['PACBENCH_MEMOS_OSS_SOURCE']).resolve()
+            expected='3a16e5fe3048a209f722806f4123fa2e533588fd'
+            deployed=Path(home)/'plugins/memososs'
+            binding=repo/'provider_adapters/memos_oss_hermes'
+            files=('__init__.py','plugin.yaml')
+            if (Path(env['PACBENCH_MEMOS_OSS_CONFIG']) != Path(home)/'memos-oss.json'
+                    or deployed.is_symlink() or any((deployed/f).read_bytes()!=(binding/f).read_bytes() for f in files)):
+                raise ValueError('MemOS OSS Hermes REST binding differs')
+            actual=subprocess.check_output(['git','-C',str(source),'rev-parse','HEAD'],text=True).strip()
+            if actual!=expected or subprocess.check_output(['git','-C',str(source),'status','--porcelain'],text=True).strip():
+                raise ValueError('MemOS OSS server source differs from the pinned release')
+            return {'memos_oss':actual,'memos_oss_hermes_files':{
+                name:hashlib.sha256((binding/name).read_bytes()).hexdigest() for name in files}}
+        from pacbench.provider_versions import verify_memos_package
+        package, release=verify_memos_package(repo)
+        if (Path(home)/'plugins/memtensor').resolve()!=package.resolve()/'adapters/hermes/memos_provider':
+            raise ValueError('Native MemOS plugin path differs')
+        return {'memos':release['sha256']}
+    elif provider=='mem0':
+        files={f.name:hashlib.sha256(f.read_bytes()).hexdigest() for f in sorted(plugin.glob('*.py'))}
+        sha=hashlib.sha256(json.dumps(files,sort_keys=True).encode()).hexdigest()
+        version=subprocess.check_output([str(python),'-I','-c','import importlib.metadata;print(importlib.metadata.version("mem0ai"))'],text=True).strip()
+        if sha!=MEM0_PLUGIN_SHA256 or version!='2.2.1':raise ValueError('Native Mem0 plugin or OSS SDK pin differs')
+        return {'mem0_sdk':version,'mem0_plugin_sha256':sha}
+    else:raise ValueError('Unknown native observation provider')
+    actual=subprocess.check_output(['git','-C',str(source),'rev-parse','HEAD'],text=True).strip()
+    if actual!=expected or subprocess.check_output(['git','-C',str(source),'status','--porcelain'],text=True).strip():
+        raise ValueError('Native observation provider source differs')
+    return {provider:actual, **({'memcal_baseline':label} if provider=='memcal' and (stable or current_week) else {})}
+
+
+def observation_plan(provider,config,workspace,*,endpoint=None):
+    workspace=Path(workspace).resolve();result=deepcopy(config)
+    if provider=='reme':
+        from pacbench.gateway_client import local_endpoint
+        if result.get('mode')!='http':raise ValueError('Retain native ReMe HTTP condition')
+        result.update(endpoint=local_endpoint(endpoint),workspace_dir=str(workspace))
+        return {'provider':provider,'config':result,'native_binding':'reme/config.json',
+            'required_proof':['native service PID/start and actual workspace','all auto_memory jobs completed','native source-only checkpoint ready'],
+            'live_qualified':False}
+    if provider=='mem0':
+        if result.get('mode')!='oss' or result.get('oss',{}).get('graph_store'):raise ValueError('Only the pinned Mem0 OSS condition is applicable')
+        vector=result['oss']['vector_store']
+        if vector['provider']!='qdrant' or any(vector.get('config',{}).get(k) for k in ['host','url','api_key','client']):
+            raise ValueError('An isolated native local Qdrant namespace is required')
+        vector.setdefault('config',{})['path']=str(workspace/'qdrant')
+        return {'provider':provider,'config':result,'native_binding':'mem0.json + stable MEM0_DIR observation alias',
+            'state_alias_target':str(workspace/'mem0-state'),
+            'required_proof':['native Qdrant checkpoint closed and reopened','native history SQLite path follows the isolated alias','native sync and prefetch workers drained','native source-only checkpoint ready'],
+            'live_qualified':False}
+    if provider in {'openviking','hindsight','supermemory','honcho','cognee'}:
+        from pacbench.gateway_client import local_endpoint
+        return {'provider':provider,'endpoint':local_endpoint(endpoint)}
+    if provider=='memos':
+        return {'provider':provider,'config':result,'native_binding':'resolved MEMOS_HOME per independent store',
+                'state_alias_target':str(workspace)}
+    if provider=='memcal':
+        return {'provider':provider,'config':result,'native_binding':'stable MEMCAL_HOME observation alias',
+            'state_alias_target':str(workspace),'required_proof':['exact selected MemCal source SHA','closed native SQLite checkpoint and wiki reopened','native archive writes confined to this observation','native correction quality gate'],
+            'live_qualified':False}
+    raise ValueError('Unknown observation adapter')
+
+
+def switch_alias(alias,target,drain):
+    """Switch only an explicit run-owned link, after independently verified drain."""
+    alias=Path(alias);target=Path(target).resolve()
+    if not drain.get('sessions') or not all(s.get('clean') for s in drain['sessions']) or any(drain.get(k) for k in
+        ['native_release_threads','native_memory_threads','native_failures','native_children']):raise ValueError('Native drain is incomplete')
+    if not target.is_dir() or alias.exists() and not alias.is_symlink():raise ValueError('Refuse to replace a native directory')
+    temporary=alias.with_name(alias.name+'.next')
+    temporary.symlink_to(target,target_is_directory=True);temporary.replace(alias)

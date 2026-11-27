@@ -49,7 +49,7 @@ def test_only_the_installed_cognee_exit_watcher_keeps_physical_time(tmp_path,mon
 CHILD = '''
 import ctypes,json,sys,time
 from datetime import datetime,timezone
-from pacbench.direct_accounting import now
+from pacbench.receipt_costs import now
 libc=ctypes.CDLL(None);libc.time.restype=ctypes.c_long
 for line in sys.stdin:
  print(json.dumps({'python_at':datetime.now(timezone.utc).isoformat(),

@@ -1,4 +1,5 @@
 """Exercise the two-command authoring and native entry point without traffic."""
+import pacbench.providers.provision as provider_setup
 import argparse
 import json
 from contextlib import contextmanager, nullcontext
@@ -12,8 +13,10 @@ from types import SimpleNamespace
 
 import pytest
 
-from pacbench import __main__ as cli, native_pilot, prepare
-from pacbench.followups import save
+from pacbench import __main__ as cli
+from pacbench.workflows import native_run as native_pilot
+from pacbench.corpus import prepare
+from pacbench.evidence_store import save
 from pacbench.model_calls import ModelOutput
 from pacbench.providers import ACTIVE_PROVIDERS
 
@@ -86,7 +89,7 @@ def test_generate_and_run_one_new_author_spec(tmp_path, monkeypatch, capsys):
     shutil.move(corpus, portable)
     monkeypatch.setattr(prepare, 'load_driver', fail_if_called)
     monkeypatch.setattr(native_pilot, 'require_live_cost_boundary', fail_if_called)
-    monkeypatch.setattr(native_pilot, 'provision', fail_if_called)
+    monkeypatch.setattr(provider_setup, 'provision', fail_if_called)
     planned = tmp_path / 'plan'
     assert cli.main(['run', str(portable), '--output', str(planned), '--plan']) == 0
     plan = read(planned / 'summary.json')
@@ -110,7 +113,7 @@ def test_generate_and_run_one_new_author_spec(tmp_path, monkeypatch, capsys):
     monkeypatch.setattr(native_pilot, 'load_driver', lambda: driver)
     monkeypatch.setattr(native_pilot, 'client_settings', lambda _: ('https://offline.invalid/v1', 'offline-fixture'))
     monkeypatch.setattr(native_pilot, 'ModelClient', lambda **_: fail_if_called)
-    monkeypatch.setattr(native_pilot, 'provision', unavailable)
+    monkeypatch.setattr(provider_setup, 'provision', unavailable)
     run = tmp_path / 'native'
     assert cli.main(['run', str(portable / 'week.json'), '--output', str(run)]) == 1
     report = read(run / 'summary.json')
@@ -130,7 +133,7 @@ def test_generate_and_run_one_new_author_spec(tmp_path, monkeypatch, capsys):
 
     blocked = tmp_path / 'blocked'
     monkeypatch.setattr(native_pilot, 'require_live_cost_boundary', gateway_blocked)
-    monkeypatch.setattr(native_pilot, 'provision', fail_if_called)
+    monkeypatch.setattr(provider_setup, 'provision', fail_if_called)
     assert cli.main(['run', str(portable), '--output', str(blocked), '--providers', 'mem0', 'memos']) == 1
     assert read(blocked / 'summary.json')['state'] == 'blocked'
     assert 'mem0, memos not run offline account unavailable' in capsys.readouterr().out
@@ -281,9 +284,9 @@ def test_public_live_command_selects_installed_runtime(tmp_path, monkeypatch, ca
     assert len(commands) == 1
 
 
-@pytest.mark.parametrize('entry', [[], ['generate']])
+@pytest.mark.parametrize('entry', [['generate']])
 def test_generate_uses_proxy_chat_writer_and_reports_known_error(entry, tmp_path, monkeypatch, capsys):
-    from pacbench.generation import GenerationError
+    from pacbench.model_calls import GenerationError
 
     path = Path(__file__).resolve().parents[1] / 'specs/pizza_week.json'
     output = tmp_path / 'preparation'
@@ -325,7 +328,7 @@ def test_generate_checks_explicit_route_before_writing(tmp_path, monkeypatch, ca
     with pytest.raises(SystemExit) as direct:
         cli.main(command)
     assert direct.value.code == 2 and not output.exists()
-    assert 'pacbench.openrouter_run --help' in capsys.readouterr().err
+    assert '--budget-usd' in capsys.readouterr().err
 
     monkeypatch.delenv('PACBENCH_TRANSPORT')
     monkeypatch.delenv('PACBENCH_DIRECT')
@@ -339,7 +342,7 @@ def test_generate_checks_explicit_route_before_writing(tmp_path, monkeypatch, ca
 
 
 def test_run_records_driver_failure_after_gateway_health(tmp_path, monkeypatch, capsys):
-    from pacbench.generation import GenerationError
+    from pacbench.model_calls import GenerationError
 
     corpus = Path(__file__).resolve().parents[1] / 'runs/bike-pickup-native-clock-20261105/preparation'
     output = tmp_path / 'run'
@@ -354,7 +357,7 @@ def test_run_records_driver_failure_after_gateway_health(tmp_path, monkeypatch, 
         pytest.fail('driver failure must stop before provider setup')
 
     monkeypatch.setattr(native_pilot, 'load_driver', driver_failure)
-    monkeypatch.setattr(native_pilot, 'provision', unexpected)
+    monkeypatch.setattr(provider_setup, 'provision', unexpected)
     assert cli.main(['run', str(corpus), '--output', str(output), '--providers', 'mem0']) == 1
     report = read(output / 'summary.json')
     assert report['gateway_before'] == {'service': 'test-gateway'}
@@ -449,7 +452,7 @@ def test_run_uses_configured_openrouter_proxy_and_blocks_unbound_transport(tmp_p
     with pytest.raises(SystemExit) as rejected:
         cli.main([*command, '--output', str(tmp_path / 'unsupported-direct')])
     assert rejected.value.code == 2
-    assert 'pacbench.openrouter_run --help' in capsys.readouterr().err
+    assert '--budget-usd' in capsys.readouterr().err
     assert not (tmp_path / 'unsupported-direct').exists()
     assert len(checks) == 1
 
@@ -556,7 +559,7 @@ def test_cli_preserves_unexpected_native_errors(tmp_path, monkeypatch):
 
 def test_plan_and_native_release_times_agree_for_unordered_mixed_offsets(tmp_path, monkeypatch):
     from pacbench.corpus import audit
-    from pacbench.document_ingestion import prepare_sources
+    from pacbench.workflows.delivery import prepare_sources
 
     messages = [
         {'source_id': 'latest', 'collected_at': '2026-10-05T18:00:00-04:00', 'written_at': '2026-10-05T18:00:00Z'},

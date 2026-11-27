@@ -1,4 +1,5 @@
 """Provider resolution must support catalog namespaces and older bundled homes."""
+import pacbench.providers.provision as provider_setup
 from types import SimpleNamespace
 
 import pytest
@@ -36,23 +37,23 @@ def test_catalog_load_errors_are_not_masked_as_legacy_imports(monkeypatch):
 
 def test_catalog_moved_providers_selectable_and_unknown_migration_blocked(monkeypatch):
     from pacbench.catalog_plugins import CATALOG
-    from pacbench import native_pilot
-    assert set(CATALOG) <= set(native_pilot.provider_names())
-    monkeypatch.setattr(native_pilot, 'catalog_migrated_providers', lambda: set(CATALOG) | {'unreviewed'})
+    from pacbench.workflows import native_run as native_pilot
+    assert set(CATALOG) <= set(provider_setup.provider_names())
+    monkeypatch.setattr(provider_setup, 'catalog_migrated_providers', lambda: set(CATALOG) | {'unreviewed'})
     with pytest.raises(RuntimeError, match="No reviewed trial-home"):
-        native_pilot.require_trial_provider("unreviewed")
+        provider_setup.require_trial_provider("unreviewed")
     for provider in CATALOG:
-        native_pilot.require_trial_provider(provider, resume=True)
+        provider_setup.require_trial_provider(provider, resume=True)
     with pytest.raises(ValueError, match="resume protocol"):
-        native_pilot.require_trial_provider("reme", resume=True)
+        provider_setup.require_trial_provider("reme", resume=True)
 
 
 def test_byterover_is_not_selectable_or_provisioned(tmp_path, monkeypatch):
-    from pacbench import native_pilot
-    assert "byterover" not in native_pilot.provider_names()
+    from pacbench.workflows import native_run as native_pilot
+    assert "byterover" not in provider_setup.provider_names()
     def no_configuration(*args, **kwargs):
         pytest.fail("ByteRover must be rejected before model configuration")
     monkeypatch.setattr(native_pilot, "client_settings", no_configuration)
     with pytest.raises(ValueError, match="removed from the active benchmark"):
-        native_pilot.provision(tmp_path / "arm", "byterover")
+        provider_setup.provision(tmp_path / "arm", "byterover")
     assert not (tmp_path / "arm").exists()

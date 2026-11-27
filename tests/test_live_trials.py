@@ -1,16 +1,19 @@
 """An upgrade with an unowned persistent gateway cannot run live trials."""
+import pacbench.providers.provision as provider_setup
 from pathlib import Path
 from unittest.mock import patch
 
 import pytest
 
-from pacbench import harness, native_pilot, native_resume, providers as live_trials
+from pacbench import harness, providers as live_trials
+from pacbench.workflows import native_run as native_pilot
+from pacbench.providers import openviking as native_resume
 
 
 def test_live_entrypoints_stop_before_backend_and_gateway(tmp_path, monkeypatch):
     monkeypatch.setitem(live_trials.LIVE_TRIALS, "enabled", False)
     with patch('pacbench.gateway_client.require_live_cost_boundary') as cost, \
-         patch('pacbench.native_pilot.provision') as provider, \
+         patch('pacbench.providers.provision.provision') as provider, \
          patch('pacbench.harness.subprocess.run') as child:
         with pytest.raises(RuntimeError, match='Native trials blocked'):
             native_pilot.run(None, tmp_path / 'new', providers=['memcal'])
@@ -26,7 +29,7 @@ def test_live_entrypoints_stop_before_backend_and_gateway(tmp_path, monkeypatch)
 
 def test_direct_provision_stops_before_model_configuration(tmp_path, monkeypatch):
     monkeypatch.setitem(live_trials.LIVE_TRIALS, "enabled", False)
-    with patch('pacbench.native_pilot.client_settings') as settings:
+    with patch('pacbench.workflows.native_run.client_settings') as settings:
         with pytest.raises(RuntimeError, match='Native trials blocked'):
-            native_pilot.provision(tmp_path, 'memcal')
+            provider_setup.provision(tmp_path, 'memcal')
     settings.assert_not_called()

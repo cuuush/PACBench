@@ -7,12 +7,17 @@ from datetime import datetime
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
-from pacbench.followups import digest, freeze_policy, load_questions, save
 from pacbench.corpus.contract import (
-    AUTHORING_VERSION, BEHAVIOR_REVIEW_VERSION, EVIDENCE_VERSION, build_contract, load_contract_document,
+    AUTHORING_VERSION,
+    BEHAVIOR_REVIEW_VERSION,
+    EVIDENCE_VERSION,
+    build_contract,
+    load_contract_document,
 )
-from pacbench.gateway_client import SpendingBlocked, ModelAccessBlocked
-from pacbench.evidence_store import read_json
+from pacbench.evidence_store import binding_digest as digest
+from pacbench.evidence_store import read_json, save
+from pacbench.gateway_client import ModelAccessBlocked, SpendingBlocked
+from pacbench.judging.recovery import freeze_policy, load_questions
 
 
 def resolve_checks(spec, question_at, timezone):
@@ -194,9 +199,10 @@ def load_evaluations(root, messages, resolved, *, audit_review=None):
 def prepare_existing(source, spec, output, model, *, max_messages=3000, resume=False):
     """Freeze new questions against unchanged, previously verified dialogue."""
     import shutil
-    from pacbench.native_pilot import read_prepared
-    from pacbench.corpus.prepare import resolve_spec
+
     from pacbench.corpus.audit import audit_prepared
+    from pacbench.corpus.prepare import resolve_spec
+    from pacbench.workflows.native_run import read_prepared
     messages, _, _ = read_prepared(source, max_messages)
     if set(spec) - {'checks', 'question_at', 'evaluation_context'}:
         raise ValueError('recheck spec may change only questions, clocks and context modes')
@@ -251,7 +257,8 @@ def prepare_existing(source, spec, output, model, *, max_messages=3000, resume=F
     first = output / 'evaluations' / plan['checks'][-1]['id']
     for name in ('contract.json', 'followup-plan.json'):
         shutil.copyfile(first / name, output / name)
-    from pacbench.corpus.review import VERSION as REVIEW_VERSION, review_corpus
+    from pacbench.corpus.review import VERSION as REVIEW_VERSION
+    from pacbench.corpus.review import review_corpus
     if (output/'realism-review.json').exists():
         previous=read_json(output/'realism-review.json')
         save(output/'review-attempts'/(digest(previous)+'.json'),previous)
@@ -273,8 +280,12 @@ def prepare_existing(source, spec, output, model, *, max_messages=3000, resume=F
 
 def main():
     import argparse
-    from pacbench.creds import load_driver
-    from pacbench.gateway_client import client_settings, require_live_cost_boundary
+
+    from pacbench.gateway_client import (
+        client_settings,
+        load_driver,
+        require_live_cost_boundary,
+    )
     from pacbench.model_calls import ModelClient
     parser = argparse.ArgumentParser(description='Freeze new prompt/fact checks against existing verified dialogue.')
     parser.add_argument('--prepared', type=Path, required=True)

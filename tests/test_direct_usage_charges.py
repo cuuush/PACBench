@@ -28,8 +28,8 @@ def test_direct_zero_cost_is_known_and_not_an_unpriced_settlement():
 
 
 def test_historical_direct_cost_review_keeps_reported_charge_without_ledger_rewrite():
-    from pacbench.cost_review import refreshed_calls
-    from pacbench.direct_accounting import VERSION
+    from pacbench.usage import refreshed_calls
+    from pacbench.receipt_costs import VERSION
     rows=[{'id':'old','transport':VERSION,'state':'settled','role':'hermes','accounted':'0.00123456789',
            'accounted_upper_bound_usd':0.00123456789,'input_tokens':3,'output_tokens':2}]
     before=deepcopy(rows);projected=list(refreshed_calls(rows,None).values())

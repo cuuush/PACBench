@@ -2,8 +2,8 @@ import json
 from pathlib import Path
 from types import SimpleNamespace
 
-from pacbench.api_input_trace import record,rows
-from pacbench.clock_context import VERSION,LEGACY,delivery,expected_prompt,instruction,judge_question
+from pacbench.context_isolation import record_input as record, input_rows as rows
+from pacbench.context_isolation import SYSTEM_CLOCK_PROTOCOL as VERSION, LEGACY_CLOCK_PREFIX as LEGACY, delivery, expected_prompt, instruction, judge_question
 
 AT='2026-09-11T09:00:00-04:00'
 QUESTION='Can you recap our pizza plan?'
@@ -101,7 +101,7 @@ def test_judge_retains_explicit_date_while_native_query_stays_natural():
 
 def test_native_condition_binds_actual_system_to_native_saved_prompt(tmp_path,monkeypatch):
     import hashlib
-    from pacbench.clock_context import NATIVE
+    from pacbench.context_isolation import NATIVE_QUESTION as NATIVE
     turn=witness(tmp_path,monkeypatch)
     path=tmp_path/'api-inputs.jsonl';data=rows(path)
     native='Stock Hermes prompt and native provider instructions'
@@ -123,14 +123,14 @@ def test_native_condition_binds_actual_system_to_native_saved_prompt(tmp_path,mo
 
 
 def test_native_condition_requires_independent_saved_prompt_witness(tmp_path,monkeypatch):
-    from pacbench.clock_context import NATIVE
+    from pacbench.context_isolation import NATIVE_QUESTION as NATIVE
     turn=witness(tmp_path,monkeypatch)
     assert delivery(tmp_path,turn,protocol=NATIVE)['state']=='fail'
 
 
 def test_pinned_native_network_continuation_retains_original_question(tmp_path,monkeypatch):
     import hashlib,ast
-    from pacbench.clock_context import NATIVE,NATIVE_NETWORK_CONTINUATION_SHA256
+    from pacbench.context_isolation import NATIVE_QUESTION as NATIVE, NATIVE_NETWORK_CONTINUATION_SHA256
     turn=witness(tmp_path,monkeypatch)
     source=Path(__file__).resolve().parents[1]/'vendor/hermes-isolated/agent/conversation_loop.py'
     tree=ast.parse(source.read_text())

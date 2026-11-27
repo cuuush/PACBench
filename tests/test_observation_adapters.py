@@ -3,7 +3,7 @@ import json,os,shutil,subprocess,threading
 from pathlib import Path
 from http.server import BaseHTTPRequestHandler,ThreadingHTTPServer
 import pytest
-from pacbench.observation_adapters import plan
+from pacbench.gateway_reuse import observation_plan as plan
 
 ROOT=Path(__file__).resolve().parents[1];PYTHON=ROOT/'vendor/venv-hermes-isolated/bin/python'
 MEM0=ROOT/'runs/pizza-week-revised-20261115/cohort-corrected-v5-native-retry1/mem0/repeat-1/mem0/hermes-home/plugins/mem0'

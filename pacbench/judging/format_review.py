@@ -6,16 +6,22 @@ evidence. It is deliberately not the parser used by historical/native trials.
 from __future__ import annotations
 
 import argparse
-from dataclasses import asdict
 import hashlib
 import json
+from dataclasses import asdict
 from pathlib import Path
 
+from pacbench.evidence_store import file_sha
+from pacbench.judging.grade import (
+    LEGACY_JUDGE_PROTOCOL,
+    BenchmarkContractError,
+    audit_native_judge_attempts,
+    grade_semantic,
+)
+from pacbench.judging.overlays import _args, _no_symlinks, _overlay_tree, _safe, _write
+from pacbench.judging.overlays import _rejudge_original as _original
+
 from ..evidence_store import read_json
-from .artifacts import file_sha
-from .rejudge import _args, _no_symlinks, _original, _overlay_tree, _safe, _write
-from ..semantic_grade import (BenchmarkContractError, LEGACY_JUDGE_PROTOCOL,
-                             audit_native_judge_attempts, grade_semantic)
 
 VERSION = 'judge-diagnostic-isolation-v1'
 CORE_FIELDS = {'verdicts', 'recovery', 'interaction', 'benchmark_error'}

@@ -4,7 +4,7 @@ import json
 
 import pytest
 
-from pacbench import prepare as preparation
+from pacbench.corpus import prepare as preparation
 
 
 def test_rejects_unknown_route_before_creating_output(tmp_path):

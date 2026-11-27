@@ -7,9 +7,9 @@ import sys
 
 import pytest
 
-from pacbench import week_spec_audit as audit
-from pacbench.judging.controls import evaluate
-from pacbench.semantic_grade import CONTEXT_JUDGE_PROTOCOL
+from pacbench.corpus import r2 as audit
+from pacbench.judging.paired import evaluate
+from pacbench.judging.grade import CONTEXT_JUDGE_PROTOCOL
 
 
 @pytest.fixture(scope='module')
@@ -139,7 +139,7 @@ def test_public_refund_fixture_checks_source_and_timing(schedules):
 
 
 def test_offline_command_exports_separate_cases_and_key():
-    cmd = [sys.executable, '-B', '-m', 'pacbench.week_spec_audit']
+    cmd = [sys.executable, '-B', '-m', 'pacbench', 'audit', 'r2']
     cases = json.loads(subprocess.check_output([*cmd, '--emit', 'cases']))
     key = json.loads(subprocess.check_output([*cmd, '--emit', 'key']))
     assert all(set(c) == {'id', 'at', 'question', 'answer', 'claims'} for c in cases)

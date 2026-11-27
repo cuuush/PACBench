@@ -2,7 +2,7 @@
 import pytest
 from pacbench.corpus.review import review_prompt,verdict_passes,validation_errors
 from pacbench.corpus.review import VERSION,eligible_evidence
-from pacbench.followups import digest
+from pacbench.evidence_store import binding_digest as digest
 
 
 def fixture():

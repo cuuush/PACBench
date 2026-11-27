@@ -10,9 +10,9 @@ import socket
 import subprocess
 import time
 
-from pacbench.followups import save
+from pacbench.evidence_store import save
 from pacbench.gateway_client import validate_route
-from pacbench.reme_memos_setup import PINS
+from pacbench.providers.reme import PINS
 from provider_adapters.reme_memos_documents import request
 
 REPO = Path(__file__).resolve().parents[1]
@@ -50,8 +50,6 @@ def start(root, env, model, base, key):
     receipts = root / "reme-native-resource-results"
     child = {**os.environ, **env, **plan_config(root, model, base, key)}
     child["PYTHONPATH"] = str(REPO) + os.pathsep + child.get("PYTHONPATH", "")
-    from pacbench.openrouter_direct import runtime_environment
-    runtime_environment(child)
     for name in ("DASHSCOPE_API_KEY", "ANTHROPIC_API_KEY", "CODEX_API_KEY", "CLAUDE_CODE_API_KEY"):
         child.pop(name, None)
     command = [str(python), "-m", "provider_adapters.reme_service", "--workspace", str(workspace),

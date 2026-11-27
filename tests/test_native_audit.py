@@ -7,7 +7,8 @@ from pathlib import Path
 import pytest
 
 from pacbench.context_isolation import actual_context, workspace_for
-from pacbench.document_ingestion import VERSION, prepare_sources, record_recall_isolation,processing_at
+from pacbench.workflows.source_plan import VERSION, processing_at
+from pacbench.workflows.delivery import prepare_sources, record_recall_isolation
 from pacbench.corpus.sources import write_bundle
 from pacbench.native_audit import audit
 from pacbench.source_policy import SOURCE_ARGUMENT_RULES
@@ -203,7 +204,7 @@ def test_sender_or_thread_only_exposure_change_cannot_pass(trace,field,value):
 @pytest.mark.parametrize('compact',[False,True])
 def test_checkpoint_audit_keeps_native_conversation_and_source_state_independent(trace,compact):
     from pacbench.document_audit import audit_ingestion
-    from pacbench.document_ingestion import source_state
+    from pacbench.workflows.source_plan import source_state
     from pacbench.corpus.sources import load_bundle,messages_for
     root,arm=trace
     summary=json.loads((root/'summary.json').read_text())

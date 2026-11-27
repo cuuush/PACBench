@@ -7,8 +7,7 @@ import pytest
 from pacbench.judging.format_review import (VERSION, audit_review, complete_core,
                                          create_review, review_response)
 from pacbench.model_calls import ModelOutput
-from pacbench.semantic_grade import (Claim, DATE_SCOPED_JUDGE_PROTOCOL,
-    DIAGNOSTIC_VERSION, grade_native_semantic, grade_semantic, judge_prompt)
+from pacbench.judging.grade import Claim, DATE_SCOPED_JUDGE_PROTOCOL, DIAGNOSTIC_VERSION, grade_native_semantic, grade_semantic, judge_prompt
 
 
 CLAIMS = (Claim('day', 'Dinner is Saturday October 24.', ('source-1',)),)
@@ -222,7 +221,7 @@ def test_review_rejects_unsafe_destination_and_symlinks(tmp_path):
 ])
 def test_both_actual_month_failure_receipts_recover_only_existing_semantics(provider, checkpoint):
     from pacbench.evidence_store import read_json
-    from pacbench.judging.rejudge import _args
+    from pacbench.judging.overlays import _args
     root = Path(__file__).parents[1] / 'runs/pizza-month-local-20261105/repeat-1'
     directory = root / provider / 'turns' / checkpoint / 'judgment-attempts'
     for number in (1, 2):

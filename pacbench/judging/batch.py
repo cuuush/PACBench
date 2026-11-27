@@ -1,13 +1,22 @@
 """Offline paired shadow judging from a read-only, SHA-pinned Week answer export."""
 import argparse
-from dataclasses import asdict
 import hashlib
 import json
+import sys
+from dataclasses import asdict
+from importlib import import_module
+from importlib.util import find_spec
 from itertools import zip_longest
 from pathlib import Path
-import sys
 
-from .artifacts import file_sha, new_private_file
+if __package__:
+    from pacbench.evidence_store import file_sha, new_private_file
+else:
+    # The direct-script export can run against a historical reader on PYTHONPATH.
+    # Use this script's artifact writer regardless of the reader's package layout.
+    from runpy import run_path
+    artifacts = run_path(str(Path(__file__).resolve().parents[1] / 'evidence_store.py'))
+    file_sha, new_private_file = artifacts['file_sha'], artifacts['new_private_file']
 
 REVIEWED_READER_PAIRS = (
     (
@@ -29,13 +38,40 @@ REVIEWED_READER_PAIRS = (
 )
 
 
+# The split reader reproduces the original sealed Week export byte for byte.
+# Keep its dependencies pinned independently of the historical two-file readers.
+REFACTORED_READER = {
+    'pacbench.judging.overlays': '314b8f5709524ca366b58c13f83b2135158cc8ccf0754b051b92161139f73fbf',
+    'pacbench.judging.retained_week': '7c1818ccd5b36b314ccdd4918267c19591c57d7acbfd3483e1e9b516bbb0a237',
+    'pacbench.judging.retained_scope': '22185f8e846a6f6920c4d84b34cc00b56321f570990a7d2b7f108a88d1ae3dd0',
+    'pacbench.workflows.turn_evidence': '7bc1dd77e4042026d5f5eb4e8f9aea5d8004444b5c6ac229406b5f68c189eeed',
+    'pacbench.workflows.runner': 'e55f165b2ddfb0afa550c271e943eba522098cecd66bf391d331b1e8d16faa79',
+    'pacbench.workflows.progress': 'd8485d3cd2f089b9d6332c82d6b19fea32694b5e35d81966ef2383cf078cde96',
+    'pacbench.workflows.source_plan': '6d57f056819f56b04e65ca393250bef1dd71b1c9e77bf97db9b5b288485fdcd9',
+    'pacbench.providers.memcal.source': '8e3d81ca7764976a5858862c0901673f26e8ec532702e02d82361be12e7f0751',
+    'pacbench.providers.honcho_evidence': '2deb5dfba7a161c5846936bf05a78f5cee17ba8112ca8741ba9c36ebfbaf5f00',
+    'pacbench.corpus.r2': '549c23b3bb37948bb0759d7d105863d1d8bdfeb6a50c03ccb9c4be40996a8a2c',
+    'pacbench.evidence_store': 'e55ad42bf7dcdc6b73a81088fe759886b87288c75563d7411904bcaff3ae379b',
+}
+
+
+def reviewed_reader():
+    if not __package__ and find_spec('pacbench.cohort_regrade') is not None:
+        reader = import_module('pacbench.cohort_regrade')
+        hashes = (file_sha(Path(reader.__file__)), file_sha(Path(reader.retained.__file__)))
+        reviewed = hashes in REVIEWED_READER_PAIRS
+    else:
+        from pacbench.judging import overlays as reader
+        reviewed = all(file_sha(Path(import_module(name).__file__)) == expected
+                       for name, expected in REFACTORED_READER.items())
+    if not reviewed:
+        raise ValueError('retained reader differs from reviewed implementation')
+    return reader
+
+
 def export_retained(args):
     """Export through an exact reviewed retained reader without a transport."""
-    from pacbench import cohort_regrade as reader
-
-    actual = (file_sha(Path(reader.__file__)), file_sha(Path(reader.retained.__file__)))
-    if actual not in REVIEWED_READER_PAIRS:
-        raise ValueError('retained reader differs from reviewed implementation')
+    reader = reviewed_reader()
     entries, sha = reader.discover(args.manifest)
     if sha != args.sha256:
         raise ValueError('cohort manifest digest differs')
@@ -79,11 +115,13 @@ def export_retained(args):
 
 
 def prepare(export, expected_sha, layout, *, candidate=None):
+    from types import SimpleNamespace
+
+    from pacbench.judging.paired import Week
+    from pacbench.workflows.progress import workflow_fingerprint as schedule_fingerprint
+
     from .format_review import DECODER
     from .paired import canonical, fingerprint, nonblank
-    from pacbench.workflows.stream import fingerprint as schedule_fingerprint
-    from types import SimpleNamespace
-    from .week import Week
 
     week = Week() if candidate is None else Week(candidate=candidate)
     sessions, logical_bindings, corrections, pairs = {}, {}, {}, []
@@ -167,10 +205,10 @@ def prepare(export, expected_sha, layout, *, candidate=None):
 
 
 def batch(args):
+    from pacbench.judging.paired import SPAN_PROTOCOL as span_protocol
+
     from .format_review import DECODER
     from .paired import BASELINE, PROTOCOL, fields, fingerprint, interpret
-
-    from .spans import PROTOCOL as span_protocol
     candidate = getattr(args, 'candidate', None) or PROTOCOL
     if candidate not in (PROTOCOL, span_protocol):
         raise ValueError('Unknown versioned candidate')

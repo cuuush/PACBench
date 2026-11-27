@@ -3,8 +3,8 @@ from __future__ import annotations
 
 import fcntl
 import hashlib
-import math
 import json
+import math
 import os
 import subprocess
 import time
@@ -20,8 +20,9 @@ class GatewayLifecycleError(RuntimeError):
 
 def require_simulated_clock_ready(root: Path):
     """Reject legacy or unverified process clocks before any provider clock step."""
-    from .provider_clock import LIBRARY, LIBRARY_SHA256
     from provider_adapters.honcho_clock import load
+
+    from .provider_clock import LIBRARY, LIBRARY_SHA256
     try:
         load(root)  # Current protocol only; historical receipts remain readable but cannot resume.
         if hashlib.sha256(LIBRARY.read_bytes()).hexdigest() != LIBRARY_SHA256:
@@ -110,9 +111,9 @@ def _control_ready(home: Path, pid: int, python: Path, env: dict, timeout: float
     try:
         if env.get('PACBENCH_PYTHON_CLOCK_FILE'):
             if env.get('PACBENCH_REUSE_CLOCK_STATE'):
-                from .checkpoint_clock import probe
+                from pacbench.provider_clock import probe
                 return probe(home,python,env,'gateway-control-probe',code,timeout=timeout,args=(home,pid)).returncode==0
-            from .gateway_python_clock import probe
+            from pacbench.provider_clock import probe_gateway_clock as probe
             result,_=probe(home,python,env,'gateway-control-probe',code,timeout=timeout,args=(home,pid))
             return result.returncode==0
         result = subprocess.run([str(python), '-I', '-c', code, str(home), str(pid)],
@@ -127,9 +128,11 @@ def _gateway_marker_time(home: Path, python: Path, env: dict) -> datetime:
     """Read wall time in a no-network child with the gateway's exact clock environment."""
     if env.get('PACBENCH_PYTHON_CLOCK_FILE'):
         if env.get('PACBENCH_REUSE_CLOCK_STATE'):
-            from .checkpoint_clock import marker_time
+            from pacbench.provider_clock import (
+                checkpoint_clock_marker_time as marker_time,
+            )
             return marker_time(home,python,env)
-        from .gateway_python_clock import marker_time
+        from pacbench.provider_clock import marker_time
         return marker_time(home,python,env)
     faketime_keys = {key for key in env if key.startswith('FAKETIME_') or key == 'FAKETIME'}
     if not env.get('LD_PRELOAD') and not faketime_keys:
@@ -183,7 +186,7 @@ def turn_gateway(home: Path, python: Path, env: dict, *, cwd: Path, startup_time
                  runtime_module: str = 'hermes_cli.main'):
     """Start, verify and gracefully stop a private native gateway; refuse uncertain ownership."""
     home = home.resolve()
-    if runtime_module not in {'hermes_cli.main','pacbench.gateway.reuse_runtime','pacbench.gateway.memos_reuse_runtime','pacbench.gateway.hindsight_reuse_runtime','pacbench.gateway.supermemory_reuse_runtime','pacbench.gateway.honcho_reuse_runtime','pacbench.gateway.cognee_reuse_runtime'}:
+    if runtime_module not in {'hermes_cli.main', 'pacbench.gateway.observer'}:
         raise GatewayLifecycleError('Unknown gateway entry point')
     if not home.is_dir() or os.name != 'posix' or not Path('/proc/self/stat').exists():
         raise GatewayLifecycleError('A private existing home and Linux process identities are required')
@@ -193,7 +196,7 @@ def turn_gateway(home: Path, python: Path, env: dict, *, cwd: Path, startup_time
     if persistent_clock:
         gateway_env={**env,'PACBENCH_PYTHON_CLOCK_ROLE':'hermes-gateway'}
     elif env.get('PACBENCH_PYTHON_CLOCK_FILE'):
-        from .gateway_python_clock import environment
+        from pacbench.provider_clock import gateway_clock_environment as environment
         env['PACBENCH_PYTHON_CLOCK_NONCE']=uuid.uuid4().hex
         offset=Path(env['PACBENCH_PYTHON_CLOCK_FILE']).read_bytes()
         env['PACBENCH_CLOCK_OFFSET_SHA256']=hashlib.sha256(offset).hexdigest()
@@ -238,12 +241,12 @@ def turn_gateway(home: Path, python: Path, env: dict, *, cwd: Path, startup_time
             if not ready:
                 raise GatewayLifecycleError('Run-owned gateway did not become ready')
             if persistent_clock:
-                from .checkpoint_clock import adoption
+                from pacbench.provider_clock import adoption
                 witness.update(version='checkpoint-reuse-owned-gateway-v1',
                     process_adoption=adoption(home,gateway_env,proc.pid),
                     clock_scope='isolated Hermes observation clock; canonical provider clock unchanged')
             elif env.get('PACBENCH_PYTHON_CLOCK_FILE'):
-                from .gateway_python_clock import adoption
+                from pacbench.provider_clock import gateway_clock_adoption as adoption
                 witness['turn_nonce']=env['PACBENCH_PYTHON_CLOCK_NONCE']
                 witness['clock_offset']=offset.decode('ascii')
                 witness['offset_sha256']=env['PACBENCH_CLOCK_OFFSET_SHA256']
@@ -261,7 +264,7 @@ def turn_gateway(home: Path, python: Path, env: dict, *, cwd: Path, startup_time
                     try:
                         _stop(home, proc, python=python, env=gateway_env, timeout=shutdown_timeout)
                     except GatewayLifecycleError:
-                        if runtime_module=='pacbench.gateway.reuse_runtime' and proc.poll() is None:
+                        if runtime_module=='pacbench.gateway.observer' and proc.poll() is None:
                             # An uncertain persistent owner cannot outlive its caller.
                             # Kill only the still identity-verified directly owned PID;
                             # retain native files and mark forced shutdown, never clean.
@@ -284,3 +287,95 @@ def turn_gateway(home: Path, python: Path, env: dict, *, cwd: Path, startup_time
                 directory=home.parent/'gateway-lifecycles';directory.mkdir(exist_ok=True)
                 receipt=directory/(env.get('PACBENCH_PYTHON_CLOCK_NONCE') or uuid.uuid4().hex)
                 receipt.with_suffix('.json').write_text(json.dumps(witness,sort_keys=True)+'\n')
+
+
+PRECLOSE_CONDITION='native-write-quiescence-before-close-v1'
+
+
+PRECLOSE_ENV='PACBENCH_NATIVE_PRECLOSE'
+
+
+TIMEOUT=60
+
+
+def qualified(sample,*,session,nonce,after_ns,prompt_hash):
+ if sample.get('application_clock',{}).get('nonce')!=nonce:return False
+ if sample.get('observed_monotonic_ns',0)<=after_ns or sample.get('native_failures') or sample.get('native_release_threads') or sample.get('native_children'):
+  return False
+ rows=sample.get('sessions',[]);target=[r for r in rows if r.get('session_id')==session and
+  any(t.get('nonce')==nonce and t.get('prompt_sha256')==prompt_hash for t in r.get('sync_dispatches',[]))]
+ if len(target)!=1 or any(not r.get('clean') for r in rows if r not in target):return False
+ row=target[0]
+ if row.get('shutdown_returned') or row.get('pending_futures')!=0:return False
+ tasks=row.get('submitted_tasks',[])
+ writes=[t for t in tasks if t.get('kind')=='write' and t.get('nonce')==nonce]
+ if not writes or any(t.get('state')!='returned' for t in tasks if t.get('nonce')==nonce):return False
+ dispatch=[t for t in row.get('sync_dispatches',[]) if t.get('nonce')==nonce and t.get('prompt_sha256')==prompt_hash]
+ if len(dispatch)!=1 or dispatch[0].get('state')!='returned':return False
+ providers=row.get('providers',[]);reme=[p for p in providers if p.get('name')=='reme']
+ return (len(reme)==1 and reme[0].get('unfinished_writes')==0 and reme[0].get('write_enabled') is True
+  and reme[0].get('shutdown_started') is False and reme[0].get('backend_attached') is True
+  and not reme[0].get('deferred_backend_close') and all(p.get('name') in {'reme','builtin'} for p in providers))
+
+
+LEASE='''
+import asyncio,sys,json,os
+from pathlib import Path
+from hermes_cli.gateway_client import connect_gateway
+from pacbench.gateway_reuse import atomic
+async def main():
+ async with connect_gateway() as client:
+  sub=await client.rpc('session.resume',session_id=sys.argv[1])
+  atomic(Path(sys.argv[2]),{'session_id':sys.argv[1],'pid':os.getpid(),'subscription_id':sub['subscription_id']})
+  command=await asyncio.to_thread(sys.stdin.readline)
+  if command.strip()!='close':raise RuntimeError('Missing explicit close command')
+  await client.rpc('session.detach',session_id=sys.argv[1],subscription_id=sub['subscription_id'],end_reason='cli_close')
+asyncio.run(main())
+'''
+
+
+def drain_then_close(owner,turn,folder,clock_evidence):
+ import hashlib
+
+ from pacbench.gateway_reuse import atomic
+ nonce=(clock_evidence or {}).get('descriptor',{}).get('nonce')
+ if not nonce:raise GatewayLifecycleError('Pre-close requires verified request-bound terminal capture')
+ # Subscription prevents stock orphan retirement during the bounded wait.
+ # The helper sends no message and invokes the original close exactly once.
+ ready=folder/'viewer-lease.json';log=folder/'viewer-lease.stderr'
+ with log.open('w') as errors:
+  process=subprocess.Popen([str(owner.python),'-c',LEASE,turn.session_id,str(ready)],env=owner.env,cwd=owner.cwd,
+   stdin=subprocess.PIPE,stdout=subprocess.DEVNULL,stderr=errors,text=True)
+  started=time.monotonic();after_ns=time.monotonic_ns();last=None;passed=False
+  lease_timeout=15 if owner.env.get('PACBENCH_R2_LIVE_SCOPE') else 5
+  try:
+   while not ready.exists():
+    if process.poll() is not None or time.monotonic()-started>lease_timeout:raise GatewayLifecycleError('Native pre-close viewer lease unavailable')
+    time.sleep(.02)
+   lease=json.loads(ready.read_text())
+   if lease.get('session_id')!=turn.session_id or lease.get('pid')!=process.pid:raise GatewayLifecycleError('Native viewer lease identity differs')
+   after_ns=time.monotonic_ns()
+   while True:
+    _identity(owner.home,owner.witness['pid'])
+    last=json.loads((owner.home/'reuse-observer.json').read_text())
+    if any(last.get(k)!=v for k,v in {'protocol':'fixed-checkpoint-gateway-reuse-v1','pid':owner.witness['pid'],'start_time':owner.witness['start_time'],
+       'observer_sha256':owner.pins['reuse_observer_sha256']}.items()):raise GatewayLifecycleError('Pre-close observer identity differs')
+    if last.get('native_failures') or last.get('application_clock',{}).get('nonce')!=nonce:
+     raise GatewayLifecycleError('Native pre-close failure or changed clock')
+    if qualified(last,session=turn.session_id,nonce=nonce,after_ns=after_ns,prompt_hash=hashlib.sha256(turn.prompt.encode()).hexdigest()):
+     passed=True;break
+    if process.poll() is not None or time.monotonic()-started>TIMEOUT:raise GatewayLifecycleError('Native pre-close quiescence unverified')
+    time.sleep(.02)
+  finally:
+   proof={'condition':PRECLOSE_CONDITION,'state':'quiescent' if passed else 'blocked','session_id':turn.session_id,
+    'nonce':nonce,'terminal_verified_before_ns':after_ns,'preclose_wait_s':time.monotonic()-started,
+    'wait_bound_s':TIMEOUT,'observation':last,'viewer_lease':str(ready),'native_shutdown_settings_changed':False}
+   atomic(folder/'preclose.json',proof)
+   if process.poll() is None:
+    try:
+     process.stdin.write('close\n');process.stdin.flush();process.stdin.close();process.wait(timeout=owner.cleanup_timeout)
+    except BaseException:
+     process.terminate();process.wait(timeout=5)
+     if passed:raise GatewayLifecycleError('Native close under viewer lease did not return') from None
+   if passed and process.returncode!=0:raise GatewayLifecycleError('Native viewer close failed')
+ return proof

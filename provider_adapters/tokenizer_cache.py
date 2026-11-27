@@ -3,7 +3,7 @@ import hashlib
 import shutil
 from pathlib import Path
 
-from pacbench.followups import save
+from pacbench.evidence_store import save
 
 HASHES = {
     'fb374d419588a4632f3f557e76b4b70aebbca790':'446a9538cb6c348e3516120d7c08b09f57c36495e2acfffe59a5bf8b0cfb1a2d',

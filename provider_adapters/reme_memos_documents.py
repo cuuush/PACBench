@@ -13,7 +13,7 @@ import json
 from pathlib import Path
 from urllib.request import HTTPRedirectHandler, Request, build_opener
 
-from pacbench.reme_memos_setup import local_endpoint
+from pacbench.gateway_client import local_endpoint
 from .memos_semantic_ready import RAW, SEMANTIC, CONDITIONS
 
 

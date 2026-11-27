@@ -1,1 +1,0 @@
-"""Honcho protocol implementations."""

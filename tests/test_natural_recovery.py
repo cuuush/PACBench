@@ -3,8 +3,8 @@ import json
 import sqlite3
 from pathlib import Path
 import pytest
-from pacbench.followups import natural_eligibility
-from pacbench.semantic_grade import Claim, grade_semantic
+from pacbench.judging.recovery import natural_eligibility
+from pacbench.judging.grade import Claim, grade_semantic
 from pacbench.usage import snapshot, window
 from pacbench.gateway_client import validate_route
 

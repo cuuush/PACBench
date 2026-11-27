@@ -6,7 +6,7 @@ from unittest.mock import Mock
 import pytest
 
 from pacbench import codex_model_calls as c
-from pacbench.stop import OperatorStop
+from pacbench.process_cleanup import OperatorStop
 
 REAL_SERVER = c._AppServer
 REAL_VERIFY_SCHEMA = c._verify_schema

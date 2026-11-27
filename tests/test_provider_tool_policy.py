@@ -130,7 +130,7 @@ def test_registry_guard_blocks_before_registry_or_hooks(monkeypatch):
 
 def test_retained_memory_policy_excludes_every_memcal_source_reader():
     from pacbench.source_policy import policy_record
-    from pacbench.followups import tool_category, SOURCE_CATEGORIES
+    from pacbench.judging.recovery import tool_category, SOURCE_CATEGORIES
     tools=['memcal_open','memcal_search_wiki','memcal_activity','memcal_conversation',
            'memcal_search_archive','memcal_open_source']
     policy=policy_record('memcal',tools,version='retained-memory-only-v2')
@@ -163,8 +163,8 @@ def test_mixed_document_reader_is_excluded_from_grant():
 ])
 def test_native_source_access_is_permitted_and_penalized_without_exposing_os_tools(monkeypatch,tmp_path,provider,native,source,arguments):
     from pacbench.source_policy import policy_record
-    from pacbench.followups import tool_profile,recovery_score
-    from pacbench.semantic_grade import Grade,GradedClaim
+    from pacbench.judging.recovery import tool_profile, recovery_score
+    from pacbench.judging.grade import Grade, GradedClaim
     grant=policy_record(provider,native)
     assert grant['blocked_source_tools']==[]
     assert grant['source_fallback_penalty']['retention_weight']==0
@@ -197,8 +197,8 @@ def test_native_source_access_is_permitted_and_penalized_without_exposing_os_too
 
 
 def test_normal_memcal_event_open_keeps_retention_credit_with_source_access():
-    from pacbench.followups import tool_profile,recovery_score
-    from pacbench.semantic_grade import Grade,GradedClaim
+    from pacbench.judging.recovery import tool_profile, recovery_score
+    from pacbench.judging.grade import Grade, GradedClaim
     turn=TurnResult(prompt='',at='',answer='The correct fact',tool_calls=[{'name':'memcal_open','input':{'ref':'E1'}}],
         tool_results=[],policy_blocks=0,latency_s=0,returncode=0,stderr_tail='',raw_events=1)
     grade=Grade(checkpoint='fact',correct=1,slots=[GradedClaim('fact','correct','Answered correctly')])
@@ -283,7 +283,7 @@ def test_actual_mixed_reader_guards_before_native_execution(monkeypatch,argument
 
 def test_honcho_original_messages_are_excluded_but_native_reasoning_remains():
     from pacbench.source_policy import retained_tools
-    from pacbench.followups import tool_category
+    from pacbench.judging.recovery import tool_category
     assert retained_tools(['honcho_search','honcho_context','honcho_profile',
                            'honcho_reasoning','honcho_conclude']) == (
         ['honcho_conclude','honcho_profile','honcho_reasoning'],

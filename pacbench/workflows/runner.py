@@ -5,21 +5,23 @@ import port; its turn port receives exactly the user text, clock and opaque chat
 A fresh chat never replaces the continuing account. An isolated control always
 requires a new source-only account. No history is pasted into user prompts.
 """
-from dataclasses import dataclass
-from itertools import groupby
 import json
 import os
 import time
+from dataclasses import dataclass
+from itertools import groupby
 from pathlib import Path
 from typing import Protocol
 
-from ..provider_versions import MEMCAL_WEEK_VERSION
-from pacbench.providers.memcal.contract import verify_captured_driver
-from ..semantic_grade import (CONTEXT_JUDGE_PROTOCOL, UnusableJudgeResponse,
-                             audit_native_judge_attempts, grade_native_semantic)
+from pacbench.judging.grade import (
+    CONTEXT_JUDGE_PROTOCOL,
+    audit_native_judge_attempts,
+    grade_native_semantic,
+)
+from pacbench.providers import eligibility, validate_native_deployment
+
 from .spec import Document, instant
-from .recording import retry_activity, tool_activity, tool_text_boundary
-from .tracks import eligibility, validate_native_deployment
+from .turn_evidence import captured_turn, inspect_source_cutoff
 
 
 @dataclass(frozen=True)
@@ -55,172 +57,6 @@ class BoundAccount(Protocol):
     def ask(self, prompt: str, *, at: str, session_id: str | None) -> dict: ...
     def end_chat(self, session_id: str) -> dict: ...
     def close(self): ...
-
-
-def inspect_source_cutoff(surface, documents, prefix, public_prompts):
-    """Catch verbatim future source bodies in actual inputs; inventories remain the primary gate."""
-    ready = set(prefix)
-    allowed = '\n'.join([d.text for d in documents if d.filename in ready] + public_prompts)
-    # Exclude short/common phrases and already public quotations. Scan decoded
-    # contents, including automatic recall and serialized multi-line tool results.
-    observed = []
-    for request in surface['model_requests']:
-        for row in request['messages']:
-            if row['role'] in ('system', 'user', 'tool'):
-                content = row.get('content')
-                if isinstance(content, str):
-                    observed.append(content)
-    if surface['prefetch']:
-        observed.append(surface['prefetch'])
-    for doc in documents:
-        if doc.filename in ready:
-            continue
-        for body in doc.bodies:
-            if len(body) >= 40 and body not in allowed:
-                escaped = json.dumps(body, ensure_ascii=False)[1:-1]
-                if any(body in item or escaped in item for item in observed):
-                    raise ValueError('answer input contains a verbatim unavailable source body')
-
-
-def _tool_call_contract(call, *, stored=False):
-    # Hermes persists Responses metadata next to the Chat Completions fields.
-    # Only its local metadata may be absent from the request sent to the model.
-    contract = dict(call)
-    if stored:
-        if contract.pop('call_id', contract['id']) != contract['id']:
-            raise ValueError('native tool call ID aliases disagree')
-        contract.pop('response_item_id', None)
-    function = dict(contract['function'])
-    arguments = json.loads(function['arguments'])
-    function['arguments'] = json.dumps(arguments, ensure_ascii=False, sort_keys=True, allow_nan=False)
-    return {**contract, 'function':function}
-
-
-def _wire_tool_text(saved, sent):
-    return (isinstance(saved, str) and isinstance(sent, str)
-            and saved.rstrip('\r\n') == sent and saved != sent and bool(sent))
-
-
-def _saved_calls(message):
-    calls = message.get('tool_calls') or []
-    return json.loads(calls) if isinstance(calls, str) else calls
-
-
-def _tool_rounds(history, last_user):
-    """Find the requests that could have produced this completed native turn."""
-    rounds, calls, outstanding = [], [], set()
-    for index, row in enumerate(history[last_user + 1:-1], last_user + 1):
-        if row['role'] == 'assistant':
-            group = _saved_calls(row)
-            if outstanding or not group:
-                raise ValueError('native tool group is incomplete or out of order')
-            rounds.append(index)
-            for call in group:
-                fn = call['function']
-                calls.append((call['id'], fn['name'], json.loads(fn['arguments'])))
-                outstanding.add(call['id'])
-        else:
-            call_id = row.get('tool_call_id')
-            if call_id not in outstanding:
-                raise ValueError('native tool group contains a result from another round')
-            outstanding.remove(call_id)
-    if outstanding or _saved_calls(history[-1]):
-        raise ValueError('native tool group did not finish before the final answer')
-    rounds.append(len(history) - 1)
-    return rounds, calls
-
-
-def captured_turn(surface, turn, prior, condition, expected_prefix):
-    history = surface['history']
-    previous = prior['history'] if prior else []
-    barrier = surface['write_barrier']
-    if (not isinstance(barrier, dict) or barrier.get('session_id') != surface['session_id']
-            or barrier.get('pending_writes') != 0 or not barrier.get('readback')):
-        raise ValueError('native turn writes are unverified')
-    if (not surface['session_id'] or not surface['gateway_identity']
-            or instant(surface['question_at']) != instant(turn.at)
-            or tuple(sorted(surface['offered_tools'])) != tuple(sorted(condition.tool_names))):
-        raise ValueError('missing native session, clock, write barrier or tool surface')
-    if prior and ((surface['session_id'], surface['gateway_identity']) !=
-                  (prior['session_id'], prior['gateway_identity'])):
-        raise ValueError('conversation changed session or restarted its gateway')
-    if history[:len(previous)] != previous:
-        raise ValueError('native conversation prefix changed')
-    delta = history[len(previous):]
-    if (len(delta) < 2 or delta[0]['role'] != 'user' or delta[0]['content'] != turn.prompt
-            or any(r['role'] not in ('assistant', 'tool') for r in delta[1:])
-            or delta[-1]['role'] != 'assistant' or not surface['answer']
-            or delta[-1]['content'] != surface['answer']):
-        raise ValueError('unexpected native conversation order or final answer')
-    if (surface['source_files'] != expected_prefix or
-            any(c['name'] not in condition.tool_names for c in surface['tool_calls'])):
-        raise ValueError('unexpected sources or tools')
-    # Unknown automatic recall is distinct from an observed empty hook.
-    if surface['prefetch'] is not None and not isinstance(surface['prefetch'], str):
-        raise ValueError('invalid prefetch trace')
-    if not isinstance(surface['model_requests'], list) or not surface['model_requests']:
-        raise ValueError('missing actual answer input evidence')
-    # Each request in a tool loop sees a prefix of the native conversation.
-    expected = history[:-1]
-    last_user = max(i for i, row in enumerate(expected) if row['role'] == 'user')
-    round_prefixes, calls = _tool_rounds(history, last_user)
-    captured_prefixes = []
-    wire_tool_newline_removed = set()
-    for request in surface['model_requests']:
-        if condition.provider == 'memcal' and condition.version == MEMCAL_WEEK_VERSION:
-            verify_captured_driver(request)
-        if (not request.get('request_id') or not request.get('messages') or
-                sorted(request['tools']) != sorted(condition.tool_names) or
-                request['model'] != condition.model):
-            raise ValueError('incomplete model request or unexpected model/tool surface')
-        wire = [row for row in request['messages'] if row['role'] != 'system']
-        if not captured_prefixes or captured_prefixes[-1] != len(wire):
-            captured_prefixes.append(len(wire))
-        if not last_user < len(wire) <= len(expected):
-            raise ValueError('wire request omitted user context or added messages')
-        for index, (saved, sent) in enumerate(zip(expected, wire)):
-            role = saved['role']
-            if sent['role'] != role:
-                raise ValueError('wire conversation roles or tool grouping differ')
-            content = saved.get('api_content') or saved.get('content') or ''
-            if role == 'user':
-                # Hermes may discard stale prefetch from a previous user turn.
-                if sent.get('content') != content and not (
-                        index < last_user and sent.get('content') == saved['content']):
-                    raise ValueError('actual driver input lost or changed user context')
-            elif content != (sent.get('content') or ''):
-                if role != 'tool' or not _wire_tool_text(content, sent.get('content')):
-                    raise ValueError('wire history omitted or altered an answer or tool result')
-                wire_tool_newline_removed.add(saved['tool_call_id'])
-            if role == 'tool' and saved.get('tool_call_id') != sent.get('tool_call_id'):
-                raise ValueError('wire tool response changed call ID')
-            if ([_tool_call_contract(call, stored=True) for call in _saved_calls(saved)] !=
-                    [_tool_call_contract(call) for call in (sent.get('tool_calls') or [])]):
-                raise ValueError('wire assistant tool calls differ')
-    if len(wire) != len(expected):
-        raise ValueError('final wire request omitted native history')
-    if captured_prefixes != round_prefixes:
-        raise ValueError('model requests do not follow the complete native tool groups')
-    streamed = [(c['tool_call_id'], c['name'], c['input']) for c in surface['tool_calls']]
-    if calls != streamed:
-        raise ValueError('stream tool identity or arguments differ from native history')
-    tools = [r for r in delta if r['role'] == 'tool']
-    if [(r['tool_call_id'], r['tool_name'], r.get('api_content') or r['content']) for r in tools] != [
-            (r['tool_call_id'], r['tool'], r['text']) for r in surface['tool_results']]:
-        raise ValueError('tool result capture differs from answer-visible text')
-    comparisons = {}
-    tool_wire = {r['tool_call_id']: r['content'] for r in wire[last_user + 1:] if r['role'] == 'tool'}
-    for result in surface['tool_results']:
-        ident = result['tool_call_id']
-        witness = surface.get('tool_boundaries', {}).get(ident, {})
-        comparisons[ident] = tool_text_boundary(witness, tool_wire[ident])
-    try:
-        lineage = retry_activity(surface['attempts'])
-    except (KeyError, ValueError, TypeError) as exc:
-        lineage = {'state':'invalid', 'reason':str(exc)}
-    return {**tool_activity(surface['tool_calls'], surface['tool_results']),
-            'tool_text_boundaries':comparisons, 'attempt_lineage':lineage,
-            'wire_tool_trailing_newline_removed':sorted(wire_tool_newline_removed)}
 
 
 class Journal:
@@ -362,7 +198,7 @@ def run_workflow(condition, account: BoundAccount, documents, turns, journal, *,
     if {doc.channel for doc in documents} != set(condition.channels) and not combined_documents:
         if combined_documents is not None:
             raise ValueError('source corpus does not match declared channel scope')
-        from pacbench.campaigns.pizza_week import verify_legacy_combined_schedule
+        from pacbench.corpus.r2 import verify_legacy_combined_schedule
 
         verify_legacy_combined_schedule(condition, documents, turns)
     if turns and set(condition.channels) != set(question_channels):
@@ -522,7 +358,7 @@ def grade_turn(turn, surface, generate, directory, *, require_receipt=False):
 def run_current_week(condition, account, directory, *, judge=None, canary=False, resume=False,
                      seven_daily_documents=False):
     """Compatibility entry point for the original Pizza Week scenario."""
-    from pacbench.campaigns.pizza_week import compile_pizza_week
+    from pacbench.corpus.r2 import compile_pizza_week
 
     plan = compile_pizza_week(condition.state, canary=canary, seven_daily_documents=seven_daily_documents)
     return run_compiled_workflow(plan, condition, account, directory, judge=judge, resume=resume)
@@ -532,38 +368,20 @@ def run_compiled_workflow(plan, condition, account, directory, *, judge=None, re
     """Execute a compiled scenario using the supplied account and declared channel scope."""
     if condition.state != plan.state or not set(condition.channels) <= set(plan.channels):
         raise ValueError('account state or source channels differ from the compiled workflow')
-    if plan.offline_only:
-        if account.evidence_kind != 'recording-fake' or resume:
-            raise ValueError('custom frozen workflows are offline conformance only')
-    else:
-        plan.authorize(plan, condition, account, directory, judge, resume)
-    docs = plan.documents_for(condition.channels)
-    turns = list(plan.turns) if set(condition.channels) == set(plan.channels) else []
-    all_source_documents = list(plan.all_documents)
-    fingerprint, source_basis, canary = plan.spec_sha256, plan.source_basis, plan.canary
-    spec, daily_manifest = plan.spec, plan.layout
-    if judge is not None and account.evidence_kind != 'native':
+    if account.evidence_kind != 'recording-fake' or resume:
+        raise ValueError('compiled workflows are offline conformance only; use pacbench run for a native run')
+    if judge is not None:
         raise ValueError('recording fakes do not receive benchmark grades')
+    if plan.layout is not None and condition.track != 'nightly-document':
+        raise ValueError('seven daily files require the continuing document condition')
     if condition.frontend.lower().startswith('stock hermes') and condition.gateway_patch.lower() != 'none':
         raise ValueError('patched Hermes cannot be declared stock')
-    if (not plan.offline_only and condition.provider == 'memcal' and condition.track == 'first-party-connector'
-            and condition.state == 'continuing-account' and turns):
-        from .stream import run_account_stream
-        return run_account_stream(condition, account, docs, turns, directory, spec_digest=fingerprint,
-                                  source_basis=source_basis, all_source_documents=all_source_documents,
-                                  judge=judge, canary=canary, resume=resume)
-    from pacbench.workflows import document_progress as workflow_document_progress
-    if (not plan.offline_only and condition.track == 'nightly-document' and condition.state == 'continuing-account'
-            and condition.provider in workflow_document_progress.PROVIDERS and turns):
-        return workflow_document_progress.run(condition, account, docs, turns, directory, spec,
-                                              fingerprint, source_basis, all_source_documents, judge, canary,
-                                              resume=resume, daily_manifest=daily_manifest)
-    if resume:
-        raise ValueError('This account route has no verified incremental resume')
-    return _run_journal_workflow(plan, condition, account, directory, docs, turns, judge)
+    docs = plan.documents_for(condition.channels)
+    turns = list(plan.turns) if set(condition.channels) == set(plan.channels) else []
+    return _run_journal_workflow(plan, condition, account, directory, docs, turns)
 
 
-def _run_journal_workflow(plan, condition, account, directory, docs, turns, judge):
+def _run_journal_workflow(plan, condition, account, directory, docs, turns):
     summary = {}
     for t in turns:
         row = summary.setdefault(t.measure, {'planned_turns':0,'planned_criteria':0,
@@ -576,7 +394,7 @@ def _run_journal_workflow(plan, condition, account, directory, docs, turns, judg
                           document_index_sha256=plan.layout['normalized_index_sha256'])
         schedule = [dict(id=turn.id, at=turn.at, chat=turn.session, measure=turn.measure) for turn in turns]
         spec_fields = {}
-        if plan.offline_only:
+        if plan.prepared:
             spec_fields['format'] = plan.spec['format']
             for row, turn in zip(schedule, turns, strict=True):
                 row['criteria'] = len(turn.claims)
@@ -585,26 +403,8 @@ def _run_journal_workflow(plan, condition, account, directory, docs, turns, judg
         snapshots = run_workflow(condition, account, docs, turns, journal, spec_digest=plan.spec_sha256,
                                  evidence_kind=account.evidence_kind, all_source_documents=plan.all_documents,
                                  question_channels=plan.channels, combined_documents=plan.layout is not None,
-                                 allow_simultaneous_questions=plan.offline_only)
-        for turn,surface in snapshots:
-            row = summary[turn.measure]
-            row['answered'] += 1
-            if judge is None or not turn.claims:
-                continue
-            journal.write('judge-started', question=turn.id, measure=turn.measure)
-            def observed_judge(prompt):
-                from ..canary_capability import digest
-                journal.write('judge-request', question=turn.id, prompt_sha256=digest(prompt))
-                return judge(prompt)
-            try:
-                grade = grade_turn(turn,surface,observed_judge,Path(directory)/'judgments', require_receipt=True)
-            except (UnusableJudgeResponse, UnverifiedJudgment) as exc:
-                row['judge_failures'] += 1
-                journal.write('ungraded',question=turn.id,measure=turn.measure,reason=type(exc).__name__)
-                continue
-            row['graded_criteria'] += len(grade.slots)
-            row['correct'] = (row['correct'] or 0) + grade.correct
-            journal.write('grade',question=turn.id,measure=turn.measure,judge=plan.spec['judge'],
-                          criteria=[vars(c) for c in grade.slots])
+                                 allow_simultaneous_questions=plan.prepared)
+        for turn, _ in snapshots:
+            summary[turn.measure]['answered'] += 1
         journal.write('completion',by_measure=summary,prompt_caching='unmeasured')
     return summary

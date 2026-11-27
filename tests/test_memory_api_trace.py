@@ -1,6 +1,6 @@
 import json
 import pytest
-from pacbench.api_input_trace import record_memory
+from pacbench.context_isolation import record_memory
 
 
 def test_native_payload_trace_is_private_run_bound_and_does_not_store_key(tmp_path,monkeypatch):

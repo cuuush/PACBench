@@ -3,8 +3,8 @@ from datetime import datetime,timedelta,timezone
 from pathlib import Path
 from types import SimpleNamespace
 import pytest
-from pacbench import checkpoint_clock as clock
-from pacbench.observation_adapters import checkpoint_plan
+from pacbench import provider_clock as clock
+from pacbench.corpus.r2 import checkpoint_plan
 
 
 @pytest.fixture
@@ -69,7 +69,7 @@ def test_provider_cannot_share_the_owned_observation_clock(staged):
 def test_direct_input_receipt_separates_process_and_question_identities(staged,monkeypatch):
     c,owner,d,env=staged
     path=owner.home.parent/'api-inputs.jsonl';monkeypatch.setenv('PACBENCH_API_INPUT_TRACE',str(path));monkeypatch.setenv('PACBENCH_PYTHON_CLOCK_ROLE','hermes-gateway')
-    from pacbench.api_input_trace import record
+    from pacbench.context_isolation import record_input as record
     record('test-driver',{'id':'exact-attempt','request':{'model':'openai/gpt-6-luna','messages':[{'role':'user','content':'exact question'}]}})
     row=json.loads(path.read_text());assert row['protocol']=='direct-hermes-api-input-v3'
     assert row['process_clock_nonce']==c.process_nonce and row['turn_nonce']==d['nonce'] and row['question_sha256']==d['question_sha256']

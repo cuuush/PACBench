@@ -225,8 +225,6 @@ def turn_env(at: str, home: Path,
     for key in ("HERMES_EPHEMERAL_SYSTEM_PROMPT", "HERMES_ENVIRONMENT_HINT",
                 "HERMES_IGNORE_RULES", "HERMES_DESKTOP_TERMINAL"):
         env.pop(key, None)
-    from .openrouter_direct import runtime_environment
-    runtime_environment(env)
     return env
 
 
@@ -242,13 +240,18 @@ def run_turn(prompt: str, *, at: str, home: Path, allowlist: str,
     clock_record = None
     clock_adoptions_before = set()
     env = turn_env(at, home, allowlist, extra_env)
-    from .clock_context import NATIVE
+    from pacbench.context_isolation import NATIVE_QUESTION as NATIVE
     if env.get('PACBENCH_CLOCK_CONTEXT_PROTOCOL', NATIVE) != NATIVE:
         raise ValueError('New execution requires native-question-v2; historical instruction conditions are audit-only')
     if (home.parent / 'provider-clock.json').exists():
         from .hermes_gateway import require_simulated_clock_ready
         require_simulated_clock_ready(home.parent)
-        from provider_adapters.honcho_clock import stage_turn, before_recovery, load, VERSION
+        from provider_adapters.honcho_clock import (
+            VERSION,
+            before_recovery,
+            load,
+            stage_turn,
+        )
         recovery = env.get('PACBENCH_CLOCK_RECOVERY') == '1'
         if recovery:
             at, env = before_recovery(home.parent, at, env)
@@ -274,7 +277,7 @@ def run_turn(prompt: str, *, at: str, home: Path, allowlist: str,
     provider_before = provider_trace_snapshot(env)
     context_trace = home.parent / 'context.jsonl'
     context_before = context_trace.read_bytes() if context_trace.exists() else b''
-    from .api_input_trace import rows as api_input_rows
+    from pacbench.context_isolation import input_rows as api_input_rows
     api_inputs_before=[r['request_id'] for r in api_input_rows(home.parent/'api-inputs.jsonl')]
     started = time.monotonic()
     gateway_witness = None
@@ -286,7 +289,7 @@ def run_turn(prompt: str, *, at: str, home: Path, allowlist: str,
             if remaining <= 0:
                 raise subprocess.TimeoutExpired(cmd, timeout_s)
             if env.get('PACBENCH_PYTHON_CLOCK_FILE'):
-                from .gateway_python_clock import run_cli
+                from pacbench.provider_clock import run_cli
                 proc=run_cli(cmd,home=home,python=ISOLATED_BIN.parent/'python',env=env,
                     cwd=workspace,timeout=remaining,witness=gateway_witness)
                 if clock_record and gateway_witness.get('question_accepted_at'):
@@ -296,7 +299,7 @@ def run_turn(prompt: str, *, at: str, home: Path, allowlist: str,
                             datetime.fromisoformat(requested_at).tzinfo).isoformat()
             else:
                 if env.get('PACBENCH_STOP_FILE'):
-                    from .stop import communicate_until_stop
+                    from pacbench.process_cleanup import communicate_until_stop
                     child=subprocess.Popen(cmd,stdout=subprocess.PIPE,stderr=subprocess.PIPE,text=True,env=env,cwd=str(workspace))
                     out,err=communicate_until_stop(child,timeout=remaining,env=env)
                     proc=subprocess.CompletedProcess(cmd,child.returncode,out,err)
@@ -321,7 +324,7 @@ def run_turn(prompt: str, *, at: str, home: Path, allowlist: str,
         result.session_started_at = session_started_at
         result.provider_clock = clock_record
         result.hermes_gateway = gateway_witness
-        from .turn_timings import measure
+        from pacbench.workflows.recording import measure_turn as measure
         result.lifecycle_timing=measure(result)
         result.stderr_tail = note
         result.context_isolation = actual_context(home, result.session_id, workspace, capture=True)
@@ -340,7 +343,7 @@ def run_turn(prompt: str, *, at: str, home: Path, allowlist: str,
     result.context_isolation = actual_context(home, result.session_id, workspace, capture=True)
     result.provider_clock = clock_record
     result.hermes_gateway = gateway_witness
-    from .turn_timings import measure
+    from pacbench.workflows.recording import measure_turn as measure
     result.lifecycle_timing=measure(result)
     capture_clock_adoption(result,home,workspace,clock_adoptions_before)
     if result.context_isolation['state'] != 'pass':
@@ -356,7 +359,7 @@ def run_turn(prompt: str, *, at: str, home: Path, allowlist: str,
 
 def capture_clock_adoption(turn, home, workspace, before):
     if turn.provider_clock and turn.provider_clock.get('version')=='honcho-wall-clock-v5':
-        from .gateway_python_clock import audit_witness
+        from pacbench.provider_clock import audit_witness
         try:
             if (turn.hermes_gateway or {}).get('question_accepted_at'):
                 turn.provider_clock['actual_start_at']=turn.hermes_gateway['question_accepted_at']
@@ -379,12 +382,13 @@ def capture_clock_adoption(turn, home, workspace, before):
 
 def capture_prefetch_provenance(turn,env):
     if env.get('PACBENCH_PREFETCH_PROVENANCE'):
-        from .prefetch_provenance import observe
+        from pacbench.source_policy import observe_prefetch as observe
         turn.prefetch_provenance=observe(json.loads(env['PACBENCH_PREFETCH_PROVENANCE']),turn.prefetch_context)
 
 
 def capture_clock_context(turn,home,env,before,context_before):
-    from .clock_context import NATIVE, delivery
+    from pacbench.context_isolation import NATIVE_QUESTION as NATIVE
+    from pacbench.context_isolation import delivery
     if env.get('PACBENCH_API_INPUT_TRACE') and env.get('PACBENCH_CLOCK_CONTEXT_PROTOCOL')==NATIVE:
         turn.clock_context=delivery(home.parent,turn,before=before,hook_before=len(context_before.splitlines()),protocol=NATIVE)
         if turn.clock_context['state']!='pass':turn.policy_blocks+=1
@@ -420,7 +424,7 @@ def provider_trace_snapshot(env: dict) -> dict:
     honcho=env.get('PACBENCH_HONCHO_TRACE_FILE')
     if honcho and Path(honcho).exists():records[honcho]=Path(honcho).read_bytes()
     if env.get('HINDSIGHT_MODE')=='local_external':
-        from .providers.hindsight.evidence import KEY,snapshot
+        from pacbench.providers.hindsight_evidence import KEY, snapshot
         records[KEY]=snapshot(env)
     return records
 
@@ -445,7 +449,7 @@ def honcho_tool_trace(data, turn):
 def capture_provider_traces(turn: TurnResult, env: dict, before: dict) -> None:
     """Observe native provider task journals, including prefetch, without changing tools."""
     for filename, content in provider_trace_snapshot(env).items():
-        from .providers.hindsight.evidence import KEY,capture
+        from pacbench.providers.hindsight_evidence import KEY, capture
         if filename==KEY:
             turn.provider_traces.extend(capture(env,before.get(KEY,{}),turn))
             continue

@@ -19,6 +19,10 @@ existing docs and run evidence in machine-readable artifacts.
 
 ## Paid execution
 
+The named campaign authorizations below apply to their original source
+revisions and private state. Fresh public runs use the budget supplied to
+`python -m pacbench run`, with a separate ledger for each output.
+
 - The latest revised r2 Pizza Week continuation explicitly uses observational-only
   accounting, superseding its older local dollar/hold admission rules below.
   Keep historical files read-only and new request/receipt events in the separate
@@ -68,7 +72,7 @@ existing docs and run evidence in machine-readable artifacts.
 
 ## Sources and evaluation
 
-- Validate specs with `python -m pacbench.specs`. Use the existing compiler.
+- Validate specs with `python -m pacbench specs`. Use the existing compiler.
   Generate and review once, then freeze and reuse `week.json` with all siblings.
   Preserve bodies, identities, membership, threads and written/collection times.
   Omitted `noise` uses scene-directed authored mode; explicit legacy modes and
@@ -123,7 +127,7 @@ existing docs and run evidence in machine-readable artifacts.
   Source-assisted answers keep semantic grades but receive zero retention
   credit; uncertain provenance remains uncredited pending review.
 - Resume only through a verified native recovery protocol. OpenViking's
-  `python -m pacbench.native_resume <run>` supports a successful pre-recall
+  `python -m pacbench resume <run>` supports a successful pre-recall
   prefix; do not reingest completed days or blindly reuse failed stores.
 
 ## Validation and publication
@@ -132,8 +136,8 @@ Run checks appropriate to the change:
 
 ```sh
 python -m pytest -q
-python -m pacbench.preparation_audit runs/<current>/preparation
-python -m pacbench.native_audit runs/<current>
+python -m pacbench audit prepared runs/<current>/preparation
+python -m pacbench audit native runs/<current>
 node --check explorer/dashboard.js
 node --check explorer/timeline.js
 ```

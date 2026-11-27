@@ -15,17 +15,17 @@ import tempfile
 import unittest
 from unittest.mock import patch
 
-from pacbench.canary_capability import binding, digest as wire_digest
-from pacbench.cohort_regrade import Overlay, main, snapshot
-from pacbench.cohort_regrade_journal import FORMAT, SCHEMA, load as load_judge_journal
-from pacbench.cohort_regrade_retained import ADMISSIONS, DAILY_FILES, DOCUMENT_PROGRESS, MEMCAL_PROGRESS, THREAD_FILES, WEEK
-from pacbench.workflows.capability import _memcal_schedule
-from pacbench.providers.memcal.contract import TOOLS, manifest as memcal_product
+from pacbench.evidence_store import file_binding as binding, binding_digest as wire_digest
+from pacbench.judging.overlays import Overlay, main, snapshot
+from pacbench.judging.retained import FORMAT, SCHEMA, load as load_judge_journal
+from pacbench.judging.retained_week import ADMISSIONS, DAILY_FILES, DOCUMENT_PROGRESS, MEMCAL_PROGRESS, THREAD_FILES, WEEK
+from pacbench.judging.retained_scope import _memcal_schedule
+from pacbench.providers.memcal.source import TOOLS, manifest as memcal_product
 from pacbench.workflows.progress import WorkflowProgress
 from pacbench.workflows.source_plan import SourcePlan
-from pacbench.campaigns.pizza_week import SPEC, compile_week
+from pacbench.corpus.r2 import SPEC, compile_week
 from pacbench.workflows.spec import Document, instant
-from pacbench.workflows.stream import fingerprint
+from pacbench.workflows.progress import workflow_fingerprint as fingerprint
 
 REVISION = 'luna-context-v4-v1'
 NEUTRAL_REVISION = 'explicit-criteria-v1'
@@ -529,7 +529,7 @@ class CohortRegradeTests(unittest.TestCase):
             good_events.append(dict(phase='dispatch', question=turn.id, prompt=turn.prompt, at=turn.at))
         write_journal(workflow, good_events)
         verify_args = [str(run), '--revision', NEUTRAL_REVISION, '--verify']
-        cli = [sys.executable, '-m', 'pacbench.cohort_regrade']
+        cli = [sys.executable, '-m', 'pacbench.judging.overlays']
         good = subprocess.run([*cli, *verify_args], check=True, capture_output=True, text=True)
         self.assertEqual(json.loads(good.stdout)['coverage']['supermemory']['completed_criteria'], 192)
         recording = self.root/'daily-recording.jsonl'
@@ -590,11 +590,11 @@ class CohortRegradeTests(unittest.TestCase):
         for directory in ('pacbench', 'specs', 'datasets'):
             shutil.copytree(repo/directory, changed/directory,
                             ignore=shutil.ignore_patterns('__pycache__'))
-        with (changed/'pacbench/cohort_regrade.py').open('a') as planner:
+        with (changed/'pacbench/judging/overlays.py').open('a') as planner:
             planner.write('\n# Unrelated comment.\n')
 
         output = self.root/'comparison'
-        command = [sys.executable, '-m', 'pacbench.cohort_regrade', *self.judge_cli(run, journal, output)]
+        command = [sys.executable, '-m', 'pacbench.judging.overlays', *self.judge_cli(run, journal, output)]
         mismatch = subprocess.run(command, cwd=changed, capture_output=True, text=True, check=False)
         self.assertNotEqual(mismatch.returncode, 0)
         self.assertIn('response journal belongs to another frozen plan', mismatch.stderr)
@@ -611,7 +611,7 @@ class CohortRegradeTests(unittest.TestCase):
         with sqlite3.connect(output/'overlay.sqlite3') as db:
             stored = json.loads(db.execute('SELECT plan FROM binding').fetchone()[0])
         self.assertEqual(stored['plan']['judge'], plan['judge'])
-        with (changed/'pacbench/semantic_grade.py').open('a') as scorer:
+        with (changed/'pacbench/judging/grade.py').open('a') as scorer:
             scorer.write('\n# Scorer implementation changed.\n')
         mismatch = subprocess.run([*command, '--frozen-plan', str(database)], cwd=changed,
                                   capture_output=True, text=True, check=False)
@@ -671,7 +671,7 @@ class CohortRegradeTests(unittest.TestCase):
                                                     daily.parent/'workflow.sqlite3', daily.with_name('workflow.jsonl'))}
         output = self.root/'first-overlay'
         args = self.judge_cli(manifest, journal, output)
-        subprocess.run([sys.executable, '-m', 'pacbench.cohort_regrade', *args], check=True, capture_output=True, text=True)
+        subprocess.run([sys.executable, '-m', 'pacbench.judging.overlays', *args], check=True, capture_output=True, text=True)
         result = json.loads((output/'report.json').read_text())
         old, new = result['arms']['historical'], result['arms']['daily']
         self.assertEqual({g['input_projection']: g['arms'] for g in result['conditions']},
@@ -790,7 +790,7 @@ class CohortRegradeTests(unittest.TestCase):
             load_judge_journal(journal, plan, 'first', hash_file(journal))
 
     def test_v2_recorded_invalid_response_keeps_other_cells(self):
-        from pacbench.cohort_regrade_journal import COVERAGE_SCHEMA
+        from pacbench.judging.retained import COVERAGE_SCHEMA
 
         run = self.make_run('cognee', count=49, seal=True)
         plan = snapshot(run, NEUTRAL_REVISION)

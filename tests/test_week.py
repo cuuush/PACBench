@@ -5,8 +5,10 @@ from pathlib import Path
 import pytest
 from pacbench.corpus.prepare import resolve_spec, normalize_week, import_week
 from pacbench.corpus.evaluation import contract_evidence
-from pacbench.document_ingestion import prepare_sources, ready_sources
-from pacbench.native_checks import run_checks, audit_checks
+from pacbench.workflows.delivery import prepare_sources
+from pacbench.workflows.source_plan import ready_sources
+from pacbench.workflows.native_run import run_checks
+from pacbench.native_audit import audit_checks
 from pacbench.corpus.authoring import scene_prompt
 from tests.test_evaluation import checkpoints, correct_judge
 from pacbench.harness import TurnResult
@@ -146,9 +148,9 @@ def test_execution_failure_skips_dependent_session_and_continues_independent(tmp
 
 
 def test_recovery_authoring_error_preserves_initial_grade_and_disjoint_counts(tmp_path,monkeypatch):
-    from pacbench import native_checks
+    from pacbench.workflows import native_run as native_checks
     from pacbench.corpus.contract import EvaluationContract,ContractClaim
-    from pacbench.followups import freeze_policy
+    from pacbench.judging.recovery import freeze_policy
     checks=checkpoints(tmp_path)
     row,old,_=checks[0]
     contract=EvaluationContract(old.claims+(ContractClaim('detail-2','Another detail.',('m1',)),),
@@ -245,7 +247,7 @@ def test_cumulative_fixture_keeps_silent_group_member_and_shared_dm_identity(tmp
 
 
 def test_frozen_week_rejects_changed_content_before_execution(tmp_path):
-    from pacbench.followups import digest
+    from pacbench.evidence_store import binding_digest as digest
     body={'version':1,'files':{'spec.json':{'noise':'low'}}}
     file=tmp_path/'week.json';file.write_text(json.dumps({**body,'corpus_hash':digest(body)}))
     changed=json.loads(file.read_text());changed['files']['spec.json']['noise']='high';file.write_text(json.dumps(changed))
@@ -376,10 +378,11 @@ def test_preparation_continues_after_one_contract_error_but_cannot_freeze_succes
 
 def test_portable_corpus_reuse_never_calls_a_model(tmp_path,monkeypatch):
     from pacbench.corpus.sources import write_bundle
-    from pacbench.followups import digest,freeze_policy
+    from pacbench.evidence_store import binding_digest as digest
+    from pacbench.judging.recovery import freeze_policy
     from pacbench.corpus.contract import ContractClaim,EvaluationContract
     from pacbench.corpus.prepare import export_week
-    from pacbench.native_pilot import read_prepared
+    from pacbench.workflows.native_run import read_prepared
     from pacbench.model_calls import ModelClient
     root=tmp_path/'original';root.mkdir()
     messages=[message('m1')]
@@ -401,7 +404,7 @@ def test_portable_corpus_reuse_never_calls_a_model(tmp_path,monkeypatch):
 
 
 def test_month_has_thirty_batches_stable_threads_and_only_final_questions(tmp_path):
-    from pacbench.document_ingestion import daily_batches
+    from pacbench.workflows.source_plan import daily_batches
     spec=json.loads(Path('specs/pizza_month.json').read_text())
     scenes,_,resolved=resolve_spec(spec,tmp_path,week_start='2026-09-14')
     assert len(scenes)==48 and resolved['ingestion_days']==30 and resolved['noise']=='medium'
@@ -515,7 +518,7 @@ def test_unavailable_pre_turn_poisoning_skips_followups_but_preserves_independen
     assert audit_checks([first,follow,last],'shared',root)==[]
     # An older runner could continue here without the opening question. The
     # offline auditor must reject that history even when the later turn works.
-    from pacbench.followups import save
+    from pacbench.evidence_store import save
     invalid=runner_result(follow[1].question,{'at':follow[0]['at'],'session_id':None})
     save(root/'turns/follow-after-undelivered/turn.json',vars(invalid))
     report['checks'][1].update(state='ungraded',reason='Legacy continuation without its opening turn')

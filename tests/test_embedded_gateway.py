@@ -325,7 +325,7 @@ def test_concurrent_upstream_streams_do_not_hold_budget_lock(tmp_path):
 
 
 def test_openrouter_reconciliation_retry_zero_and_idempotence(tmp_path):
-    from pacbench.gateway.openrouter_reconcile import reconcile
+    from pacbench.gateway.ledger import reconcile
     ledger=Ledger(tmp_path/'ledger.db')
     rid=ledger.reserve('provider','responses')
     ledger.finish(rid,status=504)
@@ -341,7 +341,7 @@ def test_openrouter_reconciliation_retry_zero_and_idempotence(tmp_path):
 
 
 def test_openrouter_reconciliation_scoped_and_concurrent(tmp_path):
-    from pacbench.gateway.openrouter_reconcile import reconcile
+    from pacbench.gateway.ledger import reconcile
     ledger=Ledger(tmp_path/'ledger.db')
     direct=ledger.reserve('provider','responses');ledger.finish(direct)
     assert reconcile(ledger,direct,lambda _: pytest.fail('wrong origin'))=='ineligible'
@@ -358,7 +358,7 @@ def test_openrouter_reconciliation_scoped_and_concurrent(tmp_path):
 
 
 def test_openrouter_pending_retries_after_restart_and_duplicate_id(tmp_path):
-    from pacbench.gateway.openrouter_reconcile import reconcile_pending
+    from pacbench.gateway.ledger import reconcile_pending
     ledger=Ledger(tmp_path/'ledger.db')
     first=ledger.reserve('p','responses');second=ledger.reserve('p','responses')
     for rid in (first,second):ledger.finish(rid)
@@ -374,7 +374,7 @@ def test_openrouter_pending_retries_after_restart_and_duplicate_id(tmp_path):
 
 
 def test_retry_driver_persists_backoff_and_later_reconciles(tmp_path):
-    from pacbench.gateway.openrouter_reconcile import retry_due
+    from pacbench.gateway.ledger import retry_due
     stamp=['2026-10-19T23:00:00+00:00']
     ledger=Ledger(tmp_path/'ledger.db',now=lambda:stamp[0])
     rid=ledger.reserve('p','responses');ledger.finish(rid)
@@ -402,7 +402,7 @@ def test_retry_driver_persists_backoff_and_later_reconciles(tmp_path):
 def test_reconcile_cli_missing_state_never_creates_ledger(tmp_path):
     import os, subprocess, sys
     state=tmp_path/'missing'
-    result=subprocess.run([sys.executable,'-m','pacbench.gateway.reconcile_cli','--state',str(state)],
+    result=subprocess.run([sys.executable,'-m', 'pacbench', 'gateway', 'reconcile','--state',str(state)],
                           env={**os.environ,'OPENROUTER_API_KEY':'fixture'},capture_output=True,text=True)
     assert result.returncode != 0 and not state.exists()
     assert 'fixture' not in result.stderr
@@ -418,7 +418,7 @@ def test_finish_preserves_previously_observed_partial_metadata(tmp_path):
 
 
 def test_generation_usage_remains_separate_from_native_response_usage(tmp_path):
-    from pacbench.gateway.openrouter_reconcile import reconcile
+    from pacbench.gateway.ledger import reconcile
     ledger=Ledger(tmp_path/'ledger.db');rid=ledger.reserve('p','responses')
     ledger.finish(rid,usage=(2,3),metadata={'usage':{'input_tokens':2}})
     with ledger.connect() as db:db.execute("UPDATE calls SET upstream_origin='openrouter',generation_id='gen-abc' WHERE id=?",(rid,))

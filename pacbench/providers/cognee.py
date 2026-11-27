@@ -1,23 +1,29 @@
 """Stock Cognee native files and warm conversation provenance for Pizza Week v2."""
-from contextlib import closing, contextmanager
-from datetime import datetime, timezone
+from __future__ import annotations
+
 import hashlib
 import json
-from pathlib import Path
+import re
 import sqlite3
 import time
+from contextlib import closing
+from datetime import datetime, timezone
+from pathlib import Path
 from types import SimpleNamespace
 from urllib.parse import urlparse
 from uuid import UUID
 
+from pacbench.gateway.observer import PROTOCOL
+from pacbench.gateway_client import loopback_url as loopback_url
+from pacbench.providers import HERMES_TOOLS, validate_native_deployment
+from pacbench.workflows.native import NativeAccount, native_chat_closed, receipt_lineage
+from pacbench.workflows.progress import process_identity
 from provider_adapters.cognee_checkpoint import verify_turn
 from provider_adapters.cognee_completion import completed, pipeline_rows, require_idle
-from provider_adapters.cognee_local import QualificationError, qualify_incremental_document
-
-from ..gateway.reuse_runtime import PROTOCOL
-from ..live_dispatch import process_identity
-from pacbench.workflows.native import NativeAccount, native_chat_closed, receipt_lineage
-from pacbench.workflows.tracks import HERMES_TOOLS, validate_native_deployment
+from provider_adapters.cognee_local import (
+    QualificationError,
+    qualify_incremental_document,
+)
 
 
 class CogneeAccount(NativeAccount):
@@ -265,100 +271,15 @@ class CogneeWitness:
         pass
 
 
-@contextmanager
-def open_account(root, scope, ledger):
-    from contextlib import ExitStack
-    from tempfile import TemporaryDirectory
-    from urllib.parse import urlsplit
-    from pacbench import harness
-    from pacbench.workflows import capability as cap
-    from ..checkpoint_clock import CheckpointClock
-    from ..cognee_memobase_setup import PINS
-    from ..gateway_reuse import PersistentGateway, atomic
-    from ..live_dispatch import OwnershipConflict
-    from ..native_pilot import probe, provision, stop_arm_model_work
-    from ..openrouter_route import ENDPOINT, MODEL
-    from pacbench.workflows.native import WarmHermes
-    from pacbench.workflows.runner import Condition
-    from provider_adapters.cognee_checkpoint import native
-
-    server = None
-    endpoint = None
-
-    def stop():
-        from socket import create_connection
-
-        stop_arm_model_work(root)
-        if server is None:
-            return
-        try:
-            active = process_identity(server['pid']) == server
-        except (FileNotFoundError,OwnershipConflict):
-            active = False
-        if active:
-            raise RuntimeError('Cognee native server remained active after shutdown')
-        try:
-            connection = create_connection((endpoint.hostname,endpoint.port),timeout=2)
-        except ConnectionRefusedError:
-            pass
-        else:
-            connection.close()
-            raise RuntimeError('Cognee native listener remained active after shutdown')
-        atomic(root/'native-service-stop.json',{'server':server,'state':'verified-after-exit'})
-
-    with ExitStack() as stack:
-        stack.callback(stop)
-        env = provision(root,'cognee',model=MODEL,local_timezone='America/New_York',inference_route='openrouter')
-        home = root/'hermes-home'
-        setup = json.loads((root/'native-server-setup.json').read_bytes())
-        config = json.loads((root/'cognee-document-config.json').read_bytes())
-        endpoint = urlsplit(setup['endpoint'])
-        if (endpoint.scheme!='http' or endpoint.hostname!='127.0.0.1' or not endpoint.port
-                or setup['endpoint']!=config['service_url'] or setup['dataset']!=config['dataset']
-                or setup['provider_revision']!=PINS['cognee']['commit'] or setup['health']['version']!='1.6.8'
-                or setup['hosted_memory_service'] is not False or env['COGNEE_TRANSPORT']!='http'):
-            raise ValueError('Cognee native deployment differs from the pinned localhost service')
-        server = process_identity(setup['pid'])
-        report = probe(root,'cognee',env)
-        atomic(root/'provider-probe.json',report)
-        if not report['available']:
-            raise RuntimeError('Cognee native plugin preflight failed')
-        dataset = setup['dataset']
-        import sys
-        sys.path.insert(0,str(home/'plugins/cognee'))
-        from cognee_integration_hermes.http_backend import HttpBackend
-        initial = HttpBackend(agent_session_name='pacbench-native-enrollment')
-        initial.connect(url=setup['endpoint'],api_key='',timeout=25)
-        try:
-            initial.ensure_dataset(dataset=dataset,timeout=60)
-        finally:
-            initial.close(timeout=5)
-        backend, _ = native(setup['endpoint'],dataset,home)
-        stack.callback(lambda:backend.close(timeout=5))
-        docs, _, _ = cap.schedule(scope['spec_sha256'],scope['canary'])
-        all_docs, _, _ = cap.schedule(scope['spec_sha256'],False)
-        tools = HERMES_TOOLS['cognee']
-        env.update(PACBENCH_WORKFLOW_CAPTURE=scope['protocol'],PACBENCH_API_INPUT_TRACE=str(root/'api-inputs.jsonl'),
-                   PACBENCH_COGNEE_PHYSICAL_EXIT_WATCHER='1',COGNEE_IMPROVE_BACKGROUND='false')
-        child = harness.turn_env(docs[0].cutoff,home,','.join(tools),env)
-        clock = CheckpointClock(home,docs[0].cutoff,scope['spec_sha256'])
-        cwd = Path(stack.enter_context(TemporaryDirectory(prefix='pacbench-cognee-chat-')))
-        owner = stack.enter_context(PersistentGateway(home,harness.ISOLATED_BIN.parent/'python',child,cwd=cwd,
-            checkpoint=scope['spec_sha256'],observation_clock=clock,provider='cognee'))
-        condition = Condition('cognee','nightly-document','continuing-account','Hermes '+owner.pins['hermes'],
-            MODEL,ENDPOINT,'Stock Cognee native permanent-document extraction, HTTP Hermes and inline session promotion',
-            '1.6.8 / Hermes 1.4.3',owner.pins['hermes_isolation_sha256'],
-            'Physical Cognee service and exit watcher; simulated Hermes question time',tools)
-        witness = CogneeWitness(root,owner,backend,setup['endpoint'],dataset,server,docs,all_docs,ledger)
-        yield condition,CogneeAccount(str(root),'cognee',dataset,backend,
-            WarmHermes(owner,clock,witness.idle,chat_close_timeout_s=360),witness)
-
-
 def check_canary(root):
     """Re-audit the retained native source, session and receipt bindings."""
-    from ..canary_capability import binding, read, sha
-    from ..cognee_memobase_setup import PINS
-    from pacbench.workflows.document_canary import audit_document_canary, verify_listener_stopped
+    from pacbench.evidence_store import file_binding as binding
+    from pacbench.evidence_store import file_sha as sha
+    from pacbench.judging.retained_scope import read_canary_binding as read
+    from pacbench.judging.retained_week import (
+        audit_document_canary,
+        verify_listener_stopped,
+    )
 
     audit = audit_document_canary(root, 'cognee')
     root = audit.root
@@ -376,9 +297,101 @@ def check_canary(root):
     return audit.bindings
 
 
-def run(root, confirmation, *, canary, after_canary=None):
-    from pacbench.workflows.lifecycle import run_document_week
+PINS = {
+    'holographic': {
+        'repository': 'https://github.com/itpartypattaya/hermes-plugin-holographic',
+        'commit': '05e890b461dc3e6390982cb21c5b471a6ed3d8b4',
+        'capture': 'agent-tools-or-opt-in-user-sentence-extraction',
+        'document_ingestion': False,
+    },
+    'cognee': {
+        'repository': 'https://github.com/topoteretes/cognee-integrations',
+        'commit': 'a176248914fdb32a78354854b300174203b15a5c',
+        'plugin_subdirectory': 'integrations/hermes-agent',
+        'backend_requirement': 'cognee==1.6.8',
+        'capture': 'typed-session-entries-and-session-end-graph-promotion',
+        'document_ingestion': True,
+    },
+    'memobase': {
+        'repository': 'https://github.com/fred0m/hermes-memobase-provider',
+        'commit': '4e8e447966acefaea372395e2db96ca0d0127f18',
+        'capture': 'paired-turn-chat-buffer-and-session-end-flush',
+        'document_ingestion': False,
+    },
+}
 
-    return run_document_week(
-        root, confirmation, provider='cognee', canary=canary, after_canary=after_canary,
-        check_canary=check_canary, open_account=open_account, fresh_account_error='expected a fresh dedicated Cognee Luna account')
+
+def setup_plan(provider: str, root: Path, run_id: str, *, service_url: str | None = None) -> dict:
+    if provider not in PINS:
+        raise ValueError('Unknown provider')
+    if not re.fullmatch(r'[A-Za-z0-9][A-Za-z0-9_.-]{0,79}', run_id):
+        raise ValueError('run_id must be a non-path identifier of at most 80 characters')
+    root = root.expanduser().resolve()
+    scope = 'pacbench_' + hashlib.sha256(run_id.encode()).hexdigest()[:20]
+    home = root / provider / 'hermes-home'
+    plan = {
+        'protocol': 'local-provider-qualification-v1', 'provider': provider,
+        'run_id': run_id, 'pin': dict(PINS[provider]),
+        'qualification': 'not-run',
+        'document_condition': 'candidate' if PINS[provider]['document_ingestion'] else 'excluded',
+        'root': str(root / provider),
+        'environment': {'HERMES_HOME': str(home)},
+        'hermes_config': {'memory': {'provider': provider}},
+        'required_evidence': [
+            'actual loaded provider revision (not only installed revision)',
+            'lossless source delivery with ownership and timestamps',
+            'native processing completion, not only accepted writes',
+            'fresh-session saved model input containing actual prefetch output',
+            'all provider tool calls and failures',
+            'all extraction/embedding/reranking endpoints and optional cloud fallbacks',
+        ],
+    }
+    if provider == 'cognee':
+        if service_url:
+            raise ValueError('Cognee plan uses native local mode; do not select remote mode')
+        plan['environment'].update({
+            'COGNEE_DATA_ROOT': str(root / provider / 'data'),
+            'COGNEE_SYSTEM_ROOT': str(root / provider / 'system'),
+            'COGNEE_PLUGIN_DATASET': scope,
+            'COGNEE_PLUGIN_RECALL_MODE': 'pinned',
+        })
+        plan['unset_environment'] = ['COGNEE_BASE_URL', 'COGNEE_SERVICE_URL', 'COGNEE_API_KEY']
+        plan['configuration'] = {
+            'embedded': False, 'service_url': '', 'dataset': scope,
+            'recall_mode': 'pinned',
+        }
+        plan['ingestion'] = {
+            'candidate': 'native-raw-document-remember',
+            'api': '/api/v1/remember',
+            'requires': 'native dataset pipeline status and stored raw-content verification',
+        }
+        plan['blockers'] = [
+            'Isolated native runtime/server, unique local port and inference configuration must be provisioned',
+            'Document connector and native completion witnesses still require live qualification',
+        ]
+    elif provider == 'memobase':
+        url = loopback_url(service_url or 'http://127.0.0.1:8019/api/v1')
+        plan['environment'].update({
+            'MEMOBASE_BASE_URL': url, 'MEMOBASE_USER_NAME': scope,
+            'MEMOBASE_TIMEZONE': 'America/New_York',
+        })
+        plan['configuration'] = {'timezone': 'America/New_York'}
+        plan['blockers'] = [
+            'Self-hosted PostgreSQL/pgvector, Redis and API must be isolated per run',
+            'Native plugin captures paired user/assistant turns; no artificial assistant turns allowed',
+            'Server accepts doc blobs but inspected dispatcher extracts only chat/summary blobs',
+            'Excluded from the document benchmark until supported document extraction exists',
+        ]
+    else:
+        if service_url:
+            raise ValueError('Holographic requires no service URL')
+        plan['hermes_config']['plugins'] = {'hermes-memory-store': {
+            'db_path': str(root / provider / 'memory_store.db'),
+            'embeddings': 'off', 'rerank': 'off',
+        }}
+        plan['blockers'] = [
+            'Older Hermes bundles override the installed standalone provider of the same name',
+            'No documented raw-document ingestion; do not seed extracted facts to manufacture support',
+            'Excluded from the document benchmark; conversational exposure is not a substitute',
+        ]
+    return plan

@@ -155,7 +155,7 @@ def test_read_only_native_snapshot_quotes_source_identifiers(tmp_path,monkeypatc
 
 @pytest.mark.parametrize('enrollment_ready',[False,True])
 def test_controller_enrolls_before_clock_advance_and_message_worker(tmp_path,monkeypatch,enrollment_ready):
-    from pacbench import document_ingestion as ingestion
+    from pacbench.workflows import delivery as ingestion
     from tests.test_document_ingestion import message as source_message
     schedule=ingestion.prepare_sources(tmp_path,[source_message('one')],'America/New_York')
     source=tmp_path/'sources'/schedule[0]['id'];root=tmp_path/'arm';root.mkdir()
@@ -191,7 +191,7 @@ def test_existing_membership_is_reused_without_readding_or_rewinding(tmp_path,mo
 
 
 def test_publication_audit_requires_covering_native_membership_and_roster_continuity():
-    from pacbench.document_audit import audit_honcho_receipt
+    from pacbench.providers.honcho import audit_honcho_receipt
     source=message();plan=enrollment.source_plans([source],HOST)[0]
     result={'membership_protocol':enrollment.PROTOCOL,'membership_witness':snapshot(plan),
         'clock_protocol':'honcho-wall-clock-v3','source_error_scope':'submitted-source-sessions-v1',
@@ -270,7 +270,7 @@ def test_native_peer_encoding_collision_across_threads_or_batches_is_refused():
 
 
 def test_encoded_source_acknowledgments_still_require_original_sender_metadata():
-    from pacbench.document_audit import audit_honcho_receipt
+    from pacbench.providers.honcho import audit_honcho_receipt
     source=message();source['sender']='Alex Reed';source['structured']['participants']=['Me','Alex Reed']
     plan=enrollment.source_plans([source],HOST)[0]
     result={'membership_protocol':enrollment.PROTOCOL,'membership_witness':snapshot(plan),

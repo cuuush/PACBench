@@ -1,20 +1,21 @@
 """Offline, private comparison export from an existing Week workflow directory."""
 import argparse
-from dataclasses import asdict
 import fcntl
 import hashlib
 import json
 import os
-from pathlib import Path
 import tempfile
+from dataclasses import asdict
+from pathlib import Path
+
+from pacbench.corpus.r2 import compile_week
+from pacbench.providers.memcal.source import manifest, verify_captured_driver
+from pacbench.workflows.progress import workflow_fingerprint as fingerprint
 
 from ..evidence_store import read_json
 from ..provider_versions import MEMCAL_WEEK_VERSION
-from pacbench.providers.memcal.contract import manifest, verify_captured_driver
 from .grading import retained_grade
 from .progress import WorkflowProgress
-from pacbench.campaigns.pizza_week import compile_week
-from .stream import fingerprint
 
 
 def saved_events(path):
@@ -49,8 +50,8 @@ def legacy_rows(directory):
         _, _, schedule, basis = compile_week(condition['state'])
         if spec.get('canary'):
             schedule = schedule[:4]
-        from pacbench.campaigns.pizza_week import SPEC
-        from ..canary_capability import sha
+        from pacbench.corpus.r2 import SPEC
+        from pacbench.evidence_store import file_sha as sha
         if (spec['sha256'] != sha(SPEC) or basis != spec['source_basis'] or
                 spec['schedule'] != [dict(id=t.id, at=t.at, chat=t.session, measure=t.measure) for t in schedule]):
             raise ValueError('journal differs from the frozen Week contract')
@@ -76,8 +77,9 @@ def legacy_rows(directory):
 
 
 def ungraded_attempts(directory, turn, surface, folder):
-    from ..canary_capability import digest
-    from ..semantic_grade import RETRY_GUIDANCE, judge_prompt
+    from pacbench.evidence_store import binding_digest as digest
+    from pacbench.judging.grade import RETRY_GUIDANCE, judge_prompt
+
     from .runner import judge_options
     prompt = judge_prompt(turn.prompt,surface['answer'],turn.claims,**judge_options(turn,surface))
     records = []
@@ -157,7 +159,7 @@ def checkpoint_rows(progress, directory, temporary):
     # identity carries this independently recorded Week product manifest.
     qualified = 'product_manifest' in identity
     if qualified:
-        from ..canary_capability import read
+        from pacbench.judging.retained_scope import read_canary_binding as read
         condition = identity['condition']
         if ((condition['provider'], condition['version']) != ('memcal', MEMCAL_WEEK_VERSION)
                 or identity['product_manifest'] != manifest()):
@@ -193,7 +195,8 @@ def checkpoint_rows(progress, directory, temporary):
 
 
 def financial_evidence(directory):
-    from ..observational_receipts import replay_attempts
+    from pacbench.receipt_costs import replay_attempts
+
     from .recording import receipt_summary
     root = directory.parent
     journal = root/'receipts.jsonl'
@@ -268,11 +271,11 @@ def export(directory, destination):
     return counts
 
 
-def main():
+def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('directory', type=Path)
     parser.add_argument('destination', type=Path)
-    args = parser.parse_args()
+    args = parser.parse_args(argv)
     print(json.dumps(export(args.directory, args.destination)))
 
 

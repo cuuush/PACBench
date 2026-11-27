@@ -1,22 +1,27 @@
 """Read-only access checks for an explicitly provisioned synthetic MemCal account."""
-from contextlib import closing, contextmanager
-from dataclasses import dataclass
-from datetime import datetime
 import glob
 import hashlib
-from importlib.util import find_spec
 import os
-from pathlib import Path
 import pwd
 import re
 import sqlite3
 import ssl
 import sys
+from contextlib import closing, contextmanager
+from dataclasses import dataclass
+from datetime import datetime
+from importlib.util import find_spec
+from pathlib import Path
 from urllib.parse import urlsplit
 
-from ...provider_versions import MEMCAL_WEEK_REVISION, memcal_week_pin, verify_memcal_source
-from .contract import manifest
-from pacbench.workflows.tracks import BOTH
+from pacbench.providers import BOTH
+from pacbench.providers.memcal.source import manifest
+
+from ...provider_versions import (
+    MEMCAL_WEEK_REVISION,
+    memcal_week_pin,
+    verify_memcal_source,
+)
 
 
 class MemCalSiteError(ValueError):
@@ -156,6 +161,7 @@ def _mail_folders(mailbox):
 def _verify_mail_snapshot(mailbox, observed, *, bodies, checked=None):
     """Read both complete UID sets before fetching any approved synthetic mail."""
     from memcal.sources import proton
+
     from pacbench.workflows.spec import instant
 
     def select(folder, validity):

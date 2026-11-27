@@ -1,1 +1,14 @@
 """Authenticated local inference transport with an atomic daily spending cap."""
+from __future__ import annotations
+
+import urllib.request
+
+
+class NoRedirect(urllib.request.HTTPRedirectHandler):
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        return None
+
+
+def open_without_redirect(request, *, timeout):
+    # build_opener retains urllib's normal proxy and HTTPS certificate handling.
+    return urllib.request.build_opener(NoRedirect()).open(request, timeout=timeout)

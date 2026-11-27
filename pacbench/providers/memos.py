@@ -1,19 +1,18 @@
 """Continuing-account Pizza Week through the stock MemoryOS OSS REST service."""
-from contextlib import contextmanager
+import json
+import time
 from datetime import datetime, timezone
 from hashlib import sha256
-import json
-from pathlib import Path
-import shutil
-import time
 
-from provider_adapters.memos_oss_service import backend
+from pacbench.providers import (
+    MEMOS_OSS_LUNA_COMPAT,
+    MEMOS_OSS_TOOLS,
+    MEMOS_OSS_VERSION,
+    validate_native_deployment,
+)
+from pacbench.workflows.native import NativeAccount, receipt_lineage
+from pacbench.workflows.progress import process_identity
 
-from ..checkpoint_clock import CheckpointClock
-from ..gateway_reuse import PersistentGateway, atomic
-from ..live_dispatch import process_identity
-from pacbench.workflows.native import NativeAccount, WarmHermes, receipt_lineage
-from pacbench.workflows.tracks import MEMOS_OSS_LUNA_COMPAT, MEMOS_OSS_TOOLS, MEMOS_OSS_VERSION, validate_native_deployment
 
 
 def native_transport_drained(rows):
@@ -279,61 +278,13 @@ class MemosWitness:
         self.idle()
 
 
-@contextmanager
-def open_account(root, scope, ledger, source, qualification):
-    import os
-    from pacbench import harness
-    from pacbench.workflows import capability as capability
-    from ..gateway_client import client_settings
-    from ..openrouter_route import ENDPOINT, MODEL
-    from pacbench.workflows.runner import Condition
-
-    checkout=Path(__file__).resolve().parents[2]
-    roles=scope['projects']['memos']
-    driver_base,driver_key=client_settings(roles['driver'])
-    memory_base,memory_key=client_settings(roles['memory'])
-    docs,_,_=capability.schedule(scope['spec_sha256'],scope['canary'])
-    home=root/'hermes-home'
-    home.mkdir(mode=0o700)
-    plugins=home/'plugins'
-    plugins.mkdir(mode=0o700)
-    fallback=root/'fallback-home'
-    fallback.mkdir(mode=0o700)
-    work=root/'empty-project'
-    work.mkdir(mode=0o700)
-    shutil.copytree(checkout/'provider_adapters/memos_oss_hermes',plugins/'memososs',
-                    ignore=shutil.ignore_patterns('__pycache__'))
-    with backend(root,source,qualification,MODEL,memory_base,memory_key) as (service,publish,pulls):
-        config=home/'memos-oss.json'
-        atomic(config,{key:service[key] for key in ('endpoint','user','local_api_token')})
-        atomic(home/'config.yaml',{'model':{'provider':'custom','default':MODEL,'base_url':driver_base,
-              'api_mode':'chat_completions'},'memory':{'provider':'memososs','memory_enabled':False,
-              'user_profile_enabled':False},'plugins':{'enabled':['memososs']},
-              'agent':{'disabled_toolsets':['terminal','file','web','browser','session_search',
-                 'delegation','code_execution','skills','todo','clarify']}})
-        env={**os.environ,'PACBENCH_PROVIDER_ONLY':'1','OPENAI_BASE_URL':driver_base,'OPENAI_API_KEY':driver_key,
-             'HERMES_INFERENCE_PROVIDER':'custom','PACBENCH_MEMOS_OSS_CONFIG':str(config),
-             'PACBENCH_MEMOS_OSS_SOURCE':str(source),'PACBENCH_WORKFLOW_CAPTURE':scope['protocol'],
-             'PACBENCH_API_INPUT_TRACE':str(root/'api-inputs.jsonl'),'HOME':str(fallback)}
-        child=harness.turn_env(docs[0].cutoff,home,','.join(MEMOS_OSS_TOOLS),env)
-        clock=CheckpointClock(home,docs[0].cutoff,scope['spec_sha256'])
-        with PersistentGateway(home,harness.ISOLATED_BIN.parent/'python',child,cwd=work,
-                               checkpoint=scope['spec_sha256'],observation_clock=clock,provider='memos') as owner:
-            condition=Condition('memos','nightly-document','continuing-account','Hermes '+owner.pins['hermes'],
-                MODEL,ENDPOINT,'Stock MemoryOS OSS local REST graph; PACBench Hermes lifecycle binding',
-                MEMOS_OSS_VERSION,owner.pins['hermes_isolation_sha256'],
-                'Physical MemOS and scheduler; authored Hermes observation clock',MEMOS_OSS_TOOLS)
-            from provider_adapters.memos_oss_hermes import ScopedCube
-            client=ScopedCube(service)
-            witness=MemosWitness(root,owner,client,service,publish,pulls,docs,ledger)
-            yield condition,MemosAccount(str(root),'memos',client.user,client,WarmHermes(owner,clock,witness.idle),witness)
-
-
 def check_canary(root):
     """Recheck the retained, separately receipted MemOS OSS qualification."""
+    from pacbench.judging.retained_week import (
+        audit_document_canary,
+        verify_listener_stopped,
+    )
     from provider_adapters.memos_oss_service import REVISION
-
-    from pacbench.workflows.document_canary import audit_document_canary, verify_listener_stopped
 
     audit = audit_document_canary(root, 'memos')
     root = audit.root
@@ -350,15 +301,3 @@ def check_canary(root):
         raise ValueError('MemOS OSS canary lacks its native payload or shutdown proof')
     verify_listener_stopped(setup['endpoint'], 'MemOS OSS')
     return audit.bindings
-
-
-def run(root, confirmation, source, qualification, *, canary, after_canary=None):
-    from pacbench.workflows.lifecycle import run_document_week
-
-    def open_native_account(root, scope, ledger):
-        return open_account(root, scope, ledger, source, qualification)
-
-    return run_document_week(
-        root, confirmation, provider='memos', canary=canary, after_canary=after_canary,
-        check_canary=check_canary, open_account=open_native_account, fresh_account_error='Expected a fresh MemoryOS OSS Luna account',
-        extra_environment={'PACBENCH_MEMOS_OSS_LUNA_COMPAT': MEMOS_OSS_LUNA_COMPAT}, cleanup_after_direct=True)

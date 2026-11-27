@@ -1,27 +1,47 @@
 """Prepare verified source messages and question contracts without provider execution."""
 from __future__ import annotations
+
 import argparse
 import hashlib
 import json
 import os
 import sys
-from datetime import datetime, timedelta, time, timezone
+from datetime import datetime, time, timedelta, timezone
 from pathlib import Path
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
-from pacbench.corpus.authoring import (ScenePlan, SceneRecord, SceneRealization, SceneJudgeError,
-    validate_participants,
-    build_scene_observations, realize_scene, scene_spec, judge_prompt, judge_scene)
-from pacbench.creds import load_driver
-from pacbench.gateway_client import (
-    GatewayConfigurationError, ModelAccessBlocked, SpendingBlocked, cli_inference_route, client_settings)
-from pacbench.generation import GenerationError
-from pacbench.corpus.sources import bundle_hash, read_spec, write_bundle
-from pacbench.model_calls import ModelClient, ResponsesWriter, public_record
-from pacbench.corpus.contract import build_contract, load_contract
-from pacbench.followups import freeze_policy, save
+
 from pacbench.corpus.audit import audit_prepared
-from pacbench.corpus.sources import CHANNELS
-from pacbench.corpus.authoring import norm_thread
+from pacbench.corpus.authoring import (
+    SceneJudgeError,
+    ScenePlan,
+    SceneRealization,
+    SceneRecord,
+    build_scene_observations,
+    judge_prompt,
+    judge_scene,
+    norm_thread,
+    realize_scene,
+    scene_spec,
+    validate_participants,
+)
+from pacbench.corpus.contract import build_contract, load_contract
+from pacbench.corpus.sources import CHANNELS, bundle_hash, read_spec, write_bundle
+from pacbench.evidence_store import save
+from pacbench.gateway_client import (
+    GatewayConfigurationError,
+    ModelAccessBlocked,
+    SpendingBlocked,
+    cli_inference_route,
+    client_settings,
+    load_driver,
+)
+from pacbench.judging.recovery import freeze_policy
+from pacbench.model_calls import (
+    GenerationError,
+    ModelClient,
+    ResponsesWriter,
+    public_record,
+)
 
 
 def local_clock(value: str, zone: ZoneInfo | None) -> datetime:
@@ -319,7 +339,7 @@ def generation_spec(plan):
 
 def realization_binding(plan, lines, verification_lines):
     from pacbench.corpus.authoring import JUDGE_PROMPT_VERSION
-    from pacbench.followups import digest
+    from pacbench.evidence_store import binding_digest as digest
     if plan.source_review == 'author-source-v1':
         return digest({'version':'unjudged-author-source-v1', 'spec':scene_spec(plan),
                        'lines':[list(line) for line in lines]})
@@ -388,6 +408,7 @@ def _prepare_body(spec: dict, root: Path, progress: dict) -> dict:
     needs_writer = any(scene.messages is None for scene in scenes)
     if progress.get('inference_route', 'muse-gateway') == 'codex-subscription':
         from types import SimpleNamespace
+
         from pacbench.codex_model_calls import CodexModelClient
         driver = SimpleNamespace(model_id='gpt-6-luna')
         options = {'model': driver.model_id, 'record_dir': call_dir,
@@ -517,7 +538,8 @@ def _prepare_body(spec: dict, root: Path, progress: dict) -> dict:
     progress["contract_frozen_at"] = datetime.now(timezone.utc).isoformat()
     progress['stage'] = 'corpus realism review'
     save(root / 'experiment-status.json', progress)
-    from pacbench.corpus.review import VERSION as REVIEW_VERSION, review_corpus
+    from pacbench.corpus.review import VERSION as REVIEW_VERSION
+    from pacbench.corpus.review import review_corpus
     if any(s.source_review=='author-source-v1' for s in scenes):REVIEW_VERSION='source-realism-v11'
     review_corpus(observations, resolved, judge, root, version=REVIEW_VERSION)
     freeze_policy(contract, root / "followup-plan.json")
@@ -541,7 +563,7 @@ def export_week(root, destination):
 
 
 def _export_verified_week(root, destination):
-    from pacbench.followups import digest
+    from pacbench.evidence_store import binding_digest as digest
     names=['spec.json','resolved-spec.json','bundle.json','bundle-provenance.json','scenes.json','shared-text.json',
            'contract.json','followup-plan.json','summary.json','evaluation-plan.json','realism-review.json',
            'corpus-review-recovery.json','corrective-derivation.json']
@@ -685,6 +707,111 @@ def main(argv=None) -> int:
     add_arguments(parser)
     return generate_from_args(parser.parse_args(argv), parser)
 
+
+def render_sources(spec,root,writer,verifier,*,model):
+    from pacbench.corpus.authoring import build_scene_observations, realize_scene
+    from pacbench.evidence_store import save
+    plans,_,resolved=resolve_spec(spec,root)
+    root.mkdir(exist_ok=False,parents=True);save(root/'resolved-spec.json',resolved)
+    messages=[];records=[];hist={};failures=[]
+    for p in plans:
+        try:
+            previous=tuple((m['written_at'],m['channel']+':'+m['thread'],m['sender'],m['text'])
+                for m in messages if datetime.fromisoformat(m['written_at'])<datetime.fromisoformat(p.at))
+            result=realize_scene(p,writer,verifier,model=model,record_dir=root/'scene-verifications',
+                prior_lines=tuple(hist.get((p.channel,p.thread),())),verification_lines=previous)
+            rows=[o.public() for o in build_scene_observations(resolved['id'],p,list(result.lines))]
+            if p.messages is not None:
+                assert [(m['sender'],m['text'],m['written_at']) for m in rows]==[(m['sender'],m['text'],m['at']) for m in p.messages]
+                assert result.record.judge_calls==result.record.attempts==0
+            else:assert result.verdict['supported'] is True
+            messages.extend(rows);hist.setdefault((p.channel,p.thread),[]).extend((m['written_at'],m['sender'],m['text']) for m in rows)
+            records.append({'scene_id':p.id,'lines':result.lines,'record':vars(result.record),'verdict':result.verdict,
+                'source_ids':[m['source_id'] for m in rows],'verification_binding':realization_binding(p,result.lines,previous)})
+        except Exception as exc:
+            failures.append({'scene_id':p.id,'error_type':type(exc).__name__,'reason':str(exc)[:500]})
+            break  # No blind retries, no dependent continuation after a failed check.
+        save(root/'scenes.json',{'scenes':records});save(root/'logical-messages.json',messages)
+        transcript='\n\n'.join(f"{m['written_at']} — {m['sender']}\n{m['text']}" for m in sorted(messages,key=lambda m:m['written_at']))+'\n'
+        (root/'transcript.txt').write_text(transcript)
+    save(root/'render-status.json',{'state':'rendered-scene-checked' if not failures else 'partial',
+        'scope':'Logical source only; no global corpus/question review, native fixture, provider ingest or benchmark. Not a native-ready bundle.',
+        'exact_scenes':sum(p.messages is not None for p in plans),'writer_scenes':sum(p.messages is None for p in plans),
+        'completed_scenes':len(records),'messages':len(messages),'failures':failures,'reviewed_spec_revision':'4e0a248d181e92f5dc4aebfe1f3fe5cacd0de287'})
+    return failures
+
+
+def inspect_spec(path, *, week_start=None):
+    spec = read_spec(path)
+    version = spec.get('version')
+    if version in ('pizza-week-conversation-v2', 'pizza-week-seven-daily-documents-v2'):
+        if version == 'pizza-week-conversation-v2':
+            from pacbench.corpus.r2 import compile_week
+
+            _, documents, turns, _ = compile_week('continuing-account', path)
+            compile_week('isolated-control', path)
+        else:
+            from pacbench.corpus.r2 import DAILY_SPEC, compile_daily_week
+
+            if spec != read_spec(DAILY_SPEC):
+                raise ValueError('Daily document layout differs from the frozen spec')
+            _, documents, turns, _, _ = compile_daily_week()
+        start = documents[0].cutoff[:10]
+        if week_start and week_start != start:
+            raise ValueError(f'Workflow dates are frozen to the week starting {start}')
+        return {
+            'id': spec['version'],
+            'source_days': len({d.cutoff for d in documents}),
+            'scenes': 'frozen',
+            'questions': sum(t.measure != 'user-correction' for t in turns),
+            'noise': 'frozen',
+            'start': start,
+        }
+    if ('days' in spec or 'weeks' in spec) and not (week_start or spec.get('week_start')):
+        raise ValueError('Pin week_start in the spec or supply --week-start; validation never uses today')
+    scenes, _, resolved = resolve_spec(spec, Path(path).with_suffix(''), week_start=week_start)
+    return {
+        'id': resolved['id'],
+        'source_days': len({s.at[:10] for s in scenes}),
+        'scenes': len(scenes),
+        'questions': len(resolved['checks']) or 1,
+        'noise': resolved['noise'],
+        'start': resolved.get('week_start', min(s.at[:10] for s in scenes)),
+    }
+
+
+def specs_main(argv=None):
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('paths', nargs='*', type=Path, default=[Path('specs')],
+                        help='Spec JSON files or directories; defaults to specs/')
+    parser.add_argument('--week-start', help='Explicit first Monday for unpinned specs (YYYY-MM-DD)')
+    args = parser.parse_args(argv)
+    paths = set()
+    errors = []
+    for path in args.paths:
+        if path.is_dir():
+            found = list(path.glob('*.json'))
+            if not found:
+                errors.append(f'{path}: no JSON specs found')
+            paths.update(found)
+        else:
+            paths.add(path)
+    print('Spec | Source days | Scenes | Questions | Noise | Start')
+    seen = {}
+    for path in sorted(paths):
+        try:
+            item = inspect_spec(path, week_start=args.week_start)
+            if item['id'] in seen:
+                raise ValueError(f'Duplicate spec id {item["id"]!r}, also in {seen[item["id"]]}')
+            seen[item['id']] = path
+            print(f'{path} | {item["source_days"]} | {item["scenes"]} | '
+                  f'{item["questions"]} | {item["noise"]} | {item["start"]}')
+        except (OSError, ValueError, TypeError, KeyError, AttributeError, RuntimeError) as exc:
+            errors.append(f'{path}: {type(exc).__name__}: {exc}')
+    for error in errors:
+        print(f'ERROR {error}')
+    print(f'{len(seen)} valid specs; {len(errors)} errors. No model calls or generated files.')
+    return int(bool(errors))
 
 if __name__ == "__main__":
     raise SystemExit(main())

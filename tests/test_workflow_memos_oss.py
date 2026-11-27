@@ -5,7 +5,7 @@ from types import SimpleNamespace
 import pytest
 
 from pacbench.providers.memos import MemosWitness, native_transport_drained
-from pacbench.workflows.tracks import MEMOS_OSS_VERSION, eligibility
+from pacbench.providers import MEMOS_OSS_VERSION, eligibility
 
 
 @pytest.mark.parametrize('tool', ['memos_get', 'memos_search'])

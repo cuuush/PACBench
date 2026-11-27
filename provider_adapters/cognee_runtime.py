@@ -12,9 +12,9 @@ import subprocess
 import time
 from urllib.request import urlopen
 
-from pacbench.followups import save
+from pacbench.evidence_store import save
 from pacbench.gateway_client import validate_route
-from pacbench.cognee_memobase_setup import PINS
+from pacbench.providers.cognee import PINS
 from pacbench.provider_versions import huggingface_model_cache
 
 REPO = Path(__file__).resolve().parents[1]
@@ -56,8 +56,6 @@ def start(root, env, model, base, key):
     child['HF_HUB_CACHE'] = str(huggingface_model_cache(REPO))
     if child.get('PACBENCH_WORKFLOW_SCOPE'):
         child['HF_HUB_OFFLINE'] = '1'
-    from pacbench.openrouter_direct import runtime_environment
-    runtime_environment(child)
     from provider_adapters.tokenizer_cache import configure as configure_tokenizers
     if not configure_tokenizers(root,child):
         raise RuntimeError('Install the verified native tokenizer assets before Cognee processing')
@@ -115,7 +113,7 @@ def start(root, env, model, base, key):
     env.update(COGNEE_BASE_URL=endpoint, COGNEE_SERVICE_URL="", COGNEE_API_KEY="",
         COGNEE_TRANSPORT="http", COGNEE_EMBEDDED="false", COGNEE_PLUGIN_DATASET=scope,
         COGNEE_PLUGIN_RECALL_MODE="pinned")
-    from pacbench.prefetch_provenance import VERSION
+    from pacbench.source_policy import PREFETCH_PROTOCOL as VERSION
     declaration={"protocol":VERSION,"provider":"cognee","state":"unverified",
         "reason":"Native hybrid graph/chunk prefetch can contain original source; independent passage provenance remains pending"}
     save(root/'prefetch-provenance.json',declaration)

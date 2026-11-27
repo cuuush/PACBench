@@ -1,27 +1,37 @@
 """Immutable, ordered workflow inputs and an indexed verbatim-source cutoff check."""
-from contextlib import closing
-from dataclasses import asdict
+from __future__ import annotations
+
 import hashlib
-from itertools import chain, zip_longest
 import json
 import os
-from pathlib import Path
 import sqlite3
+from bisect import bisect_right
+from contextlib import closing
+from dataclasses import asdict
+from datetime import datetime, timedelta
+from itertools import chain, zip_longest
+from pathlib import Path
+from zoneinfo import ZoneInfo
 
-from ..semantic_grade import Claim
-from .spec import Document, Turn, instant
+from pacbench.judging.grade import Claim
 
 
 def _clock(value):
+    from .spec import instant
+
     return instant(value).isoformat(timespec='microseconds')
 
 
 def _document(payload):
+    from .spec import Document
+
     row = json.loads(payload)
     return Document(**{**row, 'source_ids': tuple(row['source_ids']), 'bodies': tuple(row['bodies'])})
 
 
 def _turn(payload):
+    from .spec import Turn
+
     row = json.loads(payload)
     row['claims'] = tuple(Claim(c['id'], c['description'], tuple(c['evidence'])) for c in row['claims'])
     return Turn(**row)
@@ -293,3 +303,157 @@ class SourcePlan:
             for _, body in self._matches(text, predicate, params):
                 if not (isolated and body in prompt) and not self._public_bridge(body, at, prompt, isolated):
                     raise ValueError('answer input contains a verbatim unavailable source body')
+
+
+VERSION = 'daily-source-documents-v3'
+
+
+NIGHTLY_JSON_VERSION = 'daily-source-documents-v2'
+
+
+LEGACY_VERSION = 'daily-source-documents-v1'
+
+
+SUPPORTED_VERSIONS = (LEGACY_VERSION,NIGHTLY_JSON_VERSION,VERSION)
+
+
+PUBLIC_FIELDS = {'source_id','channel','thread','sender','text','from_owner',
+                 'written_at','arrived_at','collected_at','structured'}
+
+
+def daily_batches(messages, timezone):
+    zone = ZoneInfo(timezone)
+    groups = {}
+    seen = set()
+    for m in messages:
+        if set(m) - PUBLIC_FIELDS:
+            raise ValueError('Document input contains undeclared or private fields')
+        if m['source_id'] in seen:
+            raise ValueError('Duplicate source ID in frozen input')
+        seen.add(m['source_id'])
+        collected = datetime.fromisoformat(m['collected_at'])
+        written = datetime.fromisoformat(m['written_at'])
+        if collected.utcoffset() is None or written.utcoffset() is None or written > collected:
+            raise ValueError('Source timestamps must be timezone-aware and collected after writing')
+        day=collected.astimezone(zone).date().isoformat()
+        groups.setdefault(day,[]).append(m)
+    return [(day,sorted(batch,key=lambda m:(datetime.fromisoformat(m['written_at']),m['source_id'])))
+            for day,batch in sorted(groups.items())]
+
+
+def daily_releases(messages, timezone):
+    """Publish each dated batch at its latest collection time."""
+    for day, batch in daily_batches(messages, timezone):
+        yield day, max((row['collected_at'] for row in batch), key=datetime.fromisoformat), batch
+
+
+def document_text(batch, collected_at, *, version=VERSION):
+    if version not in SUPPORTED_VERSIONS:raise ValueError('Unknown document format version')
+    if version in (LEGACY_VERSION,NIGHTLY_JSON_VERSION):
+        return '\n'.join(json.dumps(m,ensure_ascii=False,sort_keys=True) for m in batch)+'\n'
+    # A practical message export: copy every body, keep source chronology and
+    # introduce each conversation once per contiguous block. Full machine
+    # records, including source IDs, remain in messages.json for native readers
+    # and integrity checks; they need not inflate the LLM's transcript.
+    lines=[f'Daily messages — collected through {collected_at}']
+    previous=None
+    for m in batch:
+        metadata=m.get('structured') or {}
+        conversation=(m['channel'],m['thread'],metadata)
+        if conversation!=previous:
+            lines.extend(['',f"Conversation: {m['channel']} | {m['thread']}"])
+            if metadata.get('chat_name'):lines.append('Name: '+metadata['chat_name'])
+            if metadata.get('participants'):lines.append('Participants: '+', '.join(metadata['participants']))
+            if metadata.get('email_subject'):lines.append('Subject: '+metadata['email_subject'])
+            extra={k:v for k,v in metadata.items() if k not in ('chat_name','participants','email_subject')}
+            if extra:lines.append('Metadata: '+json.dumps(extra,ensure_ascii=False,sort_keys=True))
+            previous=conversation
+        lines.extend(['',f"[{m['written_at']}] {m['sender']}"+(' (sent by owner)' if m['from_owner'] else '')])
+        for key,label in (('arrived_at','Delivered'),('collected_at','Captured')):
+            if m.get(key) and m[key]!=m['written_at']:lines.append(f'{label}: {m[key]}')
+        lines.append(m['text'])
+    return '\n'.join(lines)+'\n'
+
+
+def source_state(at,ingested_batches):
+    """Reference the canonical per-day manifests instead of copying all IDs."""
+    return {'reference_version':2,'at':at,'ingested_batches':list(ingested_batches)}
+
+
+def compact_source_state(value,schedule):
+    if value.get('reference_version')==2:return value
+    by_id={row['id']:row for row in schedule}
+    expected=[sid for id in value['ingested_batches'] for sid in by_id[id]['source_ids']]
+    if set(value)!={'at','ingested_batches','source_ids'} or value['source_ids']!=expected:
+        raise ValueError('Source state differs from its canonical daily manifests')
+    return source_state(value['at'],value['ingested_batches'])
+
+
+def processing_at(at, provider, timezone, *, version=VERSION):
+    if version not in SUPPORTED_VERSIONS:raise ValueError('Unknown ingestion clock version')
+    if version==LEGACY_VERSION and provider!='memcal':
+        return at
+    stamp=datetime.fromisoformat(at).astimezone(ZoneInfo(timezone))
+    return datetime.combine(stamp.date()+timedelta(days=1),datetime.min.time(),ZoneInfo(timezone)).replace(hour=3).isoformat()
+
+
+def ready_sources(schedule, provider, at, timezone, *, version=VERSION):
+    clock=datetime.fromisoformat(at)
+    ready=[]
+    for row in schedule:
+        source_time=datetime.fromisoformat(row['at'])
+        finished=datetime.fromisoformat(processing_at(row['at'],provider,timezone,version=version))
+        if source_time<=clock<finished:
+            raise ValueError('Evaluation precedes native processing; do not use future memory state')
+        if finished<=clock:ready.append(row)
+    return ready
+
+
+class _ReadinessTimeline:
+    def __init__(self, schedule, provider, timezone, version):
+        self.rows = tuple(schedule)
+        boundaries = [
+            (datetime.fromisoformat(row['at']),
+             datetime.fromisoformat(processing_at(row['at'], provider, timezone, version=version)))
+            for row in self.rows
+        ]
+        self.finishes = [finished for _, finished in boundaries]
+        self.sorted_finishes = sorted(self.finishes)
+        self.in_finish_order = self.finishes == self.sorted_finishes
+        processing = [(started, finished) for started, finished in boundaries if started < finished]
+        self.processing_starts = sorted(started for started, _ in processing)
+        self.processing_finishes = sorted(finished for _, finished in processing)
+
+    def ready_count(self, clock):
+        # Count processing intervals whose inclusive start, but not end, has passed.
+        if bisect_right(self.processing_starts, clock) > bisect_right(self.processing_finishes, clock):
+            raise ValueError('Evaluation precedes native processing; do not use future memory state')
+        return bisect_right(self.sorted_finishes, clock)
+
+    def ready(self, at):
+        clock = datetime.fromisoformat(at)
+        count = self.ready_count(clock)
+        if not count:
+            return []
+        if self.in_finish_order or count == len(self.rows):
+            return list(self.rows[:count])
+        return [row for row, finished in zip(self.rows, self.finishes, strict=True) if finished <= clock]
+
+
+def validate_evaluation_clocks(schedule,providers,question_times,timezone, *, chronological=False,version=VERSION):
+    """Verify source eligibility and return the same timelines for native import."""
+    questions = [datetime.fromisoformat(value) for value in question_times]
+    if not questions or any(value.utcoffset() is None for value in questions):
+        raise ValueError('Evaluation clocks require explicit timezone offsets')
+    final = max(questions)
+    timelines = {}
+    for provider in providers:
+        timeline = _ReadinessTimeline(schedule, provider, timezone, version)
+        for clock in questions:
+            count = timeline.ready_count(clock)
+            if not chronological and count != len(schedule):
+                raise ValueError('Evaluation precedes source availability; chronological checkpoint ingestion is required')
+        if timeline.ready_count(final) != len(schedule):
+            raise ValueError('Final evaluation precedes source availability or native processing')
+        timelines[provider] = timeline
+    return timelines

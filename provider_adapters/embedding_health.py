@@ -6,7 +6,7 @@ import math
 import time
 from urllib.request import Request, urlopen
 
-from pacbench.reme_memos_setup import local_endpoint
+from pacbench.gateway_client import local_endpoint
 
 
 def check(endpoint="http://127.0.0.1:11435/v1", *, model="nomic-embed-text",

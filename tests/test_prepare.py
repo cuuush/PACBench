@@ -157,7 +157,7 @@ def test_invalid_spec_keeps_incomplete_experiment_artifact(tmp_path):
 
 def test_failed_preparation_audit_marks_body_incomplete(tmp_path, monkeypatch):
     import importlib
-    experiment = importlib.import_module("pacbench.prepare")
+    experiment = importlib.import_module("pacbench.corpus.prepare")
 
     root = tmp_path / "audit-failed"
     monkeypatch.setattr(experiment, "_prepare_body",
@@ -173,7 +173,7 @@ def test_failed_preparation_audit_marks_body_incomplete(tmp_path, monkeypatch):
 def test_auth_failure_stops_later_independent_scenes_without_freezing(tmp_path,monkeypatch):
     import importlib
     from pacbench.gateway_client import ModelAccessBlocked
-    module=importlib.import_module('pacbench.prepare')
+    module=importlib.import_module('pacbench.corpus.prepare')
     calls=[]
     def blocked(prompt):
         calls.append(prompt)
@@ -297,7 +297,7 @@ def test_cached_text_is_reverified_after_cross_chat_context_changes(tmp_path):
 
 def test_resume_checkpoint_preserves_unvisited_scenes_and_their_original_specs(tmp_path):
     from pacbench.corpus.prepare import load_scene_cache
-    from pacbench.followups import save
+    from pacbench.evidence_store import save
     old={'scenes':[{'id':'first','facts':['Old fact.']},{'id':'later','facts':['Later fact.']}]}
     rows=[{'scene_id':'first','lines':[['Me','First']]},{'scene_id':'later','lines':[['Me','Keep this render']]}]
     save(tmp_path/'resolved-spec.json',old);save(tmp_path/'scenes.json',{'scenes':rows})
@@ -312,7 +312,7 @@ def test_resume_checkpoint_preserves_unvisited_scenes_and_their_original_specs(t
 def test_frozen_sources_are_bound_to_the_actual_checked_transcript(tmp_path):
     from pacbench.corpus.audit import audit_scenes
     from pacbench.corpus.authoring import build_scene_observations,scene_spec
-    from pacbench.followups import save,digest
+    from pacbench.evidence_store import save, binding_digest as digest
     plan=ScenePlan(id='one',thread='chat',participants=('Me','Maya'),scene='Agree on pizza.',
         at='2026-10-12T18:00:00-04:00')
     lines=[['Me','Pizza Friday?'],['Maya','Yes.']];spec=scene_spec(plan)
@@ -406,7 +406,7 @@ def test_legacy_omitted_noise_resume_rejects_before_mutation(tmp_path, mode):
 @pytest.mark.parametrize('old_mode,new_mode', [('authored',None),('low','low'),('low','authored')])
 def test_resume_policy_accepts_unchanged_authored_and_explicit_legacy_or_migration(tmp_path, monkeypatch,old_mode,new_mode):
     import importlib
-    module=importlib.import_module('pacbench.prepare')
+    module=importlib.import_module('pacbench.corpus.prepare')
     root=tmp_path/'existing';root.mkdir()
     (root/'resolved-spec.json').write_text(json.dumps({'noise':old_mode}))
     seen=[]

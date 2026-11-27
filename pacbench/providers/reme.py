@@ -1,18 +1,21 @@
 """Observe ReMe's stock watched-resource and conversation capture workflow."""
-from contextlib import closing, contextmanager
-from datetime import datetime, timezone
+from __future__ import annotations
+
 import hashlib
 import json
-from pathlib import Path
 import sqlite3
+import subprocess
 import time
+from contextlib import closing
+from datetime import datetime, timezone
+from pathlib import Path
 
-from provider_adapters.reme_resource import inside
-
-from ..gateway.reuse_runtime import PROTOCOL
-from ..live_dispatch import process_identity
+from pacbench.gateway.observer import PROTOCOL
+from pacbench.gateway_client import local_endpoint as local_endpoint
+from pacbench.providers import HERMES_TOOLS, validate_native_deployment
 from pacbench.workflows.native import native_chat_closed, receipt_lineage
-from pacbench.workflows.tracks import HERMES_TOOLS, validate_native_deployment
+from pacbench.workflows.progress import process_identity
+from provider_adapters.reme_resource import inside
 
 
 class ReMeWitness:
@@ -168,78 +171,14 @@ class ReMeWitness:
         pass
 
 
-@contextmanager
-def open_account(root, scope, ledger):
-    from contextlib import ExitStack
-    from signal import SIGTERM
-    from tempfile import TemporaryDirectory
-    from urllib.parse import urlsplit
-    from pacbench import harness
-    from pacbench.workflows import capability as cap
-    from ..checkpoint_clock import CheckpointClock
-    from ..gateway_reuse import PersistentGateway, atomic
-    from ..native_pilot import probe, provision, stop_arm_model_work
-    from ..openrouter_route import ENDPOINT, MODEL
-    from ..providers import provider_module
-    from ..reme_memos_setup import PINS
-    from . import run_environment
-    from pacbench.workflows.native import NativeAccount, WarmHermes
-    from pacbench.workflows.runner import Condition
-
-    server = None
-
-    def stop():
-        stop_arm_model_work(root)
-        if server is not None:
-            receipt = json.loads((root/'native-service-stop.json').read_bytes())
-            if (receipt['pid']!=server['pid'] or receipt['forced_kill']
-                    or receipt['returncode'] not in (0,-SIGTERM) or not receipt['native_shutdown_complete']):
-                raise RuntimeError('ReMe native shutdown could not be confirmed')
-
-    with ExitStack() as stack:
-        stack.callback(stop)
-        env = provision(root,'reme',model=MODEL,local_timezone='America/New_York',inference_route='openrouter')
-        home = root/'hermes-home'
-        setup = json.loads((root/'native-server-setup.json').read_bytes())
-        native = json.loads((home/'reme/config.json').read_bytes())
-        paths = json.loads((root/'reme-resource-config.json').read_bytes())
-        endpoint = urlsplit(setup['endpoint'])
-        workspace = root/'reme-workspace'
-        receipts = root/'reme-native-resource-results'
-        if (endpoint.scheme!='http' or endpoint.hostname!='127.0.0.1' or not endpoint.port
-                or native!={'mode':'http','endpoint':setup['endpoint'],'workspace_dir':str(workspace)}
-                or paths!={'workspace':str(workspace),'receipts':str(receipts)}
-                or setup['provider_revision']!=PINS['reme'][1] or not setup['native_resource_watcher']
-                or not setup['native_defaults'] or not setup['health']):
-            raise ValueError('ReMe native deployment differs from the pinned localhost resource watcher')
-        server = process_identity(setup['pid'])
-        ready = probe(root,'reme',env)
-        atomic(root/'provider-probe.json',ready)
-        if not ready['available']:
-            raise RuntimeError('ReMe native plugin preflight failed')
-        with run_environment({'HERMES_HOME':str(home)}):
-            plugin = provider_module('reme')
-        docs, _, _ = cap.schedule(scope['spec_sha256'],scope['canary'])
-        all_docs, _, _ = cap.schedule(scope['spec_sha256'],False)
-        tools = HERMES_TOOLS['reme']
-        env.update(PACBENCH_WORKFLOW_CAPTURE=scope['protocol'],PACBENCH_API_INPUT_TRACE=str(root/'api-inputs.jsonl'))
-        child = harness.turn_env(docs[0].cutoff,home,','.join(tools),env)
-        clock = CheckpointClock(home,docs[0].cutoff,scope['spec_sha256'])
-        cwd = Path(stack.enter_context(TemporaryDirectory(prefix='pacbench-reme-chat-')))
-        owner = stack.enter_context(PersistentGateway(home,harness.ISOLATED_BIN.parent/'python',child,cwd=cwd,
-            checkpoint=scope['spec_sha256'],observation_clock=clock,provider='reme'))
-        condition = Condition('reme','nightly-document','continuing-account','Hermes '+owner.pins['hermes'],
-            MODEL,ENDPOINT,'Stock ReMe native historical resource watcher and BM25 index','0.4.2.2',
-            owner.pins['hermes_isolation_sha256'],'Physical ReMe service and simulated Hermes question time',tools)
-        witness = ReMeWitness(root,owner,workspace,receipts,server,plugin,docs,all_docs,ledger)
-        yield condition,NativeAccount(str(root),'reme',str(workspace),None,WarmHermes(owner,clock,witness.idle),witness)
-
-
 def check_canary(root):
     """Re-audit the pinned native source, capture, shutdown, and receipts."""
-    from ..canary_capability import binding, read
-    from ..reme_memos_setup import PINS
-    from pacbench.workflows.document_canary import audit_document_canary, verify_listener_stopped
+    from pacbench.evidence_store import file_binding as binding
+    from pacbench.judging.retained_scope import read_canary_binding as read
+    from pacbench.judging.retained_week import (
+        audit_document_canary,
+        verify_listener_stopped,
+    )
 
     audit = audit_document_canary(root, 'reme')
     root = audit.root
@@ -258,9 +197,123 @@ def check_canary(root):
     return audit.bindings
 
 
-def run(root, confirmation, *, canary, after_canary=None):
-    from pacbench.workflows.lifecycle import run_document_week
+PINS = {
+    "reme": ("https://github.com/agentscope-ai/ReMe.git", "36c23674ad8c599dae20b0687af40acd8ecb990e"),
+    "memos": ("https://registry.npmjs.org/@memtensor/memos-local-plugin/-/memos-local-plugin-2.0.21.tgz", "3a3634e4469bf0e22c520954653959e28e6db130371d1a3b171fe7186d5ea539"),
+}
 
-    return run_document_week(
-        root, confirmation, provider='reme', canary=canary, after_canary=after_canary,
-        check_canary=check_canary, open_account=open_account, fresh_account_error='expected a fresh dedicated ReMe Luna account')
+
+def settings(provider: str, root: Path, endpoint: str, model: str) -> dict:
+    endpoint = local_endpoint(endpoint)
+    if not model.strip():
+        raise ValueError("An explicit local model name is required")
+    root = root.resolve()
+    if provider == "reme":
+        return {
+            "plugin_name": "reme",
+            "plugin_config_path": "hermes-home/reme/config.json",
+            "plugin_config": {"mode": "embedded", "workspace_dir": str(root / "reme-workspace"), "reme_config": "default"},
+            "environment": {
+                "LLM_BACKEND": "openai", "LLM_MODEL_NAME": model,
+                "LLM_BASE_URL": endpoint, "LLM_API_KEY": "local-not-a-secret",
+            },
+        }
+    if provider == "memos":
+        return {
+            "plugin_name": "memtensor",
+            "plugin_config_path": "memos-home/config.yaml",
+            "plugin_config": {
+                "version": 1,
+                "llm": {"provider": "openai_compatible", "endpoint": endpoint, "model": model,
+                        "apiKey": "", "fallbackToHost": False},
+                "embedding": {"provider": "local", "local": {"offline": True}},
+                "hub": {"enabled": False}, "telemetry": {"enabled": False},
+            },
+            "environment": {
+                "MEMOS_HOME": str(root / "memos-home"), "MEMOS_HERMES_BRIDGE_MODE": "shared",
+                "LLM_PROVIDER": "openai_compatible", "LLM_ENDPOINT": endpoint,
+                "LLM_MODEL": model, "LLM_API_KEY": "", "LLM_FALLBACK_TO_HOST": "false",
+                "L3_LLM_PROVIDER": "openai_compatible", "L3_LLM_ENDPOINT": endpoint,
+                "L3_LLM_MODEL": model, "L3_LLM_API_KEY": "",
+                "SKILL_EVOLVER_PROVIDER": "openai_compatible", "SKILL_EVOLVER_ENDPOINT": endpoint,
+                "SKILL_EVOLVER_MODEL": model, "SKILL_EVOLVER_API_KEY": "",
+                "EMBEDDING_PROVIDER": "local", "EMBEDDING_API_KEY": "",
+                "TELEMETRY_ENABLED": "false", "HUB_ENABLED": "false",
+            },
+        }
+    raise ValueError(f"Unsupported provider: {provider}")
+
+
+def prepare(provider: str, root: Path, source: Path, endpoint: str, model: str) -> dict:
+    """Prepare a new run-owned home; refuse to replace existing runtime state."""
+    source = source.resolve()
+    pin = PINS[provider][1]
+    if provider == 'memos':
+        from pacbench.provider_versions import verify_memos_package
+        package,release=verify_memos_package(Path(__file__).resolve().parents[2])
+        if source != package.resolve():
+            raise ValueError('Select the verified official MemOS local release package')
+        actual=release['sha256']
+        plugin=source/'adapters/hermes/memos_provider'
+    else:
+        actual = subprocess.check_output(["git", "-C", str(source), "rev-parse", "HEAD"], text=True).strip()
+        plugin=source/'integrations/hermes_agent'
+    if actual != pin:
+        raise ValueError(f"Provider source pin differs: expected {pin}, got {actual}")
+    cfg = settings(provider, root, endpoint, model)
+    if not (plugin / "__init__.py").is_file():
+        raise ValueError("Native provider package is missing")
+    root = root.resolve()
+    root.mkdir(mode=0o700, parents=True, exist_ok=False)
+    home = root / "hermes-home"
+    home.mkdir(mode=0o700)
+    plugins = home / "plugins"
+    plugins.mkdir(mode=0o700)
+    (plugins / cfg["plugin_name"]).symlink_to(plugin, target_is_directory=True)
+    path = root / cfg["plugin_config_path"]
+    path.parent.mkdir(mode=0o700, parents=True, exist_ok=True)
+    path.write_text(json.dumps(cfg["plugin_config"], indent=2) + "\n")
+    path.chmod(0o600)
+    (home / "config.yaml").write_text(json.dumps({"memory": {"provider": cfg["plugin_name"]}}, indent=2) + "\n")
+    (home / "config.yaml").chmod(0o600)
+    env = {**cfg["environment"], "HERMES_HOME": str(home)}
+    report = {"provider": provider, "provider_revision": actual, "environment": env,
+              "qualification": "configuration-only", "ingestion_verified": False,
+              "fresh_session_recall_verified": False}
+    (root / "runtime.json").write_text(json.dumps(report, indent=2) + "\n")
+    return report
+
+
+def audit_reme_resource_receipt(result, day, text, source_ids):
+    """Require actual native action and indexed source-linked card witnesses."""
+    errors=[]
+    digest=hashlib.sha256(text.encode()).hexdigest()
+    relative=f'resource/{day}/source-{digest}.txt'
+    receipt=result.get('native_result',{})
+    response=receipt.get('response',{})
+    items=response.get('metadata',{}).get('results',[])
+    matches=[i for i in items if i.get('path')==relative]
+    metadata=(matches[0].get('metadata') or {}) if len(matches)==1 else {}
+    nodes=receipt.get('hook_metadata',{}).get('observed_index_nodes',[])
+    card=result.get('card_text')
+    if (result.get('ingestion_condition')!='native-resource-document-extraction-v1' or
+            result.get('resource_path')!=relative or result.get('document_sha256')!=digest or
+            result.get('stored_source_sha256')!=digest or result.get('source_ids')!=source_ids or
+            result.get('source_readback_exact') is not True or result.get('manual_job_invocations')!=0 or
+            result.get('native_defaults') is not True):
+        errors.append('ReMe native document delivery/source binding is unproven')
+    if (receipt.get('protocol')!='reme-native-resource-observer-v1' or
+            receipt.get('processing_forced') is not False or response.get('success') is not True or
+            receipt.get('response_sha256')!=hashlib.sha256(json.dumps(response,sort_keys=True,ensure_ascii=False).encode()).hexdigest() or
+            len(matches)!=1 or matches[0].get('success') is not True or
+            metadata.get('action')!='added' or metadata.get('source_resource')!=f'[[{relative}]]' or
+            'error' in (metadata.get('index') or {})):
+        errors.append('ReMe native resource processing did not complete')
+    if (not isinstance(card,str) or hashlib.sha256(card.encode()).hexdigest()!=result.get('card_sha256') or
+            f'[[{relative}]]' not in (card or '') or result.get('card_path')!=metadata.get('path') or
+            not str(result.get('card_path','')).startswith(f'daily/{day}/') or
+            receipt.get('hook_metadata',{}).get('index_observation_complete') is not True or
+            len(nodes)!=1 or nodes[0].get('path')!=result.get('card_path') or not nodes[0].get('chunk_ids') or
+            nodes[0].get('front_matter',{}).get('source_resource')!=f'[[{relative}]]'):
+        errors.append('ReMe generated memory card/index provenance is unproven')
+    return errors

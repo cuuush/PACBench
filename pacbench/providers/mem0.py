@@ -1,18 +1,23 @@
 """Native Mem0 OSS readback for the continuing-account document workflow."""
-from contextlib import closing, contextmanager
-from datetime import datetime, timezone
+from __future__ import annotations
+
 import hashlib
 import json
 import logging
-from pathlib import Path
+import os
 import sqlite3
+import subprocess
 import time
+from contextlib import closing
+from datetime import datetime, timezone
+from pathlib import Path
 
-from ..gateway.reuse_runtime import PROTOCOL
-from ..live_dispatch import process_identity
+from pacbench import harness
+from pacbench.evidence_store import save
+from pacbench.gateway.observer import PROTOCOL
+from pacbench.providers import HERMES_TOOLS, validate_native_deployment
 from pacbench.workflows.native import receipt_lineage
-from pacbench.workflows.tracks import HERMES_TOOLS, validate_native_deployment
-
+from pacbench.workflows.progress import process_identity
 
 # Verified against the installed 2.2.1 SQLiteManager.save_messages.
 HISTORY_WINDOW = 10
@@ -39,6 +44,7 @@ class Mem0Documents:
 
     def open(self):
         from copy import deepcopy
+
         from ..providers import provider_module
 
         config = deepcopy(self.config)
@@ -102,6 +108,7 @@ class Mem0Witness:
 
     def verify_deployment(self, condition, identity):
         from importlib.metadata import version
+
         from ..catalog_plugins import verify_retained_catalog_provider
 
         verify_retained_catalog_provider('mem0', self.owner.home)
@@ -248,71 +255,11 @@ class Mem0Witness:
         pass
 
 
-@contextmanager
-def open_account(root, endpoint, scope, ledger):
-    from tempfile import TemporaryDirectory
-    from urllib.parse import urlsplit
-
-    from pacbench import harness
-    from pacbench.workflows import capability as cap
-    from ..checkpoint_clock import CheckpointClock
-    from ..gateway_reuse import PersistentGateway, atomic
-    from ..native_pilot import probe, provision
-    from ..openrouter_route import ENDPOINT, MODEL
-    from . import run_environment
-    from pacbench.workflows.native import NativeAccount, WarmHermes
-    from pacbench.workflows.runner import Condition
-    from provider_adapters.embedding_health import check
-    from qdrant_client import QdrantClient
-
-    uri = urlsplit(endpoint)
-    if uri.scheme != 'http' or uri.hostname != '127.0.0.1' or not uri.port or endpoint != f'http://127.0.0.1:{uri.port}':
-        raise ValueError('Mem0 requires a dedicated local Qdrant service')
-    with closing(QdrantClient(url=endpoint)) as vector:
-        qdrant = vector.info()
-        if qdrant.version != '1.20.0' or vector.get_collections().collections:
-            raise ValueError('expected a fresh pinned local Qdrant service')
-        atomic(root/'vector-service.json', dict(version=qdrant.version, commit=qdrant.commit, driver='qdrant-client 1.20.0'))
-    atomic(root/'embedding-health.json', check('http://127.0.0.1:11435/v1'))
-    env = provision(root, 'mem0', model=MODEL, local_timezone='America/New_York', inference_route='openrouter')
-    home = root/'hermes-home'
-    config_path = home/'mem0.json'
-    config = json.loads(config_path.read_text())
-    config['oss']['vector_store']['config'].update(host=uri.hostname, port=uri.port,
-        collection_name='pacbench_'+hashlib.sha256(str(root).encode()).hexdigest()[:20])
-    config['oss']['vector_store']['config'].pop('path', None)
-    atomic(config_path, config)
-    ready = probe(root, 'mem0', env)
-    atomic(root/'provider-probe.json', ready)
-    if not ready['available']:
-        raise RuntimeError('Mem0 native plugin preflight did not pass')
-    store = root/'mem0-state'
-    store.mkdir(mode=0o700, exist_ok=True)
-    (root/'mem0-observation').symlink_to(store, target_is_directory=True)
-    documents, _, _ = cap.schedule(scope['spec_sha256'], scope['canary'])
-    tools = HERMES_TOOLS['mem0']
-    env.update(PACBENCH_WORKFLOW_CAPTURE=scope['protocol'], PACBENCH_API_INPUT_TRACE=str(root/'api-inputs.jsonl'))
-    child = harness.turn_env(documents[0].cutoff, home, ','.join(tools), env)
-    clock = CheckpointClock(home, documents[0].cutoff, scope['spec_sha256'])
-    importer_env = {key:child[key] for key in ('HERMES_HOME','HOME','MEM0_DIR','MEM0_TELEMETRY')}
-    with run_environment(importer_env), TemporaryDirectory(prefix='pacbench-mem0-chat-') as cwd:
-        with closing(Mem0Documents(config['oss']).open()) as transport, PersistentGateway(
-                home, harness.ISOLATED_BIN.parent/'python', child, cwd=Path(cwd),
-                checkpoint=scope['spec_sha256'], observation_clock=clock, provider='mem0') as owner:
-            condition = Condition('mem0','nightly-document','continuing-account','Hermes '+owner.pins['hermes'],
-                MODEL, ENDPOINT, 'Mem0 OSS with isolated loopback Qdrant', 'OSS 2.2.1',
-                owner.pins['hermes_isolation_sha256'], 'Physical Mem0 persistence time and simulated Hermes question time', tools)
-            witness = Mem0Witness(root, config['user_id'], config.get('agent_id','hermes'),
-                                  documents, owner, transport, ledger)
-            frontend = WarmHermes(owner, clock, witness.idle)
-            yield condition, NativeAccount(str(root),'mem0',config['user_id'],transport,frontend,witness)
-
-
 def check_canary(root):
     """Re-audit the saved canary without opening the retired provider account."""
-    from ..canary_capability import sha
-    from ..observation_adapters import MEM0_PLUGIN_SHA256
-    from pacbench.workflows.document_canary import audit_document_canary
+    from pacbench.evidence_store import file_sha as sha
+    from pacbench.gateway_reuse import MEM0_PLUGIN_SHA256
+    from pacbench.judging.retained_week import audit_document_canary
 
     audit = audit_document_canary(root, 'mem0')
     installed = audit.root/'hermes-home/plugins/mem0'
@@ -325,36 +272,102 @@ def check_canary(root):
     return audit.bindings
 
 
-def terminal_result(root, ledger, run_id, canary, started):
-    from pacbench.workflows.lifecycle import terminal_result as record_result
-
-    return record_result(root, ledger, run_id, canary, started, provider='mem0')
-
-
-def run(root, endpoint, confirmation, *, canary, after_canary=None):
-    from pacbench.workflows.lifecycle import run_document_week
-
-    def open_native_account(root, scope, ledger):
-        return open_account(root, endpoint, scope, ledger)
-
-    return run_document_week(
-        root, confirmation, provider='mem0', canary=canary, after_canary=after_canary,
-        check_canary=check_canary, open_account=open_native_account, fresh_account_error='fresh dedicated Mem0 Luna campaign required')
+def mem0_model_settings(model: str, base: str, *, openrouter: bool = False) -> dict:
+    """Fields applied to the native Mem0 SDK config after its setup builder."""
+    settings = {'openai_base_url': base}
+    if openrouter:
+        # Native Mem0 gives this setting precedence over openai_base_url.
+        settings['openrouter_base_url'] = base
+    from pacbench.openrouter_route import MODEL as OPENROUTER_MODEL
+    if model in {'muse-spark-1.3-contributor', OPENROUTER_MODEL}:
+        settings['is_reasoning_model'] = True
+    return settings
 
 
-def main():
-    import argparse
-
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('root',type=Path)
-    parser.add_argument('--qdrant',required=True)
-    parser.add_argument('--billing-confirmation',type=Path,required=True)
-    action = parser.add_mutually_exclusive_group(required=True)
-    action.add_argument('--canary',action='store_true')
-    action.add_argument('--after-canary',type=Path)
-    args = parser.parse_args()
-    run(args.root, args.qdrant, args.billing_confirmation, canary=args.canary, after_canary=args.after_canary)
+def _mem0_plan(root, model, base, key):
+    return {'model': model, **mem0_model_settings(model, base, openrouter=True)}
 
 
-if __name__ == '__main__':
-    main()
+def _check_mem0_resume(arm):
+    home, model, memory_key = arm.home, arm.model, arm.memory_key
+    config=json.loads((home/'mem0.json').read_text())
+    expected = 'pacbench-' + arm.root_hash[:24]
+    if (config.get('mode')!='oss' or config.get('user_id')!=expected or
+        config['oss']['llm']['config']['model']!=model or config['oss'].get('graph_store') or
+        config['oss']['llm']['config']['api_key']!=memory_key):raise ValueError('Retained Mem0 native configuration differs')
+    from pacbench.gateway_client import validate_route
+    validate_route(config['oss']['llm']['config']['openai_base_url'],memory_key)
+
+
+def _provision_mem0(arm):
+    if arm.resume:
+        _check_mem0_resume(arm)
+        return
+    root, home, env, model = arm.root, arm.home, arm.env, arm.model
+    client_key, memory_key = arm.driver_key, arm.memory_key
+    inference_route = arm.inference_route
+    identity = "pacbench-" + arm.root_hash[:24]
+    extraction_url = arm.memory_url
+    configured_model = model if model != "unconfigured" else os.environ.get("MODEL", "muse-spark-1.3-contributor")
+    # Invoke the documented agent-driven OSS setup, not a custom SDK shim.
+    command = [str(harness.ISOLATED_BIN), "memory", "setup", "mem0", "--mode", "oss",
+               "--oss-llm", "openai", "--oss-llm-model", configured_model,
+               "--oss-llm-url", extraction_url, "--oss-embedder", "ollama",
+               "--oss-embedder-model", "nomic-embed-text", "--oss-embedder-url", "http://127.0.0.1:11435",
+               "--oss-vector", "qdrant", "--oss-vector-path", str((root / "qdrant").resolve()),
+               "--user-id", identity]
+    proc = subprocess.run(command, env={**os.environ, **env, "HERMES_HOME": str(home.resolve())},
+                          capture_output=True, text=True, timeout=90)
+    save(root / "native-setup.json", {"command": command, "returncode": proc.returncode,
+                                     "stdout": proc.stdout, "stderr": proc.stderr})
+    if proc.returncode or not (home / "mem0.json").exists():
+        # The pinned top-level argparse rejects flags documented by its plugin.
+        # Use the README's manual mem0.json path and the plugin's own config builder.
+        builder = '''
+import json,sys
+from pathlib import Path
+sys.path.insert(0, sys.argv[4])
+from pacbench.providers import provider_module
+build_oss_config = provider_module("mem0", "_setup").build_oss_config
+Mem0MemoryProvider = provider_module("mem0").Mem0MemoryProvider
+flags=json.loads(sys.argv[1])
+oss,_=build_oss_config(flags)
+Mem0MemoryProvider().save_config({"mode":"oss","user_id":sys.argv[2],"oss":oss},sys.argv[3])
+'''
+        flags = {"oss_llm": "openai", "oss_llm_model": configured_model,
+                 "oss_llm_url": extraction_url, "oss_embedder": "ollama",
+                 "oss_embedder_model": "nomic-embed-text", "oss_embedder_url": "http://127.0.0.1:11435",
+                 "oss_vector": "qdrant", "oss_vector_path": str((root / "qdrant").resolve())}
+        proc = subprocess.run([str(harness.ISOLATED_BIN.parent / "python"), "-c", builder,
+                               json.dumps(flags), identity, str(home.resolve()), str(harness.REPO)],
+                              env={**os.environ, **env, "HERMES_HOME": str(home.resolve())},
+                              cwd=harness.ISOLATED_TREE, capture_output=True, text=True, timeout=30)
+        save(root / "native-manual-setup.json", {"route": "README manual OSS mem0.json",
+             "flags": flags, "returncode": proc.returncode, "stdout": proc.stdout, "stderr": proc.stderr})
+        if proc.returncode or not (home / "mem0.json").exists():
+            raise RuntimeError("documented manual Mem0 setup failed; see native-manual-setup.json")
+    config = json.loads((home / "mem0.json").read_text())
+    # README recommends 6000 characters for 8k-context embedders.
+    from pacbench.gateway_client import validate_route
+    actual_url = config["oss"]["llm"]["config"]["openai_base_url"]
+    validate_route(actual_url, client_key)
+    if actual_url != extraction_url:
+        raise RuntimeError("Mem0 model endpoint differs from the isolated gateway project")
+    config['oss']['llm']['config'].update(mem0_model_settings(
+        configured_model, extraction_url, openrouter=inference_route == 'openrouter'))
+    config['oss']['llm']['config']['api_key'] = memory_key
+    config["sync_max_chars"] = 6000
+    # The README's manual setup documents this SDK flag for reasoning
+    # models. Its name heuristic knows GPT/o-series, but not Spark/DeepSeek. Let
+    # the native SDK choose its reasoning-model request parameters rather
+    # than treating Spark as a legacy chat model with a 2,000-token cap.
+    if config['oss']['llm']['config'].get('is_reasoning_model') is True:
+        save(root/'model-compatibility.json',{
+            'model':configured_model,'is_reasoning_model':True,
+            'route':'Hermes Mem0 README manual OSS configuration; native SDK explicit model classification',
+            'output_budget_override':False,'reasoning_effort_override':False})
+    # Leave output budgets and reasoning effort to the native SDK.
+    save(home / "mem0.json", config)
+    os.chmod(home / "mem0.json", 0o600)
+    (home / ".env").write_text("OPENAI_API_KEY=" + memory_key + "\n")
+    os.chmod(home / ".env", 0o600)

@@ -5,12 +5,10 @@ from types import SimpleNamespace
 
 import pytest
 
-from pacbench.followups import (
-    audit_followups, combined_plan, cost_window, digest, freeze_policy, load_questions,
-    recovery_score, run_followups, tool_profile, turn_metrics, initial_effort,
-)
+from pacbench.judging.recovery import audit_followups, combined_plan, cost_window, freeze_policy, load_questions, recovery_score, run_followups, tool_profile, turn_metrics, initial_effort
+from pacbench.evidence_store import binding_digest as digest
 from pacbench.harness import TurnResult
-from pacbench.semantic_grade import Grade, GradedClaim
+from pacbench.judging.grade import Grade, GradedClaim
 
 
 def contract():
@@ -187,7 +185,7 @@ def test_correct_answer_from_source_fallback_still_fails_retention(name, argumen
 
 
 def test_source_followup_penalty_carries_to_dependent_turn():
-    from pacbench.native_checks import extend_path
+    from pacbench.workflows.turn_evidence import extend_path
     source = turn(calls=[{'name':'memcal_open_source','input':{'source':'E1'}}])
     path = extend_path({'source_fallback':False, 'unclassified':False}, source)
     inherited = initial_effort(turn(), inherited_path=path)
@@ -280,7 +278,7 @@ def test_leading_question_rejected_and_saved_plan_cannot_change(tmp_path):
     (['date'], False), (['date', 'time', 'extra'], False), ('date,time', False),
 ])
 def test_combined_review_coverage_is_complete_and_unique_regardless_of_order(tmp_path, coverage, accepted):
-    from pacbench.followups import load_combined_plan
+    from pacbench.judging.recovery import load_combined_plan
     c=contract();policy=freeze_policy(c,tmp_path/'policy.json')
     replies=iter([{'question':'Which day and what time?'},
                   {'safe':True,'covers_claim_ids':coverage,'reason':'Synthetic coverage review.'}] * 2)
@@ -402,7 +400,7 @@ def test_recovery_uses_actual_answer_and_reuses_matching_missing_fact_sets(tmp_p
 
 
 def test_failed_checkpoint_serialization_preserves_last_complete_state(tmp_path):
-    from pacbench.followups import save
+    from pacbench.evidence_store import save
     file=tmp_path/'summary.json';save(file,{'state':'running','completed':4})
     with pytest.raises(TypeError):save(file,{'state':object()})
     assert json.loads(file.read_text())=={'state':'running','completed':4}

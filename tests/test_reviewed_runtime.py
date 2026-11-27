@@ -1,14 +1,15 @@
 from pathlib import Path
 import subprocess
 import pytest
-from pacbench.reviewed_runtime import audit_only_compatibility,execution_digest,REVIEWED_SHA,RUNTIME_AST_SHA
+from pacbench.judging.retained_week import audit_only_compatibility, execution_digest, REVIEWED_SHA, RUNTIME_AST_SHA
 
 
 def test_unreviewed_source_and_runtime_changes_are_refused(tmp_path):
-    source = Path(__file__).resolve().parents[1] / 'pacbench/followups.py'
+    # Arbitrary source under the original pathname must always be refused.
+    source = 'def run_followups():\n    return 1\n'
     target = tmp_path / 'pacbench' / 'followups.py'
     target.parent.mkdir()
-    current = source.read_text()
+    current = source
     target.write_text(current + '\n# unreviewed audit-only revision\n')
     with pytest.raises(ValueError):
         audit_only_compatibility(tmp_path, target, REVIEWED_SHA)

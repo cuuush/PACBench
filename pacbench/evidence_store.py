@@ -1,11 +1,13 @@
 """Exact shared prompt text for portable evidence; no compressed or lost text."""
 from __future__ import annotations
 
-from functools import lru_cache
 import hashlib
 import json
-from pathlib import Path
+import os
 import re
+import tempfile
+from functools import lru_cache
+from pathlib import Path
 
 STORE = 'shared-text.json'
 MARKER = '$pacbench_text'
@@ -78,7 +80,6 @@ def contract_paths(root):
 
 def compact_contracts(root):
     """Keep expanded contract hashes unchanged while sharing exact review text."""
-    from .followups import save
     root=Path(root)
     chunks=read_json(root/STORE)['chunks'] if (root/STORE).exists() else {}
     pending={path:share_text(read_json(path),chunks) for path in contract_paths(root)}
@@ -88,7 +89,6 @@ def compact_contracts(root):
 
 def compact_preparation(root):
     """Keep referenced receipts and store repeated exact prompt blocks once."""
-    from .followups import save
     from pacbench.corpus.audit import audit_prepared
     root=Path(root)
     if audit_prepared(root)['state']!='pass':raise ValueError('Refuse to compact invalid preparation')
@@ -130,3 +130,59 @@ def compact_preparation(root):
     after=sum(p.stat().st_size for p in root.rglob('*') if p.is_file())
     return {'bytes_before':before,'bytes_after':after,'model_receipts':len(references),
             'shared_chunks':len(chunks),'audit':checked}
+
+
+def file_sha(path):
+    """SHA-256 of the original bytes, without newline or JSON normalization."""
+    with Path(path).open('rb') as source:
+        return hashlib.file_digest(source, 'sha256').hexdigest()
+
+
+def binding_digest(value):
+    """JSON encoding used by the original checkpoint capability formats."""
+    return hashlib.sha256(json.dumps(value, sort_keys=True, ensure_ascii=False).encode()).hexdigest()
+
+
+def file_binding(path):
+    return {'path': str(Path(path).resolve()), 'sha256': file_sha(path)}
+
+
+def new_private_file(destination, chunks):
+    """Publish a complete private local artifact once, even with competing writers."""
+    with tempfile.NamedTemporaryFile(dir=destination.parent) as tmp:
+        for chunk in chunks:
+            tmp.write(chunk)
+        tmp.flush()
+        os.fsync(tmp.fileno())
+        os.link(tmp.name, destination)
+
+
+def save(path: Path, value) -> None:
+    """Publish a complete checkpoint, even while the explorer reads the run."""
+    path.parent.mkdir(parents=True, exist_ok=True)
+    temporary = None
+    try:
+        with tempfile.NamedTemporaryFile(mode='w',encoding='utf-8',dir=path.parent,
+                prefix='.'+path.name+'-',suffix='.tmp',delete=False) as stream:
+            temporary=Path(stream.name)
+            json.dump(value,stream,indent=2,ensure_ascii=False)
+            stream.write('\n')
+        os.replace(temporary,path)
+    finally:
+        if temporary is not None:temporary.unlink(missing_ok=True)
+
+
+def read_bound_bytes(path):
+    path = Path(path).absolute()
+    if path != path.resolve():
+        raise ValueError(f'symlinked or noncanonical input path: {path}')
+    raw = path.read_bytes()
+    return raw, hashlib.sha256(raw).hexdigest()
+
+
+def read_bound_json(path):
+    raw, sha = read_bound_bytes(path)
+    value = json.loads(raw)
+    if not isinstance(value, dict):
+        raise ValueError(f'expected JSON object: {Path(path).name}')
+    return value, sha

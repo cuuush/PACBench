@@ -7,7 +7,7 @@ import sqlite3
 
 import pytest
 
-from pacbench.semantic_grade import Claim
+from pacbench.judging.grade import Claim
 from pacbench.workflows.spec import Turn
 from pacbench.workflows.progress import UnknownEffect, WorkflowProgress
 

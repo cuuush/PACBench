@@ -1,10 +1,10 @@
 import json
-from types import SimpleNamespace
-import pytest
-from pacbench.scored_resume import verify_prefix
-from pacbench.native_checks import run_checks
-from pacbench.stop import OperatorStop
 
+from types import SimpleNamespace
+
+import pytest
+
+from pacbench.judging.retained_week import verify_prefix
 
 def test_pinned_mem0_extraction_failure_cannot_write_future_input():
     """Exercise the actual native SDK, rather than assuming a failed import is
@@ -24,36 +24,6 @@ def test_pinned_mem0_extraction_failure_cannot_write_future_input():
         memory.Memory._add_to_vector_store(fake,[{'role':'user','content':'future synthetic source'}],{}, {'user_id':'synthetic'},True)
     assert calls==['history-read','vector-read','llm-failure']
 
-
-def test_scored_workspace_recovery_keeps_original_pre_recall_witness(tmp_path,monkeypatch):
-    from pacbench.scored_resume import renew_scored_workspace
-    import pathlib,tempfile,shutil
-    workspace=pathlib.Path(tempfile.mkdtemp(prefix='pacbench-chat-',dir='/var/tmp'))
-    root=tmp_path/'root';root.mkdir();history=tmp_path/'history';history.mkdir()
-    (root/'recall-workspace.json').write_text(json.dumps({'workspace':str(workspace)}))
-    witness=root/'pre-recall-isolation.json';witness.write_text('{"hermes_sessions_before_recall": []}')
-    before=witness.read_bytes();monkeypatch.setattr('pacbench.context_isolation.outside_project',lambda p:True)
-    try:
-        assert renew_scored_workspace(root,history)==workspace and witness.read_bytes()==before
-        (workspace/'unexpected').write_text('x')
-        with pytest.raises(ValueError,match='not empty'):renew_scored_workspace(root,history)
-    finally:shutil.rmtree(workspace)
-
-
-def test_prefix_restores_history_without_repeating_completed_turn(tmp_path,monkeypatch):
-    root=tmp_path;d=root/'turns/one';d.mkdir(parents=True)
-    item={'id':'one','state':'diagnostic','contract_hash':'a','recovery':{'state':'complete'}}
-    (root/'evaluation.json').write_text(json.dumps({'context':'shared','checks':[item]}));(d/'turn.json').write_text('{}')
-    restored=[];monkeypatch.setattr('pacbench.harness.TurnResult',lambda **kw:SimpleNamespace())
-    monkeypatch.setattr('pacbench.native_checks.advance',lambda state,turn,directory,version:restored.append(directory.name))
-    checks=[({'id':'one','at':'x'},SimpleNamespace(contract_hash='a'),None),({'id':'two','at':'y'},SimpleNamespace(contract_hash='b'),None)]
-    def before(row,directory):raise OperatorStop()
-    def forbidden(*a,**kw):raise AssertionError('No model call may run before the stop')
-    r=run_checks(checks,'shared',root,forbidden,'',{},question_dir=tmp_path,before_check=before,run_turn=forbidden,resume_prefix=1)
-    assert restored==['one'] and r['checks'][0]==item and r['state']=='interrupted'
-    assert not (root/'turns/one/status.json').exists()
-
-
 def test_partial_or_future_store_is_rejected_before_recovery(tmp_path,monkeypatch):
     root=tmp_path/'repeat-1/memos';d=root/'turns/one';d.mkdir(parents=True)
     item={'id':'one','state':'diagnostic','contract_hash':'a'}
@@ -70,7 +40,7 @@ def test_partial_or_future_store_is_rejected_before_recovery(tmp_path,monkeypatc
     report={'results':[{'provider':'memos'}],'ingestion_schedule':[batch],'process_timezone':'UTC','question_prompt_protocol':'native-question-v2'}
     checks=[({'id':'one','at':'x'},SimpleNamespace(contract_hash='a',question='Question'),None),({'id':'two','at':'y'},None,None)]
     monkeypatch.setattr('pacbench.harness.question_prompt',lambda *a:'Question')
-    monkeypatch.setattr('pacbench.document_ingestion.ready_sources',lambda schedule,provider,at,tz:schedule if at=='x' else [])
+    monkeypatch.setattr('pacbench.workflows.source_plan.ready_sources',lambda schedule,provider,at,tz:schedule if at=='x' else [])
     with pytest.raises(ValueError,match='Partial'):verify_prefix(tmp_path,report,checks)
     receipt.update(ready=True,state='ready');put(root/'ingestion/day.json',receipt)
     with pytest.raises(ValueError,match='future'):verify_prefix(tmp_path,report,checks)
@@ -78,7 +48,7 @@ def test_partial_or_future_store_is_rejected_before_recovery(tmp_path,monkeypatc
 def test_strict_ungraded_prefix_requires_actual_provenance_and_no_grades(tmp_path,monkeypatch):
     from dataclasses import asdict
     from pacbench.harness import TurnResult
-    from pacbench.strict_memory import classify
+    from pacbench.source_policy import classify_retention as classify
     root=tmp_path/'repeat-1/supermemory';d=root/'turns/one';d.mkdir(parents=True)
     item={'id':'one','state':'strict-ungraded','contract_hash':'a','verdict':None}
     def put(p,v):p.parent.mkdir(parents=True,exist_ok=True);p.write_text(json.dumps(v))
@@ -89,7 +59,7 @@ def test_strict_ungraded_prefix_requires_actual_provenance_and_no_grades(tmp_pat
     report={'results':[{'provider':'supermemory'}],'ingestion_schedule':[],'process_timezone':'UTC','question_prompt_protocol':'native-question-v2'}
     checks=[({'id':'one','at':'x'},SimpleNamespace(contract_hash='a',question='Question'),None),({'id':'two','at':'y'},None,None)]
     monkeypatch.setattr('pacbench.harness.question_prompt',lambda *a:'Question')
-    monkeypatch.setattr('pacbench.document_ingestion.ready_sources',lambda *a:[])
+    monkeypatch.setattr('pacbench.workflows.source_plan.ready_sources',lambda *a:[])
     prefix,completed=verify_prefix(tmp_path,report,checks)
     assert prefix==[item] and completed==[]
     put(d/'grade.json',{'claims':[]})

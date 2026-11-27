@@ -1,21 +1,25 @@
 """Consume durable verified turns without opening an answer account or replaying its work."""
+import fcntl
+import os
 from contextlib import contextmanager
 from contextvars import ContextVar
-import fcntl
-import json
-import os
 from itertools import islice
 from pathlib import Path
 
-from ..canary_capability import digest
-from ..evidence_store import read_json
-from ..semantic_grade import (
-    CONTEXT_JUDGE_PROTOCOL, RETRY_GUIDANCE, UnusableJudgeResponse, audit_native_judge_attempts,
-    grade_native_semantic, grade_semantic, judge_prompt,
+from pacbench.evidence_store import binding_digest as digest
+from pacbench.judging.grade import (
+    CONTEXT_JUDGE_PROTOCOL,
+    RETRY_GUIDANCE,
+    UnusableJudgeResponse,
+    audit_native_judge_attempts,
+    grade_native_semantic,
+    grade_semantic,
+    judge_prompt,
 )
+
+from ..evidence_store import read_json
 from ..model_calls import ModelOutput
 from .runner import UnverifiedJudgment, grade_turn, judge_options
-
 
 # Admission receives the actual post-routing wire body. A claimed turn's prompt
 # is available only inside the judge's call stack, including its documented retry.
@@ -28,12 +32,13 @@ _recovery = ContextVar('verified_judge_recovery', default=None)
 @contextmanager
 def judge_only_owner(progress, scope):
     """Bind a judge-only worker to this run; document turns can be consumed as they verify."""
-    from ..canary_capability import binding
-    from ..live_dispatch import process_identity
+    from pacbench.evidence_store import file_binding as binding
+    from pacbench.workflows.progress import process_identity
 
     root = Path(scope['root'])
     bound = binding(root/'workflow-scope.json')
-    from .document_progress import PROTOCOL, PROVIDERS
+    from pacbench.workflows.progress import DOCUMENT_PROGRESS_PROTOCOL as PROTOCOL
+    from pacbench.workflows.progress import DOCUMENT_PROVIDERS as PROVIDERS
     identity = progress.binding('identity') or {}
     document = (identity.get('protocol') == PROTOCOL and scope['provider'] in PROVIDERS
                 and identity.get('condition', {}).get('provider') == scope['provider']
@@ -97,7 +102,8 @@ def retained_grade(turn, surface, directory, *, audit_path=None):
 def _saved_response(progress, turn, surface, directory):
     """Rebuild a missing final judgment from a returned response, without a transport."""
     import tempfile
-    from ..canary_capability import read
+
+    from pacbench.judging.retained_scope import read_canary_binding as read
 
     def cached(prompt):
         proof = progress.binding('judge-response/'+turn.id+'/'+digest(prompt))
@@ -189,7 +195,7 @@ def grade_verified(progress, judge, directory, journal, *, limit, unsent_claim=N
             try:
                 result = judge(prompt)
                 if isinstance(result, ModelOutput):
-                    from ..canary_capability import binding
+                    from pacbench.evidence_store import file_binding as binding
                     path = Path(result.record_path)
                     if path != path.resolve() or path.parent != directory/'model-calls':
                         raise UnverifiedJudgment('foreign judge model record')
@@ -219,8 +225,8 @@ def grade_verified(progress, judge, directory, journal, *, limit, unsent_claim=N
 
 def active_claim(scope, project, effect):
     """Recheck the exact durable claim and its current judge owner immediately before dispatch."""
-    from ..canary_capability import binding
-    from ..live_dispatch import process_identity
+    from pacbench.evidence_store import file_binding as binding
+    from pacbench.workflows.progress import process_identity
 
     claim = _dispatch.get()
     if claim is None or not effect:
@@ -257,110 +263,3 @@ def claimed_request(scope, project, body):
             or digest(messages[0]['content']) != prompt_hash or body.get('tools')):
         raise ValueError('judge wire request differs from the claimed prompt')
     return {'kind': 'judge', 'question_id': question, 'provider': scope['provider'], 'checkpoint_effect': effect}
-
-
-def paid_batch(progress, directory, limit, *, resume_unsent_day=False):
-    """Grade an interrupted run in place without opening its account or issuing a user turn."""
-    from .capability import PROFILE
-    from pacbench.providers import run_environment
-
-    # Route modules read this once at import. Reject mixed/legacy admission modes.
-    profile = os.environ.get('PACBENCH_OPENROUTER_PROFILE', PROFILE)
-    with run_environment({'PACBENCH_OPENROUTER_PROFILE': profile}):
-        return _paid_batch(progress, directory, limit, resume_unsent_day)
-
-
-def _paid_batch(progress, directory, limit, resume_unsent_day):
-    from pacbench import execution_capability
-    from pacbench.workflows import capability as cap
-    from ..canary_capability import binding, read
-    from ..gateway_client import client_settings
-    from ..live_dispatch import CONDITION
-    from ..model_calls import ModelClient
-    from ..observational_receipts import COHORT_STOP, credit_snapshot
-    from ..openrouter_direct import direct_environment
-    from ..openrouter_route import CHAT_COMPLETIONS_URL, MODEL, PROFILE_NAME
-    from pacbench.providers import run_environment
-    from .runner import Journal
-
-    root = directory.parent
-    bound = binding(root/'workflow-scope.json')
-    if (PROFILE_NAME != cap.PROFILE or progress.binding('workflow_scope') != bound
-            or execution_capability.selected() is not None or os.environ.get('PACBENCH_R2_LIVE_SCOPE')
-            or os.environ.get('PACBENCH_DIRECT_UPSTREAM_KEY') or os.environ.get('PACBENCH_JUDGE_OUTPUT_RECOVERY')
-            or not (root/'receipts.jsonl').is_file() or (root/'receipts.jsonl').is_symlink()):
-        raise ValueError('judge recovery requires the original receipt journal and a fresh Luna process')
-    stop = cap.scope_campaign_stop(read(bound))
-    settings = {cap.ENV: json.dumps(bound), 'PACBENCH_RECEIPT_JOURNAL': str(root/'receipts.jsonl'),
-        'PACBENCH_DISPATCH_TRACKING': CONDITION, 'PACBENCH_ROLE_ROUTES': 'luna-all-roles-v1',
-        'PACBENCH_LUNA_COMPATIBILITY': 'temperature-omitted-default-v1', 'PACBENCH_EFFECTIVE_OUTPUT_TOKENS':'32768',
-        'PACBENCH_STOP_FILE': str(root/'STOP'), COHORT_STOP: str(stop)}
-    with run_environment(settings):
-        scope = cap.load()
-        with judge_only_owner(progress, scope):
-            if (root/'STOP').exists() or stop.exists():
-                raise RuntimeError('original run is stopped')
-            budget = cap.budget()
-            unsent = None
-            if resume_unsent_day:
-                from ..campaigns.pizza_day_retained import unsent_judge
-                unsent = unsent_judge(progress, scope, budget)
-                if limit != 1:
-                    raise ValueError('only the single verified Pizza Day question can be recovered')
-            if not unsent and not progress.grade_states().get('ready'):
-                return 0
-            offline_generations = (budget.has_offline_generations() if hasattr(budget, 'has_offline_generations')
-                                   else any((r.get('upstream_request_id') or '').startswith('offline-native-')
-                                            for r in budget.snapshot()))
-            if offline_generations:
-                raise ValueError('loopback fixture answers cannot receive live judgments')
-            credit_snapshot()
-            from uuid import uuid4
-            journal_dir = directory/'judge-recovery'/uuid4().hex
-            with direct_environment(os.environ['OPENROUTER_API_KEY']), Journal(journal_dir) as journal:
-                project = scope['projects'][scope['provider']]['judge']
-                _, key = client_settings(project)
-                judge = ModelClient(key=key, model=MODEL, record_dir=directory/'model-calls',
-                                    url=CHAT_COMPLETIONS_URL, json_mode=True, max_attempts=1)
-                return grade_verified(progress, judge, directory, journal, limit=limit, unsent_claim=unsent)
-
-
-def main(argv=None):
-    import argparse
-    from .progress import WorkflowProgress
-
-    parser = argparse.ArgumentParser(description='Inspect incremental grading or reconcile saved Luna receipts offline.')
-    parser.add_argument('directory', type=Path, help='existing workflow directory containing run.json')
-    actions = parser.add_mutually_exclusive_group()
-    actions.add_argument('--grade', action='store_true', help='use the approved Luna judge for previously unsent verified turns')
-    actions.add_argument('--reconcile', action='store_true', help='commit only grades proved by existing judge receipts')
-    parser.add_argument('--limit', type=int, default=32)
-    parser.add_argument('--after', help='resume inspection after this claimed turn ID')
-    args = parser.parse_args(argv)
-    directory = args.directory.absolute()
-    meta = read_json(directory/'run.json')
-    from .stream import fingerprint
-    identity = meta.get('identity', {})
-    from .document_progress import PROTOCOL
-    if (identity.get('protocol') not in ('memcal-incremental-v1', PROTOCOL) or meta.get('evidence_kind') != 'native'
-            or identity.get('evidence_kind') != 'native' or fingerprint(identity) != meta['run_key']):
-        raise ValueError('expected the original incremental native run')
-    with WorkflowProgress(directory, meta['run_key']) as progress:
-        _check(progress, directory, args.limit)
-        if progress.binding('identity') != identity or not progress.binding('plan_registered'):
-            raise ValueError('workflow metadata differs from its registered plan')
-        report = {}
-        if args.reconcile:
-            report['reconciliation'] = reconcile_claimed(progress, directory, limit=args.limit, after=args.after)
-        if args.grade:
-            report['newly_processed'] = paid_batch(progress, directory, args.limit)
-        from .recording import coverage
-        report['by_measure'] = progress.summary()
-        report['coverage'] = coverage(report['by_measure'], complete=progress.complete)
-        report['grade_states'] = progress.grade_states()
-        report['complete'] = progress.complete
-    print(json.dumps(report, indent=2))
-
-
-if __name__ == '__main__':
-    main()

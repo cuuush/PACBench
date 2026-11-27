@@ -3,7 +3,7 @@ from datetime import datetime,timezone
 from pathlib import Path
 import hashlib,json
 import pytest
-from pacbench import gateway_python_clock as clock,python_provider_clock as runtime,clock_dispatch as dispatch
+from pacbench import provider_clock as clock, python_provider_clock as runtime, clock_dispatch as dispatch
 
 def data(tmp_path):
     home=tmp_path/'hermes-home';home.mkdir();folder=tmp_path/'provider-clock';folder.mkdir()
@@ -11,7 +11,7 @@ def data(tmp_path):
     repo=Path(runtime.__file__).resolve().parents[1]
     env={'HERMES_HOME':str(home),'PACBENCH_PYTHON_CLOCK_FILE':str(offset),
         'PACBENCH_PYTHON_CLOCK_PROTOCOL':runtime.VERSION,'PACBENCH_PYTHON_CLOCK_NONCE':'this-turn',
-        'PYTHONPATH':str(repo/'pacbench/direct_runtime')+':'+str(repo)}
+        'PYTHONPATH':str(repo/'pacbench/clock_bootstrap')+':'+str(repo)}
     row={'protocol':runtime.VERSION,'version':runtime.PACKAGE_VERSION,'python_sha256':runtime.PACKAGE_PY_SHA256,
         'bootstrap_sha256':hashlib.sha256(Path(runtime.__file__).read_bytes()).hexdigest(),
         'pid':42,'process_start_ticks':123,'turn_nonce':'this-turn','role':'hermes-gateway',
@@ -25,14 +25,14 @@ def data(tmp_path):
 def test_wrong_adoption_is_rejected(tmp_path,key,bad):
     home,env,row=data(tmp_path);directory=tmp_path/'provider-clock/python-adoptions';directory.mkdir()
     path=directory/'42.json';path.write_text(json.dumps(row))
-    assert clock.adoption(home,Path('/verified/python'),env,42,123,'hermes-gateway',cwd=tmp_path)==row
+    assert clock.gateway_clock_adoption(home,Path('/verified/python'),env,42,123,'hermes-gateway',cwd=tmp_path)==row
     row[key]=bad;path.write_text(json.dumps(row))
-    with pytest.raises(RuntimeError):clock.adoption(home,Path('/verified/python'),env,42,123,'hermes-gateway',cwd=tmp_path)
+    with pytest.raises(RuntimeError):clock.gateway_clock_adoption(home,Path('/verified/python'),env,42,123,'hermes-gateway',cwd=tmp_path)
 
 @pytest.mark.parametrize('change',[{'LD_PRELOAD':'/fake.so'},{'PACBENCH_PYTHON_CLOCK_NONCE':''},{'PYTHONPATH':'/untrusted'}])
 def test_unverified_bootstrap_cannot_launch(tmp_path,change):
     home,env,row=data(tmp_path);env.update(change)
-    with pytest.raises(RuntimeError):clock.environment(home,Path('/verified/python'),env,'hermes-cli')
+    with pytest.raises(RuntimeError):clock.gateway_clock_environment(home,Path('/verified/python'),env,'hermes-cli')
 
 def test_dispatch_cannot_hide_gateway_startup_delay(tmp_path,monkeypatch):
     home,env,row=data(tmp_path);monkeypatch.setattr(clock.time,'time',lambda:1000.)
@@ -71,8 +71,8 @@ def test_cli_uses_exact_gateway_python_instead_of_console_script_shebang(tmp_pat
         pid=42;returncode=0
     monkeypatch.setattr(clock.subprocess,'Popen',lambda command,**kw:captured.append(command) or Process())
     monkeypatch.setattr(clock,'start_ticks',lambda _:123)
-    monkeypatch.setattr(clock,'adoption',lambda *a,**kw:row)
-    monkeypatch.setattr('pacbench.stop.communicate_until_stop',lambda *a,**kw:('done',''))
+    monkeypatch.setattr(clock,'gateway_clock_adoption',lambda *a,**kw:row)
+    monkeypatch.setattr('pacbench.process_cleanup.communicate_until_stop',lambda *a,**kw:('done',''))
     witness={};clock.run_cli([str(python.with_name('hermes')),'chat','-q','question'],home=home,python=python,env=env,cwd=tmp_path,timeout=1,witness=witness)
     assert captured==[[str(python),'-m','hermes_cli.main','chat','-q','question']]
     assert witness['cli_entrypoint']['python']==str(python)
@@ -80,7 +80,7 @@ def test_cli_uses_exact_gateway_python_instead_of_console_script_shebang(tmp_pat
 @pytest.mark.parametrize('kind',['timeout','stop'])
 def test_primary_timeout_or_stop_is_not_hidden_by_identity_failure(tmp_path,monkeypatch,kind):
     import subprocess
-    from pacbench.stop import OperatorStop
+    from pacbench.process_cleanup import OperatorStop
     home,env,row=data(tmp_path);env['PACBENCH_NOW']=datetime.now(timezone.utc).isoformat();python=tmp_path/'venv/bin/python'
     class Process:
         pid=42;returncode=0
@@ -90,10 +90,10 @@ def test_primary_timeout_or_stop_is_not_hidden_by_identity_failure(tmp_path,monk
     monkeypatch.setattr(clock.subprocess,'Popen',lambda *a,**kw:Process())
     monkeypatch.setattr(clock,'start_ticks',lambda _:123)
     def invalid(*a,**kw):raise RuntimeError('identity failure')
-    monkeypatch.setattr(clock,'adoption',invalid)
+    monkeypatch.setattr(clock,'gateway_clock_adoption',invalid)
     error=subprocess.TimeoutExpired(['native'],1) if kind=='timeout' else OperatorStop()
     def fail(*a,**kw):raise error
-    monkeypatch.setattr('pacbench.stop.communicate_until_stop',fail)
+    monkeypatch.setattr('pacbench.process_cleanup.communicate_until_stop',fail)
     witness={}
     with pytest.raises(type(error)):clock.run_cli([str(python.with_name('hermes')),'chat'],home=home,python=python,env=env,cwd=tmp_path,timeout=1,witness=witness)
     assert witness['cli_adoption_error']['primary_failure_type']==type(error).__name__

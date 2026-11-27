@@ -1,18 +1,23 @@
 """Pass through native chat/Responses protocols; persist billing metadata only."""
 from __future__ import annotations
 
+import argparse
+import fcntl
 import hmac
 import json
+import os
 import re
+import secrets
 import time
 import urllib.error
 import urllib.request
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from pathlib import Path
 
-from .ledger import BudgetRefused, CONTEXT_TOKENS, MODEL
-from .protocol import request_shape, observe_usage
-from .metering import observe_metadata
-from .transport import open_without_redirect
+from pacbench.gateway import open_without_redirect
+from pacbench.gateway.ledger import Ledger
+
+from .ledger import CONTEXT_TOKENS, MODEL, BudgetRefused
 
 MAX_RESPONSE_BYTES = 16 * 1024 * 1024
 DEADLINE_SECONDS = 180
@@ -193,7 +198,7 @@ class Handler(BaseHTTPRequestHandler):
             self.error(503,'request_refused','Spending ledger unavailable; inference blocked')
             return
         status, usage, error = None, None, None
-        diagnostic={'protocol':request_shape(value)}
+        diagnostic={'protocol':protocol_request_shape(value)}
         metadata = {}
         headers_sent = False
         completed = False
@@ -214,7 +219,7 @@ class Handler(BaseHTTPRequestHandler):
             deadline = time.monotonic() + DEADLINE_SECONDS
             with self.server.open(request, timeout=DEADLINE_SECONDS) as response:
                 status = response.status
-                observe_metadata(metadata, headers=response.headers)
+                metering_observe_metadata(metadata, headers=response.headers)
                 self.server.ledger.observe_metadata(request_id, metadata)
                 media_type=response.headers.get('Content-Type','').split(';',1)[0].strip().lower()
                 stream = media_type == 'text/event-stream'
@@ -231,8 +236,8 @@ class Handler(BaseHTTPRequestHandler):
                     def event_usage():
                         try:
                             parsed=json.loads(b'\n'.join(event))
-                            observe_usage(diagnostic['protocol'],parsed)
-                            observe_metadata(metadata, value=parsed)
+                            protocol_observe_usage(diagnostic['protocol'],parsed)
+                            metering_observe_metadata(metadata, value=parsed)
                             self.server.ledger.observe_metadata(request_id, metadata)
                             diagnostic.update(response_diagnostic(parsed))
                             return usage_from(parsed)
@@ -270,8 +275,8 @@ class Handler(BaseHTTPRequestHandler):
                         raise ValueError('Response exceeds the transport bound')
                     try:
                         parsed=json.loads(data)
-                        observe_usage(diagnostic['protocol'],parsed)
-                        observe_metadata(metadata, value=parsed)
+                        protocol_observe_usage(diagnostic['protocol'],parsed)
+                        metering_observe_metadata(metadata, value=parsed)
                         usage = usage_from(parsed)
                         diagnostic.update(response_diagnostic(parsed))
                     except (ValueError,TypeError,AttributeError):
@@ -284,7 +289,7 @@ class Handler(BaseHTTPRequestHandler):
                     error = 'missing_usage_sse' if stream else 'missing_usage_json'
         except urllib.error.HTTPError as exc:
             status, error = exc.code, 'upstream_http_'+str(exc.code)
-            observe_metadata(metadata, headers=exc.headers)
+            metering_observe_metadata(metadata, headers=exc.headers)
             upstream_diagnostic = upstream_error_diagnostic(exc)
             diagnostic.update(upstream_diagnostic)
             if upstream_diagnostic:error += ':'+':'.join(upstream_diagnostic[k] for k in sorted(upstream_diagnostic))
@@ -301,3 +306,171 @@ class Handler(BaseHTTPRequestHandler):
                 self.reply(502, {'error':{'type':'upstream_error','message':'Upstream transport failed; cost remains reserved'}, 'gateway_request_id':request_id})
         finally:
             complete()
+
+
+# Accept only known opaque identifier shapes. In particular, do not persist
+# arbitrary response fields, headers, prompts, or upstream error bodies.
+_ID = re.compile(r'^(?:gen-[A-Za-z0-9-]{1,123}|req-[A-Za-z0-9-]{1,123}|chatcmpl-[A-Za-z0-9_-]{1,119}|resp_[A-Za-z0-9_-]{1,123}|[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})$')
+
+
+_TOKEN_FIELDS = ('prompt_tokens', 'completion_tokens', 'input_tokens', 'output_tokens',
+                 'total_tokens', 'reasoning_tokens', 'cached_tokens',
+                 'cache_read_tokens', 'cache_write_tokens', 'audio_tokens', 'image_tokens',
+                 'accepted_prediction_tokens', 'rejected_prediction_tokens')
+
+
+_DETAILS = ('prompt_tokens_details', 'completion_tokens_details',
+            'input_tokens_details', 'output_tokens_details')
+
+
+_MAX = 1_048_576
+
+
+def safe_metadata(value):
+    if not isinstance(value, dict):
+        return {}
+    result = {}
+    for key in ('upstream_request_id', 'generation_id'):
+        v = value.get(key)
+        if isinstance(v, str) and _ID.fullmatch(v):
+            result[key] = v
+    usage = value.get('usage')
+    if isinstance(usage, dict):
+        safe = {}
+        for key, v in usage.items():
+            # Keys are canonical paths assembled below, not arbitrary JSON.
+            parts = key.split('.') if isinstance(key, str) else []
+            if (len(parts) == 1 and parts[0] in _TOKEN_FIELDS or
+                len(parts) == 2 and parts[0] in _DETAILS and parts[1] in _TOKEN_FIELDS):
+                if type(v) is int and 0 <= v <= _MAX:
+                    safe[key] = v
+        if safe:
+            result['usage'] = safe
+    return result
+
+
+def metering_observe_metadata(target, *, value=None, headers=None):
+    candidate = {}
+    if headers is not None:
+        candidate['upstream_request_id'] = headers.get('X-Request-ID')
+    if isinstance(value, dict):
+        obj = value.get('response') if isinstance(value.get('response'), dict) else value
+        candidate['generation_id'] = obj.get('id')
+        usage = obj.get('usage')
+        if isinstance(usage, dict):
+            fields = {k: usage[k] for k in _TOKEN_FIELDS if k in usage}
+            for group in _DETAILS:
+                detail = usage.get(group)
+                if isinstance(detail, dict):
+                    fields.update({group+'.'+k: detail[k] for k in _TOKEN_FIELDS if k in detail})
+            candidate['usage'] = fields
+    candidate = safe_metadata(candidate)
+    if 'usage' in candidate:
+        target.setdefault('usage', {}).update(candidate.pop('usage'))
+    target.update(candidate)
+
+
+LABELS = {
+    'tool_choice': ('absent','auto','none','required','function_object','other_string','other_object','invalid'),
+    'tools': ('absent','array','invalid'),
+    'response_format': ('absent','text','json_object','json_schema','other'),
+    'wire': ('sse','json','other'),
+}
+
+
+TOKEN_FIELDS = ('prompt_tokens','completion_tokens','input_tokens','output_tokens','total_tokens')
+
+
+TYPES = ('integer','number','boolean','null','string','array','object','other')
+
+
+COUNTS = ('tool_count','json_values','usage_objects')
+
+
+def safe_protocol(value):
+    if not isinstance(value,dict):return {}
+    result={key:value[key] for key,labels in LABELS.items() if value.get(key) in labels}
+    for key in COUNTS:
+        n=value.get(key)
+        if type(n) is int and 0<=n<=1_048_576:result[key]=n
+    for key in ('stream','top_usage','nested_usage'):
+        if type(value.get(key)) is bool:result[key]=value[key]
+    fields=value.get('usage_fields')
+    if isinstance(fields,dict):
+        result['usage_fields']={k:fields[k] for k in TOKEN_FIELDS if fields.get(k) in TYPES}
+    return result
+
+
+def protocol_request_shape(value):
+    choice=value.get('tool_choice')
+    if 'tool_choice' not in value:kind='absent'
+    elif isinstance(choice,str):kind=choice if choice in ('auto','none','required') else 'other_string'
+    elif isinstance(choice,dict):kind='function_object' if choice.get('type')=='function' else 'other_object'
+    else:kind='invalid'
+    tools=value.get('tools')
+    result={'tool_choice':kind,'tools':'absent' if 'tools' not in value else 'array' if isinstance(tools,list) else 'invalid',
+            'stream':value.get('stream',False),'response_format':'absent'}
+    if isinstance(tools,list):result['tool_count']=len(tools)
+    if 'response_format' in value:
+        fmt=value['response_format']
+        fmt=fmt.get('type') if isinstance(fmt,dict) else None
+        result['response_format']=fmt if fmt in ('text','json_object','json_schema') else 'other'
+    return safe_protocol(result)
+
+
+def protocol_observe_usage(shape,value):
+    shape['json_values']=shape.get('json_values',0)+1
+    if not isinstance(value,dict):return
+    nested=value.get('response')
+    for key,parent in (('top_usage',value),('nested_usage',nested)):
+        if not isinstance(parent,dict) or not isinstance(parent.get('usage'),dict):continue
+        usage=parent['usage']
+        shape[key]=True
+        shape['usage_objects']=shape.get('usage_objects',0)+1
+        fields=shape.setdefault('usage_fields',{})
+        for field in TOKEN_FIELDS:
+            if field not in usage:continue
+            raw=usage[field]
+            kind={int:'integer',float:'number',bool:'boolean',str:'string',list:'array',dict:'object',type(None):'null'}.get(type(raw),'other')
+            fields[field]=kind
+
+
+def serve_main(argv=None):
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--state',type=Path,required=True)
+    parser.add_argument('--port',type=int,default=8099)
+    parser.add_argument('--initialize-new-state',action='store_true',help='Create a genuinely new state directory and ledger')
+    args = parser.parse_args(argv)
+    upstream_key = os.environ.get('META')
+    if not upstream_key:
+        parser.error('Managed META binding is required; no credential fallback')
+    if args.initialize_new_state:
+        try:
+            args.state.mkdir(mode=0o700)
+        except FileExistsError:
+            parser.error('New state directory already exists; refusing to initialize')
+    elif not args.state.is_dir() or not (args.state/'client-token').is_file() or not (args.state/'ledger.sqlite3').is_file():
+        parser.error('Existing state, client token and ledger are required')
+    lock = (args.state/'server.lock').open('a')
+    fcntl.flock(lock,fcntl.LOCK_EX|fcntl.LOCK_NB)
+    token = args.state/'client-token'
+    if args.initialize_new_state:
+        fd = os.open(token,os.O_CREAT|os.O_EXCL|os.O_WRONLY,0o600)
+        with os.fdopen(fd,'w') as output:
+            output.write(secrets.token_urlsafe(40))
+    try:
+        ledger = Ledger(args.state/'ledger.sqlite3', existing_only=not args.initialize_new_state)
+    except (OSError, ValueError, __import__('sqlite3').Error):
+        parser.error('Existing gateway ledger is unavailable or invalid')
+    client_key = token.read_text().strip()
+    if not client_key:
+        parser.error('Existing gateway client token is empty')
+    ledger.recover_abandoned()
+    server = Server(('127.0.0.1',args.port),ledger,client_key,upstream_key)
+    address = args.state/'address.json'
+    address.write_text(json.dumps({'base':f'http://127.0.0.1:{server.server_port}'})+'\n')
+    try:
+        server.serve_forever()
+    finally:
+        server.server_close()
+        lock.close()

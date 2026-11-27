@@ -2,7 +2,8 @@ import json
 from pathlib import Path
 import unittest
 
-from pacbench.cognee_memobase_setup import PINS, loopback_url, setup_plan
+from pacbench.providers.cognee import PINS, setup_plan
+from pacbench.gateway_client import loopback_url
 
 
 class LocalQualificationTests(unittest.TestCase):

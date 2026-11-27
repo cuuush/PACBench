@@ -4,15 +4,15 @@ Used only by the pinned Hermes instrumentation in a shared-offset clock trial.
 The transaction guard has no filesystem/network effects: its sample is held in
 memory and emitted after commit or refusal, outside the native transaction.
 """
-from datetime import datetime, timezone
 import asyncio
 import hashlib
 import json
 import os
-from pathlib import Path
 import re
 import threading
 import time
+from datetime import datetime, timezone
+from pathlib import Path
 
 VERSION = 'native-clock-admission-v1'
 PRELUDE = 'forward-only-natural-startup-prelude-v1'
@@ -43,7 +43,7 @@ def context():
 
 def sample(phase,session_id,request_id,text,**extra):
     if os.environ.get('PACBENCH_REUSE_CLOCK_STATE'):
-        from .checkpoint_clock import sample as persistent_sample
+        from pacbench.provider_clock import sample as persistent_sample
         return persistent_sample(phase,session_id,request_id,text,**extra)
     home,path,nonce,expected=context()
     digest=hashlib.sha256(text.encode()).hexdigest()
@@ -62,7 +62,7 @@ def sample(phase,session_id,request_id,text,**extra):
 
 def window(stamp,env=None):
     if stamp.get('version')=='checkpoint-observation-clock-v1':
-        from .checkpoint_clock import window as persistent_window
+        from pacbench.provider_clock import window as persistent_window
         return persistent_window(stamp)
     env=os.environ if env is None else env
     now=datetime.fromisoformat(stamp['provider_at']);target=datetime.fromisoformat(env['PACBENCH_NOW'])
@@ -79,7 +79,7 @@ def window(stamp,env=None):
 
 def emit(stamp):
     if stamp.get('version')=='checkpoint-observation-clock-v1':
-        from .checkpoint_clock import emit as persistent_emit
+        from pacbench.provider_clock import emit as persistent_emit
         return persistent_emit(stamp)
     home,path,nonce,_=context()
     directory=path.parent/'native-submissions';directory.mkdir(exist_ok=True,mode=0o700)
@@ -92,7 +92,7 @@ def emit(stamp):
 def before_submit(session_id,request_id,text):
     if not active():return
     if os.environ.get('PACBENCH_REUSE_CLOCK_STATE'):
-        from .checkpoint_clock import bind,release_at_submission
+        from pacbench.provider_clock import bind, release_at_submission
         bind(session_id,request_id,text)
         release_at_submission()
         stamp=sample('client-submit',session_id,request_id,text)

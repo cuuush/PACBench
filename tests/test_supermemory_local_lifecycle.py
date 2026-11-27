@@ -7,7 +7,7 @@ from unittest.mock import Mock
 
 import pytest
 
-from pacbench import import_lifecycle, openrouter_direct
+from pacbench import process_cleanup as import_lifecycle
 from provider_adapters import embedding_health
 from provider_adapters import supermemory_local as adapter
 
@@ -42,7 +42,6 @@ def native_service(tmp_path, monkeypatch):
     monkeypatch.setattr(adapter, '__file__', str(tmp_path / 'provider_adapters/supermemory_local.py'))
     monkeypatch.delenv('PACBENCH_SUPERMEMORY_STOCK_SOURCE', raising=False)
     monkeypatch.setattr(adapter, 'validate_route', lambda *_: None)
-    monkeypatch.setattr(openrouter_direct, 'active', lambda: False)
     monkeypatch.setattr(adapter.atexit, 'register', hooks.append)
     monkeypatch.setattr(adapter.atexit, 'unregister', hooks.remove)
     monkeypatch.setattr(adapter.subprocess, 'Popen', popen)
@@ -52,7 +51,7 @@ def native_service(tmp_path, monkeypatch):
     monkeypatch.setattr(adapter.urllib.request, 'urlopen', lambda *_, **__: StringIO('{"memories": []}'))
     monkeypatch.setattr(embedding_health, 'check', embeddings)
     monkeypatch.setattr(import_lifecycle, 'scan', scan)
-    monkeypatch.setattr(import_lifecycle, 'cleanup', cleanup)
+    monkeypatch.setattr(import_lifecycle, 'cleanup_owned', cleanup)
     env = {}
     return SimpleNamespace(start=lambda **options: adapter.start(root, env, 'offline', 'offline', 'offline', **options),
                            root=root, env=env, process=process, popen=popen, kill_group=kill_group,

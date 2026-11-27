@@ -5,9 +5,9 @@ import json
 import pytest
 
 from pacbench.corpus.sources import load_bundle
-from pacbench.campaigns.pizza_week import ROOT
-from pacbench.campaigns.pizza_week import compile_daily_week, daily_documents, message_metadata
-from pacbench.campaigns.pizza_week import compile_week
+from pacbench.corpus.r2 import ROOT
+from pacbench.corpus.r2 import compile_daily_week, daily_documents, message_metadata
+from pacbench.corpus.r2 import compile_week
 from pacbench.workflows.spec import Document
 
 

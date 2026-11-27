@@ -1,7 +1,8 @@
 import json
 from decimal import Decimal
 import pytest
-from pacbench.openrouter_proxy import Budget, MODEL, ENDPOINT
+from pacbench.run_budget import Budget
+from pacbench.openrouter_route import MODEL, ENDPOINT
 
 
 def budget(path):
@@ -57,7 +58,7 @@ def test_run_owned_budget_never_recreates_its_ledger(tmp_path):
 
 
 def test_run_owned_budget_does_not_hold_money_when_local_trace_is_refused(tmp_path):
-    from pacbench.api_input_trace import TRACE_NAME
+    from pacbench.context_isolation import TRACE_NAME
 
     b = Budget(tmp_path / 'ledger', cap='1', context_tokens=100,
                prompt_per_million='1', completion_per_million='2', max_completion_tokens=50, new_run=True)
@@ -98,7 +99,7 @@ def test_snapshot_keeps_active_reservation_without_waiting_for_inference(tmp_pat
 def test_run_owned_budget_checks_pending_settlement_before_terminal_refusal(tmp_path):
     import threading
     from concurrent.futures import ThreadPoolExecutor
-    from pacbench.openrouter_proxy import BudgetRefused
+    from pacbench.run_budget import BudgetRefused
 
     b = Budget(tmp_path / 'ledger', cap='0.0002', context_tokens=100,
                prompt_per_million='1', completion_per_million='2', max_completion_tokens=50, new_run=True)
@@ -301,14 +302,18 @@ def test_real_transport_requires_durable_task_reservation(monkeypatch):
     from pacbench import openrouter_proxy
     monkeypatch.setattr(openrouter_proxy.urllib.request, 'build_opener',
                         lambda *args: pytest.fail('unexpected network call'))
-    with pytest.raises(RuntimeError, match='durable task reservation'):
+    with pytest.raises(RuntimeError, match='durable run-owned reservation'):
         openrouter_proxy.send_openrouter({}, 'fake-key')
 
 
-def test_real_stream_forwards_incrementally_and_rejects_wrong_model(monkeypatch):
+def test_real_stream_forwards_incrementally_and_rejects_wrong_model(monkeypatch, tmp_path):
     from types import SimpleNamespace
-    from pacbench import openrouter_proxy as proxy, openrouter_task
-    monkeypatch.setattr(openrouter_task, 'require_authorization', lambda b: None)
+    from pacbench import openrouter_proxy as proxy
+    run = Budget(tmp_path / 'ledger', cap='1', context_tokens=100, prompt_per_million='1',
+                 completion_per_million='2', max_completion_tokens=50, new_run=True)
+    def request(callback):
+        return run.request('driver', {'model': MODEL, 'stream': True},
+                           lambda body: proxy.send_openrouter(body, 'unused', budget=run, stream_callback=callback))
     seen = []
     class Response:
         status = 200
@@ -322,11 +327,58 @@ def test_real_stream_forwards_incrementally_and_rejects_wrong_model(monkeypatch)
                         lambda *a: SimpleNamespace(open=lambda *a, **kw: Response()))
     chunk = json.dumps({'model': MODEL, 'choices': []}).encode()
     chunks = [b'data: '+chunk+b'\n\n', b'data: [DONE]\n\n', b'']
-    status, raw = proxy.send_openrouter({'model':MODEL,'stream':True}, 'unused',
-        budget=SimpleNamespace(_sending=True), stream_callback=lambda c: seen.append(('forward',c)))
+    status, raw = request(lambda c: seen.append(('forward', c)))
     assert status == 200 and raw.endswith(b'[DONE]\n\n')
     assert [k for k, _ in seen] == ['read','forward','read','forward','read']
-    chunks = [b'data: {"model":"wrong-model"}\n\n', b'']
+    chunks = [b'data:{"model":', b'"wrong-model"}\r\n\r\n', b'']
     with pytest.raises(ValueError, match='model mismatch'):
-        proxy.send_openrouter({'model':MODEL,'stream':True}, 'unused',
-            budget=SimpleNamespace(_sending=True), stream_callback=lambda c: pytest.fail('forwarded wrong model'))
+        request(lambda c: pytest.fail('forwarded wrong model'))
+
+
+@pytest.mark.parametrize('ending, complete', [(b'data: [DONE]\n\n', True), (b'data: [DONE]\n', False),
+                                              (b'', False), (b'data: [DONE]\n\ndata: {}\n\n', False)])
+def test_public_stream_holds_full_bound_until_framed_completion(tmp_path, ending, complete):
+    ledger = tmp_path / 'ledger'
+    run = Budget(ledger, cap='1', context_tokens=100, prompt_per_million='1',
+                 completion_per_million='2', max_completion_tokens=50, new_run=True)
+    secret = 'private upstream words'
+    event = {'model': MODEL, 'choices': [{'delta': {'content': secret}, 'finish_reason': 'stop'}],
+             'usage': {'prompt_tokens': 5, 'completion_tokens': 2, 'cost': '0.00001'}}
+    wire = b'data:' + json.dumps(event).encode() + b'\n\n' + ending
+    run.request('memory', {'model': MODEL, 'stream': True}, lambda _: (200, wire))
+    row, = run.snapshot()
+    assert row['response_validation'] == {'body_complete': complete, 'finish_reasons': ['stop'],
+              'envelope_errors': [], 'assistant_nonwhitespace_characters': len(secret)}
+    assert row['state'] == ('settled' if complete else 'uncertain')
+    assert Decimal(row['accounted']) == Decimal('0.00001' if complete else row['reserved'])
+    assert secret not in ledger.read_text()
+
+
+def test_public_envelope_records_only_fixed_error_labels(tmp_path):
+    ledger = tmp_path / 'ledger'
+    run = budget(ledger)
+    private = 'private upstream error message'
+    event = {'error': {'message': private}, 'choices': [
+        {'error': private, 'finish_reason': private, 'message': {'content': private}}]}
+    run.request('memory', {'model': MODEL}, lambda _: (200, json.dumps(event).encode()))
+    validation = run.snapshot()[0]['response_validation']
+    assert validation['envelope_errors'] == ['upstream_error', 'choice_error']
+    assert validation['finish_reasons'] == ['unknown']
+    assert private not in ledger.read_text()
+
+
+def test_dispatch_is_bound_to_one_exact_reserved_request(tmp_path):
+    run = Budget(tmp_path / 'ledger', cap='1', context_tokens=100, prompt_per_million='1',
+                 completion_per_million='2', max_completion_tokens=50, new_run=True)
+    attempted = []
+    def send(request):
+        attempted.append(request)
+        with pytest.raises(RuntimeError, match='run-owned reservation'):
+            run.claim_dispatch(dict(request))
+        run.claim_dispatch(request)
+        with pytest.raises(RuntimeError, match='run-owned reservation'):
+            run.claim_dispatch(request)
+        return 200, b'{}'
+    run.request('driver', {'model': MODEL}, send)
+    with pytest.raises(RuntimeError, match='run-owned reservation'):
+        run.claim_dispatch(attempted[0])

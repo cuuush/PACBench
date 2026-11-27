@@ -9,12 +9,6 @@ from unittest.mock import patch
 
 import pytest
 from pacbench import model_calls
-from pacbench.direct_http import UrllibResponse
-
-class Budget:
-    def __init__(self):self.records=[];self.metadata=[]
-    def observe_response(self,*args,**kwargs):pass
-    def settle(self,*args,**kwargs):self.records.append(args);self.metadata.append(kwargs)
 
 
 def test_real_whitespace_keepalives_stop_at_wall_deadline_and_capture_incomplete_cost(monkeypatch):
@@ -29,21 +23,18 @@ def test_real_whitespace_keepalives_stop_at_wall_deadline_and_capture_incomplete
     server=http.server.ThreadingHTTPServer(('127.0.0.1',0),Handler)
     thread=threading.Thread(target=server.serve_forever,daemon=True);thread.start()
     monkeypatch.setattr(model_calls,'MODEL_TIMEOUT_S',.2)
-    budget=Budget();started=time.monotonic()
+    started=time.monotonic()
     try:
         raw=urllib.request.urlopen(f'http://127.0.0.1:{server.server_port}/',timeout=1)
-        with UrllibResponse(raw,{'id':'pending','budget':budget}) as response:
+        with raw as response:
             with pytest.raises((RuntimeError,TimeoutError)):
-                model_calls.read_direct_response(response,started)
+                model_calls.read_bounded_response(response,started)
         assert time.monotonic()-started<1
-        assert len(budget.records)==1 and budget.records[0][:2]==('pending',200)
-        assert budget.records[0][2].strip()==b''  # no usage: accounting keeps the unknown bound.
-        assert budget.metadata[0]['body_complete'] is False
     finally:server.shutdown();server.server_close();thread.join()
 
 
-def test_direct_network_timeout_is_not_retried(tmp_path,monkeypatch):
-    monkeypatch.setenv('PACBENCH_DIRECT','1')
+def test_proxy_network_timeout_is_not_retried(tmp_path,monkeypatch):
+    monkeypatch.setenv('PACBENCH_TRANSPORT','openrouter')
     monkeypatch.setattr('pacbench.gateway_client.validate_route',lambda *a:None)
     client=model_calls.ModelClient(key='inert',model='model',record_dir=tmp_path)
     with patch('pacbench.model_calls.urllib.request.urlopen',side_effect=TimeoutError('uncertain')) as opened:

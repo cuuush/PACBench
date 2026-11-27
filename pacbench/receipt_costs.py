@@ -1,14 +1,17 @@
 """Offline, Decimal-only receipt accounting. Accounting state is not billing proof."""
 from __future__ import annotations
 
-from datetime import datetime
-from decimal import Decimal, InvalidOperation, ROUND_HALF_UP
-import re
+import codecs
 import hashlib
 import json
 import os
-from pathlib import Path
+import re
 import tempfile
+from datetime import datetime
+from decimal import ROUND_HALF_UP, Decimal, InvalidOperation
+from pathlib import Path
+
+from pacbench.openrouter_route import MODEL
 
 SOURCES = {'openrouter.usage.cost', 'openrouter.generation.total_cost',
            'openrouter_generation_total_cost'}
@@ -306,3 +309,231 @@ def summarize(rows):
         result['observed_generation_' + name + '_tokens'] = result['observed_' + name + '_tokens']
         result['requests_missing_generation_' + name + '_counts'] = result['requests_missing_' + name + '_tokens']
     return result
+
+
+RESPONSE_PROTOCOL = 'openrouter-response-billing-v1'
+
+
+def loads(text):
+    return json.loads(text, parse_float=Decimal)
+
+
+def sanitized(event):
+    out={k:event[k][:256] for k in ('id','model','provider') if isinstance(event.get(k),str)}
+    choices=event.get('choices') or []
+    reasons=[c['finish_reason'][:64] for c in (choices if isinstance(choices,list) else [])
+             if isinstance(c,dict) and isinstance(c.get('finish_reason'),str)]
+    if reasons:out['finish_reasons']=reasons
+    usage=event.get('usage')
+    if isinstance(usage,dict):
+        clean={}
+        for key,value in usage.items():
+            if key=='cost':
+                if not isinstance(value,bool) and isinstance(value,(int,float,Decimal,str)):
+                    try:
+                        cost=Decimal(str(value))
+                        if cost.is_finite() and cost>=0:clean[key]=str(cost)
+                    except Exception:pass
+            elif key in {'prompt_tokens','completion_tokens','total_tokens'}:
+                if type(value) is int and value>=0:clean[key]=value
+            elif key in {'prompt_tokens_details','completion_tokens_details','input_tokens_details','output_tokens_details','cost_details'} and isinstance(value,dict):
+                detail={}
+                for name,number in value.items():
+                    if (key=='cost_details' and name in {'upstream_inference_cost','upstream_inference_prompt_cost','upstream_inference_completions_cost'} and
+                            not isinstance(number,bool) and isinstance(number,(int,float,Decimal))):
+                        n=Decimal(str(number))
+                        if n.is_finite() and n>=0:detail[name]=str(n)
+                    elif name in {'cached_tokens','cache_write_tokens','reasoning_tokens','audio_tokens','video_tokens','image_tokens'} and type(number) is int and number>=0:
+                        detail[name]=number
+                if detail:clean[key]=detail
+        if clean:out['usage']=clean
+    return out
+
+
+class EventReader:
+    """Incremental SSE frames; an invalid tail cannot erase preceding frames."""
+    def __init__(self, callback=None):
+        self.callback=callback;self.decoder=codecs.getincrementaldecoder('utf-8')()
+        self.buffer='';self.lines=[];self.events=[];self.errors=0;self.sse=False
+        self.done_frames=0;self.data_after_done=False
+
+    @property
+    def sse_done_observed(self):
+        return self.done_frames == 1 and not self.data_after_done
+
+    def _event(self, *, framed=False):
+        if not self.lines:return
+        text='\n'.join(self.lines);self.lines=[]
+        if text.strip()=='[DONE]':
+            # HTTP EOF can flush a partial SSE frame. Only a frame with its
+            # actual blank-line delimiter proves a terminal marker on the wire.
+            self.done_frames += int(framed and text == '[DONE]')
+            return
+        if not text.strip():return
+        try:
+            event=loads(text)
+            if not isinstance(event,dict):raise ValueError('Not an object')
+        except (ValueError,TypeError):self.errors+=1;return
+        self.events.append(event)
+        if self.callback:self.callback(event)
+
+    def feed(self,data):
+        try:self.buffer+=self.decoder.decode(data)
+        except UnicodeError:self.errors+=1;return
+        while '\n' in self.buffer:
+            line,self.buffer=self.buffer.split('\n',1);line=line.rstrip('\r')
+            if line.startswith('data:'):
+                if self.done_frames:self.data_after_done=True
+                self.sse=True;self.lines.append(line[5:].lstrip(' '))
+            elif not line and self.sse:self._event(framed=True)
+            elif not line:continue
+            elif line.startswith((':','event:','id:','retry:')):self.sse=True
+            elif not self.sse:
+                # Non-streaming JSON can contain newlines. Keep it intact.
+                self.buffer=line+'\n'+self.buffer;break
+
+    def finish(self):
+        try:self.buffer+=self.decoder.decode(b'',final=True)
+        except UnicodeError:self.errors+=1
+        if self.sse or self.buffer.startswith('data:'):
+            if self.buffer.startswith('data:'):
+                if self.done_frames:self.data_after_done=True
+                self.lines.append(self.buffer[5:].strip())
+            elif self.buffer.strip() and not self.buffer.startswith(':'):self.errors+=1
+            self.buffer='';self._event()
+        elif self.buffer.strip():
+            self.lines=[self.buffer];self.buffer='';self._event()
+        return self.events
+
+
+def read_frames(data):
+    reader=EventReader();reader.feed(data);reader.finish();return reader
+
+
+def parse_response(data):
+    reader=read_frames(data);return reader.events,reader.errors
+
+
+def receipt(identifier,event,*,status,body_sha256,complete):
+    safe=sanitized(event)
+    return {'protocol':RESPONSE_PROTOCOL,'attempt_id':identifier,'http_status':status,
+        'generation_id':safe.get('id'),'model':safe.get('model'),'provider':safe.get('provider'),
+        'usage':safe.get('usage',{}),'finish_reasons':safe.get('finish_reasons',[]),
+        'body_sha256':body_sha256,'body_complete':bool(complete),
+        'cost_source':'response.usage.cost','reported_zero':
+            Decimal(safe['usage']['cost'])==0 if 'cost' in safe.get('usage',{}) else False}
+
+
+def financials(row):
+    """Legacy rows remain readable; their exposure is never called a charge."""
+    state=row['state'];known=state=='settled'
+    amount=str(row.get('settled_charge_usd',row['accounted'])) if known else None
+    return {'settled_charge_usd':amount,'outstanding_reservation_usd':row['accounted'] if state=='reserved' else '0',
+        'unresolved_charge_ceiling_usd':row['accounted'] if state not in {'settled','reserved','allocated','rejected_no_dispatch'} else '0',
+        'external_allocation_usd':row['accounted'] if state=='allocated' else '0',
+        'exposure_usd':row['accounted'],'reservation_ceiling_usd':row.get('reserved'),
+        'charge_evidence':'sanitized-response-receipt' if row.get('billing_receipt') else
+            'authoritative-generation-reconciliation' if (row.get('reconciliation') or {}).get('cost_source')=='total_cost' else
+            'legacy-ledger-reported-charge-without-raw-receipt' if known else 'unknown'}
+
+
+def read_attempts(path):
+    """Replay the authoritative journal under a shared lock, including torn-tail checks."""
+    import fcntl
+
+    from .receipt_projection import Projection
+
+    path = Path(path)
+    projection = Projection(path)
+    try:
+        fd = os.open(path, os.O_RDONLY | os.O_NOFOLLOW)
+    except FileNotFoundError:
+        if os.path.lexists(projection.index):
+            raise
+        return []
+    with os.fdopen(fd, 'rb') as stream:
+        fcntl.flock(stream, fcntl.LOCK_SH)
+        projection.require_complete()
+        return list(replay_attempts(stream).values())
+
+
+VERSION = 'direct-client-reservations-v1'
+
+
+def money(value):
+    if isinstance(value, bool):
+        raise ValueError('Invalid money')
+    try:
+        result = Decimal(str(value))
+    except (ValueError, InvalidOperation):
+        raise ValueError('Invalid money') from None
+    if not result.is_finite() or result < 0:
+        raise ValueError('Invalid money')
+    return result
+
+
+def observed_generation_id(row):
+    """Use an actual response ID, never manufacture one from timestamps."""
+    body=row.get('upstream_request_id')
+    header=row.get('response_diagnostic_headers',{}).get('x-generation-id')
+    if body and header and body!=header:
+        raise ValueError('Response generation identifiers disagree')
+    if body:return body,'response-body:id'
+    if isinstance(header,str) and re.fullmatch(r'gen-[A-Za-z0-9_-]+',header):
+        return header,'response-header:x-generation-id'
+    raise ValueError('No observed generation identifier')
+
+
+def replay_attempts(stream):
+ """Reconstruct each run-owned attempt from the append-only receipt journal."""
+ rows={}
+ for line in stream:
+  if not line.strip():continue
+  event=json.loads(line)
+  ident=event['id']
+  if event['kind']=='prepared':
+   if ident in rows or event['row']['id']!=ident:raise ValueError('Duplicate or foreign prepared receipt')
+   rows[ident]=event['row']
+  else:rows[ident].update(event['patch'])
+ return rows
+
+
+ORIGIN='https://openrouter.ai/api/v1/'
+
+
+def read_cancelled_attempt(path):
+    attempt=json.loads(path.read_text())
+    if (attempt.get('status')!='failed' or attempt.get('url')!=ORIGIN+'chat/completions' or
+            attempt.get('request',{}).get('model')!=MODEL or attempt['request'].get('stream') is not True or
+            attempt.get('direct_response',{}).get('http_status')!=200):
+        raise ValueError('Only a failed direct stream is eligible')
+    relative=Path(attempt['stream_wire_response']['relative_path'])
+    if relative.is_absolute() or '..' in relative.parts:raise ValueError('Unsafe original stream path')
+    wire=path.parent/relative
+    if not wire.resolve().is_relative_to(path.parent.resolve()):raise ValueError('Original stream escapes its run')
+    raw=wire.read_bytes();digest=hashlib.sha256(raw).hexdigest()
+    if digest!=attempt['stream_wire_response']['sha256']:raise ValueError('Original stream differs from receipt')
+    ids=set();models=set()
+    for line in raw.splitlines():
+        if not line.startswith(b'data:'):continue
+        payload=line[5:].strip()
+        if payload==b'[DONE]':raise ValueError('Original stream already has a terminal marker')
+        try:event=json.loads(payload)
+        except ValueError:continue  # Preserve a truncated last event, never treat it as completion.
+        if not isinstance(event,dict):raise ValueError('Unexpected original stream event')
+        if event.get('id'):ids.add(event['id'])
+        if event.get('model'):models.add(event['model'])
+    if len(ids)!=1 or models!={MODEL}:raise ValueError('Original generation identity/model is unproven')
+    return attempt,next(iter(ids)),digest
+
+
+def liability_envelope(calls, limit, cohort_id, *, cap='20'):
+    """A resumed child needs funding for the remaining envelope, not twice its spent part."""
+    from decimal import Decimal
+    total=sum((Decimal(str(r['accounted'])) for r in calls),Decimal(0))
+    own=sum((Decimal(str(r['accounted'])) for r in calls if r.get('cohort_id')==cohort_id),Decimal(0))
+    available=Decimal(cap)-total
+    remaining=max(Decimal(0),Decimal(limit)-own)
+    return {'available_usd':str(available),'cohort_accounted_usd':str(own),
+            'remaining_envelope_usd':str(remaining),'additional_headroom_usd':str(max(Decimal(0),remaining-available)),
+            'funded':remaining<=available}

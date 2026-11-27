@@ -159,7 +159,7 @@ def test_late_native_profile_work_keeps_cost_but_does_not_poison_retention():
     from types import SimpleNamespace
     from datetime import datetime,timezone
     from pacbench.usage import attribute_provider_paths,provider_paths_match
-    from pacbench.followups import tool_profile
+    from pacbench.judging.recovery import tool_profile
     complete=datetime(2026,10,15,10,0,10,tzinfo=timezone.utc).timestamp()
     def make_turn():
         return SimpleNamespace(tool_calls=[],tool_results=[],provider_traces=[{
@@ -191,7 +191,7 @@ def test_simulated_native_trace_cannot_be_ordered_against_gateway_time():
     from types import SimpleNamespace
     from datetime import datetime
     from pacbench.usage import attribute_provider_paths
-    from pacbench.followups import tool_profile
+    from pacbench.judging.recovery import tool_profile
     for native in ('2026-09-01T12:00:00+00:00','2027-01-01T12:00:00+00:00'):
         for attribution in ('explicit-query-match','background-or-prefetch'):
             turn=SimpleNamespace(tool_calls=[],tool_results=[],provider_clock={'version':'honcho-wall-clock-v3'},

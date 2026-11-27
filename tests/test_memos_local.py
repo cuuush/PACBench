@@ -1,7 +1,7 @@
 from pathlib import Path
 
-from pacbench.native_pilot import native_provider_name, provider_names
-from pacbench.followups import tool_category
+from pacbench.providers.provision import native_provider_name, provider_names
+from pacbench.judging.recovery import tool_category
 from provider_adapters.memos_local import plan_config
 
 

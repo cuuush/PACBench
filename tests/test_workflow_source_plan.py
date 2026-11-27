@@ -3,8 +3,8 @@ import json
 
 import pytest
 
-from pacbench.semantic_grade import Claim
-from pacbench.workflows.runner import inspect_source_cutoff
+from pacbench.judging.grade import Claim
+from pacbench.workflows.turn_evidence import inspect_source_cutoff
 from pacbench.workflows.source_plan import SourcePlan
 from pacbench.workflows.spec import Document, Turn
 

@@ -14,7 +14,7 @@ from pathlib import Path
 import subprocess
 import sys
 
-from pacbench.followups import save
+from pacbench.evidence_store import save
 
 LEGACY_PROTOCOL = 'honcho-chronological-membership-v1'
 PROTOCOL = 'honcho-chronological-membership-v2'
@@ -174,7 +174,7 @@ def enroll_source(source, root):
     from pacbench.providers import provider_module
     HonchoClientConfig=provider_module("honcho","client").HonchoClientConfig
     from provider_adapters import honcho_clock
-    from pacbench.stop import check_stop
+    from pacbench.process_cleanup import check_stop
 
     if os.environ.get(ENVIRONMENT) != PROTOCOL:
         raise EnrollmentError('Honcho chronological enrollment protocol was not declared')
@@ -194,12 +194,8 @@ def enroll_source(source, root):
     rosters_path = root/'honcho-enrollment-rosters.json'
     rosters = json.loads(rosters_path.read_text()) if rosters_path.exists() else {}
     additive = os.environ.get('PACBENCH_HONCHO_ROSTER_TRANSITIONS') == 'native-additive-window-v1'
-    # Fresh portable r2 already declares the exact historical roster in its bound dataset.
-    if os.environ.get('PACBENCH_R2_LIVE_SCOPE') and os.environ.get('PACBENCH_CHECKPOINT_FULL_RUN'):
-        from pacbench.full_run_capability import load, slot
-        capability=load()
-        active,_=slot(capability)
-        additive=active['provider']=='honcho' and active['kind']=='ingest' and 'dataset' in capability
+    if os.environ.get('PACBENCH_R2_LIVE_SCOPE') or os.environ.get('PACBENCH_CHECKPOINT_FULL_RUN'):
+        raise ValueError('Historical Honcho enrollment requires its original reviewed checkout')
     validate_roster_continuity(plans, rosters, additive=additive)
     identities_path=root/'honcho-peer-identities.json'
     identities=json.loads(identities_path.read_text()) if identities_path.exists() else {}
@@ -280,7 +276,7 @@ def enroll_source(source, root):
 
 def main():
     from provider_adapters.document_connector import native_error_receipt
-    from pacbench.stop import OperatorStop
+    from pacbench.process_cleanup import OperatorStop
     try:
         result = enroll_source(Path(sys.argv[1]), Path(sys.argv[2]))
         print(json.dumps(result)); return 0

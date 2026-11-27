@@ -3,11 +3,11 @@ from __future__ import annotations
 
 import datetime
 import hashlib
-import json
 from pathlib import Path
 from urllib.parse import quote
 
 from pacbench.corpus.sources import bundle_hash, messages_for
+
 from .model_calls import public_record
 
 
@@ -37,7 +37,7 @@ def reviewed_overlay(run_dir: Path):
             raise ValueError('selected protocol differs from overlay')
         if (overlay / manifest['source_root']).resolve() != run_dir.resolve():
             raise ValueError('overlay source does not match this run')
-        from .judging.rejudge import validate_published_audit, _case_dir
+        from pacbench.judging.overlays import _case_dir, validate_published_audit
         validate_published_audit(overlay)
         cases = {}
         for case in manifest['cases']:

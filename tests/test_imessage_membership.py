@@ -8,7 +8,7 @@ from pathlib import Path
 import pytest
 
 from pacbench.imessage_fixture import append_messages, apple_ns, identity, SCHEMA
-from pacbench.imessage_membership import CONDITION
+from pacbench.imessage_fixture import CONDITION
 
 
 def message(i,at,sender='Sam',roster=('Me','Sam','Robin'),thread='neighbors'):
@@ -86,7 +86,7 @@ def test_bad_replay_or_roster_cannot_change_existing_snapshot(tmp_path,change):
 
 
 def test_interrupted_bundle_install_fails_closed(tmp_path,monkeypatch):
-    import pacbench.imessage_membership as module
+    import pacbench.imessage_fixture as module
     p=tmp_path/'chat.db';append(p,rows()[:1]);replace=module.os.replace;calls=[]
     def interrupted(src,dst):
         calls.append(str(dst))
@@ -122,7 +122,7 @@ def test_no_future_append_after_checkpoint_and_exact_sender_join(tmp_path):
 
 
 def test_native_read_counter_distinguishes_verified_notice_from_dialogue(tmp_path):
-    from pacbench.imessage_membership import native_control_read_witness
+    from pacbench.imessage_fixture import native_control_read_witness
     mon,thu,_=rows();source=tmp_path/'source';source.mkdir();append(source/'chat.db',[mon]);append(source/'chat.db',[thu])
     (source/'messages.json').write_text(json.dumps([thu]))
     witness=native_control_read_witness(source,1)
@@ -132,7 +132,7 @@ def test_native_read_counter_distinguishes_verified_notice_from_dialogue(tmp_pat
 
 
 def test_read_witness_binds_interleaved_joins_to_their_source_chats(tmp_path):
-    from pacbench.imessage_membership import native_control_read_witness
+    from pacbench.imessage_fixture import native_control_read_witness
 
     monday, thursday, _ = rows()
     first = {**monday, 'source_id': 'first', 'thread': 'first'}

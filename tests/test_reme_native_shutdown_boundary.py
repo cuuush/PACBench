@@ -9,7 +9,7 @@ from pathlib import Path
 import pytest
 from tests.test_gateway_reuse import LocalNativeFixture,native_home,PYTHON,ROOT
 from pacbench.gateway_reuse import PersistentGateway,clone_observation,tree_manifest
-from pacbench.checkpoint_clock import CheckpointClock
+from pacbench.provider_clock import CheckpointClock
 from pacbench.hermes_gateway import GatewayLifecycleError,_live
 
 
@@ -94,8 +94,8 @@ def test_stock_native_delayed_write_poisoned_owner_requires_closed_checkpoint_ha
 
 @pytest.mark.skipif(not PYTHON.exists() or not (ROOT/'vendor/reme').exists(), reason='requires provisioned Hermes and stock ReMe checkouts')
 def test_preclose_quiescence_keeps_stock_write_and_gateway_warm(tmp_path):
- from pacbench.gateway.preclose import ENV,CONDITION
- from pacbench.checkpoint_evaluator import audit_transport
+ from pacbench.hermes_gateway import PRECLOSE_ENV as ENV, PRECLOSE_CONDITION as CONDITION
+ from pacbench.workflows.turn_evidence import audit_transport
  import os
  base=tmp_path/'baseline';base.mkdir();(base/'source.txt').write_text('Synthetic original checkpoint.')
  signature=tree_manifest(base);clones=[clone_observation(base,tmp_path/name) for name in ['long','next']]
@@ -136,7 +136,7 @@ def test_preclose_quiescence_keeps_stock_write_and_gateway_warm(tmp_path):
 @pytest.mark.skipif(not PYTHON.exists() or not (ROOT/'vendor/reme').exists(), reason='requires provisioned Hermes and stock ReMe checkouts')
 def test_preclose_rejects_stale_empty_before_enqueue_and_failed_work():
  import copy
- from pacbench.gateway.preclose import qualified
+ from pacbench.hermes_gateway import qualified
  good={'observed_monotonic_ns':20,'application_clock':{'nonce':'n'},'native_failures':[],'native_release_threads':[],
   'sessions':[{'session_id':'s','shutdown_returned':False,'pending_futures':0,
    'submitted_tasks':[{'kind':'write','nonce':'n','state':'returned'}],
@@ -158,21 +158,27 @@ def test_preclose_rejects_stale_empty_before_enqueue_and_failed_work():
   assert not check(bad),edit
 
 
-@pytest.mark.skipif(not PYTHON.exists() or not (ROOT/'vendor/reme').exists(), reason='requires provisioned Hermes and stock ReMe checkouts')
-def test_observation_close_requires_native_exit_and_no_live_process(tmp_path,monkeypatch):
- from pacbench.campaigns.pizza_week_checkpoints import close_observation_services
- monkeypatch.setattr('pacbench.hermes_gateway._live',lambda pid:False)
- good={'pid':42,'forced_kill':False,'returncode':0,'native_shutdown_complete':True}
- close_observation_services([(lambda:good,tmp_path)])
- for update in [{'forced_kill':True},{'returncode':9},{'native_shutdown_complete':False}]:
-  with pytest.raises(GatewayLifecycleError):close_observation_services([(lambda:{**good,**update},tmp_path)])
- monkeypatch.setattr('pacbench.hermes_gateway._live',lambda pid:True)
- with pytest.raises(GatewayLifecycleError):close_observation_services([(lambda:good,tmp_path)])
+@pytest.mark.parametrize('change, alive, complete', [
+    ({}, False, True), ({'forced_kill': True}, False, False), ({'returncode': 9}, False, False),
+    ({'native_shutdown_complete': False}, False, False), ({}, True, False),
+])
+def test_observation_close_requires_native_exit_and_no_live_process(tmp_path, monkeypatch, change, alive, complete):
+    from pacbench.providers import provision
+
+    monkeypatch.setattr('pacbench.hermes_gateway._live', lambda pid: alive)
+    monkeypatch.setattr('pacbench.process_cleanup.cleanup_run_processes', lambda root: [])
+    proof = {'pid': 42, 'forced_kill': False, 'returncode': 0, 'native_shutdown_complete': True, **change}
+    monkeypatch.setitem(provision._ARM_SHUTDOWNS, tmp_path, lambda: proof)
+    if complete:
+        assert provision.stop_arm_model_work(tmp_path)['native_outcome']['process_stopped']
+    else:
+        with pytest.raises(RuntimeError, match='native shutdown incomplete'):
+            provision.stop_arm_model_work(tmp_path)
 
 
 @pytest.mark.skipif(not PYTHON.exists() or not (ROOT/'vendor/reme').exists(), reason='requires provisioned Hermes and stock ReMe checkouts')
 def test_preclose_selects_current_manager_after_native_session_reopen():
- from pacbench.gateway.preclose import qualified
+ from pacbench.hermes_gateway import qualified
  from pathlib import Path
  import json,hashlib,copy
  folder=Path(__file__).resolve().parents[1]/'runs/revised-r2-observational-live-20261117/remaining-native-recovery-v3/reme/checkpoint-4/reuse-turns/2655d7c511664e769d1ce1c1a8ee3d00'

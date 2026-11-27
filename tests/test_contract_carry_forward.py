@@ -3,7 +3,7 @@ import pytest
 from pacbench.corpus.contract import (
     validate_carry_forward as validate, APPROVED_QUERY_SUBSTITUTIONS as APPROVED, CARRY_FORWARD_VERSION as VERSION,
 )
-from pacbench.followups import digest
+from pacbench.evidence_store import binding_digest as digest
 
 
 def case():

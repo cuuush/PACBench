@@ -11,7 +11,7 @@ from pathlib import Path
 
 import pytest
 
-from pacbench.document_ingestion import prepare_sources
+from pacbench.workflows.delivery import prepare_sources
 from pacbench.email_fixture import MailboxServer,append_emails,mail_address
 from pacbench.imessage_fixture import identity
 
@@ -91,8 +91,8 @@ def test_mailbox_rejects_inconsistent_owner_metadata(tmp_path):
 
 def test_document_audit_accepts_utf8_smtp_and_rejects_changed_body(tmp_path):
     from pacbench.document_audit import audit_ingestion
-    from pacbench.document_ingestion import VERSION, processing_at
-    from pacbench.followups import save
+    from pacbench.workflows.source_plan import VERSION, processing_at
+    from pacbench.evidence_store import save
     rows=[email('unicode', 'Ben', 'Confirmed — café at seven.\nSee you there!',
                 '2026-10-06T07:00:00-04:00')]
     schedule=prepare_sources(tmp_path,rows,'America/New_York')
@@ -187,7 +187,7 @@ def test_v2_observed_headers_preserve_absence_and_literal_subject(tmp_path):
 
 
 def test_v2_requires_real_mailbox_runtime(tmp_path, monkeypatch):
-    from pacbench.maildir_transport import email_server
+    from pacbench.email_fixture import email_server
     path = tmp_path/'mailbox.json'
     append_emails(path, exchange(), observed_headers_only=True)
     monkeypatch.delenv('PACBENCH_IMAP_SERVER_PYTHON', raising=False)
@@ -196,7 +196,7 @@ def test_v2_requires_real_mailbox_runtime(tmp_path, monkeypatch):
 
 
 def test_maildir_rejects_later_prefix_and_preserves_unowned_state(tmp_path):
-    from pacbench.maildir_transport import maildir_server
+    from pacbench.email_fixture import maildir_server
     server_python = os.environ.get('PACBENCH_IMAP_SERVER_PYTHON')
     if not server_python:
         pytest.skip('Set PACBENCH_IMAP_SERVER_PYTHON to a private pinned pymap runtime')

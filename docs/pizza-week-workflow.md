@@ -49,11 +49,11 @@ These are candidate interfaces documented at the reviewed versions. The [capabil
 From the checkout, run the planner to see the exact source digest, cutoff instants, stage denominators and all nine declarations. The conformance command requires a new private output directory.
 
 ```sh
-python3 -m pacbench.workflow plan --track nightly-document
-python3 -m pacbench.workflow conform --track nightly-document --output /tmp/pizza-doc-check
-python3 -m pacbench.workflow conform --track nightly-document --seven-daily-documents --output /tmp/pizza-daily-check
-python3 -m pacbench.workflow conform --track first-party-connector --output /tmp/pizza-sync-check
-python3 -m pacbench.workflow conform --track nightly-document --state isolated-control --output /tmp/pizza-control-check
+python3 -m pacbench workflow plan --track nightly-document
+python3 -m pacbench workflow conform --track nightly-document --output /tmp/pizza-doc-check
+python3 -m pacbench workflow conform --track nightly-document --seven-daily-documents --output /tmp/pizza-daily-check
+python3 -m pacbench workflow conform --track first-party-connector --output /tmp/pizza-sync-check
+python3 -m pacbench workflow conform --track nightly-document --state isolated-control --output /tmp/pizza-control-check
 ```
 
 The seven-document conformance option asks the complete 49-turn schedule
@@ -81,27 +81,16 @@ source, and evaluation digests. Conditional prompts are rehearsed as written
 without evaluating whether a model would trigger them.
 
 ```sh
-python3 -m pacbench.workflow conform \
+python3 -m pacbench workflow conform \
   --prepared runs/bike-pickup-native-clock-20261105/preparation \
   --track nightly-document --provider mem0 --output /tmp/pacbench-bike-conform
 ```
 
-For a provisioned synthetic deployment, [run_compiled_workflow and run_current_week](../pacbench/workflows/runner.py) accept a declared condition, a bound account, a new evidence directory and an optional judge callable that records transport-backed attempts under the run’s `model-calls/` directory. [NativeAccount and WarmHermes](../pacbench/workflows/native.py) adapt the native uploader or source reader and normal CLI session. The native condition pins the offered Hermes tool catalog for each reviewed provider version. Every answer request must retain the approved model and route. The installer must bind native acceptance, completion and inventory inspection, connector grants/cursors, open-session idle and chat-end write readback, model route and retry lineage. Isolated copies additionally need a native readback of zero prior chats and conversational writes. Gmail routes need working official sync implementations supplied by the deployment. The offline CLI provisions none of these. A missing binding or failed proof leaves an arm unqualified.
-
-The stock Supermemory launcher uses this runner for its seven-document Week.
-The native path requires the launcher's stock account, owned gateway, campaign
-lock, and exact bound seven-document scope. It captures answers for separate
-grading. Earlier per-thread admissions retain their original source contract.
-
-### Adding a special admission protocol
-
-Add one entry under `_SPECIAL_ADMISSIONS` in [`workflows/capability.py`](../pacbench/workflows/capability.py)
-using the versioned admission ID written in the run scope. The owned module
-normally supplies `validate(scope, binding)` and `admit(scope, project, body)`.
-Name a journal class in the same entry if the mode needs one of its own. Leave
-the class unset to use the provider's usual receipt journal. Add a case in
-`tests/test_workflow_special_admissions.py` and test the mode's own evidence
-checks separately with offline fixtures.
+The recording runner accepts an already bound recording account and writes a fresh
+journal. It can exercise a prepared scenario or either frozen r2 document layout.
+Use `python -m pacbench run` for a new native evaluation. The original campaign
+launchers, special admissions and associated private state are described in the
+[archived workflow guide](https://github.com/cuuush/PACBench/blob/6582fd200c5e270b2b68d59175c7e462e95c1a7f/docs/pizza-week-workflow.md).
 
 ## Audit closure and verification boundaries
 
@@ -127,10 +116,10 @@ needs MemCal's declared dependencies. Set `PACBENCH_MEMCAL_SRC` to the clean
 ```sh
 python -m venv /tmp/pacbench-imap
 /tmp/pacbench-imap/bin/python -m pip install pymap==0.36.7
-python -m pacbench.memcal_transport_preflight \
+python -m pacbench fixture \
   --bundle datasets/pizza-week/r2/sources/bundle.json \
   --bundle-hash 009056e03e398a0a14b1f3249d5a0480ddf3cb1787c9afd34d2f0fa475b0196b \
-  --server-python /tmp/pacbench-imap/bin/python --output /tmp/memcal-transport-check
+  --server-python /tmp/pacbench-imap/bin/python /tmp/memcal-transport-check
 ```
 
 The preflight imports the eligible messages into a private loopback server with
@@ -147,84 +136,18 @@ joins. First-party iMessage qualification requires a platform-created synthetic
 Apple store and its authorized native connection. The preflight excludes Dream,
 Hermes turns, judging and model calls.
 
-### Incremental MemCal arm
+### Historical incremental MemCal arm
 
-The MemCal first-party track uses stock 0.8.11 at `e67b8d9`, the repository's
-pinned Hermes runtime and its isolation patch. The input gate checks the exact
-continuing week, including 49 scheduled turns in 31 chats and the 192 criterion
-identities across 47 gradable turns.
+The original controller bound its source, site, and progress database to one
+campaign. Its launch and recovery commands run at the
+[original revision](https://github.com/cuuush/PACBench/blob/6582fd200c5e270b2b68d59175c7e462e95c1a7f/docs/pizza-week-workflow.md#incremental-memcal-arm).
+The offline readers can verify retained turns, export saved answers, and compare
+recorded judgments.
 
-The Linux coordinator can reach a dedicated synthetic Mac through BlueBubbles.
-The read-only site preflight also supports the direct Messages reader on a
-dedicated macOS login. Live process admission currently needs Linux process
-identity and file-descriptor checks. A provisioned site must supply the
-historical Apple roster and source-ID mapping, native as-of releases, and
-read-only IMAP access to both Inbox and Sent. The site interface, expected
-source observations and independently pinned mapping are documented in
-[source.py](../pacbench/providers/memcal/source.py). The
-site's Python module supplies `release(cutoff)`, `observe(cutoff)`,
-`deployment()`, `bindings_path` and `bindings_sha256`. The repository
-factory composes those site observations with the shipping MemCal readers,
-stock native processing and the warm Hermes chat.
-
-Prepare the synthetic store under `CAMPAIGN/memcal/memcal-home`. The fresh
-campaign contains only that prepared arm. The site JSON uses the fields of
-`MemCalSite` in [site.py](../pacbench/providers/memcal/site.py).
-The billing confirmation contains the actual operator's `confirmed_by`,
-timezone-qualified `confirmed_at`, and observed `auto_recharge` value
-`off`. Keep the site module, source mapping, evidence and credentials outside
-the answering agent's workspace. The default factory preserves the store's
-existing native configuration. Use a git-free temporary root and the reviewed
-runtime, with the original OpenRouter key available only to the accounting
-transport. The commands below use a new arm and store for each stage.
-
-```sh
-python -m pacbench.workflow preflight --track first-party-connector --provider memcal --site CANARY_SITE.json
-python -m pacbench.workflow_memcal_live CANARY_CAMPAIGN --site CANARY_SITE.json --deployment SITE_MODULE --billing-confirmation CONFIRMATION.json --canary
-python -m pacbench.workflow preflight --track first-party-connector --provider memcal --site WEEK_SITE.json
-python -m pacbench.workflow_memcal_live WEEK_CAMPAIGN --site WEEK_SITE.json --deployment SITE_MODULE --billing-confirmation CONFIRMATION.json --after-canary CANARY_CAMPAIGN/memcal
-```
-
-The four-turn canary must complete with native evidence, exact judge receipts,
-and reconciled billing on the selected Luna route. Each subsequent turn joins
-a dated conversation, captures the CLI return before checking the native write,
-and becomes available to a separate evaluator queue as soon as those checks
-pass. Authorized tool lookups count for correctness. Turn metrics identify
-actual explicit calls, observed automatic recall and the upper bound at CLI
-return. The arm exports `result.json` and `turn-metrics.jsonl`. Billing
-reports the sum of unique settled generations and lists unresolved attempts.
-Full accuracy requires the complete native week and all criterion identities.
-
-`workflow/workflow.sqlite3` uses SQLite WAL on local disk. One account owner
-orders native effects. A role, immutable inputs and an attempt bind each
-external operation. Content-addressed files retain raw and verified evidence.
-Readable event streams have a new segment per continuation. The queue admits
-one grade after each verified turn and drains the remainder in bounded batches.
-To recover grades from saved responses, or grade previously unsent verified
-turns after the original coordinator exits, use the original arm directory.
-
-```sh
-python -m pacbench.workflow_grading WEEK_CAMPAIGN/memcal/workflow --reconcile --limit 32
-python -m pacbench.workflow_grading WEEK_CAMPAIGN/memcal/workflow --grade --limit 32
-```
-
-A lost callback remains pending until a read-only native witness can prove its
-effect. The controller can recheck an intact warm account, including a saved
-CLI return, through `run_current_week(..., resume=True)`. The default fresh
-launcher cannot attach to an orphaned gateway. Detached grading only needs the
-verified checkpoint, its scope, receipts and the approved billing route.
-
-SQLite keeps cutoff and turn queries indexed and progress exports paged. The
-current native site contract returns a complete visible upstream prefix to
-detect historical edits and membership changes. Long native runs still pay for
-that readback. A site with an authenticated change feed or immutable snapshots
-would be needed to reduce that cost while retaining the same evidence.
-
-For an offline controller stress test, run
-`python -m scripts.check_workflow_scale NEW_OUTPUT --days 365`. It uses
-recording boundaries, kills the account process, consumes grade slots with
-that process down, and verifies effect counts after restart. Its simulated
-grades never produce a benchmark score.
+For an offline storage stress test, run
+`python -m scripts.check_workflow_scale NEW_OUTPUT --days 365`. It builds a
+synthetic source index, persists the turn queue, closes and reopens the
+database, and verifies coverage while consuming the saved grade queue.
 
 ## Terminal Pizza Week v2 results
 

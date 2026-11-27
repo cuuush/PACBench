@@ -1,5 +1,4 @@
 """Audited Spark calls for private scene construction and semantic evaluation."""
-
 from __future__ import annotations
 
 import hashlib
@@ -11,9 +10,9 @@ import urllib.error
 import urllib.request
 from dataclasses import dataclass
 from datetime import datetime, timezone
+from decimal import Decimal, InvalidOperation
 from pathlib import Path
-from typing import Any
-
+from typing import Any, Callable
 
 MODEL_TIMEOUT_S = 180
 ENCRYPTED_REDACTION = "<encrypted reasoning retained in private run artifact>"
@@ -22,21 +21,6 @@ RESPONSE_HEADER_ALLOWLIST = (
     "content-type", "content-encoding", "date", "x-request-id",
     "x-openrouter-request-id", "x-generation-id",
 )
-
-
-def direct_response_metadata(response):
-    """Retain correlation hints, never authentication/cookie headers."""
-    headers = getattr(response, 'headers', {}) or {}
-    selected = {}
-    for name in RESPONSE_HEADER_ALLOWLIST:
-        value = headers.get(name)
-        if isinstance(value, str):
-            selected[name] = value[:1024]
-    status = getattr(response, 'status', None)
-    return {'version': DIRECT_RESPONSE_EVIDENCE_VERSION,
-            'http_status': status if type(status) is int else None,
-            'headers': selected,
-            'scope': 'Response correlation hints; headers do not establish a generation ID or charge.'}
 
 
 def save_failed_response_body(record_path, body):
@@ -52,14 +36,8 @@ def save_failed_response_body(record_path, body):
             'scope': 'Private raw HTTP body; not a usable judgment or verified cost receipt.'}
 
 
-def read_direct_response(response, started, timing=None, body_sink=None, *, stop_at_done=False, timeout_s=None):
-    """Bound the whole direct response, including whitespace keepalives.
-
-    HTTP socket timeouts measure inactivity. A slow non-streaming model can
-    otherwise keep a judge alive indefinitely by sending whitespace. read1
-    returns available bytes so each read can use the remaining real deadline.
-    The direct accounting wrapper captures these reads and retains the bound
-    when an incomplete response is closed. No uncertain request is repeated.
+def read_bounded_response(response, started, timing=None, body_sink=None, *, stop_at_done=False, timeout_s=None):
+    """Limit total wall time even while the server continues sending keepalives.
     """
     timeout_s=MODEL_TIMEOUT_S if timeout_s is None else timeout_s
     timing=timing if timing is not None else {}
@@ -110,13 +88,6 @@ class ModelOutput:
     request_sha: str = ""
 
 
-def captured_attempt(capture):
-    budget, ident = capture.receipt['budget'], capture.receipt['id']
-    if hasattr(budget, 'get_attempt'):
-        return budget.get_attempt(ident)
-    return next((row for row in budget.snapshot() if row['id']==ident), None)
-
-
 class ModelClient:
     def __init__(self, *, key: str, model: str, record_dir: Path,
                  temperature: float = 0.0,
@@ -151,9 +122,7 @@ class ModelClient:
             request_body["reasoning_effort"] = self.reasoning_effort
         if self.json_mode:
             request_body["response_format"] = {"type": "json_object"}
-        streaming=(self.streaming if self.streaming is not None else
-                   os.environ.get('PACBENCH_DIRECT')=='1' and os.environ.get('PACBENCH_TRANSPORT')=='openrouter')
-        if streaming:
+        if self.streaming:
             request_body.update(stream=True,stream_options={'include_usage':True})
         return self._request(request_body, protocol="chat")
 
@@ -195,9 +164,7 @@ class ModelClient:
             response_body = None
             received_body = bytearray()
             stream_proof = None
-            accounting_receipt = None
             response = None
-            response_metadata = None
             error_response: str | None = None
             error = ""
             transient = False
@@ -211,32 +178,12 @@ class ModelClient:
                     headers={"Authorization": f"Bearer {self.key}",
                              "Content-Type": "application/json"})
                 with urllib.request.urlopen(req, timeout=self.timeout_s) as response:
-                    if os.environ.get('PACBENCH_DIRECT') == '1' or request_body.get('stream') is True:
-                        response_metadata = direct_response_metadata(response)
-                        response_body = read_direct_response(response, request_started, response_timing, received_body,
-                                                             stop_at_done=request_body.get('stream') is True,timeout_s=self.timeout_s)
-                        response_metadata.update(body_bytes=len(response_body),
-                            body_sha256=hashlib.sha256(response_body).hexdigest())
-                        if request_body.get('stream') is True:
-                            from .chat_stream import parse_chat_stream
-                            raw,stream_proof=parse_chat_stream(response_body,self.model)
-                            capture=getattr(response,'capture',None)
-                            if os.environ.get('PACBENCH_DIRECT')=='1' and capture is None:
-                                raise ValueError('Direct judge stream has no accounting receipt')
-                            if capture is not None:
-                                capture.finish()
-                                accounting_receipt=captured_attempt(capture)
-                                if accounting_receipt is None:
-                                    raise ValueError('Completed judge request has no recorded receipt')
-                                if accounting_receipt['state']!='settled' and not (os.environ.get('PACBENCH_R2_LIVE_SCOPE') or os.environ.get('PACBENCH_WORKFLOW_SCOPE')):
-                                    raise ValueError('Judge stream cost and token usage did not settle')
-                        else:
-                            decoded = json.loads(response_body)
-                            if not isinstance(decoded, dict):
-                                raise ValueError('model response must be a JSON object')
-                            raw = decoded
+                    if request_body.get('stream'):
+                        response_body = read_bounded_response(response, request_started, response_timing,
+                                                             received_body, stop_at_done=True, timeout_s=self.timeout_s)
+                        raw, stream_proof = parse_chat_stream(response_body, self.model)
                     else:
-                        raw = json.loads(response.read())
+                        raw = json.load(response)
                 if os.environ.get('PACBENCH_TRANSPORT') == 'openrouter':
                     if isinstance(raw.get('usage'), dict) and 'cost' in raw['usage']:
                         raw['usage']['cost_usd'] = raw['usage']['cost']
@@ -261,19 +208,15 @@ class ModelClient:
                     pass
                 content = ""
             except Exception as exc:
-                from .chat_stream import IncompleteChatStream
                 if isinstance(exc,IncompleteChatStream):raw=exc.response
                 if received_body and response_body is None:response_body=bytes(received_body)
                 error = f"{type(exc).__name__}: {exc}"
                 transient = isinstance(exc, (urllib.error.URLError, ConnectionError,
                                              TimeoutError, OSError))
-                if os.environ.get('PACBENCH_DIRECT')=='1':
-                    transient=False  # A disconnect can conceal a charged request.
+                # An ambiguous OpenRouter send may already have incurred a charge.
+                if os.environ.get('PACBENCH_TRANSPORT') == 'openrouter':
+                    transient = False
                 content = ""
-            if accounting_receipt is None and response is not None:
-                capture=getattr(response,'capture',None)
-                if capture is not None:
-                    accounting_receipt=captured_attempt(capture)
             record = {"created_at": datetime.now(timezone.utc).isoformat(),
                       "client_wall_deadline_s": self.timeout_s,
                       "client_max_attempts": self.max_attempts,
@@ -285,43 +228,10 @@ class ModelClient:
                       "cost_status": ("reported" if (raw or {}).get("usage", {}).get("cost_usd") is not None
                                       else "not reported by API"),
                       "error": error, "error_response": error_response}
-            capture = getattr(response, 'capture', None)
-            if capture and accounting_receipt and accounting_receipt.get('accounting_role') == 'judge':
-                routed = json.loads(capture.receipt['body'])
-                digest = hashlib.sha256(json.dumps(routed, sort_keys=True, ensure_ascii=False).encode()).hexdigest()
-                if capture.receipt['id'] == accounting_receipt['id'] and digest == accounting_receipt.get('request_sha256'):
-                    # Request identity and routing can be known even when price is missing.
-                    record['judge_transport'] = {'id':capture.receipt['id'], 'request':routed,
-                                                 'request_sha256':digest, 'endpoint':accounting_receipt['endpoint']}
-                    checkpoint = (accounting_receipt.get('workflow_slot') or {}).get('checkpoint_effect')
-                    if checkpoint is not None:
-                        record['judge_transport']['checkpoint_effect'] = checkpoint
-            if accounting_receipt is not None and accounting_receipt['state']=='settled':
-                record['cost_usd']=float(accounting_receipt.get('settled_charge_usd',accounting_receipt.get('accounted')))
-                record['cost_status']='reported; retained in the linked accounting receipt'
-                record['accounting_request_id']=accounting_receipt['id']
-            if os.environ.get('PACBENCH_DIRECT')=='1':
-                record['direct_timing']={**response_timing,
-                    'wall_duration_s':round(time.monotonic()-request_started,6),
-                    'wall_deadline_s':self.timeout_s,
-                    'scope':'Client-observed HTTP timing; does not identify upstream queue or model compute'}
-                if response_metadata is not None:
-                    if response_body is not None:response_metadata.update(body_bytes=len(response_body),body_sha256=hashlib.sha256(response_body).hexdigest())
-                    record['direct_response'] = response_metadata
-                if request_body.get('stream') is True:
-                    from .chat_stream import VERSION as STREAM_PROTOCOL
-                    record['response_transport']=STREAM_PROTOCOL
-                    if stream_proof is not None:record['stream_completion']=stream_proof
-                    if accounting_receipt is not None:
-                        record['accounting_receipt']={k:accounting_receipt.get(k) for k in
-                            ('id','state','accounted','reserved','input_tokens','output_tokens','upstream_request_id')}
-                    if response_body is not None:
-                        wire=save_failed_response_body(path,response_body)
-                        wire['scope']='Private original SSE response; completion and usage are validated separately.'
-                        record['stream_wire_response']=wire
-                        if error:record['failed_response_body']=wire
-                elif error and response_body is not None:
-                    record['failed_response_body'] = save_failed_response_body(path, response_body)
+            if stream_proof is not None:
+                record['stream_completion'] = stream_proof
+            if error and received_body:
+                record['failed_response_body'] = save_failed_response_body(path, bytes(received_body))
             _write_record(path, record)
             if spending_refused:
                 from .gateway_client import SpendingBlocked
@@ -415,3 +325,187 @@ class ResponsesWriter(ModelClient):
                               "reasoning": {"effort": self.reasoning_effort, "summary": "auto"},
                               "max_output_tokens": 8192, "input": items},
                              protocol="responses")
+
+
+CHAT_STREAM_PROTOCOL = 'complete-chat-stream-v1'
+
+
+class IncompleteChatStream(ValueError):
+    def __init__(self, reason, response):
+        super().__init__(reason)
+        self.response=response
+
+
+def parse_chat_stream(body: bytes, model: str) -> tuple[dict, dict]:
+    """Require an actual end, successful finish, and usable cost/token usage.
+
+    Whitespace, heartbeat comments, partial JSON, and a plausible partial verdict
+    cannot substitute for a complete response. No network request is made here.
+    """
+    response={'model':model,'choices':[{'index':0,'message':{'role':'assistant','content':''},'finish_reason':None}]}
+    proof={'protocol':CHAT_STREAM_PROTOCOL,'body_bytes':len(body),'body_sha256':hashlib.sha256(body).hexdigest(),
+           'done':False,'finish_reason':None,'usage_complete':False,'events':0}
+    content=[];reasoning=[];details=[];identifier=None;finished=None;done=False
+    def fail(reason):
+        response['choices'][0]['message']['content']=''.join(content)
+        raise IncompleteChatStream(reason,response)
+    try:text=body.decode('utf-8')
+    except UnicodeError:fail('Judge stream is not UTF-8')
+    events=[];data=[]
+    for line in text.splitlines()+['']:
+        if not line.strip():
+            if data:events.append('\n'.join(data));data=[]
+        elif line.startswith('data:'):
+            data.append(line[5:].removeprefix(' '))
+        elif line.startswith(':') or line.startswith(('event:','id:','retry:')):
+            continue
+        else:
+            fail('Judge response contains non-SSE data')
+    for payload in events:
+        if done:fail('Judge stream contains data after its terminator')
+        if payload=='[DONE]':done=True;proof['done']=True;continue
+        try:event=json.loads(payload)
+        except (ValueError,TypeError):fail('Judge stream contains malformed event JSON')
+        if not isinstance(event,dict):fail('Judge stream event is not an object')
+        proof['events']+=1
+        if event.get('error'):fail('Judge stream reports an upstream error')
+        if event.get('model') not in (None,model):fail('Judge stream served a different model')
+        if isinstance(event.get('id'),str) and event['id']:
+            if identifier is not None and event['id']!=identifier:fail('Judge stream generation identity changed')
+            identifier=event['id'];response['id']=identifier
+        for name in ('provider','created'):
+            if event.get(name) is not None:response[name]=event[name]
+        if isinstance(event.get('usage'),dict):response['usage']=event['usage']
+        choices=event.get('choices',[])
+        if not isinstance(choices,list):fail('Judge stream choices are malformed')
+        for choice in choices:
+            if not isinstance(choice,dict) or choice.get('index',0)!=0:fail('Judge stream has an unexpected choice')
+            if choice.get('error'):fail('Judge stream choice reports an upstream error')
+            delta=choice.get('delta') or {}
+            if not isinstance(delta,dict):fail('Judge stream delta is malformed')
+            if delta.get('tool_calls') or delta.get('function_call'):fail('Judge stream attempted a tool call')
+            if delta.get('role') not in (None,'assistant'):fail('Judge stream changed message role')
+            piece=delta.get('content')
+            if piece is not None:
+                if not isinstance(piece,str):fail('Judge stream content is not text')
+                if finished and piece:fail('Judge stream content continued after its finish')
+                content.append(piece)
+            for key in ('reasoning','reasoning_content'):
+                if isinstance(delta.get(key),str):reasoning.append(delta[key])
+            if isinstance(delta.get('reasoning_details'),list):details.extend(delta['reasoning_details'])
+            finish=choice.get('finish_reason')
+            if finish is not None:
+                if finished is not None and finish!=finished:fail('Judge stream finish reason changed')
+                finished=finish;response['choices'][0]['finish_reason']=finish;proof['finish_reason']=finish
+    if not done:fail('Judge stream ended without [DONE]')
+    if finished!='stop':fail('Judge stream did not finish successfully')
+    if not identifier:fail('Judge stream has no generation identity')
+    if not ''.join(content).strip():fail('Judge stream contains no answer text')
+    usage=response.get('usage',{})
+    try:
+        cost=Decimal(str(usage['cost']))
+        if (not cost.is_finite() or cost<0 or type(usage['prompt_tokens']) is not int
+                or type(usage['completion_tokens']) is not int
+                or usage['prompt_tokens']<0 or usage['completion_tokens']<0):
+            raise ValueError('invalid usage')
+    except (ValueError,KeyError,InvalidOperation):fail('Judge stream lacks complete token and cost usage')
+    response['choices'][0]['message']['content']=''.join(content)
+    if reasoning:response['choices'][0]['message']['reasoning']=''.join(reasoning)
+    if details:response['choices'][0]['message']['reasoning_details']=details
+    proof['usage_complete']=True
+    return response,proof
+
+
+Generate = Callable[[str], str]
+
+
+GATEWAY_URL = "http://127.0.0.1:8099/p/pacbench-authoring/v1/chat/completions"
+
+
+class GenerationError(RuntimeError):
+    """A Spark generation call failed. Reported, never silently retried elsewhere."""
+
+
+@dataclass(frozen=True)
+class SparkConfig:
+    """Resolved generation config. `repr` redacts the credential by construction."""
+
+    model: str
+
+    def __repr__(self) -> str:
+        return f"SparkConfig(model={self.model!r}, credential=<redacted>)"
+
+
+def load_config(env_path: str | Path = ".env") -> tuple[SparkConfig, str]:
+    """Read MODEL and META from a `.env` file.
+
+    Returns ``(config, credential)`` with the credential kept out of the config
+    object so it cannot leak through logging. Raises :class:`GenerationError` if
+    either value is missing.
+    """
+    # Managed runtimes bind these directly; never read a personal agent profile.
+    import os
+    model, credential = os.environ.get("MODEL"), os.environ.get("META")
+    path = Path(env_path).expanduser()
+    if path.exists():
+        for raw in path.read_text().splitlines():
+            line = raw.strip()
+            if not line or line.startswith("#") or "=" not in line:
+                continue
+            key, _, value = line.partition("=")
+            key, value = key.strip(), value.strip().strip("'\"")
+            if key == "MODEL" and value:
+                model = value
+            elif key == "META" and value:
+                credential = value
+    missing = [k for k, v in (("MODEL", model), ("META", credential)) if not v]
+    if missing:
+        raise GenerationError(f"{path}: missing {', '.join(missing)} "
+                              f"(want MODEL=<spark model> and META=<credential>)")
+    return SparkConfig(model=model or ""), credential or ""
+
+
+def spark_generator(config: SparkConfig, credential: str, *,
+                    gateway_url: str = GATEWAY_URL,
+                    temperature: float = 0.8, timeout: float = 60.0) -> Generate:
+    """Build a `generate(prompt) -> text` bound to the configured Spark model.
+
+    Posts through the spending gateway (``gateway_url``, default ``GATEWAY_URL``)
+    with its local credential as a Bearer header. The credential never appears
+    in errors or logs; failures raise :class:`GenerationError` naming only
+    the model."""
+
+    from pacbench.gateway_client import client_settings, validate_route
+    _, credential = client_settings("pacbench-authoring")
+    validate_route(gateway_url, credential)
+
+    def generate(prompt: str) -> str:
+        body = json.dumps({
+            "model": config.model,
+            "temperature": temperature,
+            "messages": [{"role": "user", "content": prompt}],
+        }).encode()
+        request = urllib.request.Request(
+            gateway_url, data=body,
+            headers={"Authorization": f"Bearer {credential}",
+                     "Content-Type": "application/json"})
+        try:
+            with urllib.request.urlopen(request, timeout=timeout) as response:
+                data = json.loads(response.read())
+        except Exception as exc:
+            raise GenerationError(
+                f"spark generation with model {config.model!r} failed: {exc}") from exc
+        try:
+            return data["choices"][0]["message"]["content"]
+        except (KeyError, IndexError, TypeError) as exc:
+            raise GenerationError(
+                f"spark generation with model {config.model!r} returned "
+                f"an unusable payload") from exc
+
+    return generate
+
+
+def generator_from_env(env_path: str | Path = ".env", **kwargs) -> Generate:
+    """One-step Spark generator from the repository credential file."""
+    config, credential = load_config(env_path)
+    return spark_generator(config, credential, **kwargs)

@@ -9,7 +9,7 @@ from pacbench.gateway.ledger import Ledger
 
 
 def run_cli(state, *flags):
-    return subprocess.run([sys.executable,'-m','pacbench.gateway','--state',str(state),*flags],
+    return subprocess.run([sys.executable,'-m', 'pacbench', 'gateway', 'serve','--state',str(state),*flags],
                           env={**os.environ,'META':'fixture-key'},capture_output=True,text=True,timeout=10)
 
 
@@ -26,7 +26,7 @@ def test_startup_without_state_never_creates_replacement(tmp_path):
 
 def test_explicit_new_install_then_existing_state_restart(tmp_path):
     state=tmp_path/'new'
-    proc=subprocess.Popen([sys.executable,'-m','pacbench.gateway','--state',str(state),
+    proc=subprocess.Popen([sys.executable,'-m', 'pacbench', 'gateway', 'serve','--state',str(state),
                            '--port','0','--initialize-new-state'],env={**os.environ,'META':'fixture-key'},
                           stdout=subprocess.DEVNULL,stderr=subprocess.PIPE,text=True)
     try:

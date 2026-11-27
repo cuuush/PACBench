@@ -9,9 +9,9 @@ import pytest
 
 from pacbench.judging.paired import (BASELINE, PROTOCOL, Source, UnavailableAnswer, assertions,
                                      build_pair, fingerprint, interpret)
-from pacbench.judging.comparison import compare, comparison_plan
-from pacbench.judging.week import Week
-from pacbench.semantic_grade import Claim, judge_prompt
+from pacbench.judging.paired import compare, comparison_plan
+from pacbench.judging.paired import Week
+from pacbench.judging.grade import Claim, judge_prompt
 from pacbench.workflows.runner import judge_options
 from pacbench.workflows.spec import Turn
 
@@ -254,7 +254,7 @@ def test_expected_unknown_and_explicit_prohibition_are_distinct():
 
 def test_exact_production_free_cli_round_trip(tmp_path,week):
     def cli(*args):
-        proc = subprocess.run([sys.executable,'-m','pacbench.question_judge_week',*map(str,args)],
+        proc = subprocess.run([sys.executable,'-m', 'pacbench', 'paired',*map(str,args)],
                               capture_output=True,text=True,check=True)
         return json.loads(proc.stdout)
     sample_path = tmp_path/'case.json'

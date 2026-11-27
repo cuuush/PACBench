@@ -1,20 +1,21 @@
 """Bindings for a provisioned, synthetic account. No service setup or credential acquisition."""
-from contextlib import closing
 import hashlib
+import json
 import os
 import re
-import json
-from pathlib import Path
 import sqlite3
 import subprocess
 import time
+from contextlib import closing
+from pathlib import Path
 
-from ..checkpoint_clock import audit_question, history
+from pacbench.process_cleanup import communicate_until_stop
+from pacbench.provider_clock import audit_question, history
+
 from ..context_isolation import actual_context
+from ..gateway_reuse import NATIVE_CHAT_CLOSE
 from ..harness import _parse_turn, capture_prefetch_provenance
 from ..hermes_gateway import _identity
-from ..gateway_reuse import NATIVE_CHAT_CLOSE
-from ..stop import communicate_until_stop
 from .delivery import submit_document
 
 
@@ -85,7 +86,8 @@ def capture_tool_results(native_results, stream_results):
 
 def tool_provenance(calls, results):
     """Record explicit native operations separately from automatic memory delivery."""
-    from ..followups import tool_category
+    from pacbench.judging.recovery import tool_category
+
     from ..source_policy import viking_read_result_category
     by_id = {row['tool_call_id']: row for row in results}
     call_ids = {row['tool_call_id'] for row in calls}
@@ -276,8 +278,9 @@ class NativeAccount:
             raise ValueError('bound provider differs from declared route')
         record = self.witness.verify_deployment(condition, self.identity)
         if self.provider == 'memcal' and condition.track == 'first-party-connector':
+            from pacbench.providers import validate_native_deployment
+
             from .delivery import MemCalReaders
-            from .tracks import validate_native_deployment
 
             validate_native_deployment(condition, record)
             if record.get('account') != self.identity or record.get('condition') != vars(condition):
@@ -289,6 +292,7 @@ class NativeAccount:
                     or self.source_witness.site != self.client.site):
                 raise ValueError('Native source release and archive witnesses must bind the same synthetic site')
             from functools import partial
+
             from pacbench.providers.memcal.site import verify_memcal_mailbox
             access = self.client.preflight(self.identity, condition.channels)
             self.source_witness.verify_mailbox = partial(verify_memcal_mailbox, self.client.site,
@@ -328,6 +332,7 @@ class NativeAccount:
 
     def memcal_clock(self, cutoff):
         from contextlib import nullcontext
+
         from pacbench.providers import run_environment
         if getattr(getattr(self.client, 'site', None), 'synthetic_chatdb', False):
             if not cutoff:
@@ -377,7 +382,7 @@ class NativeAccount:
 
     def verify_resume(self, progress, plan):
         """Read the existing MemCal account and native chats before continuing a saved prefix."""
-        from pacbench.providers.memcal.chat import verify_resume
+        from pacbench.providers.memcal.workflow import verify_resume
         return verify_resume(self, progress, plan)
 
     def end_chat(self, session_id):

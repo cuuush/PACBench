@@ -1,17 +1,19 @@
 """Validate frozen preparation without running a model or a memory provider."""
 from __future__ import annotations
+
 import argparse
-from contextlib import contextmanager
-from dataclasses import dataclass, replace
 import hashlib
 import json
 import os
+from contextlib import contextmanager
+from dataclasses import dataclass, replace
 from pathlib import Path
 from tempfile import TemporaryDirectory
-from pacbench.corpus.sources import load_bundle, messages_for, parse_json_object
+
 from pacbench.corpus.contract import EvaluationContract, load_contract
-from pacbench.followups import load_questions
+from pacbench.corpus.sources import load_bundle, messages_for, parse_json_object
 from pacbench.evidence_store import read_json
+from pacbench.judging.recovery import load_questions
 
 
 def audit_combined_contract_review(root, document, observations, check):
@@ -19,9 +21,14 @@ def audit_combined_contract_review(root, document, observations, check):
     if (document.get('authoring_version') not in {'event-scoped-v7','event-scoped-v8-attribute-anchors'} or
             document.get('kind', 'recall') == 'behavior'):
         return []
-    from pacbench.corpus.contract import (ContractClaim, _dialogue, combined_review_prompt,
-                                    contract_review_prompts, shared_context_review_prompt)
-    from pacbench.corpus.contract import review_observations
+    from pacbench.corpus.contract import (
+        ContractClaim,
+        _dialogue,
+        combined_review_prompt,
+        contract_review_prompts,
+        review_observations,
+        shared_context_review_prompt,
+    )
     observations=review_observations(root,document,observations,check)
     claims = tuple(ContractClaim(c['id'], c['statement'], tuple(c['evidence'])) for c in document['claims'])
     claim_prompt, question_prompt = contract_review_prompts(
@@ -69,8 +76,9 @@ def audit_scenes(root, resolved, life_id, messages):
     """Bind frozen message bodies to the actual saved passing checker input."""
     if not resolved.get('scenes'):return []  # Older minimal portable corpora.
     from dataclasses import fields
-    from pacbench.corpus.authoring import ScenePlan,build_scene_observations
-    from pacbench.followups import digest
+
+    from pacbench.corpus.authoring import ScenePlan, build_scene_observations
+    from pacbench.evidence_store import binding_digest as digest
     names={f.name for f in fields(ScenePlan)}
     rows=json.loads((root/'scenes.json').read_text())['scenes']
     if [r['scene_id'] for r in rows]!=[s['id'] for s in resolved['scenes']]:
@@ -173,11 +181,15 @@ def _inspect_prepared(root: Path):
         if summary.get('corpus_review_version') and not (root/'realism-review.json').exists():
             errors.append('Required corpus realism review is missing')
         if (root/'realism-review.json').exists():
-            from pacbench.followups import digest
+            from pacbench.evidence_store import binding_digest as digest
             quality=json.loads((root/'realism-review.json').read_text())
             if summary.get('corpus_review_version') and quality.get('review_version') != summary['corpus_review_version']:
                 errors.append('Corpus realism review version differs from preparation')
-            from pacbench.corpus.review import CHECKPOINT_VERSION, BOUND_CHECKPOINT_VERSION, audit_checkpoints
+            from pacbench.corpus.review import (
+                BOUND_CHECKPOINT_VERSION,
+                CHECKPOINT_VERSION,
+                audit_checkpoints,
+            )
             if quality.get('review_version') in {CHECKPOINT_VERSION,BOUND_CHECKPOINT_VERSION}:
                 errors.extend(audit_checkpoints(root,messages,resolved,quality))
             else:
@@ -221,7 +233,8 @@ def _inspect_prepared(root: Path):
                     errors.append('Corpus realism review did not receive the actual frozen source and expectations')
         if resolved.get('ingestion_days') is not None:
             from datetime import date, datetime
-            from pacbench.document_ingestion import daily_batches
+
+            from pacbench.workflows.source_plan import daily_batches
             batches=daily_batches(messages,resolved.get('timezone','America/New_York'))
             expected=resolved['ingestion_days']
             days=[date.fromisoformat(day) for day,_ in batches]
@@ -272,7 +285,7 @@ class PreparedCorpusError(ValueError):
 
 
 def _materialize_week(source, root):
-    from pacbench.followups import digest
+    from pacbench.evidence_store import binding_digest as digest
     source, root = Path(source), Path(root)
     try:
         manifest = source.read_bytes()
@@ -347,10 +360,10 @@ def open_prepared(source, *, portable=False, destination=None, max_messages=None
             yield materialize(Path(work) / 'preparation')
 
 
-def main() -> int:
+def main(argv=None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('corpus', type=Path, help='prepared directory or its week.json manifest')
-    source = parser.parse_args().corpus
+    source = parser.parse_args(argv).corpus
     if source.is_file() or (source.is_dir() and os.path.lexists(source / 'week.json')):
         try:
             with open_prepared(source, portable=True, retain_manifest=False):

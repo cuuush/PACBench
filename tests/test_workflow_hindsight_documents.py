@@ -4,9 +4,9 @@ from types import SimpleNamespace
 
 import pytest
 
-from pacbench.providers.hindsight.evidence import HindsightDocumentReadback
-from pacbench.providers.hindsight.workflow import HindsightAccount
-from pacbench.campaigns.pizza_week import compile_week
+from pacbench.providers.hindsight_evidence import HindsightDocumentReadback
+from pacbench.providers.hindsight import HindsightAccount
+from pacbench.corpus.r2 import compile_week
 
 
 def test_native_list_fast_path_checks_ordered_file_receipts_and_current_hashes():
@@ -62,7 +62,7 @@ def test_native_cli_return_survives_failed_hindsight_bank_barrier(tmp_path):
 
 
 def test_readiness_timings_cover_native_operation_drain_and_exact_file(monkeypatch):
-    from pacbench.providers.hindsight import evidence as module
+    from pacbench.providers import hindsight_evidence as module
 
     now = [0.0]
     def advance(seconds):
@@ -96,7 +96,7 @@ def test_readiness_timings_cover_native_operation_drain_and_exact_file(monkeypat
 
 
 def test_observer_spans_include_each_drain_and_receipt_check(tmp_path, monkeypatch):
-    from pacbench.providers.hindsight import workflow as module
+    from pacbench.providers import hindsight as module
     from unittest.mock import Mock
 
     now = [1_000_000_000]

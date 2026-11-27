@@ -2,7 +2,7 @@ import email,json,sqlite3
 from pathlib import Path
 import pytest
 from pacbench.email_fixture import append_emails
-from pacbench.memcal_import_audit import audit
+from pacbench.providers.memcal.source import audit_import as audit
 
 
 def fixture(tmp_path):

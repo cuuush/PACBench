@@ -9,7 +9,7 @@ from pacbench.corpus.authoring import (ScenePlan, SceneRenderError,
                                 build_scene_observations, parse_scene_lines,
                                 scene_prompt, judge_scene, SceneJudgeError,
                                 realize_scene)
-from pacbench.semantic_grade import Claim, grade_semantic
+from pacbench.judging.grade import Claim, grade_semantic
 from pacbench.corpus.contract import build_contract, load_contract
 
 
@@ -269,7 +269,7 @@ def test_contract_uses_frozen_dialogue_timestamp_and_rejects_bad_review(tmp_path
 
 
 def test_evidence_diagnostic_is_separate_and_requires_exact_provenance(tmp_path):
-    from pacbench.semantic_grade import validate_diagnostic, DIAGNOSTIC_VERSION
+    from pacbench.judging.grade import validate_diagnostic, DIAGNOSTIC_VERSION
     claims = (Claim('who', 'Devon attends', ('m1',)),)
     inputs = {'answer_visible': [{'id': 'tool-result-1', 'text': 'Devon attends', 'truncated': False}],
               'source_evidence': [{'id': 'm1', 'text': 'Devon attends. Lee declined.', 'truncated': False}],
@@ -294,8 +294,7 @@ def test_evidence_diagnostic_is_separate_and_requires_exact_provenance(tmp_path)
 
 
 def test_versioned_evidence_prompt_and_unicode_quotes_are_exact():
-    from pacbench.semantic_grade import (validate_diagnostic, judge_prompt,
-        DIAGNOSTIC_VERSION, LEGACY_DIAGNOSTIC_VERSION)
+    from pacbench.judging.grade import validate_diagnostic, judge_prompt, DIAGNOSTIC_VERSION, LEGACY_DIAGNOSTIC_VERSION
     claims = (Claim('when', 'Friday'),)
     inputs = {'answer_visible': [{'id': 'tool-result-1', 'text': '〔E1〕 Friday at 7pm', 'truncated': False}],
               'source_evidence': []}
@@ -310,8 +309,7 @@ def test_versioned_evidence_prompt_and_unicode_quotes_are_exact():
 
 
 def test_date_scoped_judge_protocol_preserves_legacy_prompt():
-    from pacbench.semantic_grade import (judge_prompt, Claim, DATE_SCOPED_JUDGE_PROTOCOL,
-                                         LEGACY_JUDGE_PROTOCOL)
+    from pacbench.judging.grade import judge_prompt, Claim, DATE_SCOPED_JUDGE_PROTOCOL, LEGACY_JUDGE_PROTOCOL
     claims = (Claim('day', 'Upcoming dinner is Saturday.'),)
     old = judge_prompt('When?', 'Saturday Oct 17', claims)
     assert old == judge_prompt('When?', 'Saturday Oct 17', claims, judge_protocol=LEGACY_JUDGE_PROTOCOL)
@@ -321,8 +319,7 @@ def test_date_scoped_judge_protocol_preserves_legacy_prompt():
 
 
 def test_judge_retry_preserves_both_requests_and_rejects_invalid_quote(tmp_path):
-    from pacbench.semantic_grade import (Claim, grade_semantic_with_retry, DATE_SCOPED_JUDGE_PROTOCOL,
-                                         DIAGNOSTIC_VERSION, RETRY_GUIDANCE)
+    from pacbench.judging.grade import Claim, grade_semantic_with_retry, DATE_SCOPED_JUDGE_PROTOCOL, DIAGNOSTIC_VERSION, RETRY_GUIDANCE
     calls = []
     def judge(prompt):
         calls.append(prompt)
@@ -344,8 +341,7 @@ def test_judge_retry_preserves_both_requests_and_rejects_invalid_quote(tmp_path)
 
 
 def test_compact_protocol_separates_diagnostic_without_changing_semantic_verdicts(tmp_path):
-    from pacbench.semantic_grade import (Claim, grade_semantic, judge_prompt,
-        COMPACT_JUDGE_PROTOCOL, DATE_SCOPED_JUDGE_PROTOCOL, DIAGNOSTIC_VERSION)
+    from pacbench.judging.grade import Claim, grade_semantic, judge_prompt, COMPACT_JUDGE_PROTOCOL, DATE_SCOPED_JUDGE_PROTOCOL, DIAGNOSTIC_VERSION
     claims = (Claim('date', 'Upcoming dinner is Saturday October 24.'),)
     inputs = {'answer_visible': [{'id': 'prefetch', 'text': 'Saturday October 24'}], 'source_evidence': []}
     base = dict(assess_recovery=True, assess_interaction=True, diagnostic_inputs=inputs,
@@ -370,7 +366,7 @@ def test_compact_protocol_separates_diagnostic_without_changing_semantic_verdict
 
 def test_compact_protocol_does_not_salvage_saved_truncated_judgment():
     from pathlib import Path
-    from pacbench.semantic_grade import Claim, grade_semantic, COMPACT_JUDGE_PROTOCOL
+    from pacbench.judging.grade import Claim, grade_semantic, COMPACT_JUDGE_PROTOCOL
     path = Path('runs/pizza-month-local-20261105/repeat-1/memcal/turns/maya-options/judgment-attempts/attempt-2.json')
     saved = json.loads(path.read_text())
     claims = tuple(Claim(c['id'], c['description'], tuple(c['evidence'])) for c in saved['claims'])

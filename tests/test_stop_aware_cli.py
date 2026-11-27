@@ -2,7 +2,7 @@ import subprocess,sys,threading,time
 from types import SimpleNamespace
 
 import pytest
-from pacbench.stop import communicate_until_stop,OperatorStop
+from pacbench.process_cleanup import communicate_until_stop, OperatorStop
 from pacbench.workflows import native as workflow_native
 
 

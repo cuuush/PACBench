@@ -2,15 +2,15 @@
 from __future__ import annotations
 
 import argparse
-from copy import deepcopy
 import json
 import os
-from pathlib import Path
 import shutil
 import subprocess
 import tempfile
+from copy import deepcopy
+from pathlib import Path
 
-from .followups import save
+from pacbench.evidence_store import save
 
 REPO=Path(__file__).resolve().parents[1]
 COMMON=('input_hash','bundle_hash','contract_hash','evaluation_plan_hash','followup_plan_hash',
@@ -187,11 +187,11 @@ def publish(sources,destination,*,preflight=None,selection=None,retain_replaced=
                 if read(source/relative/'source.json')['fixture_hashes']!=read(sources[0]/relative/'source.json')['fixture_hashes']:
                     raise ValueError('Native source fixtures differ between components')
         reference['results']=results;reference['other_attempts']=attempts
-        from .document_ingestion import remove_duplicate_stdout
+        from pacbench.workflows.delivery import remove_duplicate_stdout
         for path in staging.rglob('ingestion/*.json'):
             record=read(path)
             if remove_duplicate_stdout(record):save(path,record)
-        from .document_ingestion import compact_source_state
+        from pacbench.workflows.source_plan import compact_source_state
         for path in staging.rglob('source-state.json'):
             save(path,compact_source_state(read(path),reference['ingestion_schedule']))
         # Native execution imports the portable corpus into ordinary files.

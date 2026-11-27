@@ -1,14 +1,14 @@
 """An indexed view of a run's append-only JSONL, serialized by the journal flock."""
-from collections.abc import Callable, Iterable
-from contextlib import closing, contextmanager
-from dataclasses import dataclass
 import fcntl
 import hashlib
 import json
 import os
-from pathlib import Path
 import sqlite3
 import stat
+from collections.abc import Callable, Iterable
+from contextlib import closing, contextmanager
+from dataclasses import dataclass
+from pathlib import Path
 
 
 def account_refused(row):
@@ -66,10 +66,10 @@ class AdmissionSpec:
 
 def _admission_spec(name):
     if name == 'honcho-v1':
-        from pacbench.providers.honcho.receipt_index import HONCHO_RECEIPTS
+        from pacbench.providers.honcho_evidence import HONCHO_RECEIPTS
         return HONCHO_RECEIPTS
     if name == 'supermemory-week-v1':
-        from pacbench.providers.supermemory.week_admission import ADMISSION_SPEC
+        from pacbench.providers.supermemory_evidence import ADMISSION_SPEC
         return ADMISSION_SPEC
     raise ValueError('Unrecognized receipt admission projection')
 

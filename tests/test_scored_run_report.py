@@ -1,10 +1,10 @@
 import hashlib,json
 from pathlib import Path
-from pacbench.scored_run_report import build
+from pacbench.workflows.recording import scored_report as build
 
 
 def test_cents_display_keeps_positive_subcent_values_visible(tmp_path):
-    from pacbench.scored_run_report import display_usd,budget_display
+    from pacbench.workflows.recording import display_usd, budget_display
     assert display_usd('0')=='$0.00'
     assert display_usd('.000023612232')=='<$0.01'
     assert display_usd('.217553695')=='$0.22'

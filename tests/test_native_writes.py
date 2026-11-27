@@ -5,7 +5,7 @@ from unittest.mock import Mock
 
 import pytest
 
-from pacbench.followups import save
+from pacbench.evidence_store import save
 from pacbench.native_writes import (accepted,complete,dependencies,ensure_ready,
                                    audit_ready,supermemory_status,openviking_status)
 
@@ -124,7 +124,7 @@ def test_empty_native_write_discovery_never_proves_completion():
 
 @pytest.mark.parametrize('mode',['old-capture','assistant-echo','pending','done','wrong-session'])
 def test_supermemory_capture_must_contain_the_actual_user_instruction(mode):
-    from pacbench.followups import digest
+    from pacbench.evidence_store import binding_digest as digest
     def model(value):return SimpleNamespace(model_dump=lambda **kwargs:value)
     capture={'session':'required','prompt':'Move it to Sunday'}
     users='Move it to Sunday' if mode not in {'old-capture','assistant-echo'} else 'Earlier question'
@@ -160,7 +160,7 @@ def test_supermemory_all_required_instructions_must_be_captured():
 
 def test_supermemory_v2_audit_rejects_status_only_capture_proof():
     from pacbench.native_writes import write_inputs,ready_proof
-    from pacbench.followups import digest
+    from pacbench.evidence_store import binding_digest as digest
     turn={'session_id':'required','prompt':'Move it to Sunday','tool_results':[]}
     version='accepted-native-writes-v2'
     bound={'dependencies':['edit'],'inputs':write_inputs([turn],'supermemory',version),'turn_hashes':[digest(turn)]}
@@ -309,7 +309,7 @@ def test_v3_honcho_retains_observed_success_when_native_cleanup_removes_queue_ro
 def test_v3_supermemory_audit_replays_exact_final_pair_and_rejects_deleted_assistant():
     from copy import deepcopy
     from pacbench.native_writes import VERSION,write_inputs,ready_proof
-    from pacbench.followups import digest
+    from pacbench.evidence_store import binding_digest as digest
     turn={'session_id':'session','prompt':'Move it','answer':'Moved.'}
     inputs=write_inputs([turn],'supermemory')
     capture=inputs['captures'][0]
@@ -344,7 +344,7 @@ def test_v3_honcho_cannot_pair_user_with_later_turn_assistant(monkeypatch):
 def test_v3_honcho_audit_checks_every_chunk_and_cross_turn_sequence(mode):
     import hashlib
     from pacbench.native_writes import VERSION,write_inputs,ready_proof
-    from pacbench.followups import digest
+    from pacbench.evidence_store import binding_digest as digest
     turns=[{'session_id':'real','prompt':f'Update {i}','answer':f'Done {i}'} for i in range(2)]
     inputs=write_inputs(turns,'honcho');descriptions=[];witnesses=[];work=[];ids=[]
     for i,capture in enumerate(inputs['captures']):

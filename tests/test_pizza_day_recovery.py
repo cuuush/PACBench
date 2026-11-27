@@ -7,17 +7,15 @@ import sys
 
 import pytest
 
-from pacbench.campaigns.pizza_day_review import review_packet, dialogue_import
+from pacbench.judging.overlays import review_packet, dialogue_import
 from pacbench.corpus.sources import messages_for, load_bundle
 
 ARCHIVE = Path('/workspace/pacbench-restore-20261112/pacbench-transfer-20261112/pizza-day-archive/runs/pizza-clean-context-mem0-20261007/preparation')
 
 
-@pytest.mark.parametrize('arguments', [
-    ['pacbench.campaigns.pizza_day', 'review'], ['pacbench.pizza_day_recovery'],
-])
-def test_offline_review_help_is_available(arguments):
-    cli = subprocess.run([sys.executable, '-m', *arguments, '--help'], capture_output=True, check=True, text=True)
+def test_offline_review_help_is_available():
+    cli = subprocess.run([sys.executable, '-m', 'pacbench', 'audit', 'day', '--help'],
+                         capture_output=True, check=True, text=True)
     assert '--source-only' in cli.stdout
 
 

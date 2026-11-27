@@ -7,16 +7,17 @@ from types import SimpleNamespace
 
 import pytest
 
-from pacbench import api_input_trace
+from pacbench import context_isolation as api_input_trace
 from pacbench.workflows import native as workflow_native
-from pacbench.workflow import main
+from pacbench.workflows.conformance import workflow_main as main
 from pacbench.workflows.conformance import RecordingAccount, RecordingClient
 from pacbench.workflows.delivery import submit_document
-from pacbench.workflows.runner import Condition, Journal, captured_turn, deliver, grade_turn, qualify_account, run_workflow
-from pacbench.campaigns.pizza_week import SPEC, compile_week
+from pacbench.workflows.runner import Condition, Journal, deliver, grade_turn, qualify_account, run_workflow
+from pacbench.workflows.turn_evidence import captured_turn
+from pacbench.corpus.r2 import SPEC, compile_week
 from pacbench.workflows.spec import Turn, nightly_documents, instant
 from pacbench.workflows.recording import clip_evidence, retry_activity, tool_activity
-from pacbench.workflows.tracks import BOTH, PROVIDERS, eligibility
+from pacbench.providers import BOTH, PROVIDERS, eligibility
 
 
 @pytest.fixture(scope='module')
@@ -309,7 +310,7 @@ def test_actual_request_observer_keeps_tool_payload(tmp_path,monkeypatch):
     monkeypatch.setenv('PACBENCH_WORKFLOW_CAPTURE','pizza-week-conversation-v2')
     body={'model':'sentinel','messages':[{'role':'system','content':'synthetic'},
           {'role':'tool','tool_call_id':'b','content':'x'*6000}],'tools':[{'type':'function','function':{'name':'lookup'}}]}
-    api_input_trace.record('test-driver',{'id':'request1','request':body})
+    api_input_trace.record_input('test-driver',{'id':'request1','request':body})
     row=json.loads(path.read_text())
     assert row['request']==body and row['messages']==body['messages'] and row['tools']==['lookup']
 
@@ -432,7 +433,7 @@ def test_conformance_cli_reports_unsupported_track_and_accepts_channel_only_impo
 
 
 def test_conformance_cli_reports_a_supported_route_that_records_no_work(tmp_path, capsys, monkeypatch):
-    monkeypatch.setattr('pacbench.workflow.run_compiled_workflow', lambda *args, **kwargs: {})
+    monkeypatch.setattr('pacbench.workflows.conformance.run_compiled_workflow', lambda *args, **kwargs: {})
     assert main(['conform', '--provider', 'mem0', '--track', 'nightly-document',
                  '--output', str(tmp_path/'empty')]) == 2
     row = json.loads(capsys.readouterr().out)['providers']['mem0']
@@ -471,7 +472,7 @@ def test_local_warm_gateway_for_current_conversation(tmp_path, monkeypatch):
     """Actual native gateway/CLI and DB, only synthetic loopback storage/model response."""
     import time
     from tests.test_gateway_reuse import PYTHON, LocalNativeFixture, native_home
-    from pacbench.checkpoint_clock import CheckpointClock
+    from pacbench.provider_clock import CheckpointClock
     from pacbench.gateway_reuse import PersistentGateway
     if not PYTHON.is_file():
         pytest.skip('pinned Hermes runtime is not mounted')
@@ -479,7 +480,7 @@ def test_local_warm_gateway_for_current_conversation(tmp_path, monkeypatch):
         import uuid
         nonce = json.loads((clock.folder/'active.json').read_text())['nonce']
         monkeypatch.setenv('PACBENCH_PYTHON_CLOCK_NONCE', nonce)
-        api_input_trace.record('fixture-driver', {'id':uuid.uuid4().hex, 'request':body})
+        api_input_trace.record_input('fixture-driver', {'id':uuid.uuid4().hex, 'request':body})
     fixture=LocalNativeFixture(tmp_path/'store', on_driver_request=observe)
     fixture.release.set()
     try:
@@ -665,7 +666,7 @@ def test_isolated_clone_qualifies_its_own_store_and_kind(tmp_path, fault):
 
 def test_caller_and_deployment_agreeing_on_generic_tool_is_insufficient():
     from pacbench.workflows.native import NativeAccount
-    from pacbench.workflows.tracks import HERMES_TOOLS
+    from pacbench.providers import HERMES_TOOLS
     c = replace(condition('mem0'), version=PROVIDERS['mem0'].reviewed_version,
                 tool_names=(*HERMES_TOOLS['mem0'], 'terminal'))
     class Witness:
@@ -733,33 +734,18 @@ def test_native_grade_requires_matching_transport_receipt(tmp_path, week, receip
             grade_turn(turn,surface,judge,tmp_path/'grades',require_receipt=True)
 
 
-def test_terminal_judge_failure_stops_at_first_dispatch(tmp_path, monkeypatch, week):
-    from pacbench.workflows import runner as runner
-    from pacbench.gateway_client import SpendingBlocked
-    c = condition()
-    account = RecordingAccount(c)
+def test_compiled_r2_refuses_native_execution_before_dispatch(tmp_path, monkeypatch):
+    from pacbench.workflows import runner
+    route = condition()
+    account = RecordingAccount(route)
     account.evidence_kind = 'native'
-    def capture(*args, progress, **kwargs):
-        # Account work is simulated. Populate the same durable queue a native
-        # arm fills so terminal judge refusal exercises normal admission order.
-        for t in week[2]:
-            surface = {'history':[{'role':'user','content':t.prompt},{'role':'assistant','content':'test'}],
-                       'session_id':t.session, 'gateway_identity':'offline', 'model_requests':[],
-                       'conversation_times':[t.at], 'answer':'test'}
-            progress.verified_turn(t,surface,{})
-            progress.mark_turn_done(t.id)
-    monkeypatch.setattr(runner, 'run_workflow', capture)
-    calls = []
-    def refused(prompt):
-        calls.append(prompt)
-        raise SpendingBlocked('offline terminal refusal')
-    try:
-        with pytest.raises(SpendingBlocked):
-            runner.run_current_week(c,account,tmp_path/'terminal',judge=refused)
-        assert len(calls)==1
-        assert json.loads((tmp_path/'terminal/workflow.jsonl').read_text().splitlines()[-1])['phase']=='stopped'
-    finally:
-        account.close()
+    destination = tmp_path / 'week'
+    def dispatch(*args, **kwargs):
+        pytest.fail('a recording workflow attempted to dispatch')
+    monkeypatch.setattr(runner, 'run_workflow', dispatch)
+    with pytest.raises(ValueError, match='offline conformance only'):
+        runner.run_current_week(route, account, destination, judge=dispatch)
+    assert not destination.exists()
 
 
 def test_cross_day_judge_context_has_each_turns_own_date(tmp_path, week):

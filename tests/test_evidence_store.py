@@ -4,7 +4,7 @@ import json
 import pytest
 
 from pacbench.evidence_store import STORE,read_json,share_text
-from pacbench.followups import save
+from pacbench.evidence_store import save
 
 
 def test_shared_histories_round_trip_exact_unicode_and_different_prefixes(tmp_path):
@@ -39,9 +39,9 @@ def test_plain_receipt_and_missing_store_are_not_required_for_small_text(tmp_pat
 
 def test_compact_contracts_preserves_hashes_and_native_reuse(tmp_path):
     from pacbench.evidence_store import compact_contracts
-    from pacbench.followups import digest
+    from pacbench.evidence_store import binding_digest as digest
     from pacbench.corpus.contract import load_contract
-    from pacbench.native_pilot import copy_prepared_files
+    from pacbench.workflows.native_run import copy_prepared_files
     import shutil
     root=tmp_path/'preparation';root.mkdir()
     body={'claims':[{'id':'time','statement':'Friday at seven','evidence':['m1']}],

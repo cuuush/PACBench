@@ -16,3 +16,34 @@ def reviewed_receipts():
              'served_provider': record['upstream_provider'],
              'accounted_upper_bound_usd': record['conservative_accounted_usd']}
             for record in records]
+
+
+class JournalFixture:
+    """Write synthetic rows with the real projection and replay its authority read-only."""
+    strict = False
+    def __init__(self, path):
+        self.path = path
+
+    def journal(self):
+        from pacbench.receipt_projection import Projection
+        return Projection(self.path).open(initialize=not self.strict, strict=self.strict)
+
+    def snapshot(self):
+        from pacbench.receipt_costs import read_attempts
+        return read_attempts(self.path)
+
+    def get_attempt(self, ident):
+        with self.journal() as (rows, _):
+            return rows[ident]
+
+    def has_active_attempts(self):
+        with self.journal() as (rows, _):
+            return rows.active()
+
+
+class StrictJournalFixture(JournalFixture):
+    strict = True
+    def initialize_from_journal(self):
+        from pacbench.receipt_projection import Projection
+        with Projection(self.path).open(initialize=True):
+            pass

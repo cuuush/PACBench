@@ -5,7 +5,7 @@ import urllib.error
 import pytest
 
 from pacbench.gateway.ledger import Ledger, MODEL, RESERVATION
-from pacbench.gateway.protocol import observe_usage, request_shape, safe_protocol
+from pacbench.gateway.server import protocol_observe_usage as observe_usage, protocol_request_shape as request_shape, safe_protocol
 from tests.test_embedded_gateway import gateway, post, Response
 
 

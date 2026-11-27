@@ -4,18 +4,22 @@ An effect row is committed *before* dispatch. An interrupted dispatch remains
 pending until its external outcome can be investigated. Grade claims follow the
 same rule. SQLite WAL permits independent readers during either worker's calls.
 """
-from contextlib import contextmanager
-from dataclasses import asdict
+from __future__ import annotations
+
 import fcntl
 import hashlib
 import json
 import os
-from pathlib import Path
 import sqlite3
 import tempfile
+from contextlib import contextmanager
+from contextvars import ContextVar
+from dataclasses import asdict
+from pathlib import Path
 from uuid import uuid4
 
-from ..semantic_grade import Claim, VERDICTS
+from pacbench.judging.grade import VERDICTS, Claim
+
 from .spec import Turn, instant
 
 
@@ -238,7 +242,6 @@ class WorkflowProgress:
             attempt = uuid4().hex
             self.db.execute('INSERT INTO effects(phase,op_key,input_sha256,role,attempt_id) VALUES (?,?,?,?,?)',
                             (phase, key, digest, role, attempt))
-        from ..live_dispatch import fresh_effect
         with fresh_effect(self, phase, key, attempt):
             result = call()
         if result is None:
@@ -536,3 +539,79 @@ class WorkflowProgress:
                 SELECT 1 FROM turns WHERE criteria_count>0 AND grade_state!='graded'
             ) FROM run
         """).fetchone()[0])
+
+
+class OwnershipConflict(RuntimeError):
+    pass
+
+
+def process_identity(pid=None):
+    pid = os.getpid() if pid is None else pid
+    if type(pid) is not int or pid <= 1:
+        raise OwnershipConflict('Invalid dispatch process')
+    folder = Path('/proc') / str(pid)
+    fields = (folder / 'stat').read_text().rsplit(')', 1)[1].split()
+    if fields[0] in {'Z', 'X'}:
+        raise OwnershipConflict('Dispatch process already ended')
+    boot = Path('/proc/sys/kernel/random/boot_id').read_text().strip()
+    return {'pid': pid, 'start_ticks': int(fields[19]), 'boot_id': boot,
+            'uid': folder.stat().st_uid}
+
+
+_fresh = ContextVar('new_workflow_effect', default=None)
+
+
+@contextmanager
+def fresh_effect(progress, phase, key, attempt):
+    """Only the newly inserted external callback receives this transient execution context."""
+    token = _fresh.set((progress, phase, key, attempt))
+    try:
+        yield
+    finally:
+        _fresh.reset(token)
+
+
+def operation_id(row):
+    slot = row.get('workflow_slot') or row.get('checkpoint_full_run_slot') or row.get('checkpoint_canary_slot') or {}
+    if slot.get('honcho_daily_release'):
+        # Exactly one representation first send for an immutable daily release,
+        # including a reissued request with a changed body or SDK trace.
+        release = (row['workflow_capability']['sha256'], slot['honcho_daily_release']['sha256'])
+        return hashlib.sha256(json.dumps(release).encode()).hexdigest()
+    if slot.get('honcho_first_answer'):
+        witness = slot['honcho_first_answer']
+        turn = row['workflow_capability']['sha256'], witness['native_request_id'], len(witness['tool_rounds'])
+        return hashlib.sha256(json.dumps(turn).encode()).hexdigest()
+    if slot.get('honcho_peer_read'):
+        witness = slot['honcho_peer_read']
+        step = row['workflow_capability']['sha256'], witness['operation'], witness['step']
+        return hashlib.sha256(json.dumps(step).encode()).hexdigest()
+    if slot.get('honcho_chat_work'):
+        witness = slot['honcho_chat_work']
+        work = row['workflow_capability']['sha256'],witness['purpose'],witness['queue_ids']
+        return hashlib.sha256(json.dumps(work).encode()).hexdigest()
+    scope = {k:slot[k] for k in ('kind','provider','group_id','batch_id','question_id') if k in slot}
+    effect = slot.get('checkpoint_effect')
+    if effect is not None and slot.get('provider') == 'memcal' and row.get('workflow_slot'):
+        scope.update(checkpoint_effect=effect, project=row['project'])
+        if slot.get('native_work') is not None:
+            scope['native_work'] = slot['native_work']
+    if (slot.get('provider')=='hindsight' and row.get('workflow_slot') and slot.get('native_work')
+            and row.get('accounting_role')=='memory_provider'):
+        scope['native_work'] = slot['native_work']
+    if (slot.get('provider') == 'supermemory' and slot.get('stock_source_effect')
+            and row.get('accounting_role') == 'memory_provider'):
+        scope['stock_source_effect'] = slot['stock_source_effect']
+        if slot.get('worker_round'):
+            scope['worker_round'] = slot['worker_round']['ordinal']
+    return hashlib.sha256(json.dumps({'request':row['request_sha256'],'scope':scope},sort_keys=True).encode()).hexdigest()
+
+
+DOCUMENT_PROGRESS_PROTOCOL = 'pizza-week-native-document-progress-v1'
+
+
+DOCUMENT_PROVIDERS = frozenset(('mem0', 'hindsight', 'openviking', 'reme', 'cognee', 'memos', 'supermemory'))
+
+
+def workflow_fingerprint(value):
+    return hashlib.sha256(json.dumps(value, sort_keys=True, separators=(',', ':')).encode()).hexdigest()

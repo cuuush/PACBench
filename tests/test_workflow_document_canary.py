@@ -4,8 +4,8 @@ from unittest.mock import Mock
 
 import pytest
 
-from pacbench.workflows import document_canary as canary
-from pacbench.workflows.tracks import HERMES_TOOLS, MEMOS_OSS_TOOLS, MEMOS_OSS_VERSION
+from pacbench.judging import retained_week as canary
+from pacbench.providers import HERMES_TOOLS, MEMOS_OSS_TOOLS, MEMOS_OSS_VERSION
 
 
 @pytest.mark.parametrize(('provider', 'version'), [
@@ -65,7 +65,7 @@ def test_shared_audit_uses_one_journal_read_and_preserves_retained_shapes(tmp_pa
         result['provider'] = provider
     (root/'result.json').write_text(json.dumps(result))
     receipts = [{'accounting_role': role, 'upstream_request_id': role} for role in ('hermes', 'judge', 'memory_provider')]
-    monkeypatch.setattr(canary, 'RunReceiptJournal', Mock(return_value=Mock(snapshot=Mock(return_value=receipts))))
+    monkeypatch.setattr(canary, 'read_attempts', Mock(return_value=receipts))
     monkeypatch.setattr(canary, 'receipt_summary', Mock(return_value=billing))
     opened = []
     original_open = Path.open
@@ -81,7 +81,7 @@ def test_shared_audit_uses_one_journal_read_and_preserves_retained_shapes(tmp_pa
     assert opened == [journal]
     assert audit.events[-1]['phase'] == 'completion'
     assert audit.bindings['scope'] == canary.binding(root/'workflow-scope.json')
-    canary.RunReceiptJournal.return_value.snapshot.assert_called_once()
+    canary.read_attempts.assert_called_once()
 
     with journal.open('ab') as stream:
         stream.write(b'{')

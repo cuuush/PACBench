@@ -5,8 +5,9 @@ import subprocess
 
 import pytest
 from pacbench import publish_run
-from pacbench.followups import save
-from pacbench.followups import digest,freeze_policy
+from pacbench.evidence_store import save
+from pacbench.evidence_store import binding_digest as digest
+from pacbench.judging.recovery import freeze_policy
 from pacbench.corpus.sources import write_bundle
 from pacbench.corpus.contract import ContractClaim,EvaluationContract
 from tests.test_document_ingestion import message
@@ -56,7 +57,7 @@ def component(repo,name,provider):
 def test_publishing_preserves_colliding_records_privacy_and_reusable_corpus(repo,monkeypatch):
     from pacbench.model_calls import ModelClient
     from pacbench.corpus.prepare import import_week
-    from pacbench.native_pilot import read_prepared
+    from pacbench.workflows.native_run import read_prepared
     def forbid(*args,**kwargs):raise AssertionError('Publishing/reusing a corpus must not call a model')
     monkeypatch.setattr(ModelClient,'__call__',forbid)
     first=component(repo,'core','memcal');second=component(repo,'other','honcho')

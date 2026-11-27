@@ -134,11 +134,6 @@ def mem0(source, root, at, processing_at):
     from pacbench.providers import provider_module
     from pacbench.gateway_client import validate_route
     cfg=json.loads((root/'hermes-home/mem0.json').read_text())
-    from pacbench.openrouter_direct import active
-    if active():
-        # The bare SDK prioritizes this environment key over config.api_key.
-        # Hermes' shipped DirectOpenAILLM instead uses the explicit config key.
-        os.environ['OPENROUTER_API_KEY']=cfg['oss']['llm']['config']['api_key']
     validate_route(cfg['oss']['llm']['config']['openai_base_url'],os.environ['OPENAI_API_KEY'])
     # The SDK explicitly documents string input and infer=True. No plugin sync
     # truncation, fake user/assistant pair, custom extraction prompt or infer=False.
@@ -205,7 +200,7 @@ def check_memcal_fixture_paths(source, root, cfg):
 def memcal_source_mailbox(source, root, cfg):
     """Authenticate the isolated source before opening or migrating a native store."""
     from pacbench.email_fixture import OBSERVED_HEADERS
-    from pacbench.maildir_transport import email_server
+    from pacbench.email_fixture import email_server
     from memcal.sources.proton import Bridge
     check_memcal_fixture_paths(source, root, cfg)
     messages = json.loads((source/'messages.json').read_text())
@@ -246,7 +241,7 @@ def collect_memcal_sources(source, root, cfg, conn, messages, mailbox):
     mail_transport=None
     collection_error=None
     try:
-        from pacbench.imessage_membership import native_control_read_witness,CONDITION as MEMBERSHIP_CONDITION
+        from pacbench.imessage_fixture import native_control_read_witness, CONDITION as MEMBERSHIP_CONDITION
         control_reads=native_control_read_witness(source,int(db.get_meta(conn,'imessage.rowid','0') or 0))
         report=sources.catch_up(sources.get('imessage',cfg),conn,cfg,collection_id=collection)
         if report.more and not report.error:
@@ -351,7 +346,7 @@ def hindsight(source,root,at,processing_at):
     from pacbench.providers import provider_module
     HindsightMemoryProvider = provider_module("hindsight").HindsightMemoryProvider
     from pacbench.gateway_client import validate_route
-    from pacbench.document_ingestion import HINDSIGHT_PROCESSING_TIMEOUT_S
+    from pacbench.workflows.delivery import HINDSIGHT_PROCESSING_TIMEOUT_S
     deadline=time.monotonic()+HINDSIGHT_PROCESSING_TIMEOUT_S
     cfg=json.loads((root/'hermes-home/hindsight/config.json').read_text())
     validate_route(cfg['llm_base_url'],os.environ['HINDSIGHT_LLM_API_KEY'])
@@ -392,13 +387,19 @@ def openviking(source,root,at,processing_at):
     from pacbench.gateway_client import validate_route
     cfg=json.loads((root/'ov.conf').read_text())
     validate_route(cfg['vlm']['api_base'],cfg['vlm']['api_key'])
+    from pacbench.usage import snapshot
+    roles = json.loads(os.environ.get('PACBENCH_USAGE_ROLES', '{}'))
+    before = snapshot(roles)
+    previous = {row['id'] for row in before['calls'] if row.get('role') == 'memory_provider'}
+    clean_start = before['state'] == 'captured' and all(
+        row.get('finished') for row in before['calls'] if row.get('role') == 'memory_provider')
     p=OpenVikingMemoryProvider()
     p.initialize('document-import',hermes_home=str(root/'hermes-home'),platform='cli')
     try:
         # The native plugin's real upload/client preserves file bytes. Keep the
         # full API response (its tool wrapper discards processing evidence).
         upload=p._client.upload_temp_file(source/'messages.txt')
-        from pacbench.document_ingestion import PROCESSING_TIMEOUT_S
+        from pacbench.workflows.delivery import PROCESSING_TIMEOUT_S
         deadline=time.monotonic()+PROCESSING_TIMEOUT_S-30
         result=p._client.post('/api/v1/resources',{'temp_file_id':upload,
             'source_name':source.name+'.txt','wait':True,'timeout':PROCESSING_TIMEOUT_S-60},
@@ -411,7 +412,7 @@ def openviking(source,root,at,processing_at):
                 for q in queues.values()))
         global_completion=None;global_observation=None;global_waits=0
         if ready:
-            from pacbench.document_audit import openviking_observer_state
+            from pacbench.providers.openviking import openviking_observer_state
             # Parent summaries escape per-resource task tracking. The global
             # wait drains them; a subsequent observer snapshot catches embedding
             # spawned between the wait's sequential queue snapshots.
@@ -433,22 +434,16 @@ def openviking(source,root,at,processing_at):
                 ready=state=='ready';break
         artifacts=None;failure_log=None;model_responses=None
         if ready:
-            from pacbench.document_audit import openviking_generated_artifacts
+            from pacbench.providers.openviking import openviking_generated_artifacts
             artifacts=openviking_generated_artifacts(cfg['storage']['workspace'])
-            from pacbench.document_audit import openviking_failure_log,openviking_response_evidence
+            from pacbench.providers.openviking import openviking_failure_log, openviking_response_evidence
             failure_log=openviking_failure_log(root/'openviking-server.log')
-            if os.environ.get('PACBENCH_TRANSPORT')=='openrouter':
-                from pacbench.direct_accounting import live_budget,project_from_authorization
-                project=project_from_authorization('Bearer '+cfg['vlm']['api_key'])
-                if not project:raise RuntimeError('OpenViking request accounting binding is unavailable')
-                rows=[r for r in live_budget().snapshot() if r.get('project')==project]
-                if os.environ.get('PACBENCH_R2_LIVE_SCOPE'):
-                    # The canonical importer and isolated question stores share
-                    # a model account alias. Check every request for this batch,
-                    # where the frozen dispatch slot proves it originated.
-                    rows=[r for r in rows if r.get('checkpoint_full_run_slot',{}).get('kind')=='ingest'
-                          and r['checkpoint_full_run_slot'].get('batch_id')==source.name]
-                model_responses=openviking_response_evidence(rows)
+            after = snapshot(roles)
+            if clean_start and after['state'] == 'captured':
+                rows = [row for row in after['calls'] if row.get('role') == 'memory_provider'
+                        and row['id'] not in previous]
+                if all(row.get('finished') for row in rows):
+                    model_responses = openviking_response_evidence(rows)
             ready=(artifacts['state']=='complete' and failure_log['state']=='complete'
                 and (model_responses or {}).get('state')=='complete')
         return {'ready':ready,'interface':'OpenViking temp_upload + resources(wait=True)',
@@ -522,7 +517,7 @@ def honcho(source,root,at,processing_at):
     groups={}
     for message in messages:groups.setdefault((message['channel'],message['thread']),[]).append(message)
     acknowledgments=[];sessions=[];minimum_work={}
-    from pacbench.followups import save
+    from pacbench.evidence_store import save
     journal_path=root/'ingestion-delivery'/source.name/'index.json'
     if journal_path.exists():raise RuntimeError('Existing native delivery receipt; refusing blind resubmission')
     journal={'version':'honcho-native-delivery-v1','request_limit':HONCHO_MESSAGE_LIMIT,'source_messages':len(messages),
@@ -577,7 +572,7 @@ def honcho(source,root,at,processing_at):
         journal['sessions'].append(entry)
         def checkpoint(accepted,index,chunk,state,error):
             if state=='sending':
-                from pacbench.stop import check_stop
+                from pacbench.process_cleanup import check_stop
                 from pacbench.gateway_client import require_live_cost_boundary
                 check_stop();require_live_cost_boundary()
             # Each chunk has its own atomic receipt: never rewrite the entire
@@ -637,7 +632,7 @@ def wait_honcho_sessions(sessions,roles,minimum_work=None,*,batch_grace_s=0,read
     statuses=[];started=time.monotonic();last_progress=started
     done=False;reason='';health={}
     from pacbench.usage import provider_model_health, snapshot
-    from pacbench.stop import check_stop
+    from pacbench.process_cleanup import check_stop
     previous=None;last_error_check=None;previous_errors=[]
     while True:
         check_stop()
@@ -702,7 +697,7 @@ def supermemory(source,root,at,processing_at):
                 'interface':'Supermemory SDK documents.add(raw content) + documents.get',
                 'native_error':failure,'container_tag':tag,'processing_status':[],
                 'delivery_options':{'dreaming':delivery['dreaming']}}
-    from pacbench.document_ingestion import PROCESSING_TIMEOUT_S
+    from pacbench.workflows.delivery import PROCESSING_TIMEOUT_S
     from pacbench.gateway_client import require_live_cost_boundary
     from pacbench.usage import snapshot,provider_model_health
     roles=json.loads(os.environ.get('PACBENCH_USAGE_ROLES','{}'))
@@ -751,7 +746,7 @@ def supermemory(source,root,at,processing_at):
 
 
 def main(args=None):
-    from pacbench.stop import OperatorStop, check_stop
+    from pacbench.process_cleanup import OperatorStop, check_stop
     try:
         check_stop()
     except OperatorStop:

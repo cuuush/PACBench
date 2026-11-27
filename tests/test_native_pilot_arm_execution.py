@@ -1,14 +1,21 @@
 """Native pilot arm boundaries exercised with local, deterministic substitutes."""
+import pacbench.workflows.turn_evidence as turn_evidence
+import pacbench.providers.provision as provider_setup
+import pacbench.workflows.source_plan as source_plan
 from contextlib import nullcontext
 import json
 from types import SimpleNamespace
 
 import pytest
 
-from pacbench import clock_context, context_isolation, document_ingestion, providers as live_trials
-from pacbench import native_audit, native_checks, native_pilot, native_writes, preparation_audit, usage
+from pacbench import context_isolation as clock_context, context_isolation, providers as live_trials
+from pacbench.workflows import delivery as document_ingestion
+from pacbench import native_audit, native_writes, usage
+from pacbench.workflows import native_run as native_checks
+from pacbench.workflows import native_run as native_pilot
+from pacbench.corpus import audit as preparation_audit
 from pacbench.gateway_client import ModelAccessBlocked, SpendingBlocked
-from pacbench.stop import OperatorStop
+from pacbench.process_cleanup import OperatorStop
 
 
 @pytest.mark.parametrize('phased,fault', [
@@ -41,13 +48,13 @@ def test_arm_records_failure_and_releases_its_backend(tmp_path, monkeypatch, pha
     monkeypatch.setattr(native_pilot, 'client_settings', lambda *_: ('http://offline.invalid', 'offline'))
     monkeypatch.setattr(native_pilot, 'ModelClient', lambda **_: None)
     monkeypatch.setattr(native_pilot, 'freeze_policy', lambda *a: {'plan_hash': 'followup'})
-    monkeypatch.setattr(native_pilot, 'smoke_succeeded', lambda *_: True)
+    monkeypatch.setattr(provider_setup, 'smoke_succeeded', lambda *_: True)
     monkeypatch.setattr(native_pilot, 'policy_record', lambda *_: {'allowed_tools': [], 'source_argument_rules': {}})
     if phased and fault is None:
         schedule = [{'id': 'day', 'at': '2026-09-30T20:00:00-04:00', 'file': 'ingestion/day.json'}]
         monkeypatch.setattr(document_ingestion, 'prepare_sources', lambda *a, **kw: schedule)
-        monkeypatch.setattr(document_ingestion, 'ingest_day', lambda *a, **kw: {'state': 'ready'})
-        monkeypatch.setattr(document_ingestion, 'ready_sources',
+        monkeypatch.setattr(document_ingestion, 'ingest_day', lambda *a, **kw: {'state': 'ready', 'ready': True})
+        monkeypatch.setattr(source_plan, 'ready_sources',
                             lambda *a: pytest.fail('native recall reparsed a prepared timeline'))
     else:
         monkeypatch.setattr(document_ingestion, 'prepare_sources', lambda *a, **kw: [])
@@ -93,13 +100,13 @@ def test_arm_records_failure_and_releases_its_backend(tmp_path, monkeypatch, pha
             raise KeyError('malformed verification evidence')
         return SimpleNamespace(correct=0, missed=0, misrepresented=0, slots=[], recovery={}, evidence_diagnostic={})
 
-    monkeypatch.setattr(native_pilot, 'provision', provision)
-    monkeypatch.setattr(native_pilot, 'probe', probe)
-    monkeypatch.setattr(native_pilot, 'stop_arm_model_work', shutdown)
+    monkeypatch.setattr(provider_setup, 'provision', provision)
+    monkeypatch.setattr(provider_setup, 'probe', probe)
+    monkeypatch.setattr(provider_setup, 'stop_arm_model_work', shutdown)
     monkeypatch.setattr(native_pilot, 'run_checks', checks)
     monkeypatch.setattr(native_writes, 'ensure_ready', lambda *_: events.append(('watermark', 'mem0')))
     monkeypatch.setattr(native_pilot, 'tracked_turn', turn)
-    monkeypatch.setattr(native_checks, 'diagnostic_inputs', lambda *a, **kw: {})
+    monkeypatch.setattr(turn_evidence, 'diagnostic_inputs', lambda *a, **kw: {})
     monkeypatch.setattr(clock_context, 'judge_question', lambda *_: contract.question)
     monkeypatch.setattr(native_pilot, 'grade_native_semantic', grade)
     monkeypatch.setattr(native_pilot, 'run_followups', lambda **kw: {'state': 'complete', 'score': 0, 'attempts': []})

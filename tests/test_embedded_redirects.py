@@ -8,7 +8,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 from pacbench.gateway.ledger import Ledger, MODEL, RESERVATION
 from pacbench.gateway.server import Server
-from pacbench.gateway.openrouter_reconcile import fetch_generation, retry_due
+from pacbench.gateway.ledger import fetch_generation, retry_due
 
 
 @contextmanager
@@ -47,7 +47,7 @@ def test_upstream_redirect_cannot_forward_key_or_prompt(tmp_path):
 
 
 def test_generation_redirect_cannot_forward_key_and_retries(tmp_path,monkeypatch):
-    from pacbench.gateway import openrouter_reconcile
+    from pacbench.gateway import ledger as openrouter_reconcile
     received=[]
     class Receiver(BaseHTTPRequestHandler):
         def do_GET(self): received.append(self.headers);self.send_response(200);self.end_headers()

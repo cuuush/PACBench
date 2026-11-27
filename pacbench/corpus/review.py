@@ -1,15 +1,16 @@
 """Independent realism review bound to the actual frozen source and expectations."""
 from __future__ import annotations
 
-from copy import deepcopy
-from datetime import datetime
 import hashlib
 import json
 import re
+from copy import deepcopy
+from datetime import datetime
 from pathlib import Path
 
-from pacbench.followups import digest, save
 from pacbench.corpus.contract import _dialogue
+from pacbench.evidence_store import binding_digest as digest
+from pacbench.evidence_store import save
 
 VERSION = 'source-realism-v10'
 SOURCE_BLIND = {'source-realism-v7','source-realism-v8','source-realism-v9',VERSION,'source-realism-v11'}
@@ -25,8 +26,9 @@ def review_prompt(messages, resolved, *, version=VERSION):
     if version not in SUPPORTED_VERSIONS:raise ValueError('Unsupported corpus review version')
     if version in {'source-realism-v10','source-realism-v11'}:
         if version=='source-realism-v11':
-            from pacbench.corpus.authoring import ScenePlan,build_scene_observations
             from dataclasses import fields
+
+            from pacbench.corpus.authoring import ScenePlan, build_scene_observations
             names={f.name for f in fields(ScenePlan)}
             exact_ids=[]
             for s in resolved['scenes']:
@@ -87,7 +89,7 @@ def review_prompt(messages, resolved, *, version=VERSION):
 
 
 def _v6_prompt(messages, resolved):
-    from pacbench.document_ingestion import daily_batches, document_text
+    from pacbench.workflows.source_plan import daily_batches, document_text
     batches = daily_batches(messages, resolved.get('timezone', 'America/New_York'))
     source = '\n'.join(document_text(batch, max(m['collected_at'] for m in batch))
                        for _, batch in batches)
@@ -134,7 +136,7 @@ def _v8_prompt(messages,resolved):
 
 
 def _v7_prompt(messages, resolved, *, include_turn_metadata=False):
-    from pacbench.document_ingestion import daily_batches, document_text
+    from pacbench.workflows.source_plan import daily_batches, document_text
     batches = daily_batches(messages, resolved.get('timezone', 'America/New_York'))
     source = '\n'.join(document_text(batch, max(m['collected_at'] for m in batch))
                        for _, batch in batches)
@@ -322,8 +324,9 @@ BOUND_CHECKPOINT_VERSION = 'source-realism-v13-checkpoint-locator-bound'
 
 def checkpoint_prompt(messages, resolved, check):
     scope = eligible_evidence(messages, resolved, check['id'])
-    from pacbench.corpus.authoring import ScenePlan, build_scene_observations
     from dataclasses import fields
+
+    from pacbench.corpus.authoring import ScenePlan, build_scene_observations
     names={f.name for f in fields(ScenePlan)}
     exact=[]
     for scene in resolved.get('scenes',[]):

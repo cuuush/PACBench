@@ -6,7 +6,8 @@ from unittest.mock import Mock
 import pytest
 
 from pacbench import gateway_client as g
-from pacbench import native_pilot, usage
+from pacbench.workflows import native_run as native_pilot
+from pacbench import usage
 from pacbench.openrouter_route import MODEL, ENDPOINT
 
 

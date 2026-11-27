@@ -45,19 +45,39 @@ both source inventories, historical edits and rosters, and the release clock,
 or an authenticated complete change feed with deletions and replay protection.
 A last rowid, timestamp, count, or operator-invented version is insufficient.
 """
-from contextlib import closing
-from copy import deepcopy
-from datetime import timedelta
-from email import message_from_bytes
-from email.utils import parsedate_to_datetime, parseaddr
+from __future__ import annotations
+
 import hashlib
 import json
-from pathlib import Path
 import sqlite3
 import time
+import uuid
+from collections import Counter
+from contextlib import closing
+from copy import deepcopy
+from dataclasses import asdict
+from datetime import datetime, timedelta
+from email import message_from_bytes
+from email.utils import getaddresses, parseaddr, parsedate_to_datetime
+from pathlib import Path
+from types import SimpleNamespace
 
+from pacbench.email_fixture import (
+    OBSERVED_HEADERS,
+    MailboxServer,
+    email_server,
+    mail_address,
+)
+from pacbench.hermes_gateway import GatewayLifecycleError
+from pacbench.imessage_fixture import identity
+from pacbench.provider_versions import (
+    MEMCAL_WEEK_REVISION,
+    MEMCAL_WEEK_TREE,
+    memcal_source,
+    verify_memcal_source,
+)
+from pacbench.providers import BOTH
 from pacbench.workflows.spec import instant
-from pacbench.workflows.tracks import BOTH
 
 
 def digest(data):
@@ -454,3 +474,240 @@ class MemCalSourceWitness:
         return {'store_path': str(self.store), 'store_device': state.st_dev, 'store_inode': state.st_ino, 'cutoff': last, 'upstream_cutoff': upstream_cutoff,
                 'source_ids': sorted(self.receipt['ids'] if self.receipt else self.collection_ids),
                 'channels': native_cursors, 'source_map_sha256': self.bindings_sha256}
+
+
+# Digests of the reviewed 2026-11-19 recovery archive members, including LF.
+SOURCE_BINDING = 'a27a6cac448ec525c57eda08b9095ce323de279c6a60d849623b809b8ae2a05a'
+
+
+SOURCE_INDEX = 'eab426c68f478ed4cfbda11d8a89dfc0ae7c0b5622953f93fa9d0d084f405f39'
+
+
+CONTINUING_ACCOUNT = '5eed5aea85bbca691d776fe1edf497fcb13285d5f49daff4b3c1049417e7cef0'
+
+
+def member_digest(value):
+    raw = json.dumps(value, indent=2, ensure_ascii=False) + '\n'
+    return hashlib.sha256(raw.encode()).hexdigest()
+
+
+def verify_contract(docs, turns, source_basis):
+    index = [{'name':d.filename, 'cutoff':d.cutoff, 'hash':d.sha256, 'ids':list(d.source_ids)} for d in docs]
+    if (source_basis.get('sha256') != SOURCE_BINDING or member_digest(index) != SOURCE_INDEX
+            or member_digest([asdict(t) for t in turns]) != CONTINUING_ACCOUNT):
+        raise ValueError('Frozen MemCal source releases or continuing-account evaluation differ')
+    return dict(source_binding=source_basis['sha256'], source_index_sha256=SOURCE_INDEX,
+                contract_sha256=CONTINUING_ACCOUNT, records=sum(len(d.source_ids) for d in docs),
+                document_channels=dict(Counter(d.channel for d in docs)),
+                nightly_cutoffs=sorted({d.cutoff for d in docs}), turns=len(turns),
+                chats=len({t.session for t in turns}), gradable_turns=sum(bool(t.claims) for t in turns),
+                criteria=sum(len(t.claims) for t in turns))
+
+
+def source_preflight(contract, site_path):
+    from pacbench.providers.memcal.site import (
+        MemCalSite,
+        MemCalSiteError,
+        inspect_memcal_site,
+    )
+    result = dict(contract=contract, paid_calls=0, provider_answer_calls=0)
+    if site_path is None:
+        return {**result, 'state':'blocked-before-source-access',
+                'reason':'No dedicated synthetic macOS Messages/Contacts or BlueBubbles and IMAP site was supplied.'}
+    try:
+        with site_path.open() as stream:
+            site = MemCalSite(**json.load(stream))
+        observation = inspect_memcal_site(site)
+    except MemCalSiteError as exc:
+        return {**result, 'state':'blocked-at-source-access', 'reason':str(exc)}
+    except (OSError, TypeError, ValueError):
+        return {**result, 'state':'blocked-at-source-access', 'reason':'Invalid explicit synthetic site declaration.'}
+    return {**result, 'state':'source-access-verified', 'source_access':observation}
+
+
+# SHA-256 of the complete OpenAI function envelopes, sorted by function name.
+# UTF-8 JSON, sorted keys, compact separators. Only catalog order is immaterial.
+SCHEMAS_SHA256 = 'e75e7a0cedbac49f5c21a363dd96717fbdb47a4fcfa0dd179288d7e27fecd069'
+
+
+TOOLS = ('memcal_activity', 'memcal_add', 'memcal_alias', 'memcal_answer',
+         'memcal_conversation', 'memcal_drop', 'memcal_list_days', 'memcal_list_month',
+         'memcal_merge', 'memcal_move_once', 'memcal_note', 'memcal_open',
+         'memcal_open_source', 'memcal_refresh', 'memcal_reviewed', 'memcal_schedule',
+         'memcal_search_archive', 'memcal_search_wiki', 'memcal_todo', 'memcal_update')
+
+
+def manifest():
+    return dict(memcal_revision=MEMCAL_WEEK_REVISION, memcal_tree=MEMCAL_WEEK_TREE,
+                driver_schemas_sha256=SCHEMAS_SHA256)
+
+
+def verify_driver_schemas(tools):
+    if not isinstance(tools, list):
+        raise ValueError('missing MemCal driver schemas')
+    try:
+        ordered = sorted(tools, key=lambda t: t['function']['name'])
+        encoded = json.dumps(ordered, ensure_ascii=False, sort_keys=True, separators=(',', ':'), allow_nan=False)
+    except (KeyError, TypeError, ValueError) as exc:
+        raise ValueError('malformed MemCal driver schemas') from exc
+    if hashlib.sha256(encoded.encode()).hexdigest() != SCHEMAS_SHA256:
+        raise ValueError('MemCal driver schemas differ from the pinned stock manifest')
+
+
+def verify_captured_driver(request):
+    from pacbench.evidence_store import binding_digest as digest
+    body = request.get('request')
+    if (not isinstance(body, dict) or not request.get('request_id') or not request.get('messages')
+            or request.get('canonical_request_sha256') != digest(body)
+            or body.get('messages') != request.get('messages') or body.get('model') != request.get('model')
+            or sorted(request.get('tools', [])) != list(TOOLS)):
+        raise ValueError('MemCal driver capture differs from its recorded request')
+    verify_driver_schemas(body.get('tools'))
+
+
+def verify_envelope(message, m, observed_headers):
+    if parsedate_to_datetime(message['Date'])!=datetime.fromisoformat(m['written_at']):raise ValueError('Source email time changed')
+    if parseaddr(message['From'])[1]!=mail_address(m['sender']):raise ValueError('Source email author changed')
+    if observed_headers:
+        headers=m['structured'].get('email_headers',{})
+        for header in ('To','Cc','References','In-Reply-To'):
+            if message.get(header)!=headers.get(header):
+                raise ValueError('Native email routing or reply headers differ from the observed source')
+        transport_id=f"<{uuid.uuid5(uuid.NAMESPACE_URL,m['source_id'])}@mail.example.test>"
+        if (str(message['Subject'])!=m['structured']['email_subject'] or
+                message.get('Message-ID')!=headers.get('Message-ID',transport_id)):
+            raise ValueError('Native email subject or identity changed')
+    else:
+        recipients={addr for _,addr in getaddresses(message.get_all('To',[]))};wanted={mail_address(p) for p in m['structured']['participants'] if p!=m['sender']}
+        if recipients!=wanted:raise ValueError('Source email recipients changed')
+
+
+def audit_import(component):
+    repo=Path(__file__).resolve().parents[3];verify_memcal_source(repo)
+    from memcal import textclean
+    from memcal.sources import proton
+    if not Path(proton.__file__).resolve().is_relative_to(memcal_source(repo).resolve()):
+        raise ValueError('Wrong native Memcal module')
+    component=Path(component).resolve();root=component/'repeat-1/memcal'
+    source=[m for path in sorted((component/'sources').glob('*/messages.json')) for m in json.loads(path.read_text())]
+    if len({m['source_id'] for m in source})!=len(source):raise ValueError('Duplicate source identity')
+    with sqlite3.connect((root/'memcal-home/memcal.db').as_uri()+'?mode=ro',uri=True) as db:
+        db.row_factory=sqlite3.Row;archive=[dict(r) for r in db.execute('select * from archive')]
+    if len(archive)!=len(source):raise ValueError('Archive count differs from full source')
+    native={(r['channel'],r['external_id']):r for r in archive}
+    if len(native)!=len(archive):raise ValueError('Duplicate native archive identity')
+    checks=[];mailboxes=sorted((component/'sources').glob('*/mailbox.json'));mailbox=mailboxes[-1]
+    snapshot=json.loads(mailbox.read_text());observed_headers=snapshot.get('header_condition')==OBSERVED_HEADERS
+    fixture=snapshot['messages'];email_sources={m['source_id']:m for m in source if m['channel']=='email'}
+    if {r['source']['source_id'] for r in fixture}!=set(email_sources):raise ValueError('Mailbox omits source email')
+    service=email_server(mailbox,root,verify_only=True) if observed_headers else MailboxServer(mailbox)
+    with service as server:
+        secrets={'PROTON_BRIDGE_HOST':'127.0.0.1','PROTON_BRIDGE_PORT':str(server.port),'PROTON_BRIDGE_USER':server.user,'PROTON_BRIDGE_PASSWORD':server.password}
+        cfg=SimpleNamespace(secret=lambda name,alias:secrets.get(name))
+        with proton.Bridge(cfg) as bridge:
+            for folder in ['Sent','INBOX']:
+                ok,_=bridge.select(folder)
+                if not ok:raise ValueError('Native mailbox select failed')
+                expected=[r for r in fixture if r['folder']==folder]
+                if bridge.uids_since(0)!=[r['uid'] for r in expected]:raise ValueError('Native mailbox UID coverage differs')
+                for row in expected:
+                    m=email_sources[row['source']['source_id']]
+                    if row['source']!=m:
+                        raise ValueError('Mailbox source metadata differs from the daily frozen input')
+                    message=bridge.message(row['uid']);raw=proton.extract_text(message)
+                    if raw.replace('\r\n','\n').strip()!=m['text'].strip():raise ValueError('Native reader did not receive complete email body')
+                    verify_envelope(message, m, observed_headers)
+                    key=('email',row['message_id'].strip('<>'));a=native[key];shaped,meta=proton._shape_body(raw,str(message['Subject']))
+                    if shaped!=a['text'] or bool(a['from_me'])!=m['from_owner'] or datetime.fromisoformat(a['ts'])!=datetime.fromisoformat(m['written_at']):raise ValueError('Stored native email differs from stock reader output')
+                    quotes=textclean.strip_quotes(raw)!=raw
+                    urls=any(textclean.shorten_url(match)!=match.group(0) for match in textclean.URL.finditer(raw))
+                    quoted=[line.lstrip()[1:].strip() for line in raw.splitlines() if line.lstrip().startswith('>')]
+                    prior=[s['source_id'] for s in source if s['thread']==m['thread'] and s['written_at']<m['written_at'] and s['text'].strip() in quoted]
+                    checks.append({'source_id':m['source_id'],'rfc822_sha256':hashlib.sha256(row['rfc822'].encode()).hexdigest(),'native_archive_id':a['id'],'native_reader_received_full_body':True,'envelope_author_time_recipients_verified':True,'native_archive_shape_exact':True,'body_chars':meta['body_chars'],'kept_chars':meta['kept_chars'],'native_body_truncated_flag':bool(meta.get('body_truncated')),'quote_history_removed':quotes,'native_url_normalization':urls,'length_limit_reached':len(raw)>=min(proton.BODY_CHARS,proton.ARCHIVE_BODY_CHARS),'quoted_text_duplicates_prior_source_ids':prior})
+        commands=server.commands
+    for m in source:
+        if m['channel']!='imessage':continue
+        identifier=str(uuid.uuid5(uuid.NAMESPACE_URL,'pacbench-source-message:'+m['source_id'])).upper();a=native[('imessage',identifier)]
+        if a['text']!=m['text'] or bool(a['from_me'])!=m['from_owner'] or datetime.fromisoformat(a['ts'])!=datetime.fromisoformat(m['written_at']):raise ValueError('Stored native iMessage differs from original')
+        if not m['from_owner'] and a['handle']!=identity(m['sender'])['handle']:raise ValueError('Native source speaker changed')
+    if any(c['length_limit_reached'] for c in checks):raise ValueError('Length limit reached; inspect before qualification')
+    return {'version':'memcal-native-input-cause-audit-v1','state':'pass','source_messages_verified':len(source),'native_imessage_bodies_times_owners_incoming_speakers_verified':len(source)-len(checks),'native_tls_imap_emails_verified':len(checks),'native_email_transport':'Stock Bridge.message over read-only TLS IMAP; no archive writes, dream or model calls','native_memcal_source_revision_verified':True,'harness_transport_losses':[],'native_length_limits_reached':0,'native_quote_removal_count':sum(c['quote_history_removed'] for c in checks),'native_url_normalization_count':sum(c['native_url_normalization'] for c in checks),'native_shortened_body_flags':sum(c['native_body_truncated_flag'] for c in checks),'email_checks':checks,'native_commands':commands,'model_calls':0,'native_store_modified':False,'conclusion':'Complete source transport and stock archive shaping verified. Shortening is native preprocessing, not harness truncation; extraction quality remains a benchmark outcome.'}
+
+
+def finished_nightly_ids(conn):
+    rows = conn.execute("SELECT id,finished_at,error FROM runs WHERE mode='nightly' ORDER BY id").fetchall()
+    ids = [row[0] for row in rows]
+    if (len(ids) != len(set(ids)) or any(type(row[0]) != int or not row[1] or row[2] for row in rows)):
+        raise GatewayLifecycleError('Native nightly Dream run identities are duplicate or unfinished')
+    return ids
+
+
+def memcal_archive_readback(preparation,ids,store):
+    """Compare submitted dialogue with actual native archive; never repair it.
+
+    MemCal's email cleaner can deliberately transform text. Preserve those
+    differences as product observations, not exact-source or extraction proof.
+    """
+    import email
+    import sqlite3
+    from contextlib import closing
+
+    from pacbench.imessage_fixture import identity
+    uri = (Path(store)/'memcal.db').resolve().as_uri()+'?mode=ro'
+    with closing(sqlite3.connect(uri,uri=True)) as conn:
+        actual = {}
+        for ch,key,text,ts,owner,handle,thread in conn.execute(
+                'SELECT channel,external_id,text,ts,from_me,handle,thread FROM archive'):
+            if (ch,key) in actual:
+                raise GatewayLifecycleError('Duplicate native archive identity')
+            actual[ch,key] = text,ts,owner,handle,thread
+    witnesses=[]
+    matched=set()
+    for identifier in ids:
+        source=Path(preparation)/'sources'/identifier;fixture=json.loads((source/'chat.fixture.json').read_text())
+        mailbox=json.loads((source/'mailbox.json').read_text()) if (source/'mailbox.json').exists() else {'messages':[]}
+        for m in json.loads((source/'messages.json').read_text()):
+            if m['channel']=='imessage':
+                key = str(uuid.uuid5(uuid.NAMESPACE_URL,'pacbench-source-message:'+m['source_id'])).upper()
+                if key != fixture['messages'][m['source_id']]['guid']:
+                    raise GatewayLifecycleError('Source GUID differs from the frozen record')
+                expected = shaped = m['text']
+                peers = [name for name in fixture['threads'][m['thread']]['participants'] if name != 'Me']
+                group = len(peers)>1
+                target = ('chat'+uuid.uuid5(uuid.NAMESPACE_URL,'pacbench-source-thread:'+m['thread']).hex
+                          if group else identity(peers[0])['handle'])
+                handle = (None if group else target) if m['from_owner'] else identity(m['sender'])['handle']
+            else:
+                from memcal.sources import proton
+                row=next(r for r in mailbox['messages'] if r['source']['source_id']==m['source_id'])
+                if row['source'] != m:
+                    raise GatewayLifecycleError('Mailbox differs from frozen email')
+                key = row['message_id'].strip('<>')
+                message = email.message_from_string(row['rfc822'])
+                from pacbench.email_fixture import OBSERVED_HEADERS
+                verify_envelope(message, m, mailbox.get('header_condition') == OBSERVED_HEADERS)
+                if message.get('Message-ID','').strip('<>') != key:
+                    raise GatewayLifecycleError('Mailbox message identity differs from native wire input')
+                raw = proton.extract_text(message)
+                if raw.replace('\r\n','\n').strip() != m['text'].strip():
+                    raise GatewayLifecycleError('Native reader received different source text')
+                subject = proton.header_str(message, 'Subject')
+                expected = subject+'\n\n'+m['text']
+                shaped = proton._shape_body(raw,subject)[0]
+            address = (m['channel'],key)
+            if address in matched:
+                raise GatewayLifecycleError('Duplicate submitted archive identity')
+            matched.add(address)
+            found=actual.get(address)
+            if (found is None or datetime.fromisoformat(found[1]) != datetime.fromisoformat(m['written_at'])
+                    or found[2] != int(m['from_owner']) or found[0] != shaped
+                    or m['channel']=='imessage' and (found[3],found[4]) != (handle,'id:'+target)):
+                raise GatewayLifecycleError('Native archive identity, text or attribution differs from source')
+            text=found[0]
+            condition=('exact' if text==expected else 'line-ending-only' if text.replace('\r\n','\n')==expected else 'native-text-transformation')
+            witnesses.append({'source_id':m['source_id'],'channel':m['channel'],'condition':condition,
+                'submitted_text_sha256':hashlib.sha256(expected.encode()).hexdigest(),'archive_text_sha256':hashlib.sha256(text.encode()).hexdigest()})
+    if matched != set(actual):
+        raise GatewayLifecycleError('Native archive has unrelated source records')
+    return {'protocol':'native-archive-source-comparison-v1','compared':len(witnesses),
+        'all_identities_and_times_match':True,'rows':witnesses,'native_text_unchanged':all(w['condition']=='exact' for w in witnesses)}

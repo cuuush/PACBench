@@ -25,7 +25,7 @@ def test_recovery_uses_actual_time_but_never_next_checkpoint_or_next_local_day()
 
 
 def test_warm_client_binds_then_releases_clock_before_sampling(monkeypatch):
-    from pacbench import checkpoint_clock
+    from pacbench import provider_clock as checkpoint_clock
 
     monkeypatch.setenv('PACBENCH_PYTHON_CLOCK_FILE', 'offline-offset')
     monkeypatch.setenv('PACBENCH_REUSE_CLOCK_STATE', 'offline-descriptor')

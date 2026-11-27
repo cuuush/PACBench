@@ -22,8 +22,12 @@ requires = ["setuptools>=77"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools.packages.find]
-include = ["pacbench*"]
+include = ["pacbench*", "provider_adapters*"]
 namespaces = false
+
+[tool.setuptools.package-data]
+provider_adapters = ["*.mjs", "memos_oss_hermes/plugin.yaml"]
+pacbench = ["clock_bootstrap/sitecustomize.py", "source_schemas/*.sql", "source_schemas/*.json"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

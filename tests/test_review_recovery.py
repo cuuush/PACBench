@@ -1,3 +1,4 @@
+import pacbench.providers.provision as provider_setup
 import json
 import pytest
 from pacbench.workflows.recording import summarize
@@ -19,12 +20,24 @@ def test_torn_utf8_tail_keeps_prior_stop(tmp_path):
         summarize(path)
 
 
+def record_with_progress(route, documents, turns, account, directory):
+    from pacbench.workflows.progress import WorkflowProgress
+    from pacbench.workflows.runner import Journal, run_workflow
+
+    with Journal(directory) as journal, WorkflowProgress(directory, 'fixture', create=True) as progress:
+        for ordinal, turn in enumerate(turns):
+            progress.plan_turn(ordinal, turn)
+        run_workflow(route, account, documents, turns, journal, spec_digest='fixture',
+                     evidence_kind=account.evidence_kind, progress=progress)
+        progress.seal_execution(len(turns), sum(len(t.claims) for t in turns))
+
+
 def test_document_close_crash_preserves_grade_queue_and_denominator(tmp_path):
     from tests.test_workflow_realism import condition
     from pacbench.workflows.conformance import RecordingAccount
     from pacbench.workflows.runner import run_current_week
     from pacbench.workflows.progress import WorkflowProgress
-    from pacbench.campaigns.pizza_week import compile_week
+    from pacbench.corpus.r2 import compile_week
     _, docs, turns, _ = compile_week('continuing-account')
     route = condition(p='reme')
 
@@ -34,16 +47,16 @@ def test_document_close_crash_preserves_grade_queue_and_denominator(tmp_path):
 
     dest = tmp_path/'workflow'
     with pytest.raises(RuntimeError, match='ambiguous close'):
-        run_current_week(route, Interrupted(route, docs), dest)
-    key = json.loads((dest/'run.json').read_text())['run_key']
-    with WorkflowProgress(dest, key) as progress:
+        record_with_progress(route, docs, turns, Interrupted(route, docs), dest)
+    with WorkflowProgress(dest, 'fixture') as progress:
         turn, surface, activity = progress.get_verified(turns[0].id)
         assert surface['answer'] and activity['driver_receipts']
         assert progress.claim_grade() == (turn, surface)
         assert sum(row['planned_criteria'] for row in progress.summary().values()) == 192
         assert not progress.complete
-    assert summarize(dest/'workflow.jsonl')['coverage']['verified_turns'] == 2
-    with pytest.raises(ValueError, match='resume'):
+    events = [json.loads(line) for line in (dest/'workflow.jsonl').read_text().splitlines()]
+    assert sum(event['phase'] == 'verified-turn' for event in events) == 2
+    with pytest.raises(ValueError, match='offline conformance only'):
         run_current_week(route, Interrupted(route, docs), dest, resume=True)
 
 
@@ -51,7 +64,7 @@ def test_private_export_checks_grade_and_returns_only_counts(tmp_path):
     from pacbench.workflows.answer_export import comparison_row, export
     from pacbench.workflows.grading import grade_verified
     from tests.test_workflow_grading import checkpoints, Recorder, local_judge
-    from pacbench.workflows.stream import fingerprint
+    from pacbench.workflows.progress import workflow_fingerprint as fingerprint
     from pacbench.workflows.progress import WorkflowProgress
     run = tmp_path/'workflow'
     with checkpoints(run, verified=1) as (p, turns):
@@ -79,8 +92,8 @@ def test_private_export_checks_grade_and_returns_only_counts(tmp_path):
 
 def test_blind_packet_and_saved_verdict_comparison():
     from pathlib import Path
-    from pacbench.judging.controls import evaluate
-    from pacbench.semantic_grade import CONTEXT_JUDGE_PROTOCOL, DATE_SCOPED_JUDGE_PROTOCOL
+    from pacbench.judging.paired import evaluate
+    from pacbench.judging.grade import CONTEXT_JUDGE_PROTOCOL, DATE_SCOPED_JUDGE_PROTOCOL
     root = Path(__file__).parent/'fixtures/grader-review'
     cases = json.loads((root/'cases.json').read_text())
     key = json.loads((root/'proposed-key.json').read_text())['verdicts']
@@ -97,7 +110,8 @@ def test_legacy_checkpoint_reads_wal_and_rejects_changed_imessage(tmp_path):
     import sqlite3
     import uuid
     from pacbench.imessage_fixture import identity
-    from pacbench.native_checkpoint_sources import GatewayLifecycleError, memcal_archive_readback
+    from pacbench.workflows.turn_evidence import GatewayLifecycleError
+    from pacbench.providers.memcal.source import memcal_archive_readback
     source = tmp_path/'sources/night'
     source.mkdir(parents=True)
     guid = str(uuid.uuid5(uuid.NAMESPACE_URL,'pacbench-source-message:one')).upper()
@@ -127,18 +141,19 @@ def test_legacy_checkpoint_reads_wal_and_rejects_changed_imessage(tmp_path):
 
 
 def test_shutdown_observation_preserves_primary_failure_and_both_cleanup_errors(monkeypatch, tmp_path):
-    from pacbench import native_pilot, process_cleanup
+    from pacbench.workflows import native_run as native_pilot
+    from pacbench import process_cleanup
     def failed():
         raise TimeoutError('secret detail')
     def cleanup(root):
         raise OSError()
-    monkeypatch.setitem(native_pilot._ARM_SHUTDOWNS, tmp_path.resolve(), failed)
+    monkeypatch.setitem(provider_setup._ARM_SHUTDOWNS, tmp_path.resolve(), failed)
     monkeypatch.setattr(process_cleanup, 'cleanup_run_processes', cleanup)
     with pytest.raises(ValueError, match='original'):
         try:
             raise ValueError('original')
         finally:
-            native_pilot.stop_arm_model_work(tmp_path)
+            provider_setup.stop_arm_model_work(tmp_path)
     assert json.loads((tmp_path/'shutdown-observation.json').read_text()) == {
         'original_error_type':'ValueError','native_hook':'failed','native_error_type':'TimeoutError',
         'fallback_cleanup':{'state':'failed','error_type':'OSError'}}
@@ -149,7 +164,7 @@ def test_document_return_and_trace_survive_failed_native_write_barrier(tmp_path)
     from pacbench.workflows.conformance import RecordingAccount
     from pacbench.workflows.runner import run_current_week
     from pacbench.workflows.progress import WorkflowProgress
-    from pacbench.campaigns.pizza_week import compile_week
+    from pacbench.corpus.r2 import compile_week
     from tests.test_workflow_realism import condition
     route = condition(p='reme')
     _, docs, turns, _ = compile_week(route.state)
@@ -164,9 +179,8 @@ def test_document_return_and_trace_survive_failed_native_write_barrier(tmp_path)
             raise RuntimeError('unwitnessed write')
     dest = tmp_path/'week'
     with pytest.raises(RuntimeError, match='unwitnessed'):
-        run_current_week(route, Fixture(route, docs), dest)
-    key = json.loads((dest/'run.json').read_text())['run_key']
-    with WorkflowProgress(dest, key) as p:
+        record_with_progress(route, docs, turns, Fixture(route, docs), dest)
+    with WorkflowProgress(dest, 'fixture') as p:
         assert p.observation('answer',turns[0].id,'cli-return')['answer'] == 'returned CLI answer'
         assert p.observation('answer',turns[0].id,'trace')['session_id'] == 'fixture'
         assert list(p.iter_verified()) == [] and p.claim_grade() is None
@@ -174,7 +188,7 @@ def test_document_return_and_trace_survive_failed_native_write_barrier(tmp_path)
 
 def test_benchmark_rerun_keeps_published_judge_and_denominator():
     from pacbench.workflows.runner import judge_options
-    from pacbench.campaigns.pizza_week import compile_week
+    from pacbench.corpus.r2 import compile_week
     spec, _, turns, _ = compile_week('continuing-account')
     options = judge_options(turns[0], {'history':[{'role':'user','content':turns[0].prompt}],
                                      'conversation_times':[turns[0].at]})
@@ -186,16 +200,13 @@ def test_full_document_schedule_captures_all_turns_and_only_planned_grades(tmp_p
     from pacbench.workflows.conformance import RecordingAccount
     from pacbench.workflows.runner import run_current_week
     from pacbench.workflows.progress import WorkflowProgress
-    from pacbench.campaigns.pizza_week import compile_week
+    from pacbench.corpus.r2 import compile_week
     route = condition(p='reme')
     _, docs, turns, _ = compile_week(route.state)
     dest = tmp_path/'full'
     account = RecordingAccount(route,docs)
-    summary = run_current_week(route, account, dest)
-    account.ask = lambda *a,**kw: pytest.fail('sealed document resume dispatched a user turn')
-    assert run_current_week(route, account, dest, resume=True) == summary
-    key = json.loads((dest/'run.json').read_text())['run_key']
-    with WorkflowProgress(dest,key) as progress:
+    record_with_progress(route, docs, turns, account, dest)
+    with WorkflowProgress(dest, 'fixture') as progress:
         assert progress.execution_sealed and len(list(progress.iter_verified())) == 49
         ids = []
         while (item := progress.claim_grade()) is not None:
@@ -204,15 +215,14 @@ def test_full_document_schedule_captures_all_turns_and_only_planned_grades(tmp_p
             progress.finish_grade(turn.id, [dict(id=c.id,verdict='missed',reason='offline fixture') for c in turn.claims])
         assert ids == [turn.id for turn in turns if turn.claims]
         assert len(ids) == 47 and progress.claim_grade() is None
-    report = summarize(dest/'workflow.jsonl')
-    assert report['coverage']['graded_criteria'] == 192 and report['coverage']['full_accuracy'] is None
+        assert sum(row['graded_criteria'] for row in progress.summary().values()) == 192
 
 def test_document_judge_can_consume_verified_answer_with_original_controller_alive(tmp_path):
     import subprocess
     import sys
-    from pacbench.canary_capability import binding
-    from pacbench.live_dispatch import process_identity
-    from pacbench.workflows.document_progress import PROTOCOL
+    from pacbench.evidence_store import file_binding as binding
+    from pacbench.workflows.progress import process_identity
+    from pacbench.workflows.progress import DOCUMENT_PROGRESS_PROTOCOL as PROTOCOL
     from pacbench.workflows.grading import judge_only_owner, claimed_request, grade_verified
     from tests.test_workflow_grading import checkpoints, Recorder, local_judge
     root = tmp_path/'reme'
@@ -243,7 +253,7 @@ def test_legacy_partial_exports_verified_prefix_without_inventing_grade(tmp_path
     from pacbench.workflows.answer_export import export
     from pacbench.workflows.conformance import RecordingAccount
     from pacbench.workflows.runner import run_current_week
-    from pacbench.campaigns.pizza_week import compile_week
+    from pacbench.corpus.r2 import compile_week
     from tests.test_workflow_realism import condition
     route = condition(p='reme')
     docs = compile_week(route.state)[1]
@@ -300,7 +310,8 @@ def test_financial_torn_tail_does_not_discard_known_answers(tmp_path):
 def test_legacy_dream_reopen_requires_unique_finished_native_run(id,finished,error):
     import sqlite3
     from contextlib import closing
-    from pacbench.native_checkpoint_sources import finished_nightly_ids, GatewayLifecycleError
+    from pacbench.providers.memcal.source import finished_nightly_ids
+    from pacbench.workflows.turn_evidence import GatewayLifecycleError
     with closing(sqlite3.connect(':memory:')) as db:
         db.execute('CREATE TABLE runs(id,mode,finished_at,error)')
         db.execute("INSERT INTO runs VALUES(11,'nightly','done',NULL)")

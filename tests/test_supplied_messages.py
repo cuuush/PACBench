@@ -10,7 +10,7 @@ import pytest
 
 from pacbench.corpus.authoring import (AuthoringError, SceneJudgeError, ScenePlan,
     build_scene_observations, realize_scene, scene_spec)
-from pacbench.followups import digest, save
+from pacbench.evidence_store import binding_digest as digest, save
 from pacbench.model_calls import ModelOutput
 from pacbench.corpus.prepare import (generation_spec, import_week, prepare,
     realization_binding, resolve_spec, reuse_realization)
@@ -221,9 +221,9 @@ def fake_contract(**kwargs):
 @pytest.mark.parametrize('mixed', [False, True])
 def test_supplied_scene_uses_normal_freeze_portable_audit_and_native_sources(tmp_path, monkeypatch, count, mixed):
     import pacbench.corpus.prepare as module
-    from pacbench.document_ingestion import prepare_sources
+    from pacbench.workflows.delivery import prepare_sources
     from pacbench.imessage_fixture import apple_ns
-    from pacbench.native_pilot import read_prepared
+    from pacbench.workflows.native_run import read_prepared
     from pacbench.corpus.audit import audit_prepared, audit_scenes
     root = tmp_path / 'prepared'
     spec = supplied_spec(count)
@@ -279,8 +279,8 @@ def test_supplied_scene_uses_normal_freeze_portable_audit_and_native_sources(tmp
 
 def test_next_day_single_reply_is_checked_against_actual_prior_source(tmp_path, monkeypatch):
     import pacbench.corpus.prepare as module
-    from pacbench.document_ingestion import daily_batches
-    from pacbench.native_pilot import read_prepared
+    from pacbench.workflows.source_plan import daily_batches
+    from pacbench.workflows.native_run import read_prepared
     spec = supplied_spec()
     first = spec['scenes'][0]
     first['messages'][0]['text'] = 'Pizza Friday at six?'
@@ -310,7 +310,7 @@ def test_next_day_single_reply_is_checked_against_actual_prior_source(tmp_path, 
 def test_supplied_single_email_preserves_quoted_body_and_sender(tmp_path):
     from email import message_from_bytes
     from email.policy import default
-    from pacbench.document_ingestion import prepare_sources
+    from pacbench.workflows.delivery import prepare_sources
     spec = supplied_spec()
     source = spec['scenes'][0]
     source.update(channel='email', email_subject='Dinner')

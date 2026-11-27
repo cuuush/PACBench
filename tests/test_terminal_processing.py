@@ -3,7 +3,7 @@ import hashlib
 import json
 from pathlib import Path
 import pytest
-from pacbench import terminal_processing as terminal
+from pacbench import native_writes as terminal
 
 
 def write(path,value):
@@ -95,7 +95,7 @@ def test_deadline_cannot_accept_late_completed_snapshot(tmp_path,monkeypatch):
 
 
 def test_boundary_stop_prevents_status_queries(tmp_path,monkeypatch):
-    from pacbench.stop import OperatorStop
+    from pacbench.process_cleanup import OperatorStop
     turn(tmp_path)
     monkeypatch.setattr(terminal.urllib.request,'urlopen',lambda *a,**k:pytest.fail('query after stop'))
     def stop():raise OperatorStop('stop')
@@ -108,7 +108,7 @@ def test_native_scope_and_archive_hash_tampering_cannot_audit(tmp_path,monkeypat
     scope=terminal.scope_for(tmp_path)
     snapshot=terminal.capture_snapshot(tmp_path,scope,lambda _:task)
     write(tmp_path/'terminal-processing/scope.json',scope)
-    write(tmp_path/'terminal-processing/status.json',{'protocol':terminal.VERSION,'scope_hash':terminal.digest(scope),
+    write(tmp_path/'terminal-processing/status.json',{'protocol':terminal.TERMINAL_PROTOCOL,'scope_hash':terminal.digest(scope),
         'state':'complete','clock_advanced':False,'processing_forced':False,'observations':[snapshot],
         'namespace':{'account':'default','user':'default'}})
     assert terminal.audit_terminal(tmp_path)==[]

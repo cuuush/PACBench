@@ -92,7 +92,7 @@ def test_hold_prevents_any_native_setup(tmp_path, monkeypatch):
 
 
 def test_source_readiness_needs_each_actual_processed_message():
-    from pacbench.document_audit import audit_honcho_receipt
+    from pacbench.providers.honcho import audit_honcho_receipt
     import hashlib
     source={'source_id':'m1','channel':'imessage','thread':'chat','sender':'Ben',
             'from_owner':False,'written_at':'2026-09-15T12:00:00-04:00','text':'Lunch tomorrow?'}
@@ -207,7 +207,7 @@ def test_recovery_uses_current_time_without_crossing_next_check(monkeypatch,tmp_
 
 def test_offline_clock_audit_rejects_missing_or_unsafe_evidence(tmp_path):
     # Preserve the frozen v3 audit format; v4 additionally requires Python adoption.
-    from pacbench.followups import save
+    from pacbench.evidence_store import save
     target=datetime.now(timezone.utc)
     save(tmp_path/'provider-clock.json',{'version':'honcho-wall-clock-v3','library_sha256':clock.LEGACY_LIBRARY_SHA256,
         'wall_speed':1,'monotonic':'real','gateway_clock':'real',
@@ -230,7 +230,7 @@ def test_offline_clock_audit_rejects_missing_or_unsafe_evidence(tmp_path):
 
 
 def test_checkpoint_order_uses_instants_across_dst_fallback():
-    from pacbench.native_pilot import next_checkpoint
+    from pacbench.workflows.native_run import next_checkpoint
     rows=[{'at':v} for v in ('2026-11-01T01:30:00-04:00',
         '2026-11-01T01:15:00-05:00','2026-11-01T02:00:00-05:00')]
     assert next_checkpoint(rows,'2026-11-01T01:45:00-04:00') == '2026-11-01T01:15:00-05:00'
@@ -323,7 +323,7 @@ def test_unsupported_freezer_runs_native_time_only_when_running_unpaused_is_veri
     assert provider.path.read_bytes()==offset
 @pytest.mark.parametrize('declared', ['honcho-wall-clock-v3', 'honcho-wall-clock-v5'])
 def test_clock_audit_keeps_versioned_hash_and_v3_overhead_semantics(tmp_path, declared):
-    from pacbench.followups import save
+    from pacbench.evidence_store import save
     from pacbench.provider_clock import LEGACY_LIBRARY_SHA256
     now = datetime.now(timezone.utc)
     later = now + timedelta(minutes=10)
@@ -374,7 +374,7 @@ def test_persistent_citation_requires_source_identity_and_real_fact_ids():
 
 def test_persistent_citation_audit_needs_matching_source_observer_and_idle_state():
     import hashlib
-    from pacbench.document_audit import audit_honcho_receipt
+    from pacbench.providers.honcho import audit_honcho_receipt
     source={'source_id':'m1','channel':'imessage','thread':'chat','sender':'Ben','from_owner':False,'written_at':'2026-09-15T12:00:00-04:00','text':'Lunch tomorrow?'}
     session='source-'+hashlib.sha256(json.dumps(('imessage','chat')).encode()).hexdigest()[:24]
     ack={'session_id':session,'observer':{'peer_id':'hermes','observe_others':True},'messages':[{'id':'native-message','session_id':session,'peer_id':'Ben','content':source['text'],'created_at':source['written_at'],'metadata':{k:v for k,v in source.items() if k!='text'}}]}
@@ -409,7 +409,7 @@ def test_cleanup_does_not_confuse_expired_error_with_recent_observation():
 
 
 def test_clock_reopen_audits_old_steps_against_original_db_origin(tmp_path):
-    from pacbench.followups import save
+    from pacbench.evidence_store import save
     original=datetime(2026,10,5,tzinfo=timezone.utc);later=original+timedelta(hours=1)
     real=datetime(2026,11,14,tzinfo=timezone.utc)
     save(tmp_path/'provider-clock.json',{'version':clock.VERSION,'library_sha256':LIBRARY_SHA256,

@@ -1,13 +1,15 @@
 """Interrupted imports must not replay good data or overwrite answers."""
+import pacbench.providers.provision as provider_setup
 import json
 from pathlib import Path
 from unittest.mock import patch
 
 import pytest
 
-from pacbench.document_ingestion import VERSION,prepare_sources
-from pacbench.followups import save
-from pacbench.native_resume import ready_prefix
+from pacbench.workflows.source_plan import VERSION
+from pacbench.workflows.delivery import prepare_sources
+from pacbench.evidence_store import save
+from pacbench.providers.openviking import ready_prefix
 from tests.test_document_ingestion import message
 
 
@@ -48,7 +50,7 @@ def test_resume_rejects_partial_processing_or_prior_evaluation(tmp_path,damage):
 
 @pytest.mark.parametrize('damage', ['missing', 'invalid', 'changed', None])
 def test_catalog_resume_verifies_retained_home_before_bootstrap(tmp_path, monkeypatch, damage):
-    from pacbench import native_pilot
+    from pacbench.workflows import native_run as native_pilot
     from pacbench.catalog_plugins import CATALOG, SOURCE_VERSIONS, _expected_source
 
     monkeypatch.setattr(native_pilot.harness, 'ISOLATED_TREE', tmp_path/'hermes-tree')
@@ -57,7 +59,7 @@ def test_catalog_resume_verifies_retained_home_before_bootstrap(tmp_path, monkey
     def settings(project):
         client_calls.append(project)
         return 'http://127.0.0.1:8099/p/unit/v1', 'offline-test'
-    monkeypatch.setattr(native_pilot, 'client_settings', settings)
+    monkeypatch.setattr(provider_setup, 'client_settings', settings)
     home=tmp_path/'hermes-home'
     plugin=home/'plugins/openviking'
     plugin.mkdir(parents=True)
@@ -70,15 +72,15 @@ def test_catalog_resume_verifies_retained_home_before_bootstrap(tmp_path, monkey
     elif damage != 'missing':
         save(index, {'openviking': {'pinned': True, 'source': _expected_source(source),
                                     'revision': sha if damage is None else 'changed'}})
-    with patch('pacbench.native_pilot.harness.provision_home') as bootstrap, \
+    with patch('pacbench.workflows.native_run.harness.provision_home') as bootstrap, \
          patch('provider_adapters.openviking_local.start', return_value=None) as backend:
         if damage is None:
-            env = native_pilot.provision(tmp_path, 'openviking', 'muse-spark-1.3-contributor', resume=True)
+            env = provider_setup.provision(tmp_path, 'openviking', 'muse-spark-1.3-contributor', resume=True)
             backend.assert_called_once_with(tmp_path, env, 'muse-spark-1.3-contributor',
                                             'http://127.0.0.1:8099/p/unit/v1', 'offline-test')
         else:
             with pytest.raises(ValueError,match='catalog plugin metadata|Retained catalog source differs'):
-                native_pilot.provision(tmp_path,'openviking','muse-spark-1.3-contributor',resume=True)
+                provider_setup.provision(tmp_path,'openviking','muse-spark-1.3-contributor',resume=True)
             backend.assert_not_called()
             assert not client_calls
             assert not (tmp_path/'fallback-home').exists()
@@ -89,23 +91,23 @@ def test_catalog_resume_verifies_retained_home_before_bootstrap(tmp_path, monkey
 def test_changed_frozen_identity_blocks_resume_before_backend_or_paid_work(tmp_path, monkeypatch):
     monkeypatch.setattr('pacbench.providers.require_live_trials_ready', lambda: None)
     from types import SimpleNamespace
-    from pacbench.native_resume import resume
+    from pacbench.providers.openviking import resume
     rows,root,report=checkpoint(tmp_path)
     save(tmp_path/'summary.json',{**report,'state':'incomplete','source':'.',
         'question_prompt_protocol':'native-question-v2','clock_context_protocol':'native-question-v2',
         'results':[{'provider':'openviking','repetition':1}],
         'input_hash':'changed','contract_hash':'contract','bundle_hash':'bundle'})
-    with patch('pacbench.native_pilot.read_prepared',return_value=(rows,
+    with patch('pacbench.workflows.native_run.read_prepared',return_value=(rows,
             SimpleNamespace(contract_hash='contract'),{'timezone':'America/New_York'})), \
          patch('pacbench.gateway_client.require_live_cost_boundary') as boundary, \
-         patch('pacbench.native_pilot.provision') as backend:
+         patch('pacbench.providers.provision.provision') as backend:
         with pytest.raises(ValueError,match='frozen input identity'):resume(tmp_path)
     boundary.assert_not_called();backend.assert_not_called()
 
 
 def test_resume_renews_deleted_workspace_only_before_any_native_session(tmp_path):
     import sqlite3
-    from pacbench.native_resume import renew_empty_workspace
+    from pacbench.providers.openviking import renew_empty_workspace
     from pacbench.context_isolation import VERSION
     root=tmp_path/'run';history=root/'resumes/1';history.mkdir(parents=True)
     save(root/'recall-workspace.json',{'version':VERSION,'workspace':str(tmp_path/'deleted')})
@@ -125,7 +127,7 @@ def test_resume_renews_deleted_workspace_only_before_any_native_session(tmp_path
 def test_resume_rejects_unknown_protocol_before_model_access(tmp_path, key, monkeypatch):
     monkeypatch.setattr('pacbench.providers.require_live_trials_ready', lambda: None)
     import json
-    from pacbench.native_resume import resume
+    from pacbench.providers.openviking import resume
     (tmp_path / 'summary.json').write_text(json.dumps({key: 'unknown-protocol'}))
     with pytest.raises(ValueError, match='Unsupported'):
         resume(tmp_path)
@@ -134,11 +136,11 @@ def test_resume_rejects_unknown_protocol_before_model_access(tmp_path, key, monk
 @pytest.mark.parametrize('protocol', [None, 'simulated-now-prefix-v1', 'unknown'])
 def test_resume_rejects_changed_question_condition_before_model_access(tmp_path, protocol, monkeypatch):
     monkeypatch.setattr('pacbench.providers.require_live_trials_ready', lambda: None)
-    from pacbench.native_resume import resume
+    from pacbench.providers.openviking import resume
     summary = {} if protocol is None else {'question_prompt_protocol': protocol}
     save(tmp_path / 'summary.json', summary)
     with patch('pacbench.gateway_client.require_live_cost_boundary') as boundary, \
-         patch('pacbench.native_pilot.provision') as backend:
+         patch('pacbench.providers.provision.provision') as backend:
         with pytest.raises(ValueError, match='question prompt protocol'):
             resume(tmp_path)
     boundary.assert_not_called()

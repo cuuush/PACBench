@@ -1,6 +1,6 @@
 import json
 import pytest
-from pacbench.strict_memory import classify
+from pacbench.source_policy import classify_retention as classify
 
 def turn(**extra):return dict(tool_calls=[],tool_results=[],prefetch_context='',provider_traces=[],**extra)
 
@@ -26,8 +26,9 @@ def test_memory_uri_does_not_launder_chat_transcript():
 def test_ungraded_gate_precedes_judge_and_is_independently_audited(tmp_path,provider):
  from tests.test_evaluation import checkpoints
  from pacbench.harness import TurnResult
- from pacbench.native_checks import run_checks,audit_checks
- from pacbench.clock_context import expected_prompt
+ from pacbench.workflows.native_run import run_checks
+ from pacbench.native_audit import audit_checks
+ from pacbench.context_isolation import expected_prompt
  checks=checkpoints(tmp_path);root=tmp_path/provider
  seen=[]
  def ready(row,directory):seen.append(('ready',row['id']))
@@ -47,7 +48,7 @@ def test_ungraded_gate_precedes_judge_and_is_independently_audited(tmp_path,prov
 def test_logical_document_transport_preserves_join_without_apple_fixture(tmp_path):
  from tests.test_scene_local_authoring import week,exact,built
  from pacbench.corpus.prepare import resolve_spec
- from pacbench.document_ingestion import prepare_sources
+ from pacbench.workflows.delivery import prepare_sources
  plans=resolve_spec(week([exact(participants=['Me','Sam','Robin']),exact(id='join',time='7 pm',joins=['Nora'])]),tmp_path)[0]
  messages=[m for p in plans for m in built(p)]
  schedule=prepare_sources(tmp_path/'sources-run',messages,'America/New_York',native_fixtures=False)
@@ -60,7 +61,8 @@ def test_logical_document_transport_preserves_join_without_apple_fixture(tmp_pat
 
 def test_unknown_recovery_is_counted_ungraded_without_erasing_initial_grade(tmp_path):
  from tests.test_followups import contract,plan,turn
- from pacbench.native_checks import run_checks,audit_checks
+ from pacbench.workflows.native_run import run_checks
+ from pacbench.native_audit import audit_checks
  c=contract();root=tmp_path/'memcal';sent=[];model_calls=[]
  def runner(prompt,**kw):
   sent.append(prompt);t=turn(prompt,answer='Friday.' if len(sent)==1 else 'Seven.')

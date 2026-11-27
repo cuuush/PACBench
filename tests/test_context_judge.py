@@ -3,10 +3,7 @@ import json
 
 import pytest
 
-from pacbench.semantic_grade import (
-    Claim, CONTEXT_JUDGE_PROTOCOL, DATE_SCOPED_JUDGE_PROTOCOL,
-    grade_semantic, judge_prompt,
-)
+from pacbench.judging.grade import Claim, CONTEXT_JUDGE_PROTOCOL, DATE_SCOPED_JUDGE_PROTOCOL, grade_semantic, judge_prompt
 
 
 @pytest.mark.parametrize('instant,local,day,tomorrow', [
@@ -60,7 +57,7 @@ def test_attribute_and_roster_controls_preserve_independent_ordered_verdicts():
 
 def test_context_receipt_replay_rejects_clock_substitution(tmp_path):
     from pacbench.model_calls import ModelOutput
-    from pacbench.semantic_grade import grade_native_semantic, audit_native_judge_attempts
+    from pacbench.judging.grade import grade_native_semantic, audit_native_judge_attempts
 
     calls = tmp_path/'model-calls'
     calls.mkdir()

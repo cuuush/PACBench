@@ -6,8 +6,9 @@ import json
 import pytest
 
 from pacbench.workflows.conformance import RecordingAccount
-from pacbench.campaigns.pizza_week import compile_daily_week, daily_documents
-from pacbench.workflows.runner import Condition, Journal, captured_turn, run_workflow
+from pacbench.corpus.r2 import compile_daily_week, daily_documents
+from pacbench.workflows.runner import Condition, Journal, run_workflow
+from pacbench.workflows.turn_evidence import captured_turn
 from pacbench.workflows.spec import Document, Turn
 
 AT = '2026-10-06T21:00:00-04:00'
@@ -69,7 +70,7 @@ def test_rejects_inconsistent_tool_round_even_when_final_answer_matches(fault):
 
 
 def test_duplicate_turn_id_is_rejected_before_any_provider_effect(tmp_path):
-    from pacbench.campaigns.pizza_week import compile_week
+    from pacbench.corpus.r2 import compile_week
 
     _, docs, _, basis = compile_week('continuing-account')
     account = RecordingAccount(COND)
@@ -107,7 +108,7 @@ def test_daily_archive_bytes_and_full_schedule_stay_frozen():
 
 
 def test_retained_intake_rejects_later_release_submitted_before_question():
-    from pacbench.cohort_regrade_retained import document_readbacks
+    from pacbench.judging.retained_week import document_readbacks
     from tests.test_cohort_regrade import journal_documents
 
     _, docs, _, _, _ = compile_daily_week()
@@ -148,8 +149,8 @@ def test_tool_status_is_joined_to_the_actual_native_row_before_provenance():
 
 
 def test_spec_cli_validates_the_frozen_daily_layout(capsys):
-    from pacbench.specs import main
-    from pacbench.campaigns.pizza_week import DAILY_SPEC
+    from pacbench.corpus.prepare import specs_main as main
+    from pacbench.corpus.r2 import DAILY_SPEC
 
     assert main([str(DAILY_SPEC)]) == 0
     assert '7 | frozen | 47 | frozen' in capsys.readouterr().out

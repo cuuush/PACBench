@@ -4,7 +4,7 @@ from pathlib import Path
 import sys
 import time
 
-from pacbench.canary_capability import read
+from pacbench.judging.retained_scope import read_canary_binding as read
 from pacbench.gateway_reuse import atomic
 from pacbench.hermes_gateway import GatewayLifecycleError
 from .cognee_completion import completed, pipeline_rows, require_idle

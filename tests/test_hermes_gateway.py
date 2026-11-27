@@ -78,7 +78,7 @@ def test_persistent_forced_cleanup_rechecks_identity_and_never_claims_clean(tmp_
     witness=None
     with pytest.raises(gateway.GatewayLifecycleError):
         with gateway.turn_gateway(tmp_path,Path('/offline-python'),{'HERMES_HOME':str(tmp_path),'HOME':str(tmp_path)},
-            cwd=tmp_path,shutdown_timeout=0,runtime_module='pacbench.gateway.reuse_runtime') as witness:pass
+            cwd=tmp_path,shutdown_timeout=0,runtime_module='pacbench.gateway.observer') as witness:pass
     assert proc.killed is (not ownership_lost)
     assert witness['stopped'] is False
     assert witness.get('forced_stopped',False) is (not ownership_lost)

@@ -9,7 +9,7 @@ from http.server import BaseHTTPRequestHandler,ThreadingHTTPServer
 import pytest
 from pacbench.gateway_reuse import PersistentGateway,clone_observation,tree_manifest
 from pacbench.hermes_gateway import GatewayLifecycleError
-from pacbench.gateway.reuse_runtime import PROTOCOL
+from pacbench.gateway.observer import PROTOCOL
 
 ROOT=Path(__file__).resolve().parents[1]
 PYTHON=ROOT/'vendor/venv-hermes-isolated/bin/python'
@@ -48,7 +48,7 @@ def test_old_clock_condition_cannot_be_relabelled_as_persistent(tmp_path,clock):
 
 
 def test_funded_scoring_cannot_silently_use_fixed_clock_variant(tmp_path):
-    with pytest.raises(GatewayLifecycleError,match='unqualified'):
+    with pytest.raises(GatewayLifecycleError,match='original.*checkout'):
         PersistentGateway(tmp_path,PYTHON,{'PACBENCH_DIRECT':'1'},cwd=tmp_path,checkpoint='frozen')
 
 
@@ -129,7 +129,7 @@ def test_two_real_native_sessions_share_one_gateway_and_preserve_delayed_reme_wr
     home,env=native_home(tmp_path,first.endpoint)
     clock=None
     if clocked:
-        from pacbench.checkpoint_clock import CheckpointClock
+        from pacbench.provider_clock import CheckpointClock
         clock=CheckpointClock(home,env['PACBENCH_NOW'],before['sha256'])
     workspace=tmp_path/'empty';workspace.mkdir()
     def select(fixture):
@@ -168,7 +168,7 @@ def test_two_real_native_sessions_share_one_gateway_and_preserve_delayed_reme_wr
                 assert proof['observation_clock']['descriptor']['at']==b.at=='2026-10-05T09:10:00-04:00'
                 assert proof['observation_clock']['gateway_process_adoption']['pid']==pid
                 assert proof['observation_clock']['native_application_clock']['now']=='2026-10-05T09:10:00-04:00'
-                from pacbench.checkpoint_clock import audit_question
+                from pacbench.provider_clock import audit_question
                 with pytest.raises(RuntimeError,match='binding differs'):
                     audit_question(clock.folder,proof['observation_clock']['descriptor'],b,{**owner.witness,'pid':pid+1})
             assert 'Synthetic source-only memory.' in proof['native_turn']['prefetch_context']
@@ -249,7 +249,7 @@ def test_native_local_adapters_share_gateway_with_exact_times_and_isolated_write
         setup='import sys;sys.path.insert(0,sys.argv[1]);from pathlib import Path;from memcal import config,db;c=config.Config(home=Path(sys.argv[2]));c.ensure_dirs();db.open_db(c.db_path).close()'
         subprocess.run([str(PYTHON),'-c',setup,str(MEMCAL),str(baseline)],env=e,check=True,capture_output=True,text=True,timeout=10)
     a=clone_observation(baseline,tmp_path/'one');b=clone_observation(baseline,tmp_path/'two');frozen=tree_manifest(baseline)
-    from pacbench.checkpoint_clock import CheckpointClock
+    from pacbench.provider_clock import CheckpointClock
     clock=CheckpointClock(home,e['PACBENCH_NOW'],a['checkpoint']);workspace=tmp_path/'empty';workspace.mkdir()
     try:
         with PersistentGateway(home,PYTHON,e,cwd=workspace,checkpoint=a['checkpoint'],provider=provider,observation_clock=clock,cleanup_timeout=8) as owner:
@@ -275,7 +275,7 @@ def test_native_followup_resumes_only_its_question_session_without_clock_rewind(
     baseline=tmp_path/'baseline';baseline.mkdir();(baseline/'fact').write_text('Synthetic baseline')
     observation=clone_observation(baseline,tmp_path/'one');fixture=LocalNativeFixture(tmp_path/'one');fixture.release.set()
     home,e=native_home(tmp_path,fixture.endpoint);workspace=tmp_path/'empty';workspace.mkdir()
-    from pacbench.checkpoint_clock import CheckpointClock
+    from pacbench.provider_clock import CheckpointClock
     clock=CheckpointClock(home,e['PACBENCH_NOW'],observation['checkpoint']);observation.update(endpoint=fixture.endpoint,pid=os.getpid())
     try:
         with PersistentGateway(home,PYTHON,e,cwd=workspace,checkpoint=observation['checkpoint'],observation_clock=clock,cleanup_timeout=5) as owner:
@@ -330,7 +330,7 @@ def test_real_reme_embedded_writer_can_outlive_native_shutdown(tmp_path,monkeypa
     monkeypatch.setattr(native,'load_config',lambda *a:cfg)
     p=native.ReMeMemoryProvider();p.initialize('fresh-session',hermes_home=str(tmp_path))
     backend=p._backend
-    from pacbench.gateway.reuse_runtime import provider_state
+    from pacbench.gateway.observer import provider_state
     try:
         p.sync_turn('Synthetic question','Synthetic answer');assert entered.wait(2)
         assert p._write_thread.is_alive() and backend._thread.is_alive()

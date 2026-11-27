@@ -8,15 +8,16 @@ from types import SimpleNamespace
 
 import pytest
 
-from pacbench import api_input_trace
-from pacbench.checkpoint_clock import CheckpointClock
+from pacbench import context_isolation as api_input_trace
+from pacbench.provider_clock import CheckpointClock
 from pacbench.gateway_reuse import PersistentGateway
 from pacbench.provider_versions import memcal_week_pin
-from pacbench.providers.memcal.chat import MemCalChatWitness, verify_resume
+from pacbench.providers.memcal.workflow import chat_MemCalChatWitness as MemCalChatWitness, verify_resume
 from pacbench.workflows.native import WarmHermes
-from pacbench.workflows.runner import Condition, captured_turn
-from pacbench.campaigns.pizza_week import compile_week
-from pacbench.workflows.tracks import memcal_week_tools
+from pacbench.workflows.runner import Condition
+from pacbench.workflows.turn_evidence import captured_turn
+from pacbench.corpus.r2 import compile_week
+from pacbench.providers import memcal_week_tools
 from tests.test_gateway_reuse import LocalNativeFixture, PYTHON, ROOT, native_home
 
 
@@ -33,7 +34,7 @@ def test_stock_memcal_continuing_chat_and_explicit_source_lookup(tmp_path, monke
     def record(body):
         nonce = json.loads((clock.folder / 'active.json').read_text())['nonce']
         monkeypatch.setenv('PACBENCH_PYTHON_CLOCK_NONCE', nonce)
-        api_input_trace.record('offline-driver', {'id':uuid.uuid4().hex, 'request':body})
+        api_input_trace.record_input('offline-driver', {'id':uuid.uuid4().hex, 'request':body})
         last = body['messages'][-1]
         if last['role'] == 'user' and lunch[1].prompt in last['content']:
             return dict(index=0,id='native-archive-lookup',type='function',

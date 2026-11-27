@@ -1,5 +1,5 @@
 import json
-from pacbench.turn_timings import gateway_events,measure,summary,stamp
+from pacbench.workflows.recording import gateway_events, measure_turn as measure, turn_timing_summary as summary, turn_timestamp as stamp
 
 
 def turn(**extra):
@@ -32,7 +32,7 @@ def test_timeout_late_answer_and_unmeasured_turns_stay_unavailable():
 
 
 def test_report_uses_retained_logs_without_changing_artifacts(tmp_path):
-    from pacbench.scored_run_report import build
+    from pacbench.workflows.recording import scored_report as build
     r=tmp_path/'run';c=r/'reme';d=c/'repeat-1/reme/turns/q';d.mkdir(parents=True)
     (r/'cohort.json').write_text(json.dumps({'providers':['reme'],'state':'complete','questions':42,'criteria':188}))
     (c/'resolved-spec.json').write_text('{"timezone":"America/New_York"}')

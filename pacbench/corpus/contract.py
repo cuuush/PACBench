@@ -8,8 +8,8 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Callable
 
+from pacbench.evidence_store import binding_digest as digest
 from pacbench.model_calls import ModelOutput
-from pacbench.followups import digest
 
 AUTHORING_VERSION = 'event-scoped-v7'
 BEHAVIOR_REVIEW_VERSION = 'observable-reply-v2'
@@ -96,10 +96,6 @@ class EvaluationContract:
     question: str
     evidence_hash: str
     contract_hash: str
-
-    def public_judge_context(self) -> dict:
-        return {"claims": [vars(c) for c in self.claims],
-                "question": self.question, "contract_hash": self.contract_hash}
 
 
 def _fact_instruction(author_facts):

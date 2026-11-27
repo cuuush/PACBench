@@ -64,8 +64,7 @@ def _stop(process):
 @contextmanager
 def backend(root, source, qualification, model, model_base, model_marker):
     from pacbench.gateway_reuse import atomic
-    from pacbench.live_dispatch import process_identity
-    from pacbench.openrouter_direct import runtime_environment
+    from pacbench.workflows.progress import process_identity
 
     service=root/'memos-oss-service'
     service.mkdir(mode=0o700)
@@ -130,7 +129,6 @@ def backend(root, source, qualification, model, model_base, model_marker):
             EMBEDDING_DIMENSION='768',MOS_RERANKER_BACKEND='cosine_local',
             ENABLE_INTERNET='false',ENABLE_CHAT_API='false',MEMSCHEDULER_USE_REDIS_QUEUE='false')
         # Exclude Hermes checkpoint state from the physical provider clock.
-        runtime_environment(environment)
         stream=stack.enter_context((root/'memos-service.private.log').open('w'))
         proc=subprocess.Popen([str(qualification/'venv/bin/python'),'-m','uvicorn',
             'memos.api.server_api:app','--host','127.0.0.1','--port',str(port)],

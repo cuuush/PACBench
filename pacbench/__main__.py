@@ -1,14 +1,15 @@
 """Freeze one authored corpus and run it through native memory providers."""
 import argparse
-from functools import partial
 import os
-from pathlib import Path
 import sys
+from functools import partial
+from importlib import import_module
+from pathlib import Path
 from uuid import uuid4
 
 import pacbench.corpus.prepare as prepare
-from .providers import ACTIVE_PROVIDERS
 
+from .providers import ACTIVE_PROVIDERS
 
 REPO = Path(__file__).resolve().parents[1]
 
@@ -36,9 +37,12 @@ def use_installed_runtime(argv, parser):
 
 
 def plan_run(manifest, output, providers):
-    from .document_ingestion import daily_releases, validate_evaluation_clocks
-    from .followups import save
     from pacbench.corpus.audit import open_prepared
+    from pacbench.evidence_store import save
+    from pacbench.workflows.source_plan import (
+        daily_releases,
+        validate_evaluation_clocks,
+    )
 
     with open_prepared(manifest, portable=True) as corpus:
         messages, spec, corpus_hash = corpus.messages, corpus.resolved, corpus.corpus_hash
@@ -81,7 +85,7 @@ def run_from_args(args, parser, *, command_line=None):
         except (ValueError, FileExistsError) as exc:
             parser.error(str(exc))
 
-    from .native_pilot import run
+    from pacbench.workflows.native_run import run
 
     before_start = partial(use_installed_runtime, command_line, parser) if command_line is not None else None
     with cli_inference_route(parser, args.output, args.budget_usd, before_start=before_start) as inference_route:
@@ -109,12 +113,32 @@ def run_from_args(args, parser, *, command_line=None):
     return int(report['state'] != 'diagnostic' or len(results) != len(providers))
 
 
+
+# Import each command only after selection. Offline commands do not initialize
+# a provider, a gateway or a model client.
+COMMANDS = {
+    ('specs',): ('corpus.prepare', 'specs_main', 'inspect authored workflow specs'),
+    ('workflow',): ('workflows.conformance', 'workflow_main', 'plan or exercise a recording workflow'),
+    ('controls',): ('judging.paired', 'controls_main', 'render or score saved blind controls'),
+    ('costs',): ('usage', 'phase_cost_main', 'summarize costs from retained receipts'),
+    ('audit', 'r2'): ('corpus.r2', 'audit_r2_main', 'verify the frozen Week r2 schedule and authored scope'),
+    ('audit', 'day'): ('judging.overlays', 'day_review_main', 'inspect an archived Day preparation offline'),
+    ('paired',): ('judging.paired', 'paired_main', 'plan or interpret a sealed question-level comparison'),
+    ('batch',): ('judging.batch', 'main', 'export and compare retained Week answers offline'),
+    ('export',): ('workflows.answer_export', 'main', 'export answers from saved run evidence'),
+    ('regrade',): ('judging.overlays', 'main', 'inspect and recover a saved grading overlay'),
+    ('fixture',): ('providers.memcal.fixture', 'main', 'exercise a synthetic MemCal connector fixture'),
+    ('resume',): ('providers.openviking', 'resume_main', 'resume a verified pre-recall OpenViking run'),
+    ('audit', 'prepared'): ('corpus.audit', 'main', 'verify a frozen preparation'),
+    ('audit', 'native'): ('native_audit', 'main', 'verify evidence from a native run'),
+    ('gateway', 'serve'): ('gateway.server', 'serve_main', 'serve a configured Muse gateway'),
+    ('gateway', 'reconcile'): ('gateway.ledger', 'reconcile_main', 'reconcile an existing Muse ledger'),
+}
+
+
 def main(argv=None):
     command_line = argv is None
     argv = list(sys.argv[1:] if command_line else argv)
-    if argv and argv[0] not in {'generate', 'run', '-h', '--help'}:
-        return prepare.main(argv)  # Original bare-spec invocation.
-
     parser = argparse.ArgumentParser(prog='python -m pacbench', description=__doc__)
     commands = parser.add_subparsers(dest='command', required=True)
     generator = commands.add_parser('generate', help='generate, review and freeze an authored JSON spec')
@@ -127,6 +151,18 @@ def main(argv=None):
     mode.add_argument('--plan', action='store_true', help='verify and summarize the corpus without starting providers or models')
     mode.add_argument('--budget-usd', metavar='AMOUNT',
                       help='start a fresh OpenRouter run with this maximum spend in USD')
+    groups = {}
+    for words, (module, handler, description) in COMMANDS.items():
+        command = words[0]
+        parent = commands
+        if len(words) == 2:
+            if command not in groups:
+                group = commands.add_parser(command, help=f'{command} operations')
+                groups[command] = group.add_subparsers(dest='operation', required=True)
+            parent = groups[command]
+        parent.add_parser(words[-1], help=description, add_help=False)
+        if tuple(argv[:len(words)]) == words:
+            return getattr(import_module(f'.{module}', __package__), handler)(argv[len(words):])
     args = parser.parse_args(argv)
     if args.command == 'generate':
         return prepare.generate_from_args(args, generator)

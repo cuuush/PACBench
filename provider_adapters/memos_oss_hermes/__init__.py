@@ -101,7 +101,7 @@ class MemosOssProvider(MemoryProvider):
         return '\n'.join(row['memory'] for row in memories if row.get('memory'))
 
     def sync_turn(self, user_content, assistant_content, *, session_id='', **_):
-        from pacbench.checkpoint_clock import descriptor
+        from pacbench.provider_clock import descriptor
 
         session = session_id or self.session
         if self.closed or session != self.session:

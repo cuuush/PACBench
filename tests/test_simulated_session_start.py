@@ -7,7 +7,7 @@ from tempfile import TemporaryDirectory
 from unittest.mock import patch
 
 from pacbench import harness
-from pacbench.native_checks import advance, fresh_state
+from pacbench.workflows.turn_evidence import advance, fresh_state
 
 
 class SimulatedSessionStart(unittest.TestCase):

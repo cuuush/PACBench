@@ -1,14 +1,19 @@
 """Connect to PACBench’s shared budget gateway; never bypass it."""
 from __future__ import annotations
-from contextlib import ExitStack, contextmanager
+
+import dataclasses
+import ipaddress
 import json
 import math
 import os
-import urllib.request
 import urllib.error
+import urllib.request
+from contextlib import ExitStack, contextmanager
 from pathlib import Path
 from urllib.parse import urlsplit
-from .gateway import transport
+
+from pacbench import gateway as transport
+from pacbench.model_calls import GenerationError, load_config
 
 STATE = Path(os.environ.get('PACBENCH_GATEWAY_STATE') or
              os.environ.get('MUSE_GATEWAY_STATE') or '/workspace/shared/muse-gateway')
@@ -26,9 +31,27 @@ class GatewayConfigurationError(RuntimeError):
     """The configured gateway cannot establish a live spending boundary."""
 
 
+_CAMPAIGN_SETTINGS = (
+    'PACBENCH_ROLE_ROUTES', 'PACBENCH_EXECUTION_SCOPE', 'PACBENCH_RESERVATION_POLICY',
+    'PACBENCH_FUNDED_RUN_ID', 'PACBENCH_RECEIPT_JOURNAL', 'PACBENCH_WORKFLOW_SCOPE',
+    'PACBENCH_R2_LIVE_SCOPE', 'PACBENCH_CHECKPOINT_CANARY', 'PACBENCH_CHECKPOINT_FULL_RUN',
+    'PACBENCH_NATIVE_DIAGNOSTIC_SCOPE', 'PACBENCH_SUPERMEMORY_STOCK_SOURCE',
+)
+
+
+def require_supported_transport():
+    if os.environ.get('PACBENCH_DIRECT') == '1' or any(os.environ.get(k) for k in _CAMPAIGN_SETTINGS):
+        raise GatewayConfigurationError(
+            'This campaign requires its original reviewed checkout and private state.')
+
+
 @contextmanager
 def cli_inference_route(parser, output, budget_usd, *, requested=None, before_start=None):
     """Select a configured historical route or hold a fresh bounded session."""
+    try:
+        require_supported_transport()
+    except GatewayConfigurationError as exc:
+        parser.error(str(exc))
     if budget_usd is not None:
         from .openrouter_run import PublicSessionError, public_session
 
@@ -40,8 +63,6 @@ def cli_inference_route(parser, output, budget_usd, *, requested=None, before_st
             yield 'openrouter'
         return
 
-    if os.environ.get('PACBENCH_DIRECT') == '1':
-        parser.error('Direct OpenRouter requires its authorized launcher. See `python -m pacbench.openrouter_run --help`.')
     transport = os.environ.get('PACBENCH_TRANSPORT', '')
     if transport not in ('', 'muse', 'muse-gateway', 'openrouter'):
         parser.error('Set PACBENCH_TRANSPORT to muse-gateway or openrouter.')
@@ -68,14 +89,9 @@ def require_muse_state(state: Path) -> tuple[str, ...]:
 
 
 def client_settings(project: str) -> tuple[str, str]:
+    require_supported_transport()
     if os.environ.get('PACBENCH_TRANSPORT') == 'openrouter':
         import re
-        from .openrouter_direct import active, BASE_URL
-        if active():
-            if not re.fullmatch(r'[a-z0-9][a-z0-9_.-]{0,63}',project):
-                raise RuntimeError('Invalid direct accounting project')
-            from .direct_accounting import MARKER
-            return BASE_URL, MARKER+project
         base = os.environ.get('PACBENCH_OPENROUTER_PROXY_URL', '')
         key = os.environ.get('PACBENCH_OPENROUTER_PROXY_TOKEN', '')
         try:
@@ -120,26 +136,6 @@ def _gateway_health() -> dict:
 
 
 def require_live_cost_boundary() -> dict:
-    from .openrouter_direct import active
-    if active():
-        from .direct_accounting import live_budget
-        budget=live_budget();calls=budget.snapshot()
-        from .observational_receipts import enabled
-        if enabled():return {'service':'pacbench-openrouter-direct','accounting_mode':'prepaid-observational-v1','local_reservations_applied':False,'limit_usd':None}
-        from .funded_run_budget import selected
-        with budget.locked(write=False) as state:funded=selected(state)
-        if funded:
-            calls=[c for c in calls if c.get('funded_run_id')==funded['id']]
-        from decimal import Decimal
-        total=sum(Decimal(c['accounted']) for c in calls)
-        allocated=sum(Decimal(c['accounted']) for c in calls if c.get('kind')=='external_budget_allocation')
-        if any(c.get('http_status') in (401,403) for c in calls):
-            raise ModelAccessBlocked('Direct OpenRouter authentication blocked')
-        limit=Decimal(funded['limit_usd']) if funded else Decimal('20')
-        if total>=limit:raise SpendingBlocked('Funded run spending cap reached' if funded else 'Task spending cap reached')
-        return {'service':'pacbench-openrouter-direct','limit_usd':float(limit),'accounted_usd':float(total),'funded_run_id':funded['id'] if funded else None,
-                'external_allocations_usd':float(allocated),'audit_allowance_usd':float(Decimal(20)-allocated),
-                'audit_spend_and_bounds_usd':float(total-allocated)}
     try:
         health = _gateway_health()
     except urllib.error.HTTPError as exc:
@@ -156,7 +152,8 @@ def require_live_cost_boundary() -> dict:
             'The gateway address or health response is invalid. Check the configured gateway and README.md.') from exc
     if os.environ.get('PACBENCH_TRANSPORT') == 'openrouter':
         from decimal import Decimal, InvalidOperation
-        from .openrouter_route import MODEL, ENDPOINT
+
+        from .openrouter_route import ENDPOINT, MODEL
         try:
             limit = Decimal(os.environ['PACBENCH_OPENROUTER_LIMIT_USD'])
             actual = Decimal(str(health['limit_usd']))
@@ -193,13 +190,6 @@ def validate_route(url: str, key: str | None = None) -> None:
     """Fail before transport if a Spark route or credential bypasses our gateway."""
     import hmac
     import re
-    from .openrouter_direct import active,BASE_URL
-    if active():
-        from .direct_accounting import MARKER
-        if (url not in {BASE_URL,BASE_URL+'/',BASE_URL+'/chat/completions',BASE_URL+'/models'} or
-                key is not None and not re.fullmatch(re.escape(MARKER)+r'[a-z0-9][a-z0-9_.-]{0,63}',key)):
-            raise RuntimeError('Direct OpenRouter URL or accounting capability differs')
-        return
     base, expected_key = client_settings('route-check')
     expected, actual = urlsplit(base), urlsplit(url)
     if ((actual.scheme, actual.netloc) != (expected.scheme, expected.netloc) or
@@ -207,3 +197,139 @@ def validate_route(url: str, key: str | None = None) -> None:
         not re.fullmatch(r'/p/[a-z0-9][a-z0-9_.-]{0,63}/v1(?:/(?:models|responses|chat/completions))?', actual.path) or
         key is not None and not hmac.compare_digest(key, expected_key)):
         raise RuntimeError('Spark calls must use the authenticated shared spending gateway')
+
+
+REPO = Path(__file__).resolve().parents[1]
+
+
+DEFAULT_ENV = REPO / ".env"
+
+
+PROVIDER = "meta-ai"
+
+
+BASE_URL = ""
+
+
+KEY_ENV_VAR = "META_API_KEY"
+
+
+@dataclasses.dataclass(frozen=True)
+class DriverConfig:
+    """Resolved driver model. ``repr`` never carries the credential."""
+
+    configured_model: str
+    model_id: str
+    provider: str = PROVIDER
+    base_url: str = BASE_URL
+
+    def __repr__(self) -> str:
+        return (f"DriverConfig(configured_model={self.configured_model!r}, "
+                f"model_id={self.model_id!r}, provider={self.provider!r})")
+
+
+def available_model_ids(credential: str, base_url: str = BASE_URL,
+                        timeout: float = 30.0) -> list[str]:
+    """Model ids the Meta API currently serves (credential kept out of errors).
+
+    Bounded retries (3) cover transient gateway blips during setup resolution.
+    Scored native turns never retry.
+    """
+    base_url = base_url or client_settings("pacbench-driver")[0]
+    validate_route(base_url, credential)
+    request = urllib.request.Request(
+        base_url.rstrip("/") + "/models",
+        headers={"Authorization": f"Bearer {credential}"})
+    last: Exception | None = None
+    for attempt in range(3):
+        try:
+            with urllib.request.urlopen(request, timeout=timeout) as response:
+                data = json.loads(response.read())
+            break
+        except Exception as exc:
+            last = exc
+            import time
+            time.sleep(2 * (attempt + 1))
+    else:
+        raise GenerationError(
+            f"driver model resolution failed: cannot list Meta API models "
+            f"({type(last).__name__})") from last
+    try:
+        return [m["id"] for m in data["data"]]
+    except (KeyError, IndexError, TypeError) as exc:
+        raise GenerationError(
+            "driver model resolution failed: unusable model list payload") from exc
+
+
+def resolve_model_id(configured: str, available: list[str]) -> str:
+    """The configured MODEL must be served verbatim. No silent fallback."""
+    if configured in available:
+        return configured
+    raise GenerationError(
+        f"driver model {configured!r} is not served by the Meta API "
+        f"(checked {len(available)} ids). "
+        f"Fix PACBench .env MODEL; will not substitute another model.")
+
+
+def load_driver(env_path: str | Path = DEFAULT_ENV) -> DriverConfig:
+    """Resolve the driver from PACBench-owned `.env` and install the key.
+
+    Reads ``MODEL``/``META`` via the existing generation loader (same parsing,
+    same errors), validates the id against the live Meta model list, exports
+    ``META_API_KEY`` into this process only, and returns the config.
+    Raises ``GenerationError`` on any problem — callers fail the run, never
+    fall back to another model or to live-profile credentials.
+    """
+    if os.environ.get('PACBENCH_TRANSPORT') == 'openrouter':
+        from pacbench.openrouter_route import MODEL
+        require_live_cost_boundary()
+        base_url, client_key = client_settings('pacbench-driver')
+        os.environ[KEY_ENV_VAR] = client_key
+        return DriverConfig(configured_model=MODEL, model_id=MODEL,
+                            provider='openrouter', base_url=base_url)
+    config, credential = load_config(env_path)
+    base_url, client_key = client_settings("pacbench-driver")
+    model_id = resolve_model_id(config.model, available_model_ids(client_key, base_url))
+    os.environ[KEY_ENV_VAR] = client_key
+    os.environ["META_BASE_URL"] = base_url
+    return DriverConfig(configured_model=config.model, model_id=model_id, base_url=base_url)
+
+
+def loopback_url(value: str) -> str:
+    """Require a literal loopback endpoint; do not resolve arbitrary DNS names.
+
+    This check protects the memory-service destination, not every downstream
+    model configured inside that service. Those require separate verification.
+    """
+    parsed = urlsplit(value)
+    if parsed.scheme not in ('http', 'https') or not parsed.hostname:
+        raise ValueError('A loopback HTTP(S) URL is required')
+    if parsed.username or parsed.password or parsed.query or parsed.fragment:
+        raise ValueError('Credentials, query and fragment are forbidden in service URLs')
+    try:
+        local = parsed.hostname == 'localhost' or ipaddress.ip_address(parsed.hostname).is_loopback
+    except ValueError:
+        local = False
+    if not local:
+        raise ValueError('Memory service must be on loopback, not a hosted endpoint')
+    # Accessing .port also rejects malformed/non-numeric port values.
+    if parsed.port is not None and not 1 <= parsed.port <= 65535:
+        raise ValueError('Invalid port')
+    return value.rstrip('/')
+
+
+def local_endpoint(value: str) -> str:
+    """Require a literal loopback address, not a potentially remote DNS alias."""
+    parsed = urlsplit(value)
+    try:
+        parsed.port
+    except ValueError as error:
+        raise ValueError("Invalid local endpoint port") from error
+    try:
+        loopback = ipaddress.ip_address(parsed.hostname or "").is_loopback
+    except ValueError:
+        loopback = parsed.hostname == "localhost"
+    if (parsed.scheme not in {"http", "https"} or not loopback
+            or parsed.username or parsed.password or parsed.query or parsed.fragment):
+        raise ValueError("A credential-free loopback HTTP(S) endpoint is required")
+    return value.rstrip("/")

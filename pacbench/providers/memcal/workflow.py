@@ -1,30 +1,23 @@
 """Run MemCal Week and prepare its native account."""
-from contextlib import ExitStack, closing, contextmanager
-from dataclasses import asdict
-from importlib import import_module
-from pathlib import Path
-from tempfile import TemporaryDirectory
-import argparse
+from __future__ import annotations
+
+import hashlib
 import json
 import os
+import sqlite3
+import subprocess
 import time
+from contextlib import closing
+from pathlib import Path
 
-from .. import run_environment
-from ... import harness
-from ...canary_capability import digest
-from ...checkpoint_clock import CheckpointClock
-from ...context_isolation import validate_recall_environment
-from pacbench.corpus.sources import load_bundle
-from ...gateway_client import client_settings
-from ...gateway_reuse import PersistentGateway
+from pacbench import harness
 from pacbench.corpus.prepare import read_spec
-from ...provider_versions import memcal_week_pin, verify_memcal_source
-from pacbench.workflows.delivery import MemCalReaders
-from pacbench.workflows.native import NativeAccount, WarmHermes
-from pacbench.workflows.runner import Condition
-from pacbench.campaigns.pizza_week import ROOT, SPEC
-from pacbench.workflows.tracks import memcal_week_tools
-from .chat import MemCalChatWitness
+from pacbench.corpus.r2 import ROOT, SPEC
+from pacbench.corpus.sources import load_bundle
+from pacbench.gateway.observer import PROTOCOL
+from pacbench.workflows.progress import process_identity
+
+from ... import harness
 
 
 def _source_messages():
@@ -45,110 +38,17 @@ def _model_config(store, model, base, key):
     return cfg
 
 
-@contextmanager
-def open_account(*, root, site, scope, ledger, upstream):
-    """Yield (condition, account). The site supplies release(cutoff), observe(cutoff),
-    deployment(), bindings_path, bindings_sha256. Its actual Messages/IMAP consent,
-    mapping, and as-of supply must already exist. The site .env is preserved. Omit
-    model overrides there or set MEMCAL_LLM_PROVIDER=openai-compatible, the OpenRouter
-    /api/v1 base, and the selected Luna model for propose/sweep/match. Leave the
-    compatibility API key to the scoped accounting environment, with fallback and
-    calendar/reminder publishing disabled. Existing Hermes homes require their original
-    warm owner; this factory never recreates a controller or adopts an orphan.
-    """
-    from pacbench.workflows import capability as cap
-    from ...native_pilot import memcal_model_settings
-    from ...openrouter_route import PROFILES
-    from .site import inspect_memcal_site
-    from .source import MemCalSourceWitness
-
-    root = Path(root)
-    if (root.resolve() != root or root.name != 'memcal' or Path(site.memcal_home) != root/'memcal-home'
-            or os.environ.get('PACBENCH_DIRECT') != '1' or json.loads(os.environ[cap.ENV]) != scope):
-        raise ValueError('MemCal factory requires its run-owned existing store and scoped direct transport')
-    verified = cap.load()
-    if (verified['root'] != str(root) or verified['provider'] != 'memcal' or verified['account'] != site.account
-            or verified['store'] != site.memcal_home or verified['site_sha256'] != digest(asdict(site))):
-        raise ValueError('workflow capability differs from site account')
-    for name in ('release','observe','deployment'):
-        if not callable(getattr(upstream,name,None)):
-            raise ValueError(f'provisioned synthetic site requires {name}')
-    home = root/'hermes-home'
-    if home.exists() or home.is_symlink() or (root/'reuse-clock').exists():
-        raise ValueError('existing Hermes home or clock requires its original warm owner')
-    validate_recall_environment()
-    release = verify_memcal_source(harness.REPO)
-    label, revision, version = memcal_week_pin()
-    if release['revision'] != revision or verified['access']['memcal_revision'] != revision:
-        raise ValueError('MemCal Week source differs from the qualified site')
-    # Checks pinned import, dedicated OS home and both real readers, without fetching bodies.
-    inspect_memcal_site(site)
-    from memcal import db
-    documents, _, frozen = cap.schedule(verified['spec_sha256'], verified['canary'])
-    messages = _source_messages()
-    if frozen != verified['frozen_inputs']:
-        raise ValueError('scoped dataset differs from the verified v2 inputs')
-    tools = memcal_week_tools(revision)
-    profile = PROFILES['luna-bedrock-global']
-    model = profile['model']
-    roles = verified['projects']['memcal']
-    driver_url, driver_key = client_settings(roles['driver'])
-    memory_url, memory_key = client_settings(roles['memory'])
-    # Never feed a site mailbox credential to the driver. MemCal resolves source
-    # settings from the explicitly scoped local store.
-    model_env = memcal_model_settings(model, memory_url, memory_key)
-    stack = ExitStack()
-    try:
-        stack.enter_context(run_environment(model_env))
-        cfg = _model_config(root/'memcal-home', model, memory_url, memory_key)
-        conn = stack.enter_context(closing(db.connect(cfg.db_path)))
-        reader = MemCalReaders(conn, cfg, site=site)
-        source = MemCalSourceWitness(conn, site, messages, documents,
-            bindings_path=upstream.bindings_path, bindings_sha256=upstream.bindings_sha256,
-            release=upstream.release, observe=upstream.observe)
-        fallback = root/'fallback-home'
-        fallback.mkdir(mode=0o700)
-        harness.provision_home(home, provider_plugin_src=Path(release['source'])/'integrations/hermes/memcal',
-                               provider_name='memcal',model=model,model_provider='openrouter',model_base_url=driver_url)
-        env = harness.turn_env(documents[0].cutoff,home,','.join(tools),dict(
-            HOME=str(fallback), MEMCAL_HOME=str(cfg.home), MEMCAL_SRC=release['source'],
-            PACBENCH_MEMCAL_CONDITION=label, PACBENCH_PROVIDER_ONLY='1', HERMES_ENABLE_PROJECT_PLUGINS='0',
-            PACBENCH_WORKFLOW_CAPTURE='pizza-week-conversation-v2', PACBENCH_API_INPUT_TRACE=str(root/'api-inputs.jsonl'),
-            OPENROUTER_API_KEY=driver_key, OPENROUTER_BASE_URL=driver_url, OPENROUTER_API_BASE=driver_url,
-            PACBENCH_PREFETCH_PROVENANCE=json.dumps({'protocol':'native-prefetch-provenance-v1','provider':'memcal',
-                'state':'unverified','reason':'Stock brief/wiki injection lacks a typed per-block source witness.'}),
-            TZ='America/New_York'))
-        clock = CheckpointClock(home, documents[0].cutoff, verified['spec_sha256'])
-        cwd = Path(stack.enter_context(TemporaryDirectory(prefix='pacbench-memcal-chat-')))
-        owner = stack.enter_context(PersistentGateway(home, harness.ISOLATED_BIN.parent/'python', env, cwd=cwd,
-                                    checkpoint=verified['spec_sha256'], observation_clock=clock,provider='memcal'))
-        witness = MemCalChatWitness(owner,ledger,deployment=upstream.deployment)
-        account = NativeAccount(site.account,'memcal',cfg.home,reader,WarmHermes(owner,clock,witness.idle),
-                                witness, source_witness=source)
-        deployment = 'synthetic chat.db and isolated IMAP' if site.synthetic_chatdb else f'synthetic {site.imessage_backend} and IMAP'
-        service_clock = ('simulated MemCal and Hermes clocks; physical IMAP and execution clocks' if site.synthetic_chatdb
-                         else 'physical connector service clock; scheduled source visibility and simulated Hermes question clock')
-        condition = Condition('memcal','first-party-connector','continuing-account','Hermes '+owner.pins['hermes'],
-            model,profile['endpoint'],deployment,version,owner.pins['hermes_isolation_sha256'],service_clock,tools)
-        yield condition, account
-    except BaseException as primary:
-        try:
-            stack.close()
-        except BaseException as cleanup:
-            primary.add_note(f'MemCal account cleanup also failed ({type(cleanup).__name__})')
-        raise
-    else:
-        stack.close()
-
-
 def check_canary(root):
-    from ...canary_capability import binding, read, sha
-    from ...observational_receipts import RunReceiptJournal
-    from pacbench.workflows.capability import MEMCAL_SCOPE, schedule
+    from pacbench.corpus.r2 import SPEC
+    from pacbench.evidence_store import file_binding as binding
+    from pacbench.evidence_store import file_sha as sha
+    from pacbench.judging.retained_scope import MEMCAL_SCOPE
+    from pacbench.judging.retained_scope import read_canary_binding as read
+    from pacbench.judging.retained_scope import retained_schedule as schedule
+    from pacbench.receipt_costs import read_attempts
     from pacbench.workflows.grading import retained_grade
-    from pacbench.workflows.recording import receipt_summary
     from pacbench.workflows.progress import WorkflowProgress
-    from pacbench.campaigns.pizza_week import SPEC
+    from pacbench.workflows.recording import receipt_summary
 
     root = Path(root).resolve(strict=True)
     scope_binding = binding(root/'workflow-scope.json')
@@ -183,7 +83,7 @@ def check_canary(root):
                     raise ValueError('canary criterion verdict differs from the original judge receipt')
         if sum(r['graded_criteria'] for r in progress.summary().values()) != sum(len(t.claims) for t in turns):
             raise ValueError('canary grades are incomplete')
-    rows = RunReceiptJournal(root/'receipts.jsonl').snapshot()
+    rows = read_attempts(root / 'receipts.jsonl')
     roles = {row['accounting_role'] for row in rows if row.get('upstream_request_id')}
     if (roles != {'hermes','memory_provider','judge'} or any(
             (row.get('upstream_request_id') or '').startswith('offline-native-') for row in rows)
@@ -193,169 +93,322 @@ def check_canary(root):
     return identity['store']
 
 
-def run_live(campaign, site, open_account, billing_confirmation, *, canary=False, after_canary=None):
-    """open_account owns site-specific upstream releases, a warm Hermes and native cleanup.
-
-    It is a context manager factory called with root, site, scope and ledger. It
-    yields (Condition, NativeAccount); the controller performs the qualification.
-    """
-    from .site import inspect_memcal_site
-    from .contract import verify_contract
-    from pacbench.campaigns.pizza_week import compile_pizza_week
-
-    if canary == (after_canary is not None):
-        raise ValueError('choose either a fresh live canary or a verified completed canary')
-    full_plan = compile_pizza_week()
-    verify_contract(list(full_plan.documents), list(full_plan.turns), full_plan.source_basis)
-    plan = compile_pizza_week(canary=canary) if canary else full_plan
-    inspect_memcal_site(site)
-    with run_environment({'PACBENCH_OPENROUTER_PROFILE':'luna-bedrock-global'}):
-        if after_canary is not None:
-            if Path(check_canary(after_canary)).resolve() == Path(site.memcal_home).resolve():
-                raise ValueError('full week requires a fresh store distinct from the canary')
-            prior = json.loads((Path(after_canary)/'workflow-scope.json').read_text())
-            if (prior['access'].get('source_condition') == 'synthetic-chatdb-imap-v1') != site.synthetic_chatdb:
-                raise ValueError('canary and full week require the same source condition')
-        return _run(Path(campaign).absolute(), site, open_account, Path(billing_confirmation), plan)
+def memcal_model_settings(model: str, base: str, key: str) -> dict:
+    """Native store-scoped model settings; pure and usable in offline plans."""
+    return {'MEMCAL_LLM_PROVIDER': 'openai-compatible', 'MEMCAL_OPENAI_BASE_URL': base,
+            'OPENAI_COMPAT_API_KEY': key, 'MEMCAL_PROPOSE_MODEL': model,
+            'MEMCAL_SWEEP_MODEL': model, 'MEMCAL_MATCH_MODEL': model}
 
 
-def claim_prepared_arm(campaign, site):
-    """Claim an already provisioned synthetic store without modifying its source data."""
-    root = campaign/'memcal'
-    store = root/'memcal-home'
-    siblings = {root}
-    if getattr(site, 'synthetic_chatdb', False):
-        siblings.update(campaign/name for name in ('source-home','private-fixtures','empty-mailbox.json',
-                                                   'source-bindings.json','synthetic-source-provenance.json'))
-    if (campaign != campaign.resolve() or not campaign.is_dir() or root != root.resolve()
-            or Path(site.memcal_home) != store or store != store.resolve() or not store.is_dir()
-            or set(campaign.iterdir()) != siblings or set(root.iterdir()) != {store}):
-        raise ValueError('expected a fresh campaign containing only memcal/memcal-home')
-    # The exclusive marker arbitrates two launchers observing the same pristine site.
-    with (root/'launcher.claim').open('x') as stream:
-        stream.write('memcal-pizza-week-v2\n')
-        stream.flush()
-        os.fsync(stream.fileno())
-    return root
+def _memcal_plan(root, model, base, key):
+    return memcal_model_settings(model, base, key)
 
 
-def _run(campaign, site, open_account, billing_confirmation, plan):
-    from pacbench.workflows import capability as cap
-    from ...canary_capability import binding, read
-    from ...context_isolation import validate_recall_environment
-    from ...gateway_client import client_settings
-    from ...gateway_reuse import atomic
-    from ...live_dispatch import CONDITION
-    from ...model_calls import ModelClient
-    from ...observational_receipts import credit_snapshot
-    from ...openrouter_direct import direct_environment
-    from ...openrouter_route import CHAT_COMPLETIONS_URL, MODEL, PROFILE_NAME
-    from ...openrouter_run import fetch_catalog
-    from pacbench.workflows.recording import receipt_summary
-    from pacbench.workflows.recording import coverage, export_verified_metrics
-    from pacbench.workflows.native import NativeAccount
-    from pacbench.workflows.progress import WorkflowProgress
-    from pacbench.workflows.runner import run_compiled_workflow
+def _provision_memcal(arm):
+    root, env, model = arm.root, arm.env, arm.model
+    memory_key, resume = arm.memory_key, arm.resume
+    configured_model = model if model != "unconfigured" else os.environ.get("MODEL", "muse-spark-1.3-contributor")
+    env.update(memcal_model_settings(configured_model, arm.memory_url, memory_key))
+    # Recommended store-scoped configuration overrides project .env fallbacks.
+    memcal_home = root / "memcal-home"
+    memcal_home.mkdir(parents=True, exist_ok=True)
+    routed = {key:value for key,value in env.items() if key.startswith('MEMCAL_') and key not in {'MEMCAL_HOME','MEMCAL_SRC'}}
+    routed['OPENAI_COMPAT_API_KEY'] = memory_key
+    if resume:
+        retained=dict(line.split('=',1) for line in (memcal_home/'.env').read_text().splitlines() if '=' in line)
+        if retained!=routed:raise ValueError('Retained Memcal model configuration differs')
+    else:(memcal_home / '.env').write_text(''.join(f'{key}={value}\n' for key,value in routed.items()))
+    os.chmod(memcal_home / '.env', 0o600)
+    # Native first-install bootstrap, with no facts seeded into the store.
+    bootstrap = (
+        "import sys; sys.path.insert(0, sys.argv[1]); "
+        "from memcal import config, db, brief; "
+        "import os; cfg=config.load(); "
+        "assert cfg.llm_provider == 'openai-compatible' and cfg.openai_base_url == os.environ['MEMCAL_OPENAI_BASE_URL'] and cfg.openai_api_key == os.environ['OPENAI_COMPAT_API_KEY'], 'Memcal model routing must use the shared gateway'; cfg.ensure_dirs(); "
+        "conn=db.open_db(cfg.db_path); brief.write(conn,cfg); conn.close()")
+    if not resume:
+        proc = subprocess.run([str(harness.ISOLATED_BIN.parent / "python"), "-c",
+                               bootstrap, env['MEMCAL_SRC']],
+                              env={**os.environ, **env}, capture_output=True, timeout=30)
+        if proc.returncode:
+            raise RuntimeError("Memcal native scratch-store bootstrap failed")
 
-    canary = plan.canary
 
-    if (PROFILE_NAME != cap.PROFILE or campaign != campaign.resolve() or any(os.environ.get(name) for name in
-            (cap.ENV, 'PACBENCH_DIRECT_UPSTREAM_KEY', 'PACBENCH_R2_LIVE_SCOPE', 'PACBENCH_CHECKPOINT_FULL_RUN',
-             'PACBENCH_CHECKPOINT_CANARY', 'PACBENCH_REMAINING_R2'))):
-        raise ValueError('a fresh, isolated Luna run process is required')
-    confirmation = read(binding(billing_confirmation))
-    cap.confirm_setting(confirmation)
-    validate_recall_environment()
-    root = claim_prepared_arm(campaign, site)
-    started = time.monotonic()
-    settings = dict(PACBENCH_RECEIPT_JOURNAL=str(root/'receipts.jsonl'), PACBENCH_DISPATCH_TRACKING=CONDITION,
-                    PACBENCH_ROLE_ROUTES='luna-all-roles-v1', PACBENCH_LUNA_COMPATIBILITY='temperature-omitted-default-v1',
-                    PACBENCH_EFFECTIVE_OUTPUT_TOKENS='32768', PACBENCH_STOP_FILE=str(root/'STOP'),
-                    PACBENCH_OBSERVATIONAL_COHORT_STOP=str(cap.campaign_stop(root)),
-                    PACBENCH_MEMORY_API_INPUT_TRACE_ROOT=str(root/'memory-api-inputs'), PACBENCH_IMPORT_ROOT=str(root))
-    with run_environment(settings):
-        atomic(root/'verified-setting.json', confirmation)
-        route, inventory = fetch_catalog(profile=cap.PROFILE)
-        if 'temperature' in inventory['supported_parameters']:
-            raise ValueError('Luna route signature changed')
-        atomic(root/'catalog.json', {'route':route, 'supported_parameters':inventory['supported_parameters']})
-        scope = cap.create_memcal_scope(root, site, canary=canary, prepaid=credit_snapshot(),
-                                        auto_recharge_evidence=binding(root/'verified-setting.json'))
-        with run_environment({cap.ENV:json.dumps(scope)}):
-            ledger = cap.budget()
-            result = {'state':'incomplete', 'cleanup':'unverified', 'billing':None, 'scope':scope, 'canary':canary}
-            failure = None
-            try:
-                with direct_environment(os.environ['OPENROUTER_API_KEY']):
-                    with open_account(root=root, site=site, scope=scope, ledger=ledger) as (condition, account):
-                        if (type(account) is not NativeAccount or account.provider != 'memcal' or
-                                condition.provider != 'memcal' or condition.track != 'first-party-connector' or
-                                condition.state != 'continuing-account' or set(condition.channels) != {'email','imessage'}):
-                            raise ValueError('deployment did not bind the reviewed mixed MemCal account')
-                        _, key = client_settings(cap.load()['projects']['memcal']['judge'])
-                        judge = ModelClient(key=key, model=MODEL, record_dir=root/'workflow/model-calls',
-                                            url=CHAT_COMPLETIONS_URL, json_mode=True, max_attempts=1)
-                        run_compiled_workflow(plan, condition, account, root/'workflow', judge=judge)
-                    result['cleanup'] = 'complete'
-            except BaseException as error:
-                failure = error
-                result['error'] = type(error).__name__
-                raise
-            finally:
+class chat_MemCalChatWitness:
+    def __init__(self, owner, attempts, *, deployment=None, timeout=60):
+        self.owner = owner
+        self.account = None
+        self.deployment = deployment
+        self.attempts = attempts
+        self.timeout = timeout
+        self.store = owner.home.parent / 'memcal-home' / 'memcal.db'
+        self.last_archive = {}
+
+    def verify_deployment(self, condition, identity):
+        """Compose observed chat settings with the site's independent, read-only attestation.
+
+        deployment() supplies account, store_path (the SQLite file), synthetic_source_provenance,
+        observed_connector_grants by channel, as_of_upstream, and platform_created_messages_fixture.
+        A native archive or plugin mounting alone cannot attest Apple provenance or consent.
+        """
+        from ruamel.yaml import YAML
+
+        from pacbench.hermes_gateway import _identity
+        BASE_URL = 'https://openrouter.ai/api/v1'
+        from pacbench.openrouter_route import PROFILES
+        from pacbench.provider_versions import MEMCAL_WEEK_REVISION, memcal_week_pin
+        from pacbench.providers import memcal_week_tools, validate_native_deployment
+        from pacbench.providers.memcal.source import manifest
+        if not callable(self.deployment):
+            raise ValueError('MemCal requires independent synthetic site deployment observations')
+        site = self.deployment()
+        if site.get('account') != identity or site.get('store_path') != str(self.store):
+            raise ValueError('site account or source store differs from this gateway')
+        env = self.owner.env
+        profile = PROFILES['luna-bedrock-global']
+        cfg = YAML(typ='safe').load((self.owner.home / 'config.yaml').read_text())
+        granted = sorted(env.get('PACBENCH_TOOL_ALLOWLIST','').split(','))
+        label, revision, version = memcal_week_pin()
+        if (self.owner.provider != 'memcal' or self.owner.pins['memcal'] != revision
+                or env.get('PACBENCH_MEMCAL_CONDITION') != label
+                or hashlib.sha256((self.owner.home/'config.yaml').read_bytes()).hexdigest() != self.owner.config_sha256
+                or cfg['model'].get('provider') != 'openrouter' or cfg['model'].get('default') != profile['model']
+                or cfg['model'].get('base_url') != BASE_URL or cfg.get('provider_routing') != {'only':[profile['endpoint']]}
+                or cfg['memory'].get('provider') != 'memcal'
+                or cfg['memory'].get('memory_enabled') is not False or cfg['memory'].get('user_profile_enabled') is not False
+                or granted != list(memcal_week_tools(revision)) or env.get('PACBENCH_PROVIDER_ONLY') != '1'
+                or env.get('PACBENCH_DIRECT') != '1' or env.get('PACBENCH_OPENROUTER_PROFILE') != 'luna-bedrock-global'
+                or env.get('MEMCAL_HOME') != str(self.store.parent) or self.store.resolve() != self.store):
+            raise ValueError('MemCal gateway route, stable release, store, or tool grants differ')
+        pid = self.owner.witness['pid']
+        if _identity(self.owner.home, pid)['start_time'] != self.owner.witness['start_time']:
+            raise ValueError('MemCal gateway process changed')
+        result = {key:site[key] for key in ('synthetic_source_provenance','observed_connector_grants','as_of_upstream')}
+        for key in ('platform_created_messages_fixture', 'synthetic_chatdb_fixture'):
+            if key in site:
+                result[key] = site[key]
+        result.update(account=identity, store_identity=str(self.store.parent), condition=vars(condition),
+                      observed_version=version, memcal_revision=revision,
+                      frontend_identity='Hermes ' + self.owner.pins['hermes'], observed_patch=self.owner.pins['hermes_isolation_sha256'],
+                      effective_model_route=profile['endpoint'], granted_tools=granted,
+                      native_processes={'driver':process_identity(pid),'memory':process_identity()},
+                      route_evidence='Direct route configuration; actual request payloads and receipts audited separately')
+        if revision == MEMCAL_WEEK_REVISION:
+            result.update(manifest())
+        validate_native_deployment(condition, result)
+        self.account = identity
+        return result
+
+    def control_readback(self):
+        if self.account is None:
+            raise RuntimeError('fresh readback needs the verified site identity')
+        path = self.owner.home / 'state.db'
+        sessions = 0
+        if path.is_file():
+            with closing(sqlite3.connect(path.as_uri() + '?mode=ro', uri=True)) as db:
+                sessions = db.execute('SELECT count(*) FROM sessions').fetchone()[0]
+        with closing(sqlite3.connect(self.store.as_uri() + '?mode=ro', uri=True)) as db:
+            rows = dict(db.execute('SELECT channel,count(*) FROM archive GROUP BY channel'))
+            if rows:
+                raise ValueError('fresh MemCal account already contains archived records')
+        return dict(account=self.account, chat_count=sessions, conversation_writes=0,
+                    source_files=[], readback=dict(archive_counts=rows, store=str(self.store), native_sessions=sessions))
+
+    def tool_boundaries(self, results):
+        # The wire and session DB retain exact tool output. Only read native archive
+        # lines explicitly returned by a shipped tool; leave unsupported joins unknown.
+        fields = {'memcal_search_archive':'results','memcal_open_source':'evidence','memcal_conversation':'conversation'}
+        boundaries = {}
+        with closing(sqlite3.connect(self.store.as_uri() + '?mode=ro', uri=True)) as db:
+            for result in results:
+                name = result['tool']
+                if name not in fields or not result['success']:
+                    continue
                 try:
-                    result['elapsed_s'] = time.monotonic() - started
-                    result['billing'] = receipt_summary(root, ledger.snapshot(), campaign.name)
-                    if (root/'workflow/run.json').is_file():
-                        meta = json.loads((root/'workflow/run.json').read_text())
-                        with WorkflowProgress(root/'workflow', meta['run_key']) as progress:
-                            result['by_measure'] = progress.summary()
-                            result['coverage'] = coverage(result['by_measure'], complete=progress.complete)
-                            result['grade_states'] = progress.grade_states()
-                            result['turn_metrics'] = export_verified_metrics(progress, root/'turn-metrics.jsonl')
-                            result['full_score_available'] = progress.complete
-                            if failure is None and progress.execution_sealed:
-                                all_graded = all(r['graded_criteria'] == r['planned_criteria'] for r in result['by_measure'].values())
-                                if canary and all_graded:
-                                    result['state'] = 'live-canary-complete'
-                                elif progress.complete:
-                                    result['state'] = 'live-week-complete'
-                except Exception as report_error:
-                    result['report_error'] = type(report_error).__name__
-                    if failure is not None:
-                        failure.add_note(f'Additional reporting failure: {type(report_error).__name__}')
-                    else:
-                        raise
-                finally:
-                    try:
-                        atomic(root/'result.json', result)
-                    except Exception as write_error:
-                        if failure is None:
-                            raise
-                        failure.add_note(f'Could not write result.json: {type(write_error).__name__}')
-    return result
+                    response = json.loads(result['text'])
+                except (TypeError, ValueError):
+                    continue
+                rows = response.get(fields[name]) if isinstance(response,dict) else None
+                if not isinstance(rows,list):
+                    continue
+                confirmed = []
+                for row in rows:
+                    if not isinstance(row,dict):
+                        continue
+                    ident = row.get('line_id',row.get('id'))
+                    stored = db.execute('SELECT text,channel,thread FROM archive WHERE id=?', (ident,)).fetchone()
+                    if not stored:
+                        continue
+                    visible = stored[0][:400] if name == 'memcal_search_archive' else stored[0]
+                    if (row.get('text'),row.get('channel'),row.get('thread')) == (visible, stored[1],stored[2] or ''):
+                        confirmed.append(dict(archive_id=ident,channel=stored[1],
+                                              rendered_text_sha256=hashlib.sha256(visible.encode()).hexdigest()))
+                boundaries[result['tool_call_id']] = dict(native_tool=name,returned_lines=len(rows),verified_archive_lines=confirmed)
+        return boundaries
+
+    def request_lineage(self, requests):
+        selected = {r['request_id'] for r in requests}
+        if callable(self.attempts):
+            rows = self.attempts()
+            for row in reversed(rows):
+                if row['id'] in selected and row.get('retry_of'):
+                    selected.add(row['retry_of'])
+        else:
+            rows = self.attempts.lineage_for_requests(selected)
+            selected.update(r['id'] for r in rows)
+        return [dict(id=r['id'],parent=r.get('retry_of'),operation=r['dispatch_context']['operation_id'],
+                     origin='harness' if r.get('retry_of') else 'unknown') for r in rows if r['id'] in selected]
+
+    def close(self):
+        pass  # Caller owns the authenticated source, database and gateway lifetimes.
+
+    def _active_attempts(self):
+        if callable(self.attempts):
+            return any(not r.get('finished') for r in self.attempts() if r.get('accounting_role') != 'judge')
+        return self.attempts.has_active_attempts(roles=('hermes','memory_provider'))
+
+    def idle(self):
+        since = time.monotonic_ns()
+        deadline = time.monotonic() + self.timeout
+        while time.monotonic() < deadline:
+            if (self.owner.home / 'reuse-observer-error.json').exists():
+                raise RuntimeError('native MemCal gateway observer failed; inspect its error receipt')
+            path = self.owner.home / 'reuse-observer.json'
+            if path.exists():
+                state = json.loads(path.read_bytes())
+                identity = [state['pid'], state['start_time']]
+                expected = self.owner.witness
+                if (identity != [expected['pid'], expected['start_time']] or state['protocol'] != PROTOCOL
+                        or state['observer_sha256'] != self.owner.pins['reuse_observer_sha256']
+                        or state['native_failures']):
+                    raise RuntimeError('invalid MemCal gateway lifecycle observation')
+                idle = all(not row['pending_futures'] and all(p.get('clean') for p in row['providers'])
+                           for row in state['sessions'])
+                if idle and state['observed_monotonic_ns'] >= since and not self._active_attempts():
+                    return dict(gateway_identity=identity, inflight_requests=0, pending_native_writes=0,
+                                readback=state, native_errors=[])
+            time.sleep(.05)
+        raise RuntimeError('MemCal gateway or model requests did not become idle')
+
+    def _user_archive(self, session):
+        with closing(sqlite3.connect(self.store.as_uri() + '?mode=ro', uri=True)) as db:
+            return list(db.execute("SELECT id, text FROM archive WHERE channel='agent' AND thread=? "
+                                   "AND from_me=1 ORDER BY id", ('hermes:' + session,)))
+
+    def native_write_barrier(self, session, answer):
+        state = self.idle()['readback']
+        if not any(row['session_id'] == session and any(p['name'] == 'memcal' for p in row['providers'])
+                   for row in state['sessions']):
+            raise RuntimeError('MemCal plugin did not observe this native chat')
+        path = self.owner.home / 'state.db'
+        with closing(sqlite3.connect(path.as_uri() + '?mode=ro', uri=True)) as db:
+            rows = list(db.execute("SELECT role,content FROM messages WHERE session_id=? ORDER BY id", (session,)))
+        archive = self._user_archive(session)
+        if (not rows or rows[-1] != ('assistant', answer) or not archive
+                or [r[1] for r in archive] != [text for role,text in rows if role == 'user']):
+            raise RuntimeError('MemCal archive differs from the exact native user turns')
+        self.last_archive[session] = archive
+        return dict(session_id=session, pending_writes=0,
+                    readback=dict(archive_ids=[r[0] for r in archive], sample_ns=state['observed_monotonic_ns']))
+
+    def after_native_close(self, session):
+        self.check_close(session, closed=True)
+        archive = self._user_archive(session)
+        if archive != self.last_archive.pop(session):
+            raise RuntimeError('MemCal user archive changed on chat close')
+        return dict(session_id=session, pending_writes=0, readback=dict(archive_ids=[r[0] for r in archive]))
+
+    def check_close(self, session, *, closed):
+        # Other conversations may stay open across this ordinary native close.
+        deadline = time.monotonic() + self.timeout
+        while time.monotonic() < deadline:
+            state = self.idle()['readback']
+            managers = [r for r in state['sessions'] if r['session_id'] == session]
+            with closing(sqlite3.connect((self.owner.home/'state.db').as_uri() + '?mode=ro', uri=True)) as db:
+                end = db.execute('SELECT ended_at,end_reason FROM sessions WHERE id=?', (session,)).fetchone()
+            if closed:
+                if (end and end[0] is not None and end[1] == 'cli_close' and managers
+                        and all(r['shutdown_returned'] and r['clean'] for r in managers)):
+                    return
+            elif end == (None, None) and managers and any(not r['shutdown_returned'] for r in managers):
+                return
+            time.sleep(.05)
+        raise RuntimeError('MemCal native session close state differs from its verified history')
 
 
-def main(argv=None):
-    os.environ.setdefault('PACBENCH_OPENROUTER_PROFILE','luna-bedrock-global')
-    from .site import MemCalSite
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('campaign', type=Path)
-    parser.add_argument('--site', type=Path, required=True)
-    parser.add_argument('--deployment', required=True, help='operator-installed synthetic upstream release and observation module')
-    parser.add_argument('--billing-confirmation', type=Path, required=True)
-    mode = parser.add_mutually_exclusive_group(required=True)
-    mode.add_argument('--canary', action='store_true')
-    mode.add_argument('--after-canary', type=Path)
-    args = parser.parse_args(argv)
-    site = MemCalSite(**json.loads(args.site.read_text()))
+def verify_resume(account, progress, plan):
+    frontend = account.frontend
+    identity = progress.binding('identity')
+    gateway = frontend.gateway_identity()
+    if (account.provider != 'memcal' or identity['account'] != account.identity
+            or progress.binding('gateway') != gateway):
+        raise RuntimeError('cannot resume without the original MemCal account and warm gateway')
+    source = account.source_witness.verify_source_resume(progress)
+    store = Path(frontend.owner.env['MEMCAL_HOME'])
+    if (source['cutoff'] != progress.last_cutoff() or str(store / 'memcal.db') != source['store_path']
+            or store.resolve() != store or str(store) != identity['store']):
+        raise RuntimeError('source collector and warm gateway do not share the verified native store')
+    if source['upstream_cutoff'] == source['cutoff']:
+        plan.check_inventory(account.source_inventory(), source['cutoff'])
+    # A controller interruption may leave one complete native return ahead of
+    # its post-answer write readback. Verify that exact return without dispatch.
+    next_n = progress.next_ordinal()
+    pending_turn, captured = None, None
+    if next_n is not None:
+        _, current, _ = next(plan.iter_turns(next_n))
+        if progress.get_verified(current.id) is None:
+            claim = progress.active_effect('answer', current.id)
+            if claim is not None:
+                returned = progress.observation('answer', current.id, 'cli-return')
+                if returned is not None and 'wire_cursor' in returned:
+                    previous = progress.latest_surface(current.session, before=next_n)
+                    sid = previous['session_id'] if previous else None
+                    inputs = dict(ordinal=next_n, prompt=current.prompt, at=current.at, session=sid, cutoff=source['cutoff'])
+                    def authenticate(operation):
+                        trace = frontend.read_return(current.prompt, current.at, sid, returned)
+                        proof = dict(native_binding=trace['clock_evidence']['binding'],
+                                     gateway=gateway, session=trace['session_id'],
+                                     request_ids=[r['request_id'] for r in trace['model_requests']])
+                        return trace, dict(operation=operation, native_evidence=proof)
+                    progress.reconcile_effect('answer', current.id, inputs, authenticate)
+            captured = progress.get_effect('answer', current.id)
+            if captured is not None:
+                pending_turn = current
 
-    def connect(**kwargs):
-        return open_account(upstream=import_module(args.deployment), **kwargs)
+    chat = account.witness
+    count = 0
+    def verify(logical, sid, saved):
+        nonlocal count
+        if (not saved or saved['session_id'] != sid or saved['gateway_identity'] != gateway
+                or frontend.session_history(sid) != saved['history']):
+            raise RuntimeError('native Hermes session history differs from its durable turn')
+        end_turn = plan.last_turn_id(logical)
+        closed = progress.get_effect('chat-close', end_turn) is not None
+        chat.native_write_barrier(sid, saved['answer'])
+        chat.check_close(sid, closed=closed)
+        if closed:
+            chat.last_archive.pop(sid, None)
+        else:
+            descriptor = saved['clock_evidence']['descriptor']
+            frontend.starts[sid] = descriptor.get('initial_at',descriptor['at'])
+        count += 1
 
-    result = run_live(args.campaign, site, connect, args.billing_confirmation,
-                      canary=args.canary, after_canary=args.after_canary)
-    print(json.dumps(result, indent=2))
-
-
-if __name__ == '__main__':
-    main()
+    for logical, sid in progress.iter_sessions():
+        if pending_turn and logical == pending_turn.session:
+            verify(logical, sid, captured)
+            pending_turn = None
+        else:
+            verify(logical, sid, progress.latest_surface(logical))
+    if pending_turn:
+        verify(pending_turn.session, captured['session_id'], captured)
+    path = frontend.owner.home / 'state.db'
+    actual_count = 0
+    if path.exists():
+        with closing(sqlite3.connect(path.as_uri() + '?mode=ro', uri=True)) as db:
+            actual_count = db.execute('SELECT count(*) FROM sessions').fetchone()[0]
+    if actual_count != count:
+        raise RuntimeError('unexpected physical Hermes sessions in the continuing account')
+    with closing(sqlite3.connect(chat.store.as_uri() + '?mode=ro', uri=True)) as db:
+        if db.execute("SELECT count(DISTINCT thread) FROM archive WHERE channel='agent'").fetchone()[0] != count:
+            raise RuntimeError('unexpected native conversational writes in the continuing account')
+    return dict(gateway_identity=gateway, sessions=count, source=source)

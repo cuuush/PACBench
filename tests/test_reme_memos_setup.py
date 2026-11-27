@@ -4,7 +4,8 @@ import tempfile
 import unittest
 from unittest.mock import patch
 
-from pacbench.reme_memos_setup import PINS, local_endpoint, prepare, settings
+from pacbench.providers.reme import PINS, prepare, settings
+from pacbench.gateway_client import local_endpoint
 
 
 class LocalProviderSetupTests(unittest.TestCase):

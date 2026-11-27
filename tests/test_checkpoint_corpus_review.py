@@ -5,7 +5,7 @@ from pacbench.corpus.review import (
     checkpoint_prompt as prompt, checkpoint_errors as check_errors,
     review_checkpoints as review, audit_checkpoints as audit,
 )
-from pacbench.followups import save
+from pacbench.evidence_store import save
 
 @pytest.fixture
 def case():

@@ -4,10 +4,10 @@ from pathlib import Path
 
 import pytest
 
-from pacbench.canary_capability import binding, digest
+from pacbench.evidence_store import file_binding as binding, binding_digest as digest
 from pacbench.provider_versions import MEMCAL_WEEK_CONDITION, MEMCAL_WEEK_REVISION, MEMCAL_WEEK_TREE, memcal_week_pin
-from pacbench.providers.memcal.contract import manifest, TOOLS, verify_driver_schemas
-from pacbench.workflows.tracks import memcal_week_tools
+from pacbench.providers.memcal.source import manifest, TOOLS, verify_driver_schemas
+from pacbench.providers import memcal_week_tools
 
 
 def stock_tools():
@@ -15,7 +15,7 @@ def stock_tools():
 
 
 def test_product_selection_and_stock_manifest(monkeypatch):
-    from pacbench.workflows.tracks import eligibility
+    from pacbench.providers import eligibility
     monkeypatch.setenv('PACBENCH_MEMCAL_CONDITION', MEMCAL_WEEK_CONDITION)
     assert memcal_week_pin() == (MEMCAL_WEEK_CONDITION, MEMCAL_WEEK_REVISION, '0.8.12')
     assert eligibility('memcal', 'first-party-connector', version='0.8.12')['version_source'].endswith(MEMCAL_WEEK_REVISION)
@@ -35,7 +35,7 @@ def test_product_selection_and_stock_manifest(monkeypatch):
 def test_private_export_rechecks_bound_product_and_driver(tmp_path, drift):
     from pacbench.workflows.answer_export import export
     from pacbench.workflows.grading import grade_verified
-    from pacbench.workflows.stream import fingerprint
+    from pacbench.workflows.progress import workflow_fingerprint as fingerprint
     from tests.test_workflow_grading import checkpoints, Recorder, local_judge
 
     directory = tmp_path/'workflow'

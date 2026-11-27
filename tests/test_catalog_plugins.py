@@ -1,4 +1,5 @@
 """Offline verification of exact plugin installation and fail-closed preflight."""
+import pacbench.providers.provision as provider_setup
 import json
 from pathlib import Path
 from types import SimpleNamespace
@@ -125,9 +126,9 @@ def test_setup_caches_native_install_and_each_arm_copies_its_plugin(tmp_path, mo
 
 
 def test_failed_preflight_leaves_provider_inactive_before_native_setup(tmp_path, monkeypatch):
-    from pacbench import native_pilot
+    from pacbench.workflows import native_run as native_pilot
     monkeypatch.setattr('pacbench.providers.require_live_trials_ready', lambda: None)
-    monkeypatch.setattr(native_pilot, 'client_settings', lambda *_: ('http://127.0.0.1:1234/v1', 'test'))
+    monkeypatch.setattr(provider_setup, 'client_settings', lambda *_: ('http://127.0.0.1:1234/v1', 'test'))
     def home_setup(home, *, provider_name, **kwargs):
         assert provider_name == ''
         home.mkdir(parents=True)
@@ -138,7 +139,7 @@ def test_failed_preflight_leaves_provider_inactive_before_native_setup(tmp_path,
         raise RuntimeError('dependency missing')
     monkeypatch.setattr(catalog, 'install_catalog_provider', failed_install)
     with pytest.raises(RuntimeError, match='dependency missing'):
-        native_pilot.provision(tmp_path/'arm', 'mem0')
+        provider_setup.provision(tmp_path/'arm', 'mem0')
     config = yaml.safe_load((tmp_path/'arm/hermes-home/config.yaml').read_text())
     assert config['memory']['provider'] == ''
     assert not (tmp_path/'arm/catalog-plugin.json').exists()

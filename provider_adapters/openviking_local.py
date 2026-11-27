@@ -9,7 +9,7 @@ import time
 import urllib.request
 from pathlib import Path
 
-from pacbench.followups import save
+from pacbench.evidence_store import save
 from pacbench.gateway_client import validate_route
 
 
@@ -23,13 +23,8 @@ def plan_config(root, model, base, key, *, port):
          'server':{'host':'127.0.0.1','port':port,'observability':{
              'traces':{'enabled':True,'protocol':'local','local_path':str((root/'provider-api-calls.jsonl').resolve())},
              'dump_body':{'enabled':True,'max_bytes':8_000_000}}}}
-    from pacbench.role_routes import split_enabled
-    condition=os.environ.get('PACBENCH_OPENVIKING_IMPORT_CONDITION','luna-budget-serial-v1' if split_enabled() else 'native-defaults')
-    if condition=='luna-budget-serial-v1':
-        from pacbench.role_routes import memory_profile
-        if memory_profile()!='luna-bedrock-global':raise ValueError('Luna budget condition requires its exact approved route')
-        config['vlm']['max_concurrent']=1
-    elif condition!='native-defaults':raise ValueError('Unknown explicit OpenViking import condition')
+    if os.environ.get('PACBENCH_OPENVIKING_IMPORT_CONDITION', 'native-defaults') != 'native-defaults':
+        raise ValueError('The historical OpenViking import condition requires its reviewed checkout')
     return config
 
 

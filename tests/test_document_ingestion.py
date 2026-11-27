@@ -1,4 +1,5 @@
 """Transport/source integrity tests; synthetic fixtures are not provider results."""
+import pacbench.workflows.source_plan as source_plan
 import json
 import sqlite3
 import subprocess
@@ -8,7 +9,8 @@ from datetime import datetime,timezone,timedelta
 
 import pytest
 
-from pacbench.document_ingestion import daily_batches,prepare_sources,processing_at
+from pacbench.workflows.source_plan import daily_batches, processing_at
+from pacbench.workflows.delivery import prepare_sources
 from pacbench.imessage_fixture import append_messages,apple_ns
 
 
@@ -96,7 +98,7 @@ print(json.dumps({'result':result,'rows':rows,'error':error,'dream_called':dream
 
 @pytest.mark.parametrize('damage',['none','timeout','errors','counter-only','missing-queues'])
 def test_openviking_native_completion_rejects_error_counters_even_without_error_text(damage):
-    from pacbench.document_audit import audit_openviking_receipt
+    from pacbench.providers.openviking import audit_openviking_receipt
     native={'status':'success','errors':[],'root_uri':'viking://resources/day',
             'queue_status':{'Semantic':{'errors':[],'error_count':0}}}
     if damage=='timeout':native['status']='timeout'
@@ -106,10 +108,15 @@ def test_openviking_native_completion_rejects_error_counters_even_without_error_
     assert bool(audit_openviking_receipt({'result':{'result':native}}))==(damage!='none')
 
 
-@pytest.mark.parametrize('global_error',[False,True])
-@pytest.mark.parametrize('snapshot_race',[False,True])
-@pytest.mark.parametrize('artifact_failure',[False,True])
-def test_openviking_resource_ready_waits_for_background_global_completion(tmp_path,monkeypatch,global_error,snapshot_race,artifact_failure):
+@pytest.mark.parametrize(('global_error', 'snapshot_race', 'artifact_failure', 'call_state'), [
+    (False, False, False, 'fresh'), (True, False, False, 'fresh'), (False, True, False, 'fresh'),
+    (False, False, True, 'fresh'), (False, True, True, 'fresh'), (True, True, True, 'fresh'),
+    (True, False, True, 'fresh'), (True, True, False, 'fresh'),
+    (False, False, False, 'old-only'), (False, False, False, 'previous-in-flight'),
+    (False, False, False, 'new-in-flight'), (False, False, False, 'wrong-role'),
+])
+def test_openviking_resource_ready_waits_for_background_global_completion(
+        tmp_path, monkeypatch, global_error, snapshot_race, artifact_failure, call_state):
     from types import SimpleNamespace
     from provider_adapters import document_connector as dc
     root=tmp_path/'arm';root.mkdir();source=tmp_path/'day';source.mkdir();(source/'messages.txt').write_text('all source')
@@ -118,10 +125,20 @@ def test_openviking_resource_ready_waits_for_background_global_completion(tmp_pa
     (root/'ov.conf').write_text(json.dumps({'vlm':{'api_base':'unused','api_key':'inert'},'storage':{'workspace':str(workspace)}}))
     (root/'openviking-server.log').write_text('Native startup complete')
     monkeypatch.setenv('PACBENCH_TRANSPORT','openrouter')
-    monkeypatch.setattr('pacbench.direct_accounting.project_from_authorization',lambda _: 'unit')
+    monkeypatch.setenv('PACBENCH_USAGE_ROLES', json.dumps({'unit':'memory_provider'}))
     good={'id':'call','project':'unit','http_status':200,'response_validation':{'body_complete':True,'envelope_errors':[],
         'assistant_nonwhitespace_characters':10,'finish_reasons':['stop']}}
-    monkeypatch.setattr('pacbench.direct_accounting.live_budget',lambda:SimpleNamespace(snapshot=lambda:[good]))
+    prior = {**good, 'id': 'previous', 'finished': 'before', 'role': 'memory_provider',
+             'response_validation': {'body_complete': False}}
+    current = {**good, 'role': 'memory_provider', 'finished': 'after'}
+    if call_state == 'previous-in-flight':
+        prior['finished'] = None
+    if call_state == 'new-in-flight':
+        current['finished'] = None
+    if call_state == 'wrong-role':
+        current['role'] = 'hermes'
+    captures = iter([[prior], [prior] if call_state == 'old-only' else [prior, current]])
+    monkeypatch.setattr('pacbench.usage.snapshot', lambda roles: {'state': 'captured', 'calls': next(captures)})
     stages=[]
     class Client:
         def upload_temp_file(self,path):return 'native-upload'
@@ -145,19 +162,20 @@ def test_openviking_resource_ready_waits_for_background_global_completion(tmp_pa
     monkeypatch.setattr('pacbench.providers.provider_module',lambda _:SimpleNamespace(OpenVikingMemoryProvider=Provider))
     monkeypatch.setattr('pacbench.gateway_client.validate_route',lambda *a:None)
     value=dc.openviking(source,root,'at','processing-at')
-    assert value['ready'] is (not global_error and not artifact_failure)
+    expected_ready = not global_error and not artifact_failure and call_state == 'fresh'
+    assert value['ready'] is expected_ready
     expected=['/api/v1/resources','/api/v1/system/wait','background-completed']
     if not global_error:
         expected+=['observer']
         if snapshot_race:expected+=['/api/v1/system/wait','background-completed','observer']
     assert stages==expected+['shutdown']
     assert value['completion_protocol']=='openviking-global-import-readiness-v4'
-    from pacbench.document_audit import audit_openviking_receipt
-    assert bool(audit_openviking_receipt(value)) is (global_error or artifact_failure)
+    from pacbench.providers.openviking import audit_openviking_receipt
+    assert bool(audit_openviking_receipt(value)) is (not expected_ready)
 
 
 def test_openviking_global_protocol_requires_its_native_witness():
-    from pacbench.document_audit import audit_openviking_receipt
+    from pacbench.providers.openviking import audit_openviking_receipt
     value={'result':{'result':{'status':'success','errors':[],'root_uri':'viking://resources/day',
         'queue_status':{'Semantic':{'error_count':0,'errors':[]}}}},
         'completion_protocol':'openviking-global-import-readiness-v4'}
@@ -166,7 +184,7 @@ def test_openviking_global_protocol_requires_its_native_witness():
 
 @pytest.mark.parametrize('damage',['none','index-only','missing-status','wrong-source','wrong-document','wrong-namespace','wrong-mode'])
 def test_supermemory_ready_flag_cannot_replace_native_completion_evidence(damage):
-    from pacbench.document_audit import audit_supermemory_receipt
+    from pacbench.providers.supermemory import audit_supermemory_receipt
     final={'status':'done','dreaming_status':'done','id':'doc-1','custom_id':'2026-10-19',
            'content':'Raw source text','container_tags':['native_tag']}
     receipt={'result':{'id':'doc-1'},'container_tag':'native_tag','processing_status':[final]}
@@ -181,7 +199,7 @@ def test_supermemory_ready_flag_cannot_replace_native_completion_evidence(damage
 
 @pytest.mark.parametrize('text',['café plans','café\u2028plans\u2029next day'])
 def test_native_json_acknowledgment_is_stored_once_without_losing_other_output(text):
-    from pacbench.document_ingestion import remove_duplicate_stdout
+    from pacbench.workflows.delivery import remove_duplicate_stdout
     result={'ready':True,'result':{'memories':[text]}}
     record={'stdout':'native progress\n'+json.dumps(result,ensure_ascii=False)+'\n\n','result':result,'stderr':'native warning'}
     assert remove_duplicate_stdout(record)
@@ -194,7 +212,7 @@ def test_native_json_acknowledgment_is_stored_once_without_losing_other_output(t
 
 
 def test_checkpoint_references_bind_to_canonical_daily_manifests_without_repeating_ids():
-    from pacbench.document_ingestion import source_state,compact_source_state
+    from pacbench.workflows.source_plan import source_state, compact_source_state
     schedule=[{'id':'first','source_ids':['m1','m2']},{'id':'later','source_ids':['m3']}]
     old={'at':'clock','ingested_batches':['first'],'source_ids':['m1','m2']}
     small=compact_source_state(old,schedule)
@@ -210,7 +228,7 @@ def test_checkpoint_references_bind_to_canonical_daily_manifests_without_repeati
     ('daily text','daily  text\n',False),('different text','daily text\n',False),
 ])
 def test_native_storage_may_drop_one_export_newline_but_never_change_messages(observed,original,expected):
-    from pacbench.document_audit import same_submitted_text
+    from pacbench.providers.supermemory import same_submitted_text
     assert same_submitted_text(observed,original) is expected
 
 
@@ -265,7 +283,7 @@ def test_daily_documents_cover_sources_and_fixture_has_no_future_rows(tmp_path):
 
 
 def test_readable_document_preserves_bodies_context_ownership_and_delayed_delivery():
-    from pacbench.document_ingestion import document_text
+    from pacbench.workflows.source_plan import document_text
     a={**message('opaque-id-a','Me',True),'structured':{'participants':['Me','Ben'],'email_subject':'Dinner'},
        'channel':'email','text':'  Saturday works.\n\n> Me: Thursday?\n> Ben: yes!  ',
        'arrived_at':'2026-09-10T18:00:00-04:00'}
@@ -284,7 +302,7 @@ def test_readable_document_preserves_bodies_context_ownership_and_delayed_delive
 
 @pytest.mark.parametrize('version',['daily-source-documents-v1','daily-source-documents-v2'])
 def test_old_document_bytes_remain_auditable(version):
-    from pacbench.document_ingestion import document_text
+    from pacbench.workflows.source_plan import document_text
     rows=[message('original')]
     assert json.loads(document_text(rows,rows[0]['collected_at'],version=version))==rows[0]
     expected=rows[0]['collected_at'] if version.endswith('v1') else '2026-09-11T03:00:00-04:00'
@@ -307,7 +325,7 @@ def test_unavailable_recipient_is_not_invented(tmp_path):
 
 
 def test_evaluation_cannot_use_future_source_or_nightly_processing():
-    from pacbench.document_ingestion import validate_evaluation_clocks
+    from pacbench.workflows.source_plan import validate_evaluation_clocks
     schedule=[{'at':'2026-09-10T23:00:00-04:00'}]
     validate_evaluation_clocks(schedule,['memcal','mem0'],['2026-09-11T09:00:00-04:00'],'America/New_York')
     with pytest.raises(ValueError,match='source availability'):
@@ -318,7 +336,7 @@ def test_evaluation_cannot_use_future_source_or_nightly_processing():
 
 @pytest.mark.parametrize('provider',['memcal','mem0','hindsight','honcho','openviking','supermemory','byterover'])
 def test_every_provider_uses_the_same_nightly_cutoff_with_dst(provider):
-    from pacbench.document_ingestion import ready_sources
+    from pacbench.workflows.source_plan import ready_sources
     at='2026-10-31T23:00:00-04:00';schedule=[{'at':at}]
     assert processing_at(at,provider,'America/New_York')=='2026-11-01T03:00:00-05:00'
     with pytest.raises(ValueError,match='native processing'):
@@ -327,7 +345,7 @@ def test_every_provider_uses_the_same_nightly_cutoff_with_dst(provider):
 
 
 def test_old_ingestion_receipts_keep_their_original_clock_condition():
-    from pacbench.document_ingestion import LEGACY_VERSION
+    from pacbench.workflows.source_plan import LEGACY_VERSION
     at='2026-10-14T20:00:00-04:00'
     assert processing_at(at,'mem0','America/New_York',version=LEGACY_VERSION)==at
     assert processing_at(at,'memcal','America/New_York',version=LEGACY_VERSION)=='2026-10-15T03:00:00-04:00'
@@ -335,7 +353,7 @@ def test_old_ingestion_receipts_keep_their_original_clock_condition():
 
 @pytest.mark.parametrize('provider',['memcal','hindsight'])
 def test_failed_native_processing_keeps_structured_evidence(tmp_path,monkeypatch,provider):
-    from pacbench import document_ingestion as module
+    from pacbench.workflows import delivery as module
     schedule=prepare_sources(tmp_path,[message('one')],'America/New_York')
     source=tmp_path/'sources'/schedule[0]['id']
     failure={'ready':False,'processing':{'errors':['native extraction failed']}}
@@ -351,7 +369,7 @@ def test_failed_native_processing_keeps_structured_evidence(tmp_path,monkeypatch
 
 
 def test_recall_isolation_detects_real_native_session_or_builtin_facts(tmp_path):
-    from pacbench.document_ingestion import record_recall_isolation
+    from pacbench.workflows.delivery import record_recall_isolation
     home=tmp_path/'hermes-home';home.mkdir()
     with sqlite3.connect(home/'state.db') as db:
         db.execute('CREATE TABLE sessions(id TEXT)')
@@ -371,7 +389,7 @@ def test_recall_isolation_detects_real_native_session_or_builtin_facts(tmp_path)
 @pytest.mark.parametrize('damage',[None,'text','speaker','time','session','missing','pending','observer','enrollment',
                                   'unknown-error-scope','unattributed-error','misattributed-source-error'])
 def test_honcho_native_receipt_audit_rejects_changed_or_unprocessed_source(damage):
-    from pacbench.document_audit import audit_honcho_receipt
+    from pacbench.providers.honcho import audit_honcho_receipt
     import hashlib
     original=message('source-1')
     session='source-'+hashlib.sha256(json.dumps(('imessage','one')).encode()).hexdigest()[:24]
@@ -399,7 +417,7 @@ def test_honcho_native_receipt_audit_rejects_changed_or_unprocessed_source(damag
 
 
 def test_honcho_readiness_audit_carries_enrollment_across_daily_batches():
-    from pacbench.document_audit import audit_honcho_receipt
+    from pacbench.providers.honcho import audit_honcho_receipt
     import hashlib
     original=message('source-1')
     session='source-'+hashlib.sha256(json.dumps(('imessage','one')).encode()).hexdigest()[:24]
@@ -433,7 +451,7 @@ def test_v5_supermemory_native_status_cannot_claim_consolidation_from_indexing()
 
 def test_v5_supermemory_document_audit_binds_namespace_source_and_both_statuses():
     from copy import deepcopy
-    from pacbench.document_audit import audit_supermemory_receipt
+    from pacbench.providers.supermemory import audit_supermemory_receipt
     system={'status':'done','dreamingStatus':'done'}
     receipt={'native_api_protocol':'supermemory-v5-documents-v1','request_namespace':'namespace',
         'container_tag':'namespace','result':{'id':'2026-10-05'},
@@ -489,7 +507,7 @@ def test_published_local_supermemory_v3_observer_supplies_actual_consolidation(m
 def test_v5_audit_accepts_only_source_bound_native_v3_completion_witness():
     from copy import deepcopy
     import hashlib
-    from pacbench.document_audit import audit_supermemory_receipt
+    from pacbench.providers.supermemory import audit_supermemory_receipt
     text='Unchanged source';metadata={'source':'daily-transcript','collected_at':'2026-10-05T23:00:00-04:00'}
     witness={'protocol':'supermemory-native-v3-completion-observer-v1','native_id':'native-id','public_id':'day',
         'namespace':'namespace','status':'done','dreaming_status':'done','metadata':metadata,
@@ -506,7 +524,7 @@ def test_v5_audit_accepts_only_source_bound_native_v3_completion_witness():
 
 @pytest.mark.parametrize('damage',['none','busy','nodes-busy','missing','malformed','error','unhealthy'])
 def test_openviking_post_wait_observation_rejects_busy_or_unproven_work(damage):
-    from pacbench.document_audit import openviking_observer_state
+    from pacbench.providers.openviking import openviking_observer_state
     queues=[{'queue':q,'pending':0,'in_progress':0,'errors':0} for q in ['Embedding','Semantic','Semantic-Nodes']]
     value={'status':'ok','result':{'is_healthy':True,'has_errors':False,'status':{'queues':queues}}}
     if damage=='busy':queues[0]['pending']=1
@@ -520,7 +538,7 @@ def test_openviking_post_wait_observation_rejects_busy_or_unproven_work(damage):
 
 
 def test_openviking_placeholder_check_is_read_only_and_rejects_absent_artifacts(tmp_path):
-    from pacbench.document_audit import openviking_generated_artifacts
+    from pacbench.providers.openviking import openviking_generated_artifacts
     assert openviking_generated_artifacts(tmp_path)['state']=='incomplete'
     p=tmp_path/'viking/default/resources/.abstract.md';p.parent.mkdir(parents=True)
     p.write_text('metadata\n[Directory overview is not ready]')
@@ -531,7 +549,7 @@ def test_openviking_placeholder_check_is_read_only_and_rejects_absent_artifacts(
 
 @pytest.mark.parametrize('damage',['none','empty','length','incomplete','error','unobserved'])
 def test_openviking_response_completion_does_not_follow_billing_or_queue_health(damage):
-    from pacbench.document_audit import openviking_response_evidence
+    from pacbench.providers.openviking import openviking_response_evidence
     row={'id':'native','state':'settled','http_status':200,'response_validation':{'body_complete':True,
         'envelope_errors':[],'assistant_nonwhitespace_characters':15,'finish_reasons':['stop']}}
     v=row['response_validation']
@@ -548,7 +566,7 @@ def test_openviking_response_completion_does_not_follow_billing_or_queue_health(
     'Failed to generate partial overview batch','Failed to merge partial overviews',
     'Failed to generate overview for','Failed to dispatch directory'])
 def test_openviking_native_silent_leaf_partial_and_merge_failures_are_not_ready(tmp_path,marker):
-    from pacbench.document_audit import openviking_failure_log
+    from pacbench.providers.openviking import openviking_failure_log
     p=tmp_path/'server.log';p.write_text('Native queue healthy\nERROR '+marker+' native resource\n')
     check=openviking_failure_log(p)
     assert check['state']=='incomplete' and check['failures']==[{'line':2,'marker':marker}]
@@ -558,7 +576,7 @@ def test_openviking_native_silent_leaf_partial_and_merge_failures_are_not_ready(
 def test_readiness_prepares_each_provider_batch_once(monkeypatch, days):
     from datetime import datetime, timedelta, timezone
 
-    from pacbench import document_ingestion as ingestion
+    from pacbench.workflows import delivery as ingestion
     from pacbench.providers import ACTIVE_PROVIDERS
 
     first = datetime(2026, 10, 5, 20, tzinfo=timezone.utc)
@@ -566,15 +584,15 @@ def test_readiness_prepares_each_provider_batch_once(monkeypatch, days):
     morning = datetime(2026, 10, 6, 12, tzinfo=timezone.utc)
     questions = [(morning + timedelta(days=day, minutes=minute)).isoformat()
                  for day in range(days) for minute in range(7)]
-    original = ingestion.processing_at
+    original = source_plan.processing_at
     calls = []
 
     def counted(at, provider, zone, *, version):
         calls.append((provider, at))
         return original(at, provider, zone, version=version)
 
-    monkeypatch.setattr(ingestion, 'processing_at', counted)
-    timelines = ingestion.validate_evaluation_clocks(schedule, ACTIVE_PROVIDERS, questions, 'America/New_York',
+    monkeypatch.setattr(source_plan, 'processing_at', counted)
+    timelines = source_plan.validate_evaluation_clocks(schedule, ACTIVE_PROVIDERS, questions, 'America/New_York',
                                                      chronological=True)
     for provider in ACTIVE_PROVIDERS:
         for index, clock in enumerate(questions):
@@ -585,7 +603,7 @@ def test_readiness_prepares_each_provider_batch_once(monkeypatch, days):
 @pytest.mark.parametrize('provider', ['memcal', 'mem0'])
 @pytest.mark.parametrize('version', ['daily-source-documents-v1', 'daily-source-documents-v2', 'daily-source-documents-v3'])
 def test_prepared_readiness_matches_one_shot_lookup_across_dst(provider, version):
-    from pacbench import document_ingestion as ingestion
+    from pacbench.workflows import delivery as ingestion
 
     schedule = [
         {'id': 'later', 'at': '2026-11-01T20:00:00-05:00'},
@@ -593,13 +611,13 @@ def test_prepared_readiness_matches_one_shot_lookup_across_dst(provider, version
     ]
     zone = 'America/New_York'
     final = '2026-11-02T08:00:00+00:00'
-    timeline = ingestion.validate_evaluation_clocks(schedule, [provider], [final], zone,
+    timeline = source_plan.validate_evaluation_clocks(schedule, [provider], [final], zone,
                                                     chronological=True, version=version)[provider]
     for clock in ('2026-10-31T19:59:59-04:00', '2026-10-31T20:00:00-04:00',
                   '2026-11-01T01:00:00-04:00', '2026-11-01T01:00:00-05:00',
                   '2026-11-01T07:59:59+00:00', '2026-11-01T08:00:00+00:00', final):
         try:
-            expected = ingestion.ready_sources(schedule, provider, clock, zone, version=version)
+            expected = source_plan.ready_sources(schedule, provider, clock, zone, version=version)
         except ValueError as original:
             with pytest.raises(ValueError) as prepared:
                 timeline.ready(clock)
@@ -607,4 +625,4 @@ def test_prepared_readiness_matches_one_shot_lookup_across_dst(provider, version
         else:
             assert timeline.ready(clock) == expected
     assert timeline.ready(final) == schedule
-    assert ingestion.validate_evaluation_clocks([], [provider], [final], zone, version=version)[provider].ready(final) == []
+    assert source_plan.validate_evaluation_clocks([], [provider], [final], zone, version=version)[provider].ready(final) == []

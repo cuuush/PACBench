@@ -1,6 +1,6 @@
 import pytest
 
-from pacbench.workflows.runner import _tool_call_contract, _wire_tool_text
+from pacbench.workflows.turn_evidence import _tool_call_contract, _wire_tool_text
 
 
 def test_native_metadata_and_json_spacing_preserve_user_visible_tool_lookup():

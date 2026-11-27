@@ -8,9 +8,9 @@ import sys
 import pytest
 
 from pacbench.judging.paired import BASELINE, PROTOCOL, fingerprint
-from pacbench.semantic_grade import judge_prompt
+from pacbench.judging.grade import judge_prompt
 from pacbench.workflows.runner import judge_options
-from pacbench.campaigns.pizza_week import compile_week
+from pacbench.corpus.r2 import compile_week
 
 
 def synthetic_export(layout):
@@ -40,7 +40,7 @@ def save_rows(path, rows):
 
 
 def cli(command, path, digest, layout, target, *args):
-    return subprocess.run([sys.executable, '-m', 'pacbench.question_judge_batch', command, str(path),
+    return subprocess.run([sys.executable, '-m', 'pacbench.judging.batch', command, str(path),
         '--sha256', digest, '--session-layout', layout, '--output', str(target), *map(str, args)],
         capture_output=True, text=True, check=False)
 
@@ -148,11 +148,11 @@ def test_refuses_bad_native_export(tmp_path, fault):
 
 
 def test_verified_reader_projection_and_no_implied_legacy_binding(tmp_path):
-    from pacbench.judging.week import Week
+    from pacbench.judging.paired import Week
 
     _, rows = synthetic_export('logical')
     week = Week()
-    from pacbench.workflows.stream import fingerprint as schedule_fingerprint
+    from pacbench.workflows.progress import workflow_fingerprint as schedule_fingerprint
     docs = [dict(filename=d.filename, sha256=d.sha256, cutoff=d.cutoff, source_ids=list(d.source_ids),
                  bodies=list(d.bodies)) for d in week.documents]
     binding = dict(document_schedule_sha256=schedule_fingerprint(
@@ -201,7 +201,7 @@ fixture.root = Path(sys.argv[1])
 fixture.cohort([fixture.make_run('cognee',count=49,seal=True)])
 """
     subprocess.run([sys.executable,'-c',make,str(tmp_path)],cwd=reader,check=True)
-    module = root/'pacbench/question_judge_batch.py'
+    module = root/'pacbench/judging/batch.py'
     export = tmp_path/'native.private.jsonl'
     manifest_sha = hashlib.sha256(cohort.read_bytes()).hexdigest()
 
@@ -223,7 +223,7 @@ fixture.cohort([fixture.make_run('cognee',count=49,seal=True)])
     assert result['manifest']['retained_origin']['cohort_manifest_sha256'] == hashlib.sha256(cohort.read_bytes()).hexdigest()
     assert result['manifest']['retained_origin']['entry_manifest_sha256'] == json.loads(cohort.read_text())['runs'][0]['sha256']
 
-    from pacbench.campaigns.pizza_week import compile_week
+    from pacbench.corpus.r2 import compile_week
     from pacbench.workflows.spec import instant
 
     journal = tmp_path/'cognee/workflow/workflow.jsonl'
@@ -251,7 +251,7 @@ fixture.cohort([fixture.make_run('cognee',count=49,seal=True)])
 
 def test_export_refuses_an_unreviewed_reader_before_opening_input(tmp_path, monkeypatch):
     from types import SimpleNamespace
-    from pacbench import cohort_regrade
+    from pacbench.judging import overlays as cohort_regrade
     from pacbench.judging import batch as question_judge_batch
 
     changed = tmp_path/'changed_reader.py'

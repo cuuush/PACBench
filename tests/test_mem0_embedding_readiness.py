@@ -16,7 +16,6 @@ def connector(tmp_path,monkeypatch,add):
     backend=SimpleNamespace(_memory=SimpleNamespace(llm=llm,add=add),close=lambda:closed.append(True))
     monkeypatch.setattr('pacbench.providers.provider_module',lambda *a:SimpleNamespace(OSSBackend=lambda _:backend))
     monkeypatch.setattr('pacbench.gateway_client.validate_route',lambda *a:None)
-    monkeypatch.setattr('pacbench.openrouter_direct.active',lambda:False)
     monkeypatch.setenv('OPENAI_API_KEY','inert')
     receipt=dc.mem0(source,root,'2026-10-05T18:00:00-04:00','2026-10-05T18:00:00-04:00')
     assert closed==[True] and (root/'ingestion-model-calls/day.json').is_file()

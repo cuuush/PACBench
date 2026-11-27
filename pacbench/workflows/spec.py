@@ -1,15 +1,12 @@
 """Compile authored source and turns before any provider is selected."""
 import hashlib
-from collections.abc import Callable
 from collections import defaultdict
 from dataclasses import dataclass
 from datetime import date, datetime, time, timedelta, timezone
 from zoneinfo import ZoneInfo
 
-from ..document_ingestion import PUBLIC_FIELDS, document_text
-from pacbench.corpus.sources import load_bundle
-from pacbench.corpus.prepare import read_spec
-from ..semantic_grade import Claim, CONTEXT_JUDGE_PROTOCOL
+from pacbench.judging.grade import CONTEXT_JUDGE_PROTOCOL, Claim
+from pacbench.workflows.source_plan import PUBLIC_FIELDS, document_text
 
 UTC = timezone.utc
 
@@ -146,11 +143,7 @@ class WorkflowPlan:
     channels: tuple[str, ...]
     canary: bool = False
     layout: dict | None = None
-    authorize: Callable | None = None
-
-    @property
-    def offline_only(self):
-        return self.authorize is None
+    prepared: bool = True
 
     def documents_for(self, channels):
         if self.layout is not None:

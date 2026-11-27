@@ -5,322 +5,63 @@ made durable before each request; ambiguous outcomes retain the full bound.
 """
 from __future__ import annotations
 
-import fcntl
 import contextlib
-import secrets
-import threading
 import hmac
 import json
-import math
 import re
-import uuid
-from datetime import datetime, timezone
-import os
+import secrets
+import threading
 import urllib.error
 import urllib.request
-from decimal import Decimal, InvalidOperation
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
-from pathlib import Path
 
-from .openrouter_route import MODEL, ENDPOINT, PROVIDER, CHAT_COMPLETIONS_URL as UPSTREAM, with_route
+from .gateway import open_without_redirect
+from .openrouter_route import CHAT_COMPLETIONS_URL as UPSTREAM
+from .openrouter_route import MODEL
+from .receipt_costs import read_frames
+from .run_budget import AuthBlocked, Budget, BudgetRefused
+
 MAX_BODY = 16 * 1024 * 1024
 MAX_RESPONSE = 32 * 1024 * 1024
-VERSION = 'task-shared-pinned-openrouter-v2-streaming'
-
-class BudgetRefused(ValueError):
-    pass
-
-class AuthBlocked(ValueError):
-    pass
-
-
-def _money(value):
-    if isinstance(value, bool):
-        raise ValueError('invalid monetary value')
-    try:
-        result = Decimal(str(value))
-    except (InvalidOperation, ValueError):
-        raise ValueError('invalid monetary value') from None
-    if not result.is_finite() or result < 0:
-        raise ValueError('invalid monetary value')
-    return result
-
-
-def _price_float(value):
-    exact = _money(value)
-    result = float(exact)
-    if not math.isfinite(result):
-        raise ValueError('invalid price')
-    if Decimal(str(result)) > exact:
-        result = math.nextafter(result, 0.0)
-    return result
-
-
-class Budget:
-    """Exclusive file lock covers reservation, inference and settlement."""
-    def __init__(self, path, *, cap, context_tokens, prompt_per_million,
-                 completion_per_million, max_completion_tokens, new_run=False):
-        self.path = Path(path)
-        if not isinstance(context_tokens, int) or isinstance(context_tokens, bool) or context_tokens <= 0:
-            raise ValueError('invalid context length')
-        if not isinstance(max_completion_tokens, int) or isinstance(max_completion_tokens, bool) or max_completion_tokens <= 0:
-            raise ValueError('invalid completion limit')
-        self.config = {'cap': str(_money(cap)), 'context_tokens': context_tokens,
-                       'prompt_per_million': str(_money(prompt_per_million)),
-                       'completion_per_million': str(_money(completion_per_million)),
-                       'max_completion_tokens': max_completion_tokens,
-                       'model': MODEL, 'endpoint': ENDPOINT}
-        if _money(cap) <= 0:
-            raise ValueError('positive explicit spending cap required')
-        if _money(prompt_per_million) <= 0 or _money(completion_per_million) <= 0:
-            raise ValueError('positive explicit input and output price ceilings required')
-        self.path.parent.mkdir(parents=True, exist_ok=True)
-        self._run_owned = new_run
-        self._input_traces = {}
-        self._trace_lock = threading.Lock()
-        if new_run:
-            fd = os.open(self.path, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
-            with os.fdopen(fd, 'w', encoding='utf-8') as ledger:
-                self._persist_state(ledger, {'version': 1, 'config': self.config, 'calls': []})
-
-    @contextlib.contextmanager
-    def input_trace(self, project, arm):
-        if not self._run_owned or not re.fullmatch(r'[a-z0-9][a-z0-9_.-]{0,56}-driver', project):
-            raise ValueError('API input observer requires a run-owned Hermes driver project')
-        fd = os.open(arm, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW)
-        try:
-            with self._trace_lock:
-                if project in self._input_traces:
-                    raise ValueError('API input observer is already bound for this driver project')
-                self._input_traces[project] = fd
-            try:
-                yield
-            finally:
-                with self._trace_lock:
-                    del self._input_traces[project]
-        finally:
-            os.close(fd)
-
-    def request(self, project, body, send):
-        if body.get('n', 1) not in (None, 1) or body.get('modalities') not in (None, ['text']):
-            raise ValueError('unsupported paid feature')
-        if any(k in body for k in ('audio', 'prediction', 'service_tier', 'web_search_options', 'max_output_tokens')):
-            raise ValueError('unsupported paid feature')
-        if any(not isinstance(tool, dict) or tool.get('type') != 'function' for tool in body.get('tools', [])):
-            raise ValueError('only function tools are supported')
-        for msg in body.get('messages', []):
-            if not isinstance(msg, dict):
-                raise ValueError('invalid messages')
-            content = msg.get('content')
-            if content is not None and not isinstance(content, str):
-                if not isinstance(content, list) or any(not isinstance(x, dict) or x.get('type') != 'text' or not isinstance(x.get('text'), str) for x in content):
-                    raise ValueError('only text content is supported')
-        maximum = body.get('max_completion_tokens', body.get('max_tokens', self.config['max_completion_tokens']))
-        if ('max_completion_tokens' in body and 'max_tokens' in body or
-                not isinstance(maximum, int) or isinstance(maximum, bool) or
-                not 0 < maximum <= self.config['max_completion_tokens']):
-            raise ValueError('explicit bounded completion limit required')
-        bound = (Decimal(self.config['context_tokens']) * _money(self.config['prompt_per_million']) +
-                 Decimal(maximum) * _money(self.config['completion_per_million'])) / Decimal(1000000)
-        request = dict(body)
-        supplied = request.get('provider')
-        if supplied is not None:
-            if not isinstance(supplied, dict) or any(k not in PROVIDER or PROVIDER[k] != v for k, v in supplied.items()):
-                raise ValueError('conflicting provider route')
-            request['provider'] = dict(PROVIDER)
-        request = with_route(request)
-        request['provider']['max_price'] = {'prompt': _price_float(self.config['prompt_per_million']),
-                                            'completion': _price_float(self.config['completion_per_million']), 'request': 0}
-        if request.get('stream'):
-            request['stream_options'] = {**(request.get('stream_options') or {}), 'include_usage': True}
-        created = False
-        if self._run_owned:
-            fd = os.open(self.path, os.O_RDWR)
-        else:
-            try:
-                fd = os.open(self.path, os.O_RDWR | os.O_CREAT | os.O_EXCL, 0o600)
-                created = True
-            except FileExistsError:
-                fd = os.open(self.path, os.O_RDWR)
-        with os.fdopen(fd, 'r+', encoding='utf-8') as ledger:
-            fcntl.flock(ledger, fcntl.LOCK_EX)
-            raw = ledger.read()
-            if not raw and not created:
-                raise ValueError('empty existing ledger; refusing reset')
-            state = json.loads(raw) if raw else {'version': 1, 'config': self.config, 'calls': []}
-            if created:
-                self._persist_state(ledger, state)
-            if state.get('version') != 1 or state.get('config') != self.config or not isinstance(state.get('calls'), list):
-                raise ValueError('ledger configuration mismatch')
-            if any(row.get('http_status') in (401, 403) for row in state['calls']):
-                raise AuthBlocked('upstream authentication blocked')
-            total = sum((_money(row['accounted']) for row in state['calls']), Decimal(0))
-            if state.get('spending_stop'):
-                raise BudgetRefused(state['spending_stop']['reason'])
-            if total + bound > _money(self.config['cap']):
-                if self._run_owned:
-                    state['spending_stop'] = {'reason': 'budget_refused', 'project': project,
-                                              'accounted_usd': str(total), 'requested_bound_usd': str(bound),
-                                              'observed_at': datetime.now(timezone.utc).isoformat()}
-                    self._persist_state(ledger, state)
-                raise BudgetRefused('budget_refused')
-            row = {'id': str(uuid.uuid4()), 'project': project, 'model': MODEL,
-                   'started': datetime.now(timezone.utc).isoformat(), 'finished': None,
-                   'reserved': str(bound), 'accounted': str(bound), 'state': 'uncertain',
-                   'provider_request': request['provider'], 'completion_bound_tokens': maximum,
-                   'input_tokens': None, 'output_tokens': None, 'http_status': None, 'error_label': None}
-            with self._trace_lock:
-                if project in self._input_traces:
-                    from .api_input_trace import record_proxy
-                    record_proxy(project, {'request': request, 'id': row['id']}, self._input_traces[project])
-            state['calls'].append(row)
-            self._persist_state(ledger, state)
-            try:
-                self._sending = True
-                self._created_this_request = created
-                status, data = send(request)
-            except Exception:
-                row.update(finished=datetime.now(timezone.utc).isoformat(), error_label='upstream_unavailable')
-                self._persist_state(ledger, state)
-                raise
-            finally:
-                self._sending = False
-            row.update(finished=datetime.now(timezone.utc).isoformat(), http_status=status,
-                       error_label=None if status == 200 else 'upstream_request_failed')
-            if status == 402 and self._run_owned:
-                row['error_label'] = 'upstream_payment_required'
-                state['spending_stop'] = {'reason': row['error_label'], 'project': project,
-                                          'request_id': row['id'], 'observed_at': row['finished']}
-                self._persist_state(ledger, state)
-                raise BudgetRefused(row['error_label'])
-            if status == 200:
-                try:
-                    if request.get('stream'):
-                        events = [json.loads(line[6:]) for line in data.decode().splitlines() if line.startswith('data: ') and line[6:] != '[DONE]']
-                        if any(event.get('model') is not None and event['model'] != MODEL for event in events):
-                            row['error_label'] = 'model_mismatch'
-                            self._persist_state(ledger, state)
-                            return 502, b'{"error":{"type":"model_mismatch"}}'
-                        payload = next(event for event in reversed(events) if isinstance(event.get('usage'), dict))
-                    else:
-                        payload = json.loads(data)
-                    metadata = events if request.get('stream') else [payload]
-                    for item in metadata:
-                        for source, target in (('id','upstream_request_id'), ('model','served_model'),
-                                               ('provider','served_provider')):
-                            if isinstance(item.get(source), str):
-                                row[target] = item[source][:256]
-                        for choice in item.get('choices', []):
-                            if isinstance(choice.get('finish_reason'), str):
-                                row['finish_reason'] = choice['finish_reason'][:64]
-                    if payload.get('model') is not None and payload['model'] != MODEL:
-                        row['error_label'] = 'model_mismatch'
-                        self._persist_state(ledger, state)
-                        return 502, b'{"error":{"type":"model_mismatch"}}'
-                    usage = payload['usage']
-                    cost = _money(usage['cost'])
-                    inp, out = usage['prompt_tokens'], usage['completion_tokens']
-                    if type(inp) is int and type(out) is int and 0 <= inp <= self.config['context_tokens'] and 0 <= out <= maximum and cost <= bound:
-                        row.update(accounted=str(cost), state='settled', input_tokens=inp, output_tokens=out)
-                except (ValueError, KeyError, TypeError, StopIteration, UnicodeDecodeError):
-                    pass
-            self._persist_state(ledger, state)
-            return status, data
-
-    def _persist_state(self, ledger, state):
-        _persist(ledger, state)
-        self._last_snapshot = json.loads(json.dumps(state))
-
-    def _snapshot_state(self):
-        if not self._run_owned and not self.path.exists():
-            return {'calls': []}
-        with self.path.open('r') as file:
-            try:
-                fcntl.flock(file, fcntl.LOCK_SH | fcntl.LOCK_NB)
-            except BlockingIOError:
-                if not hasattr(self, '_last_snapshot'):
-                    raise RuntimeError('Task ledger is busy and no durable local snapshot is available') from None
-                return self._last_snapshot
-            state = json.load(file)
-            if state.get('config') != self.config:
-                raise ValueError('ledger configuration mismatch')
-            return state
-
-    def health(self):
-        state = self._snapshot_state()
-        calls = state['calls']
-        used = sum(_money(row['accounted']) for row in calls)
-        stop = state.get('spending_stop')
-        completed = used
-        if self._run_owned and calls and calls[-1]['finished'] is None:
-            # A pending reservation can settle below its bound. Admission waits
-            # for that settlement under the lock before making a terminal decision.
-            completed -= _money(calls[-1]['accounted'])
-        return {'service': 'pacbench-openrouter', 'model': MODEL, 'endpoint': ENDPOINT,
-                'limit_usd': self.config['cap'], 'accounted_usd': float(used),
-                'budget_blocked': bool(stop) or completed >= _money(self.config['cap']),
-                'spending_stop_reason': stop['reason'] if stop else None,
-                'auth_blocked': any(row.get('http_status') in (401, 403) for row in calls)}
-
-    def snapshot(self):
-        rows = []
-        for call in self._snapshot_state()['calls']:
-            amount = _money(call['accounted'])
-            row = {**call, 'accounted_upper_bound_usd': float(amount)}
-            if call['state'] == 'settled':
-                row.update(actual_cost_usd=float(amount), actual_cost_usd_decimal=format(amount, 'f'),
-                           actual_cost_source='openrouter.usage.cost')
-            rows.append(row)
-        return rows
-
-
-def _persist(file, state):
-    file.seek(0)
-    file.write(json.dumps(state, separators=(',', ':')))
-    file.truncate()
-    file.flush()
-    os.fsync(file.fileno())
-
-
-class _NoRedirect(urllib.request.HTTPRedirectHandler):
-    def redirect_request(self, req, fp, code, msg, headers, newurl):
-        return None
-
+_FRAME_END = re.compile(rb'\r?\n\r?\n')
+VERSION = 'run-owned-pinned-openrouter-v3'
 
 def send_openrouter(request, api_key, *, budget=None, stream_callback=None):
-    from .openrouter_task import require_authorization
-    if budget is None or not getattr(budget, '_sending', False):
-        raise RuntimeError('A durable task reservation is required before inference')
-    if not (isinstance(budget, Budget) and budget._run_owned):
-        require_authorization(budget)
+    if not isinstance(budget, Budget):
+        raise RuntimeError('A durable run-owned reservation is required before inference')
+    budget.claim_dispatch(request)
     req = urllib.request.Request(UPSTREAM, data=json.dumps(request).encode(),
         headers={'Authorization': 'Bearer ' + api_key, 'Content-Type': 'application/json'})
-    opener = urllib.request.build_opener(_NoRedirect())
     try:
-        response = opener.open(req, timeout=180)
+        response = open_without_redirect(req, timeout=180)
     except urllib.error.HTTPError as exc:
         # Provider error bodies can contain prompts; expose only a fixed label.
         exc.close()
         return exc.code, b'{"error":{"type":"upstream_request_failed"}}'
     with response:
-        chunks, total, pending = [], 0, b''
-        while True:
-            chunk = response.read1(65536)
-            if not chunk:
-                break
+        chunks = []
+        total = 0
+        pending = bytearray()
+        while chunk := response.read1(65536):
             total += len(chunk)
             if total > MAX_RESPONSE:
                 raise ValueError('upstream response exceeds limit')
             chunks.append(chunk)
-            if request.get('stream') and stream_callback is not None:
-                pending += chunk
-                while b'\n' in pending:
-                    line, pending = pending.split(b'\n', 1)
-                    if line.startswith(b'data: ') and line[6:].strip() != b'[DONE]':
-                        event = json.loads(line[6:])
-                        if event.get('model') is not None and event['model'] != MODEL:
-                            raise ValueError('upstream stream model mismatch')
-                stream_callback(chunk)
+            if not request.get('stream') or stream_callback is None:
+                continue
+            start = max(0, len(pending) - 3)
+            pending.extend(chunk)
+            while delimiter := _FRAME_END.search(pending, start):
+                start = 0
+                end = delimiter.end()
+                frame = bytes(pending[:end])
+                del pending[:end]
+                observed = read_frames(frame)
+                if observed.errors:
+                    raise ValueError('invalid upstream stream')
+                if any(event.get('model') not in (None, MODEL) for event in observed.events):
+                    raise ValueError('upstream stream model mismatch')
+                stream_callback(frame)
         return response.status, b''.join(chunks)
 
 

@@ -2,21 +2,26 @@
 from __future__ import annotations
 
 import argparse
-from decimal import InvalidOperation
 import json
 import os
+import shutil
 import subprocess
 import tempfile
-import shutil
+from decimal import InvalidOperation
 from pathlib import Path
+
+from pacbench.corpus.audit import audit_prepared
 
 from . import harness
 from .context_isolation import outside_project
 from .gateway_client import (
-    STATE, GatewayConfigurationError, ModelAccessBlocked, SpendingBlocked,
-    require_live_cost_boundary, require_muse_state,
+    STATE,
+    GatewayConfigurationError,
+    ModelAccessBlocked,
+    SpendingBlocked,
+    require_live_cost_boundary,
+    require_muse_state,
 )
-from pacbench.corpus.audit import audit_prepared
 
 
 def provider_inventory(repo: Path = harness.REPO) -> dict:
@@ -105,7 +110,7 @@ def inspect(prepared: Path, *, repo: Path = harness.REPO,
         root = prepared.parent if prepared.is_file() else prepared
         result = audit_prepared(root)
         if result['state'] != 'pass':
-            raise RuntimeError('Frozen preparation integrity failed; run pacbench.preparation_audit for details')
+            raise RuntimeError('Frozen preparation integrity failed; run pacbench.corpus.audit for details')
         if not (root / 'week.json').is_file():
             raise RuntimeError('Reusable preparation manifest week.json is missing')
         return {'path': str(root), 'scope': result['scope']}
@@ -138,31 +143,8 @@ def inspect(prepared: Path, *, repo: Path = harness.REPO,
     check('isolated_scratch', _scratch_check)
 
     if inference_route == 'openrouter':
-        def accounting():
-            from types import SimpleNamespace
-            from decimal import Decimal
-            from .openrouter_task import STATE as task_state, require_authorization
-            from .openrouter_route import MODEL, ENDPOINT
-            path = task_state / 'ledger.json'
-            if not path.is_file() or not (task_state / 'authorization.json').is_file():
-                raise RuntimeError('Restore the original OpenRouter task ledger.json and authorization.json; do not initialize a replacement.')
-            state = json.loads(path.read_text())
-            if state.get('version') != 1 or not isinstance(state.get('calls'), list):
-                raise RuntimeError('Invalid private task ledger')
-            from .openrouter_route import PROFILE_NAME
-            config=state['config'] if PROFILE_NAME=='deepseek-flex' else state.get('route_configs',{}).get(PROFILE_NAME,{})
-            if config.get('model')!=MODEL or config.get('endpoint')!=ENDPOINT:
-                raise RuntimeError('Task ledger route differs from the authorized route')
-            require_authorization(SimpleNamespace(path=path,config=config))
-            amounts = [Decimal(str(row['accounted'])) for row in state['calls']]
-            if any(not value.is_finite() or value < 0 for value in amounts):
-                raise RuntimeError('Invalid accounted cost')
-            total = sum(amounts, Decimal(0))
-            if total >= Decimal('20'):
-                raise RuntimeError('Shared task cap exhausted')
-            return {'accounted_upper_bound_usd': str(total), 'cap_usd': '20',
-                    'scope': 'Read-only snapshot; request admission still rechecks the live ledger.'}
-        check('existing_openrouter_accounting', accounting)
+        from .gateway_client import require_supported_transport
+        check('openrouter_transport', require_supported_transport)
         def credential():
             if not os.environ.get('OPENROUTER_API_KEY'):
                 raise RuntimeError('OPENROUTER_API_KEY missing; configure securely in environment settings')
@@ -175,7 +157,7 @@ def inspect(prepared: Path, *, repo: Path = harness.REPO,
         raise ValueError('Unknown inference route')
 
     def driver():
-        from .generation import GenerationError, load_config
+        from pacbench.model_calls import GenerationError, load_config
         try:
             config, _ = load_config(repo / '.env')
         except GenerationError:

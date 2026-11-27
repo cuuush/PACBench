@@ -10,7 +10,7 @@ import socket
 import subprocess
 import time
 
-from pacbench.followups import save
+from pacbench.evidence_store import save
 from pacbench.gateway_client import validate_route
 from pacbench.provider_versions import memos_model_cache
 from provider_adapters.reme_memos_documents import request
@@ -20,7 +20,7 @@ REPO=Path(__file__).resolve().parents[1]
 
 def stop_native(root,process):
     """The shared stdio bridge can outlive its Hermes/probe parent."""
-    from pacbench.import_lifecycle import scan,cleanup
+    from pacbench.process_cleanup import scan, cleanup_owned as cleanup
     owner='memos-native-stop'
     known,_=scan(root,owner)
     if process.poll() is None:
@@ -75,8 +75,6 @@ def start(root,env,model,base,key,*,resume=False):
         SKILL_EVOLVER_ENDPOINT=base,SKILL_EVOLVER_MODEL=model,SKILL_EVOLVER_API_KEY=key,
         TELEMETRY_ENABLED='false',HUB_ENABLED='false',EMBEDDING_PROVIDER='local')
     child={**os.environ,**env}
-    from pacbench.openrouter_direct import runtime_environment
-    runtime_environment(child)
     with socket.socket() as listener:
         listener.bind(('127.0.0.1',0));port=listener.getsockname()[1]
     endpoint=f'http://127.0.0.1:{port}'
@@ -106,7 +104,7 @@ def start(root,env,model,base,key,*,resume=False):
     if health.get('ok') is False:
         save(root/'native-startup-failure.json',{'state':'native-health-failed','health':health})
         stop();raise RuntimeError('Native MemOS reported unhealthy; no questions may run')
-    from pacbench.prefetch_provenance import VERSION
+    from pacbench.source_policy import PREFETCH_PROTOCOL as VERSION
     declaration={'protocol':VERSION,'provider':'memos','state':'source',
         'reason':'This arm natively imports original text as raw document traces; generated extraction is not claimed'}
     save(root/'prefetch-provenance.json',declaration)

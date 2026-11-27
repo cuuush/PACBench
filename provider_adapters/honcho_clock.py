@@ -21,7 +21,7 @@ import uuid
 import urllib.request
 from email.utils import parsedate_to_datetime
 
-from pacbench.followups import save
+from pacbench.evidence_store import save
 from pacbench.provider_clock import LIBRARY, LIBRARY_SHA256, LEGACY_LIBRARY_SHA256, ProviderClock
 
 VERSION = 'honcho-wall-clock-v5'
@@ -467,7 +467,7 @@ def step_if_idle(root, target, *, ids=(), observer='hermes', horizon=None):
 def before_turn(root, at, env, *, question_deadline=None):
     """Called by the real harness; only the Hermes child receives clock env."""
     if not enabled(root): return env
-    from pacbench.stop import check_stop
+    from pacbench.process_cleanup import check_stop
     from pacbench.gateway_client import require_live_cost_boundary
     target = datetime.fromisoformat(at)
     hard_question=datetime.fromisoformat(question_deadline) if question_deadline is not None else None
@@ -540,7 +540,7 @@ def before_recovery(root, initial_at, env):
 def wait_for_batch(root, acknowledgments, roles):
     """Witness every message, let native age eligibility fire, preserve defaults."""
     from pacbench.gateway_client import require_live_cost_boundary
-    from pacbench.stop import check_stop
+    from pacbench.process_cleanup import check_stop
     from pacbench.usage import provider_model_health, snapshot as cost_snapshot
     expected = {m['id'] for ack in acknowledgments for m in ack['messages']}
     sessions={ack['session_id'] for ack in acknowledgments}
@@ -717,7 +717,7 @@ def audit_evidence(root, declared):
                 turn = json.loads(path.read_text())
                 observed = turn.get('provider_clock') or {}
                 if declared == VERSION:
-                    from pacbench.gateway_python_clock import audit_witness
+                    from pacbench.provider_clock import audit_witness
                     audit_witness(root,turn,config)
                 check(observed.get('version') == declared, 'Honcho turn lacks native clock observation')
                 actual = instant(observed['actual_start_at'])

@@ -274,7 +274,7 @@ def test_honcho_bad_model_requests_stop_processing_wait(monkeypatch):
 
 
 def test_honcho_native_tool_capture_is_sanitized_and_affects_retention(tmp_path):
-    from pacbench.followups import tool_profile
+    from pacbench.judging.recovery import tool_profile
     journal=tmp_path/'native-private.jsonl'
     env={'PACBENCH_HONCHO_TRACE_FILE':str(journal),'OPENAI_API_KEY':'test-gateway-secret'}
     previous=json.dumps({'task_type':'dialectic_chat','timestamp':0,'input':{'messages':[]},
@@ -297,8 +297,8 @@ def test_honcho_native_tool_capture_is_sanitized_and_affects_retention(tmp_path)
     assert metrics['provider_internal_tool_calls']==2
     assert metrics['provider_internal_source_fallback_confirmed'] and metrics['source_fallback_attempted']
     assert metrics['provider_internal_operations'][0]['category']=='memory_search'
-    from pacbench.semantic_grade import Grade,GradedClaim
-    from pacbench.followups import recovery_score
+    from pacbench.judging.grade import Grade, GradedClaim
+    from pacbench.judging.recovery import recovery_score
     grade=Grade('check',slots=[GradedClaim('fact','correct','Answer is correct')],correct=1)
     score=recovery_score(grade,metrics,[])
     assert score['points']==0 and score['claims'][0]['retention_failed']
@@ -306,7 +306,7 @@ def test_honcho_native_tool_capture_is_sanitized_and_affects_retention(tmp_path)
 
 
 def test_unattributed_native_source_work_needs_review_not_false_causal_failure():
-    from pacbench.followups import tool_profile
+    from pacbench.judging.recovery import tool_profile
     turn=SimpleNamespace(tool_calls=[],tool_results=[],provider_traces=[{'provider':'honcho',
         'attribution':'background-or-prefetch','record':{'toolCalls':[{'toolName':'grep_messages','args':{}}]}}])
     metrics=tool_profile(turn)

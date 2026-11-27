@@ -6,14 +6,32 @@ import hashlib
 import json
 from pathlib import Path
 
-from pacbench.corpus.sources import load_bundle, messages_for
+from pacbench import harness
+from pacbench.context_isolation import judge_question
 from pacbench.corpus.contract import load_contract
-from .followups import load_questions, audit_followups
-from .harness import TurnResult, question_prompt, PROMPT_PROTOCOL, LEGACY_PROMPT_PROTOCOL
 from pacbench.corpus.evaluation import load_evaluations
-from .native_checks import audit_checks
+from pacbench.corpus.sources import load_bundle, messages_for
+from pacbench.judging.grade import (
+    DIAGNOSTIC_VERSIONS,
+    LEGACY_DIAGNOSTIC_VERSION,
+    LEGACY_JUDGE_PROTOCOL,
+    Claim,
+    audit_native_judge_attempts,
+    judge_prompt,
+    validate_diagnostic,
+)
+from pacbench.judging.recovery import audit_followups, initial_effort, load_questions
+from pacbench.workflows.turn_evidence import (
+    advance,
+    diagnostic_inputs,
+    fresh_state,
+    session_key,
+)
+
+from .harness import (
+    TurnResult,
+)
 from .source_policy import SUPPORTED_VERSIONS, policy_record, source_read_blocked
-from .clock_context import judge_question
 
 
 def audit(root: Path, *, providers=None) -> dict:
@@ -28,14 +46,20 @@ def audit(root: Path, *, providers=None) -> dict:
         if summary.get('question_prompt_protocol') is not None:
             from .harness import question_prompt
             return question_prompt(text, at, summary['question_prompt_protocol'])
-        from .clock_context import LEGACY, expected_prompt
+        from pacbench.context_isolation import LEGACY_CLOCK_PREFIX as LEGACY
+        from pacbench.context_isolation import expected_prompt
         return expected_prompt(at,text,summary.get('clock_context_protocol',LEGACY))
     try:
         summary = read(root / 'summary.json')
-        from .clock_context import LEGACY, VERSION as CLOCK_CONTEXT, NATIVE, SUPPORTED as CLOCK_CONTEXT_PROTOCOLS
+        from pacbench.context_isolation import (
+            CLOCK_CONTEXT_PROTOCOLS as CLOCK_CONTEXT_PROTOCOLS,
+        )
+        from pacbench.context_isolation import LEGACY_CLOCK_PREFIX as LEGACY
+        from pacbench.context_isolation import NATIVE_QUESTION as NATIVE
+        from pacbench.context_isolation import SYSTEM_CLOCK_PROTOCOL as CLOCK_CONTEXT
         clock_protocol=summary.get('clock_context_protocol',LEGACY)
         if clock_protocol not in CLOCK_CONTEXT_PROTOCOLS:raise ValueError('Unknown clock context protocol')
-        from .harness import PROMPT_PROTOCOL, LEGACY_PROMPT_PROTOCOL
+        from .harness import LEGACY_PROMPT_PROTOCOL, PROMPT_PROTOCOL
         prompt_protocol=summary.get('question_prompt_protocol')
         if prompt_protocol not in (None,PROMPT_PROTOCOL,LEGACY_PROMPT_PROTOCOL):
             raise ValueError('Unsupported question prompt protocol')
@@ -43,7 +67,12 @@ def audit(root: Path, *, providers=None) -> dict:
             raise ValueError('Native clock context requires native question prompt protocol')
         if prompt_protocol==PROMPT_PROTOCOL and clock_protocol==CLOCK_CONTEXT:
             raise ValueError('Native question condition cannot include ephemeral benchmark instructions')
-        from .semantic_grade import DIAGNOSTIC_VERSIONS, LEGACY_DIAGNOSTIC_VERSION, JUDGE_PROTOCOLS, LEGACY_JUDGE_PROTOCOL
+        from pacbench.judging.grade import (
+            DIAGNOSTIC_VERSIONS,
+            JUDGE_PROTOCOLS,
+            LEGACY_DIAGNOSTIC_VERSION,
+            LEGACY_JUDGE_PROTOCOL,
+        )
         if summary.get('provenance_version', 'source-provenance-v1') not in {'source-provenance-v1', 'source-provenance-v2', 'source-provenance-v3'}:
             raise ValueError('Unsupported provenance protocol')
         if 'evidence_diagnostic_protocol' in summary and summary['evidence_diagnostic_protocol'] not in DIAGNOSTIC_VERSIONS:
@@ -95,7 +124,7 @@ def audit(root: Path, *, providers=None) -> dict:
                 arm = root / f"repeat-{result['repetition']}" / result['provider']
                 label = str(arm.relative_to(root))
                 if summary.get('ingestion_mode')=='documents' and result['state']=='blocked':
-                    from .document_ingestion import BLOCKERS
+                    from pacbench.workflows.delivery import BLOCKERS
                     blockers=summary.get('document_provider_blockers',BLOCKERS)
                     check(result['reason']==blockers.get(result['provider']),f'{label}: unverified blocked-provider reason')
                     check(not list((arm/'ingestion').glob('*.json')) and not (arm/'recall.json').exists(),f'{label}: blocked arm executed')
@@ -116,7 +145,10 @@ def audit(root: Path, *, providers=None) -> dict:
                 check(result['capability'].get('wiring_verified'), f'{label}: wiring not verified')
                 terminal=summary.get('terminal_processing_protocols',{}).get(result['provider'])
                 if terminal is not None:
-                    from .terminal_processing import VERSION as TERMINAL_PROTOCOL,audit_terminal
+                    from pacbench.native_writes import (
+                        TERMINAL_PROTOCOL as TERMINAL_PROTOCOL,
+                    )
+                    from pacbench.native_writes import audit_terminal
                     check(result['provider']=='openviking' and terminal==TERMINAL_PROTOCOL,
                           f'{label}: unsupported native terminal processing condition')
                     for error in audit_terminal(arm):check(False,f'{label}: '+error)
@@ -132,7 +164,7 @@ def audit(root: Path, *, providers=None) -> dict:
                     # checked; only a genuinely unexecuted arm has none.
                     continue
                 if summary.get('tool_policy') in SUPPORTED_VERSIONS:
-                    from .context_isolation import actual_context, VERSION
+                    from .context_isolation import VERSION, actual_context
                     workspace_file = arm / 'recall-workspace.json'
                     workspace_record = (read(workspace_file) if workspace_file.exists()
                                         else {'version': 'missing', 'workspace': '/unrecorded'})
@@ -170,14 +202,16 @@ def audit(root: Path, *, providers=None) -> dict:
                                       f'{label}: judge request differs from declared generation condition')
                             if clock_protocol==CLOCK_CONTEXT or (clock_protocol==NATIVE and
                                     summary.get('inference_route')=='openrouter'):
-                                from .clock_context import delivery
+                                from pacbench.context_isolation import delivery
                                 saved=data.get('clock_context') or {}
                                 observed=delivery(arm,TurnResult(**data),identifiers=saved.get('api_input_ids',[]),
                                     hook_index=saved.get('native_query_index'),protocol=clock_protocol)
                                 check(observed.get('state')=='pass' and observed==saved,
                                       f'{label}: actual system clock or natural provider query is unproven')
                             if summary.get('provenance_version')=='source-provenance-v3' and result['provider'] in {'cognee','memos','supermemory'}:
-                                from .prefetch_provenance import observe
+                                from pacbench.source_policy import (
+                                    observe_prefetch as observe,
+                                )
                                 declaration=read(arm/'prefetch-provenance.json')
                                 check(declaration.get('provider')==result['provider'] and
                                       data.get('prefetch_provenance')==observe(declaration,data.get('prefetch_context')),
@@ -230,15 +264,19 @@ def audit(root: Path, *, providers=None) -> dict:
                 grade = read(arm / 'grade.json')
                 check(sorted(c['id'] for c in grade['claims']) == sorted(c.id for c in contract.claims), f'{label}: incomplete judgments')
                 if summary.get('evidence_diagnostic_protocol'):
-                    from .native_checks import diagnostic_inputs
-                    from .semantic_grade import Claim, validate_diagnostic, judge_prompt
                     from pacbench.corpus.evaluation import source_evidence
+                    from pacbench.judging.grade import (
+                        Claim,
+                        judge_prompt,
+                        validate_diagnostic,
+                    )
+                    from pacbench.workflows.turn_evidence import diagnostic_inputs
                     observed_turn = TurnResult(**recall)
                     inputs = diagnostic_inputs(observed_turn, contract, source_evidence(messages, summary['evidence_diagnostic_protocol']), diagnostic_version=summary['evidence_diagnostic_protocol'])
                     claims = tuple(Claim(c.id, c.statement, c.evidence) for c in contract.claims)
                     response = json.loads(judgment['response'])
                     if summary.get('judge_protocol', LEGACY_JUDGE_PROTOCOL) != LEGACY_JUDGE_PROTOCOL:
-                        from .semantic_grade import audit_native_judge_attempts
+                        from pacbench.judging.grade import audit_native_judge_attempts
                         audit_native_judge_attempts(arm/'judgment.json', question=judge_question(recall_turn), answer=recall['answer'], claims=claims,
                             judge_protocol=summary['judge_protocol'], assess_recovery=True, diagnostic_inputs=inputs,
                             diagnostic_version=summary['evidence_diagnostic_protocol'])
@@ -268,15 +306,126 @@ def audit(root: Path, *, providers=None) -> dict:
             'scope': 'native trace integrity, not calibrated provider quality'}
 
 
-def main():
+def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('run', type=Path)
     parser.add_argument('--providers',nargs='+',help='Audit only these explicitly selected provider arms')
-    args = parser.parse_args()
+    args = parser.parse_args(argv)
     report = audit(args.run,providers=args.providers)
     print(json.dumps(report, indent=2))
     return int(bool(report['errors']))
 
+
+def audit_checks(checks, context, root, *, provenance_version='source-provenance-v1', evidence_by_id=None, diagnostic_version=LEGACY_DIAGNOSTIC_VERSION, judge_protocol=LEGACY_JUDGE_PROTOCOL, clock_context_protocol='user-clock-prefix-v1', prompt_protocol=None):
+    errors, sessions, seen = [], {}, {}
+    def check(ok, text):
+        if not ok:errors.append(text)
+    def read(path):return json.loads(path.read_text())
+    try:
+        report=read(root/'evaluation.json')
+        check(report['context']==context,'evaluation context mismatch')
+        check([r['id'] for r in report['checks']]==[r['id'] for r,_,_ in checks],'evaluation checks differ from frozen plan')
+        check(sorted(p.name for p in (root/'turns').iterdir())==sorted(r['id'] for r,_,_ in checks),'unexpected evaluation folders')
+        outcomes={i['id']:i for i in report['checks']}
+        for (row,contract,policy),item in zip(checks,report['checks']):
+            key=session_key(row,context);state=sessions.setdefault(key,fresh_state())
+            if report.get('provider_name'):state['provider_name']=report['provider_name']
+            directory=root/'turns'/row['id']
+            check(item==read(directory/'status.json'),f"{row['id']}: status mismatch")
+            if item['state']=='skipped':
+                dependency=outcomes.get(item.get('cause'),{})
+                if item['reason']=='Scripted clarification reply was not requested':
+                    check(row.get('trigger')=='clarification' and row.get('depends_on')==item['cause'] and
+                        dependency.get('interaction')!='clarification',f"{row['id']}: invalid conditional skip")
+                else:
+                    check(item['reason']=='Dependency unavailable' and dependency.get('state')!='diagnostic',f"{row['id']}: unexplained dependency skip")
+                check(not (directory/'turn.json').exists(),f"{row['id']}: skipped turn executed")
+                continue
+            if not (directory/'turn.json').exists():
+                check(item['state']=='ungraded' and bool(item.get('reason')),f"{row['id']}: missing turn evidence")
+                state['failed']=row['id']
+                continue
+            check(not state['failed'],f"{row['id']}: executed after an unavailable turn in the same conversation")
+            turn=harness.TurnResult(**read(directory/'turn.json'))
+            if (turn.hermes_gateway or {}).get('version')=='checkpoint-session-v1':
+                from pacbench.workflows.turn_evidence import audit_transport
+                audit_transport(turn)
+            from pacbench.usage import provider_paths_match
+            if (directory/'usage.json').exists():
+                check(provider_paths_match(turn,read(directory/'usage.json')),
+                    f"{row['id']}: provider path timing differs from recorded inference inputs")
+            from pacbench.context_isolation import expected_prompt
+            expected=expected_prompt(row['at'],contract.question,clock_context_protocol)
+            if prompt_protocol is not None:expected=harness.question_prompt(contract.question,row['at'],prompt_protocol)
+            check(turn.at==row['at'] and turn.prompt==expected,f"{row['id']}: evaluation question/clock mismatch")
+            if report.get('strict_memory_protocol')=='strict-memory-only-v1':
+                check((directory/'strict-memory.json').exists(),f"{row['id']}: missing strict provenance receipt")
+            if (directory/'strict-memory.json').exists():
+                from pacbench.source_policy import classify_retention as classify
+                decision=classify(report.get('provider_name',root.name),turn,state.get('strict','eligible'))
+                state['strict']=decision['state']
+                check(read(directory/'strict-memory.json')==decision,f"{row['id']}: strict provenance mismatch")
+                if decision['state']!='eligible':
+                    check(item['state']=='strict-ungraded' and item['verdict'] is None,f"{row['id']}: excluded answer was scored")
+                    check(not (directory/'grade.json').exists() and not (directory/'judgment.json').exists(),f"{row['id']}: excluded answer was judged")
+                    advance(state,turn,directory,provenance_version)
+                    continue
+            if judge_protocol != LEGACY_JUDGE_PROTOCOL and (directory/'judgment.json').exists():
+                claim_objects = tuple(Claim(c.id, c.statement, c.evidence) for c in contract.claims)
+                inputs = diagnostic_inputs(turn, contract, evidence_by_id(row) if callable(evidence_by_id) else evidence_by_id, diagnostic_version=diagnostic_version) if evidence_by_id is not None else None
+                audit_native_judge_attempts(directory/'judgment.json', question=judge_question(turn), answer=turn.answer,
+                    claims=claim_objects, judge_protocol=judge_protocol, conversation=state['history'],
+                    assess_recovery=row.get('kind') != 'behavior', assess_interaction='session' in row or row.get('kind') == 'behavior',
+                    diagnostic_inputs=inputs, diagnostic_version=diagnostic_version)
+            if item['state']!='diagnostic':
+                check(bool(item.get('reason')) and item.get('verdict') in (None,'fail'),f"{row['id']}: unexplained ungraded turn")
+                if not turn.returncode and not turn.policy_blocks and turn.answer.strip() and turn.session_id:advance(state,turn,directory,provenance_version)
+                else:state['failed']=row['id']
+                continue
+            check(not turn.returncode and not turn.policy_blocks and bool(turn.answer.strip()),f"{row['id']}: failed evaluation turn")
+            if state['session']:check(turn.session_id==state['session'],f"{row['id']}: shared conversation changed")
+            else:check(bool(turn.session_id) and turn.session_id not in seen,f"{row['id']}: evaluation reused an isolated session")
+            seen[turn.session_id]=key
+            judgment,grade=read(directory/'judgment.json'),read(directory/'grade.json')
+            check(judgment.get('judge_protocol', LEGACY_JUDGE_PROTOCOL) == judge_protocol, f"{row['id']}: judge protocol mismatch")
+            check(judgment['question']==judge_question(turn) and judgment['answer']==turn.answer and judgment.get('conversation')==state['history'],f"{row['id']}: judge conversation mismatch")
+            response=json.loads(judgment['response'])
+            check(response['verdicts']==grade['claims'] and response.get('recovery')==grade.get('recovery'),f"{row['id']}: grade differs from judge")
+            if evidence_by_id is not None:
+                check('diagnostic_protocol' in judgment and 'evidence_diagnostic' in grade, f"{row['id']}: missing evidence diagnostic")
+            if 'diagnostic_protocol' in judgment or 'evidence_diagnostic' in grade:
+                inputs = judgment.get('diagnostic_inputs', {})
+                check(diagnostic_version in DIAGNOSTIC_VERSIONS and judgment.get('diagnostic_protocol') == diagnostic_version, f"{row['id']}: unsupported diagnostic protocol")
+                claim_objects = tuple(Claim(c.id, c.statement, c.evidence) for c in contract.claims)
+                expected_prompt = judge_prompt(judge_question(turn), turn.answer, claim_objects, conversation=state['history'],
+                    assess_recovery=row.get('kind') != 'behavior', assess_interaction='session' in row or row.get('kind') == 'behavior',
+                    diagnostic_inputs=inputs, diagnostic_version=diagnostic_version, judge_protocol=judge_protocol)
+                check(judgment.get('prompt') == expected_prompt + judgment.get('prompt_suffix', ''), f"{row['id']}: diagnostic judge prompt mismatch")
+                check(grade.get('evidence_diagnostic') == validate_diagnostic(response.get('evidence_diagnostic'), claim_objects, turn.answer, inputs, diagnostic_version), f"{row['id']}: diagnostic differs from judge")
+                expected_inputs = diagnostic_inputs(turn, contract, {x['id']: x['text'] for x in inputs.get('source_evidence', [])}, diagnostic_version=diagnostic_version)
+                if evidence_by_id is not None:
+                    actual_sources = evidence_by_id(row) if callable(evidence_by_id) else evidence_by_id
+                    check(inputs == diagnostic_inputs(turn, contract, actual_sources, diagnostic_version=diagnostic_version), f"{row['id']}: diagnostic differs from frozen evidence")
+                check(inputs.get('answer_visible') == expected_inputs['answer_visible'] and
+                    all(x.get('id') in {e for c in contract.claims for e in c.evidence} for x in inputs.get('source_evidence', [])),
+                    f"{row['id']}: diagnostic evidence scope mismatch")
+            check(judgment['claims']==[{'id':c.id,'description':c.statement,'evidence':list(c.evidence)} for c in contract.claims],f"{row['id']}: judge received different criteria")
+            check(item['verdict']==('pass' if all(c['verdict']=='correct' for c in grade['claims']) else 'fail'),f"{row['id']}: pass/fail mismatch")
+            if row.get('kind')=='behavior':
+                check(not (directory/'followups').exists(),f"{row['id']}: scripted action got recovery")
+                check(read(directory/'behavior.json')['initial_metrics']==initial_effort(turn,state['previous'],inherited_path=state['path'],provenance_version=provenance_version),f"{row['id']}: behavior cost mismatch")
+            else:
+                errors.extend(f"{row['id']}: {e}" for e in audit_followups(contract=contract,plan=policy,
+                    initial_turn=turn,initial_grade=grade,output=directory/'followups',previous_turn=state['previous'],
+                    conversation=state['history'],inherited_path=state['path'],provenance_version=provenance_version,
+                    evidence_by_id=(evidence_by_id(row) if callable(evidence_by_id) else evidence_by_id), diagnostic_version=diagnostic_version, judge_protocol=judge_protocol, clock_context_protocol=clock_context_protocol, prompt_protocol=prompt_protocol,
+                    provider_name=report.get('provider_name',root.name),strict_memory=report.get('strict_memory_protocol')=='strict-memory-only-v1'))
+                recovery=read(directory/'followups/recovery.json')
+                check(item['recovery']['score']==recovery['score'] and item['recovery']['attempts']==recovery['attempts'] and
+                    item['recovery'].get('score_state')==recovery.get('score_state'),f"{row['id']}: summary/score mismatch")
+            advance(state,turn,directory,provenance_version)
+    except (OSError,ValueError,TypeError,KeyError,RuntimeError) as exc:errors.append(f'evaluation audit: {exc}')
+    return errors
 
 if __name__ == '__main__':
     raise SystemExit(main())

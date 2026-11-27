@@ -21,9 +21,10 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
+from pacbench.process_cleanup import OperatorStop, check_stop
+
 from .context_isolation import outside_project
 from .model_calls import ModelOutput, _read_record, _write_record
-from .stop import OperatorStop, check_stop
 
 PROTOCOL = 'codex-subscription-text-v1'
 DEFAULT_MODEL = 'gpt-6-luna'

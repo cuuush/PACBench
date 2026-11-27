@@ -3,7 +3,7 @@ import json
 from decimal import Decimal
 from pathlib import Path
 
-from pacbench.phase_costs import report
+from pacbench.usage import phase_cost_report as report
 from pacbench.receipt_costs import request_record, summarize
 
 
@@ -115,7 +115,7 @@ def test_output_context_does_not_export_arbitrary_payloads():
 
 
 def test_cli_serializes_half_credit_and_never_overwrites_evidence(tmp_path, monkeypatch):
-    from pacbench.phase_costs import main
+    from pacbench.usage import phase_cost_main as main
     component = tmp_path / 'component'
     arm = component / 'repeat-1/mem0'
     grades = arm / 'turns/q/followups'

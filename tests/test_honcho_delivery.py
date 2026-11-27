@@ -50,7 +50,7 @@ def test_failed_chunk_keeps_prior_acknowledgments_and_never_retries(status,commi
         'ctx':{'max_length':100,'actual_length':101},'input':'SECRET_SOURCE_AND_TOKEN'}]}
     session=Session(fail_at=2,error=error);journal=tmp_path/'delivery.json'
     def checkpoint(accepted,index,chunk,state,failure):
-        from pacbench.followups import save
+        from pacbench.evidence_store import save
         save(journal,{'accepted_ids':[m.id for m in accepted],'chunk':index,'state':state,'error':failure})
     accepted,failure=connector.add_honcho_messages(session,messages(201),checkpoint)
     assert len(accepted)==100 and len(session.calls)==2
@@ -131,7 +131,7 @@ def test_connector_writes_atomic_per_chunk_receipts_before_processing(tmp_path,m
     resolver=Mock(return_value=plugin)
     monkeypatch.setattr('pacbench.providers.provider_module',resolver)
     monkeypatch.setattr('pacbench.gateway_client.require_live_cost_boundary',lambda:{})
-    monkeypatch.setattr('pacbench.stop.check_stop',lambda *a:None)
+    monkeypatch.setattr('pacbench.process_cleanup.check_stop',lambda *a:None)
     monkeypatch.setattr('provider_adapters.honcho_clock.enabled',lambda r:True)
     processed=[]
     def wait(root,acks,roles):processed.append(acks);return {'ready':True,'result':acks}
@@ -175,7 +175,7 @@ def test_connector_writes_atomic_per_chunk_receipts_before_processing(tmp_path,m
 @pytest.mark.parametrize('timeout',[False,True])
 @pytest.mark.parametrize('provider',['honcho','supermemory'])
 def test_worker_streams_cannot_leak_native_error_payload(tmp_path,monkeypatch,timeout,provider):
-    from pacbench import document_ingestion as ingestion
+    from pacbench.workflows import delivery as ingestion
     from tests.test_document_ingestion import message
     schedule=ingestion.prepare_sources(tmp_path,[message('one')],'America/New_York')
     source=tmp_path/'sources'/schedule[0]['id'];root=tmp_path/'arm';root.mkdir()
@@ -193,7 +193,7 @@ def test_worker_streams_cannot_leak_native_error_payload(tmp_path,monkeypatch,ti
     assert set(record['worker_diagnostics'])=={'stdout','stderr'}
 def test_operator_stop_precedes_honcho_readiness_poll(tmp_path,monkeypatch):
     from types import SimpleNamespace
-    from pacbench.stop import OperatorStop
+    from pacbench.process_cleanup import OperatorStop
     from provider_adapters.document_connector import wait_honcho_sessions
     marker=tmp_path/'STOP';marker.write_text('stop queued processing')
     monkeypatch.setenv('PACBENCH_STOP_FILE',str(marker))

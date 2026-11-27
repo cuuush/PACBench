@@ -1,276 +1,25 @@
 """Integrity checks for direct document/native-source ingestion, no answer scoring."""
 from __future__ import annotations
+
 import hashlib
 import json
 import sqlite3
 from datetime import datetime
 from pathlib import Path
-from .document_ingestion import VERSION, SUPPORTED_VERSIONS, daily_batches, document_text, processing_at, validate_evaluation_clocks, ready_sources
 
-
-def same_submitted_text(observed,text):
-    # Native storage trims the export's single framing LF. Message bodies and
-    # all internal whitespace must still match; never normalize their text.
-    return isinstance(observed,str) and (observed==text or text.endswith('\n') and observed==text[:-1])
-
-
-def audit_reme_resource_receipt(result, day, text, source_ids):
-    """Require actual native action and indexed source-linked card witnesses."""
-    errors=[]
-    digest=hashlib.sha256(text.encode()).hexdigest()
-    relative=f'resource/{day}/source-{digest}.txt'
-    receipt=result.get('native_result',{})
-    response=receipt.get('response',{})
-    items=response.get('metadata',{}).get('results',[])
-    matches=[i for i in items if i.get('path')==relative]
-    metadata=(matches[0].get('metadata') or {}) if len(matches)==1 else {}
-    nodes=receipt.get('hook_metadata',{}).get('observed_index_nodes',[])
-    card=result.get('card_text')
-    if (result.get('ingestion_condition')!='native-resource-document-extraction-v1' or
-            result.get('resource_path')!=relative or result.get('document_sha256')!=digest or
-            result.get('stored_source_sha256')!=digest or result.get('source_ids')!=source_ids or
-            result.get('source_readback_exact') is not True or result.get('manual_job_invocations')!=0 or
-            result.get('native_defaults') is not True):
-        errors.append('ReMe native document delivery/source binding is unproven')
-    if (receipt.get('protocol')!='reme-native-resource-observer-v1' or
-            receipt.get('processing_forced') is not False or response.get('success') is not True or
-            receipt.get('response_sha256')!=hashlib.sha256(json.dumps(response,sort_keys=True,ensure_ascii=False).encode()).hexdigest() or
-            len(matches)!=1 or matches[0].get('success') is not True or
-            metadata.get('action')!='added' or metadata.get('source_resource')!=f'[[{relative}]]' or
-            'error' in (metadata.get('index') or {})):
-        errors.append('ReMe native resource processing did not complete')
-    if (not isinstance(card,str) or hashlib.sha256(card.encode()).hexdigest()!=result.get('card_sha256') or
-            f'[[{relative}]]' not in (card or '') or result.get('card_path')!=metadata.get('path') or
-            not str(result.get('card_path','')).startswith(f'daily/{day}/') or
-            receipt.get('hook_metadata',{}).get('index_observation_complete') is not True or
-            len(nodes)!=1 or nodes[0].get('path')!=result.get('card_path') or not nodes[0].get('chunk_ids') or
-            nodes[0].get('front_matter',{}).get('source_resource')!=f'[[{relative}]]'):
-        errors.append('ReMe generated memory card/index provenance is unproven')
-    return errors
-
-
-def audit_supermemory_receipt(result, day, text):
-    statuses=result.get('processing_status',[])
-    final=statuses[-1] if statuses else {}
-    errors=[]
-    if result.get('delivery_options') is not None and result['delivery_options']!={'dreaming':'instant'}:
-        errors.append('Supermemory ingestion mode differs from the declared daily-batch connector')
-    if (final.get('status')!='done' or
-            final.get('dreaming_status',final.get('dreamingStatus'))!='done'):
-        errors.append('Supermemory memory consolidation did not complete')
-    v5=result.get('native_api_protocol')=='supermemory-v5-documents-v1'
-    system=final.get('native_system') or {}
-    native_phase=system.get('dreaming_status',system.get('dreamingStatus'))
-    witness=final.get('native_completion_witness') or {}
-    if v5 and native_phase is None:
-        content=final.get('content')
-        if (witness.get('protocol')=='supermemory-native-v3-completion-observer-v1'
-                and witness.get('namespace')==result.get('container_tag')
-                and witness.get('public_id')==day and witness.get('native_id')
-                and witness.get('status')=='done' and witness.get('processing_forced') is False
-                and witness.get('metadata')==final.get('metadata') and isinstance(content,str)
-                and witness.get('content_sha256')==hashlib.sha256(content.encode()).hexdigest()):
-            native_phase=witness.get('dreaming_status')
-    identity_ok=(final.get('id')==day and final.get('request_namespace')==result.get('request_namespace')==result.get('container_tag')
-                 and (final.get('metadata') or {}).get('collected_at')
-                 and (final.get('native_system') or {}).get('status')=='done'
-                 and native_phase=='done') if v5 else (
-                     final.get('custom_id',final.get('customId'))==day and result.get('container_tag') in final.get('container_tags',final.get('containerTags',[])))
-    if (not final.get('id') or final.get('id')!=result.get('result',{}).get('id') or not identity_ok or
-            not same_submitted_text(final.get('content'),text) or
-            not result.get('container_tag')):
-        errors.append('Supermemory completion receipt differs from submitted source or namespace')
-    return errors
-
-
-def openviking_observer_state(value):
-    """Validate the native post-wait snapshot; distinguish busy from malformed/error."""
-    result=value.get('result') or {}
-    queues=(result.get('status') or {}).get('queues')
-    if (value.get('status')!='ok' or result.get('is_healthy') is not True
-            or result.get('has_errors') is not False or not isinstance(queues,list)
-            or not all(isinstance(q,dict) for q in queues)
-            or not {'Embedding','Semantic'}.issubset({q.get('queue') for q in queues})):
-        return 'invalid'
-    counters=[q.get(k) for q in queues for k in ('pending','in_progress','errors')]
-    if any(type(v) is not int or v<0 for v in counters) or any(q['errors'] for q in queues):
-        return 'invalid'
-    return 'busy' if any(q['pending'] or q['in_progress'] for q in queues) else 'ready'
-
-
-def openviking_generated_artifacts(workspace):
-    """Read-only check for native unresolved summary placeholders after drain."""
-    files=[]
-    for name in ('.overview.md','.abstract.md'):
-        for path in sorted((Path(workspace)/'viking').rglob(name)):
-            body=path.read_bytes()
-            failed=any(marker in body for marker in (
-                b'[Directory overview is not generated]',b'[Directory overview is not ready]',b'[Directory abstract is not ready]'))
-            files.append({'path':str(path.relative_to(workspace)),
-                'sha256':hashlib.sha256(body).hexdigest(),'failed_placeholder':failed})
-    return {'state':'complete' if files and not any(f['failed_placeholder'] for f in files) else 'incomplete',
-        'files':files,'scope':'Native generated summary artifacts read without alteration; queue health alone can conceal model failures.'}
-
-
-OPENVIKING_FAILURE_MARKERS=(
-    'Failed to generate summary for','VLM not available, using empty summary',
-    'Failed to generate partial overview batch','Failed to merge partial overviews',
-    'Failed to generate overview for','Failed to dispatch directory')
-
-
-def openviking_failure_log(path):
-    path=Path(path)
-    if not path.is_file():return {'state':'unproven','failures':[]}
-    failures=[{'line':i+1,'marker':marker} for i,line in enumerate(path.read_text(errors='replace').splitlines())
-              for marker in OPENVIKING_FAILURE_MARKERS if marker in line]
-    return {'state':'incomplete' if failures else 'complete','failures':failures,
-        'sha256':hashlib.sha256(path.read_bytes()).hexdigest()}
-
-
-def openviking_response_evidence(rows):
-    results=[]
-    for row in rows:
-        v=row.get('response_validation') or {}
-        valid=(row.get('http_status')==200 and v.get('body_complete') is True
-            and v.get('envelope_errors')==[] and v.get('assistant_nonwhitespace_characters',0)>0
-            and v.get('finish_reasons')==['stop'])
-        results.append({'id':row['id'],'complete':valid,'response_validation':v})
-    return {'state':'complete' if results and all(r['complete'] for r in results) else 'incomplete',
-        'requests':results,'scope':'Every request in the isolated import; native recovery would need separately reviewed evidence.'}
-
-
-def audit_openviking_receipt(result):
-    native=result.get('result',{}).get('result',{})
-    queues=native.get('queue_status')
-    if (native.get('status')!='success' or native.get('errors') or not native.get('root_uri') or
-            not isinstance(queues,dict) or not queues or any(
-                not isinstance(q,dict) or q.get('errors') or q.get('error_count',0)
-                for q in queues.values())):
-        return ['OpenViking native semantic/vector processing did not succeed']
-    if result.get('completion_protocol') is not None:
-        global_value=result.get('native_global_queue_completion') or {}
-        global_queues=global_value.get('result')
-        if (result['completion_protocol']!='openviking-global-import-readiness-v4'
-                or global_value.get('status')!='ok' or not isinstance(global_queues,dict)
-                or not global_queues or any(not isinstance(q,dict) or q.get('error_count')!=0
-                    or q.get('errors')!=[] for q in global_queues.values())
-                or openviking_observer_state(result.get('native_global_queue_observation') or {})!='ready'):
-            return ['OpenViking global processing completion is unproven']
-        artifacts=result.get('native_generated_artifact_check') or {}
-        files=artifacts.get('files')
-        if (artifacts.get('state')!='complete' or not isinstance(files,list) or not files
-                or any(not isinstance(f,dict) or f.get('failed_placeholder') is not False
-                    or not f.get('sha256') or not f.get('path') for f in files)):
-            return ['OpenViking generated summaries contain unresolved processing failures']
-        log=result.get('native_failure_log_check') or {}
-        responses=result.get('native_model_response_check') or {}
-        if (log.get('state')!='complete' or log.get('failures')!=[]
-                or responses.get('state')!='complete' or not responses.get('requests')
-                or any(r.get('complete') is not True for r in responses['requests'])):
-            return ['OpenViking model/subtask completion is unproven']
-    return []
-
-
-def audit_honcho_receipt(batch, result, previous_work=None, previous_rosters=None):
-    """Independently bind native acknowledgments and readiness to frozen sources."""
-    if previous_work is None:previous_work={}
-    errors=[];seen=[];sessions=set();minimum={}
-    if result.get('membership_protocol') is not None:
-        from provider_adapters.honcho_enrollment import SUPPORTED, source_plans, validate_windows, validate_roster_continuity
-        try:
-            if result['membership_protocol'] not in SUPPORTED:
-                raise ValueError('Unsupported Honcho membership protocol')
-            plans = source_plans(batch, {'peerName':'user','aiPeer':'hermes'},protocol=result['membership_protocol'])
-            validate_windows(plans, result['membership_witness'])
-            if previous_rosters is not None:
-                previous_rosters.update(validate_roster_continuity(plans, previous_rosters))
-        except (ValueError,KeyError,TypeError):
-            errors.append('Honcho chronological source membership is unproven')
-    expected={m['source_id']:m for m in batch}
-    for ack in result.get('result',[]):
-        sessions.add(ack['session_id'])
-        baseline=ack.get('processing_baseline',{})
-        prior=max(previous_work.get(ack['session_id'],0),baseline.get('total_work_units',0))
-        minimum[ack['session_id']]=prior+len(ack['messages'])
-        if 'minimum_work_units' in ack and ack['minimum_work_units']!=minimum[ack['session_id']]:
-            errors.append('Honcho new-work enrollment watermark differs from acknowledged sources')
-        observer=ack.get('observer',{})
-        if observer.get('peer_id')!='hermes' or observer.get('observe_others') is not True:
-            errors.append('Honcho configured recall observer did not witness sources')
-        for actual in ack['messages']:
-            metadata=actual.get('metadata',{});source_id=metadata.get('source_id')
-            seen.append(source_id);original=expected.get(source_id)
-            if original is None:
-                errors.append('Honcho acknowledged an unknown source');continue
-            identity=(original['channel'],original['thread'])
-            session='source-'+hashlib.sha256(json.dumps(identity).encode()).hexdigest()[:24]
-            if actual.get('session_id')!=session or ack['session_id']!=session:
-                errors.append('Honcho acknowledged the wrong source session')
-            from provider_adapters.honcho_enrollment import source_peer_id, LEGACY_PROTOCOL, SUPPORTED
-            peer_protocol=result.get('membership_protocol') or LEGACY_PROTOCOL
-            if peer_protocol not in SUPPORTED:peer_protocol=LEGACY_PROTOCOL
-            peer=source_peer_id('Me' if original['from_owner'] else original['sender'],
-                {'peerName':'user','aiPeer':'hermes'},protocol=peer_protocol)
-            if (actual.get('peer_id')!=peer or
-                    actual.get('content')!=original['text'] or
-                    datetime.fromisoformat(actual['created_at'])!=datetime.fromisoformat(original['written_at']) or
-                    any(metadata.get(k)!=v for k,v in original.items() if k!='text')):
-                errors.append('Honcho acknowledged changed source text, speaker, time or metadata')
-    if sorted(seen)!=sorted(expected):errors.append('Honcho acknowledgments omit or duplicate sources')
-    changes=result.get('processing_status',[])
-    error_scope=result.get('source_error_scope')
-    if error_scope not in (None,'submitted-source-sessions-v1'):
-        errors.append('Unsupported Honcho source error scope')
-    from provider_adapters.honcho_clock import SUPPORTED as HONCHO_CLOCK_PROTOCOLS
-    if result.get('clock_protocol') in HONCHO_CLOCK_PROTOCOLS:
-        ids = {m['id'] for ack in result.get('result', []) for m in ack['messages']}
-        witnesses = result.get('message_witnesses', [])
-        final = changes[-1] if changes else {}
-        def source_errors(state):
-            failures=state.get('errors',[])
-            if error_scope=='submitted-source-sessions-v1':
-                return [e for e in failures if e.get('session_name') is None or e['session_name'] in sessions]
-            return failures
-        covered={r.get('id') for r in witnesses if r.get('processed') is True and r.get('has_error') is False}
-        cleanup=result.get('queue_cleanup_evidence')
-        if cleanup is not None:
-            from provider_adapters.honcho_clock import cleaned_queue_coverage
-            try:
-                if cleanup['protocol']!='honcho-enrolled-queue-success-cleanup-v1':raise ValueError('Unsupported cleanup proof')
-                lower_bound=min((m['created_at'] for a in result['result'] for m in a['messages']),key=datetime.fromisoformat)
-                cleaned=cleaned_queue_coverage(witnesses,changes,retention_seconds=cleanup['retention_seconds'],not_before=lower_bound)
-                if sorted(cleaned)!=cleanup['message_ids']:raise ValueError('Cleanup coverage differs')
-                covered.update(cleaned)
-            except (ValueError,KeyError,TypeError):errors.append('Honcho successful native queue cleanup is unproven')
-        proof=result.get('completion_evidence')
-        if proof is not None:
-            from provider_adapters.honcho_clock import citation_coverage
-            try:
-                if proof.get('protocol')!='honcho-native-conclusion-source-v1':raise ValueError('Unsupported completion evidence')
-                covered.update(citation_coverage(proof.get('citations',[]),result.get('result',[])))
-            except (ValueError,KeyError,TypeError):errors.append('Honcho persistent completion citations are invalid')
-        if (not ids or covered != ids or not {r.get('id') for r in witnesses}<=ids or
-                len({r.get('queue_id') for r in witnesses}) != len(witnesses) or
-                any(r.get('has_error') is not False for r in witnesses) or
-                any(final.get(k) != 0 for k in ('claims','pending','embeddings')) or
-                any(source_errors(s) for s in changes)):
-            errors.append('Honcho simulated-clock message enrollment/completion is unproven')
-        return errors
-    if any(change.get('native_queue_errors') for change in changes):
-        errors.append('Honcho submitted-source work completed with native errors')
-    if any(not e.get('session_name') or e['session_name'] in sessions
-           for change in changes for e in change.get('unrelated_queue_errors',[])):
-        errors.append('Honcho excluded native error lacks unrelated-session attribution')
-    final=changes[-1].get('sessions',{}) if changes else {}
-    if set(final)!=sessions or not final or any(
-            status.get('pending_work_units')!=0 or status.get('in_progress_work_units')!=0
-            for status in final.values()):
-        errors.append('Honcho submitted-session processing did not complete')
-    for id in sessions:
-        if final.get(id,{}).get('total_work_units',0)<minimum[id]:
-            errors.append('Honcho readiness preceded new source work enrollment')
-        previous_work[id]=max(minimum[id],final.get(id,{}).get('total_work_units',0))
-    return errors
+from pacbench.providers.honcho import audit_honcho_receipt
+from pacbench.providers.openviking import audit_openviking_receipt
+from pacbench.providers.reme import audit_reme_resource_receipt
+from pacbench.providers.supermemory import audit_supermemory_receipt
+from pacbench.workflows.source_plan import (
+    SUPPORTED_VERSIONS,
+    VERSION,
+    daily_batches,
+    document_text,
+    processing_at,
+    ready_sources,
+    validate_evaluation_clocks,
+)
 
 
 def audit_ingestion(root, arm, messages, summary, *, import_only=False):
@@ -321,7 +70,8 @@ def audit_ingestion(root, arm, messages, summary, *, import_only=False):
                 check(not db.execute('SELECT m.ROWID FROM message m LEFT JOIN chat_message_join j ON j.message_id=m.ROWID WHERE j.chat_id IS NULL').fetchall(),'orphan source messages')
         if meta.get('mailbox'):
             from email import message_from_bytes
-            from email.utils import parsedate_to_datetime,parseaddr
+            from email.utils import parseaddr, parsedate_to_datetime
+
             from .email_fixture import mail_address
             mailbox=json.loads((source/'mailbox.json').read_text())
             check([r['source'] for r in mailbox['messages']]==cumulative_mail,
@@ -423,8 +173,12 @@ def audit_ingestion(root, arm, messages, summary, *, import_only=False):
                 errors.append('Single-document Cognee proof cannot certify incremental ingestion')
             cognee_prior.append({'data_id':native.get('data_id'),'source_sha256':native.get('source_sha256')})
         if arm.name=='memos':
+            from provider_adapters.memos_semantic_ready import (
+                RAW,
+                SEMANTIC,
+                proof_valid,
+            )
             from provider_adapters.reme_memos_documents import payload
-            from provider_adapters.memos_semantic_ready import RAW, SEMANTIC, proof_valid
             expected,_=payload('memos',source)
             native=record.get('result',{});actual=native.get('native_readback',{})
             condition=native.get('ingestion_condition')
@@ -484,9 +238,14 @@ def audit_ingestion(root, arm, messages, summary, *, import_only=False):
         saved=t.get('clock_context') or {}
         identifiers=saved.get('native_network_continuation_api_input_ids',[])
         if not identifiers:continue
-        from .clock_context import delivery,NATIVE,NATIVE_NETWORK_CONTINUATION_SHA256
+        from pacbench.context_isolation import (
+            NATIVE_NETWORK_CONTINUATION_SHA256,
+            delivery,
+        )
+        from pacbench.context_isolation import NATIVE_QUESTION as NATIVE
+        from pacbench.context_isolation import input_rows as rows
+
         from .harness import TurnResult
-        from .api_input_trace import rows
         observed=delivery(arm,TurnResult(**t),identifiers=saved['api_input_ids'],hook_index=saved['native_query_index'],protocol=NATIVE)
         check(observed==saved and observed['state']=='pass','Native network continuation lacks its original input witness')
         if observed==saved and observed['state']=='pass':
@@ -510,7 +269,7 @@ def audit_ingestion(root, arm, messages, summary, *, import_only=False):
             if not (directory/'turn.json').exists():continue
             state=json.loads((directory/'source-state.json').read_text())
             due=ready_sources(schedule,arm.name,row['at'],summary['process_timezone'] or 'America/New_York',version=version)
-            from .document_ingestion import source_state
+            from pacbench.workflows.source_plan import source_state
             expected_source_state=(source_state(row['at'],[r['id'] for r in due]) if state.get('reference_version')==2 else
                       {'at':row['at'],'ingested_batches':[r['id'] for r in due],
                        'source_ids':[sid for r in due for sid in r['source_ids']]})

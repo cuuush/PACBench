@@ -5,9 +5,9 @@ from types import SimpleNamespace
 
 import pytest
 
-from pacbench import checkpoint_clock as clock
+from pacbench import provider_clock as clock
 from pacbench.python_provider_clock import clock_value_ns, shared_time_ns
-from pacbench.campaigns.pizza_week import compile_week
+from pacbench.corpus.r2 import compile_week
 
 
 @pytest.mark.parametrize('bounded', [False, True])

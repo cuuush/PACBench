@@ -8,19 +8,24 @@ import os
 import platform
 import shutil
 import socket
-from pathlib import Path
 import subprocess
 import tarfile
 import tempfile
 import time
 import urllib.request
+from pathlib import Path
+
+from pacbench.providers.cognee import PINS as COGNEE_PINS
+from pacbench.providers.reme import PINS as REME_PINS
 
 from .provider_versions import (
-    MEMCAL_REVISION, hindsight_model_cache, huggingface_model_cache, memcal_source, memos_model_cache,
+    MEMCAL_REVISION,
+    hindsight_model_cache,
+    huggingface_model_cache,
+    memcal_source,
+    memos_model_cache,
     verify_memos_package,
 )
-from .reme_memos_setup import PINS as REME_PINS
-from .cognee_memobase_setup import PINS as COGNEE_PINS
 
 ROOT = Path(__file__).resolve().parents[1]
 COMPONENTS = ('hermes', 'hindsight', 'honcho', 'openviking', 'reme', 'cognee', 'memos', 'supermemory', 'clock', 'embeddings')

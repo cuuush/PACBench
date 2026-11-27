@@ -9,7 +9,7 @@ from __future__ import annotations
 import hashlib
 import time
 
-from pacbench.cognee_memobase_setup import loopback_url
+from pacbench.gateway_client import loopback_url
 
 
 class QualificationError(RuntimeError):

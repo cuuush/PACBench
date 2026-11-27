@@ -35,23 +35,23 @@ def _choices_payload(text="generated dialogue"):
 
 class GatewayIsMetaOnly(unittest.TestCase):
     def test_generation_gateway_url_is_meta(self):
-        from pacbench import generation
+        from pacbench import model_calls as generation
         self.assertEqual(generation.GATEWAY_URL, META_URL)
 
     def test_generation_gateway_matches_driver_base_url(self):
-        from pacbench import generation
+        from pacbench import model_calls as generation
         self.assertTrue(
             generation.GATEWAY_URL.startswith("http://127.0.0.1:8099/p/"),
             "generation must use the shared local spending boundary")
 
     def test_audited_calls_use_generation_gateway(self):
-        from pacbench import generation
+        from pacbench import model_calls as generation
         from pacbench.model_calls import ModelClient
         self.assertEqual(ModelClient(key="x", model="m", record_dir=Path("/tmp")).url,
                          generation.GATEWAY_URL)
 
     def test_no_openrouter_url_in_generation_path(self):
-        from pacbench import generation
+        from pacbench import model_calls as generation
         from pacbench.model_calls import ModelClient
         for url in (generation.GATEWAY_URL,
                     ModelClient(key="x", model="m", record_dir=Path("/tmp")).url):
@@ -72,7 +72,7 @@ class SparkGeneratorRouting(unittest.TestCase):
         return seen, fake_urlopen
 
     def test_posts_to_meta_with_bearer_credential(self):
-        from pacbench.generation import SparkConfig, spark_generator
+        from pacbench.model_calls import SparkConfig, spark_generator
         seen, fake = self._capture(_choices_payload("hello"))
         with mock.patch("urllib.request.urlopen", side_effect=fake):
             out = spark_generator(SparkConfig(model="muse-spark-1.3-contributor"),
@@ -85,7 +85,7 @@ class SparkGeneratorRouting(unittest.TestCase):
         self.assertEqual(body["model"], "muse-spark-1.3-contributor")
 
     def test_transport_failure_raises_without_leaking_secret(self):
-        from pacbench.generation import GenerationError, SparkConfig, spark_generator
+        from pacbench.model_calls import GenerationError, SparkConfig, spark_generator
         seen, fake = self._capture(error=OSError("gateway down"))
         generate = spark_generator(SparkConfig(model="muse-spark-1.3-contributor"),
                                    "SECRET-CRED")
@@ -96,7 +96,7 @@ class SparkGeneratorRouting(unittest.TestCase):
         self.assertIn("muse-spark-1.3-contributor", str(ctx.exception))
 
     def test_unusable_payload_raises_without_leaking_secret(self):
-        from pacbench.generation import GenerationError, SparkConfig, spark_generator
+        from pacbench.model_calls import GenerationError, SparkConfig, spark_generator
         seen, fake = self._capture({"bogus": True})
         generate = spark_generator(SparkConfig(model="muse-spark-1.3-contributor"),
                                    "SECRET-CRED")
@@ -106,7 +106,7 @@ class SparkGeneratorRouting(unittest.TestCase):
         self.assertNotIn("SECRET-CRED", str(ctx.exception))
 
     def test_generator_from_env_routes_to_meta(self):
-        from pacbench import generation
+        from pacbench import model_calls as generation
         with tempfile.TemporaryDirectory() as tmp:
             env = Path(tmp) / ".env"
             env.write_text("MODEL=muse-spark-1.3-contributor\nMETA=SECRET-CRED\n")

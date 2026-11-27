@@ -9,18 +9,18 @@ from types import SimpleNamespace
 import pytest
 
 from pacbench.workflows.conformance import RecordingAccount
-from pacbench.campaigns.pizza_week import compile_daily_week
+from pacbench.corpus.r2 import compile_daily_week
 from pacbench.workflows.runner import Condition, run_compiled_workflow, run_current_week
-from pacbench.campaigns.pizza_week import ROOT, SPEC, compile_pizza_week, compile_week
+from pacbench.corpus.r2 import ROOT, SPEC, compile_pizza_week, compile_week
 from pacbench.workflows.spec import compile_prepared, instant
-from pacbench.workflows.stream import fingerprint
+from pacbench.workflows.progress import workflow_fingerprint as fingerprint
 
 BIKE = ROOT / 'runs/bike-pickup-native-clock-20261105/preparation'
 MONTH = ROOT / 'runs/pizza-month-local-20261105/preparation'
 
 
 def _cli(*args):
-    return subprocess.run([sys.executable, '-m', 'pacbench.workflow', *map(str, args)],
+    return subprocess.run([sys.executable, '-m', 'pacbench', 'workflow', *map(str, args)],
                           cwd=ROOT, check=True, text=True, capture_output=True)
 
 
@@ -91,17 +91,11 @@ def test_pizza_compatibility_wrapper_preserves_checkpoint_and_journal_identity(t
     finally:
         account.close()
     digest = sha256(SPEC.read_bytes()).hexdigest()
-    reference = dict(protocol='pizza-week-native-document-progress-v1', condition=asdict(condition),
-                     account=account.identity, source_basis=source_basis, spec_sha256=digest,
-                     evidence_kind='recording-fake', canary=canary,
-                     schedule_sha256=fingerprint([asdict(turn) for turn in turns]))
-    if daily:
-        reference.update(input_projection=layout['source_layout'],
-                         document_index_sha256=layout['normalized_index_sha256'])
-    metadata = json.loads((tmp_path / 'workflow/run.json').read_text())
-    assert metadata['run_key'] == fingerprint(reference)
-    assert metadata['identity'] == json.loads(json.dumps(reference))
     journal = _journal(tmp_path / 'workflow/workflow.jsonl')
+    if daily:
+        layout_record = journal.pop(0)
+        assert layout_record['layout'] == layout['source_layout']
+        assert layout_record['document_index_sha256'] == layout['normalized_index_sha256']
     assert {key: value for key, value in journal[0].items() if key != 'elapsed_s'} == {
         'phase': 'spec', 'version': spec['version'], 'canary': canary, 'sha256': digest,
         'source_basis': source_basis,
@@ -135,8 +129,8 @@ def test_pizza_compatibility_wrapper_preserves_legacy_jsonl_schedule(tmp_path, p
 def test_independent_pizza_compile_rechecks_frozen_siblings(tmp_path, monkeypatch):
     import shutil
 
-    from pacbench.campaigns import pizza_week
-    from pacbench import cohort_regrade_retained as retained
+    from pacbench.corpus import r2 as pizza_week
+    from pacbench.judging import retained_week as retained
 
     monkeypatch.delenv('PACBENCH_WORKFLOW_SCOPE', raising=False)
     shutil.copytree(ROOT/'specs', tmp_path/'specs')
@@ -156,14 +150,14 @@ def test_independent_pizza_compile_rechecks_frozen_siblings(tmp_path, monkeypatc
     condition = dict(channels=['email', 'imessage'], state='continuing-account', track='nightly-document')
     assert retained.week_plan(fresh.spec_sha256, original_basis, condition, False)[0] == list(fresh.documents)
 
-    from pacbench.workflows import capability
+    from pacbench.judging import retained_scope as capability
 
     with monkeypatch.context() as native:
         native.setenv(capability.ENV, 'bound-native-scope-a')
-        cached_documents, _, cached_basis = capability.schedule(fresh.spec_sha256, False)
+        cached_documents, _, cached_basis = capability.retained_schedule(fresh.spec_sha256, False)
         cached_documents.clear()
         cached_basis.clear()
-        assert capability.schedule(fresh.spec_sha256, False) == (
+        assert capability.retained_schedule(fresh.spec_sha256, False) == (
             list(fresh.documents), list(fresh.turns), original_basis)
 
     manifest = json.loads((dataset/'manifest.json').read_text())
@@ -178,4 +172,4 @@ def test_independent_pizza_compile_rechecks_frozen_siblings(tmp_path, monkeypatc
     with monkeypatch.context() as native:
         native.setenv(capability.ENV, 'bound-native-scope-b')
         with pytest.raises(ValueError, match='Dataset checksum differs'):
-            capability.schedule(fresh.spec_sha256, False)
+            capability.retained_schedule(fresh.spec_sha256, False)

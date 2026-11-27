@@ -7,8 +7,8 @@ from concurrent.futures import ProcessPoolExecutor
 import pytest
 
 from pacbench import receipt_projection as projection
-from pacbench.observational_receipts import RunReceiptJournal
-from pacbench.providers.supermemory.week_admission import ADMISSION_SPEC
+from tests.receipt_fixtures import JournalFixture as RunReceiptJournal
+from pacbench.providers.supermemory_evidence import ADMISSION_SPEC
 
 
 def worker(ident, update):

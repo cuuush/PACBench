@@ -47,7 +47,7 @@ def ingest(source, root):
         try:require_idle(before);break
         except QualificationError:
             if time.monotonic()>=idle_deadline:raise
-            from pacbench.stop import check_stop
+            from pacbench.process_cleanup import check_stop
             check_stop()
             time.sleep(.2)
     prior_ids={r['id'] for r in before}

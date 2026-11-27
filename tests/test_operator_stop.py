@@ -1,12 +1,13 @@
+import pacbench.providers.provision as provider_setup
 import json
 
 import pytest
 
-from pacbench.native_pilot import ingest_pending
-from pacbench.stop import OperatorStop, check_stop
+from pacbench.workflows.native_run import ingest_pending
+from pacbench.process_cleanup import OperatorStop, check_stop
 
 
-def test_stop_after_first_native_day_preserves_receipt_and_skips_second(tmp_path):
+def test_stop_after_first_native_day_preserves_receipt_and_skips_second(tmp_path, monkeypatch):
     stop = tmp_path/'STOP'
     root = tmp_path/'arm'
     days = [{'id': day, 'at': day, 'file': f'ingestion/{day}.json'} for day in ('one', 'two')]
@@ -15,9 +16,10 @@ def test_stop_after_first_native_day_preserves_receipt_and_skips_second(tmp_path
         calls.append(source.name)
         stop.touch()
         return {'state': 'ready', 'ready': True}
+    monkeypatch.setattr('pacbench.workflows.delivery.ingest_day', ingest)
     with pytest.raises(OperatorStop):
         ingest_pending(days, ingested, set(), tmp_path, root, 'memcal', {},
-                       'America/New_York', stop, ingest, lambda: None)
+                       'America/New_York', stop)
     assert calls == ['one'] and ingested == ['one']
     assert json.loads((root/'ingestion/one.json').read_text()) == {'state': 'ready', 'ready': True}
     assert not (root/'ingestion/two.json').exists()
@@ -44,7 +46,8 @@ def test_stop_checks_environment_and_explicit_path(tmp_path, monkeypatch):
 def test_terminal_first_arm_does_not_start_independent_arm(tmp_path, monkeypatch,mode):
     from contextlib import nullcontext
     from types import SimpleNamespace
-    from pacbench import native_pilot, document_ingestion, native_audit, usage, providers as live_trials
+    from pacbench.workflows import native_run as native_pilot, delivery as document_ingestion
+    from pacbench import native_audit, usage, providers as live_trials
     from pacbench.corpus import audit as corpus_audit
     monkeypatch.setattr(live_trials, 'require_live_trials_ready', lambda: None)
     source = tmp_path/'prepared'
@@ -56,7 +59,7 @@ def test_terminal_first_arm_does_not_start_independent_arm(tmp_path, monkeypatch
     output = tmp_path/'run'
     check = {'id': 'one', 'at': '2026-10-01T12:00:00-04:00'}
     monkeypatch.setenv('META_API_KEY', 'test')
-    monkeypatch.setattr(native_pilot, 'provider_names', lambda: ['memcal', 'mem0'])
+    monkeypatch.setattr(provider_setup, 'provider_names', lambda: ['memcal', 'mem0'])
     corpus = SimpleNamespace(root=source, messages=[], contract=SimpleNamespace(contract_hash='contract'),
                              resolved={'timezone':'America/New_York'}, corpus_hash=None, input_hash='inputs',
                              summary={'bundle_hash':'bundle', 'contract_hash':'contract'},
@@ -67,12 +70,12 @@ def test_terminal_first_arm_does_not_start_independent_arm(tmp_path, monkeypatch
     monkeypatch.setattr(native_pilot, 'client_settings', lambda *_: ('http://localhost', 'test'))
     monkeypatch.setattr(native_pilot, 'ModelClient', lambda **_: lambda *_: None)
     monkeypatch.setattr(native_pilot, 'freeze_policy', lambda *_: {'plan_hash':'followup'})
-    monkeypatch.setattr(native_pilot, 'probe', lambda *_args, **_kw: {'available':True,'tools':[]})
-    monkeypatch.setattr(native_pilot, 'smoke_succeeded', lambda *_: True)
+    monkeypatch.setattr(provider_setup, 'probe', lambda *_args, **_kw: {'available':True,'tools':[]})
+    monkeypatch.setattr(provider_setup, 'smoke_succeeded', lambda *_: True)
     monkeypatch.setattr(native_pilot, 'policy_record', lambda *_: {'allowed_tools':[], 'source_argument_rules':{}})
-    monkeypatch.setattr(native_pilot, 'stop_arm_model_work', lambda *_: None)
+    monkeypatch.setattr(provider_setup, 'stop_arm_model_work', lambda *_: None)
     started = []
-    monkeypatch.setattr(native_pilot, 'provision', lambda root, provider, *_a, **_kw: started.append(provider) or {'PACBENCH_USAGE_ROLES':'{}'})
+    monkeypatch.setattr(provider_setup, 'provision', lambda root, provider, *_a, **_kw: started.append(provider) or {'PACBENCH_USAGE_ROLES':'{}'})
     schedule = [{'id':'one', 'at':'2026-09-29T20:00:00-04:00', 'file':'ingestion/one.json'},
                 {'id':'two', 'at':'2026-09-30T20:00:00-04:00', 'file':'ingestion/two.json'}]
     monkeypatch.setattr(document_ingestion, 'prepare_sources', lambda *_, **_kw: schedule)
@@ -108,7 +111,7 @@ def test_terminal_first_arm_does_not_start_independent_arm(tmp_path, monkeypatch
 @pytest.mark.parametrize('kind',['authentication','budget'])
 def test_live_block_stops_independent_questions_without_calling_judge(tmp_path,kind):
     from pacbench.gateway_client import ModelAccessBlocked,SpendingBlocked
-    from pacbench.native_checks import run_checks
+    from pacbench.workflows.native_run import run_checks
     from tests.test_evaluation import checkpoints
     calls=[]
     def before(*args):
@@ -120,3 +123,25 @@ def test_live_block_stops_independent_questions_without_calling_judge(tmp_path,k
     assert calls==['before'] and len(report['checks'])==1
     assert report['state']==('access_blocked' if kind=='authentication' else 'budget_blocked')
     assert report['checks'][0]['verdict'] is None
+
+@pytest.mark.parametrize('outcome', ['exception-after-write', 'missing-ready-witness'])
+def test_ambiguous_ingestion_cannot_be_replayed_on_the_next_question(tmp_path, monkeypatch, outcome):
+    batch = {'id': 'one', 'at': 't', 'file': 'ingestion/one.json'}
+    calls = []
+    def ingest(*args):
+        calls.append('write')
+        if outcome == 'exception-after-write':
+            raise RuntimeError('external write interrupted')
+        return {'state': 'ready'}
+
+    monkeypatch.setattr('pacbench.workflows.delivery.ingest_day', ingest)
+    monkeypatch.setattr('pacbench.workflows.native_run.check_provider_health', lambda *args: None)
+    completed, failed = [], set()
+    args = ([batch], completed, failed, tmp_path, tmp_path/'arm', 'mem0', {}, 'UTC', tmp_path/'STOP')
+    with pytest.raises(RuntimeError, match='external write interrupted|ingestion/processing failed'):
+        ingest_pending(*args)
+    with pytest.raises(RuntimeError, match='Earlier native import failed'):
+        ingest_pending(*args)
+    assert completed == [] and calls == ['write']
+    if outcome == 'missing-ready-witness':
+        assert json.loads((tmp_path/'arm/ingestion/one.json').read_text()) == {'state': 'ready'}

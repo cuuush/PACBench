@@ -1,19 +1,28 @@
 """Offline interruption/deduplication controls. Fixture verdicts are never a benchmark result."""
+
 from contextlib import contextmanager
+
 import json
+
 import subprocess
+
 import sys
 
 import pytest
 
 from pacbench.workflows import grading as grading
-from pacbench.canary_capability import binding, digest
-from pacbench.live_dispatch import process_identity
-from pacbench.model_calls import ModelOutput
-from pacbench.workflows.recording import coverage, progress_metrics, summarize
-from pacbench.workflows.progress import WorkflowProgress
-from pacbench.campaigns.pizza_week import compile_week
 
+from pacbench.evidence_store import file_binding as binding, binding_digest as digest
+
+from pacbench.workflows.progress import process_identity
+
+from pacbench.model_calls import ModelOutput
+
+from pacbench.workflows.recording import coverage, progress_metrics, summarize
+
+from pacbench.workflows.progress import WorkflowProgress
+
+from pacbench.corpus.r2 import compile_week
 
 class Recorder:
     def __init__(self):
@@ -21,7 +30,6 @@ class Recorder:
 
     def write(self, phase, **fields):
         self.rows.append({'phase':phase, **fields})
-
 
 def local_judge(directory, calls):
     def respond(prompt):
@@ -42,7 +50,6 @@ def local_judge(directory, calls):
         return ModelOutput(verdict, model, {}, str(filename))
     return respond
 
-
 @contextmanager
 def checkpoints(directory, *, verified=2):
     _, _, turns, _ = compile_week('continuing-account')
@@ -60,7 +67,6 @@ def checkpoints(directory, *, verified=2):
                 progress.mark_turn_done(turn.id)
         yield progress, turns
 
-
 def test_bounded_continuation_preserves_partial_scores(tmp_path):
     calls, journal = [], Recorder()
     with checkpoints(tmp_path) as (p, turns):
@@ -74,7 +80,6 @@ def test_bounded_continuation_preserves_partial_scores(tmp_path):
         assert grading.grade_verified(p, judge, tmp_path, journal, limit=4)==1
         assert grading.grade_verified(p, judge, tmp_path, journal, limit=4)==0
         assert len(calls)==2 and p.grade_states()['waiting']==47
-
 
 @pytest.mark.parametrize('artifact', ['complete','only-response','tampered','missing'])
 def test_reconcile_claim_does_not_request_a_second_judgment(tmp_path, monkeypatch, artifact):
@@ -105,7 +110,6 @@ def test_reconcile_claim_does_not_request_a_second_judgment(tmp_path, monkeypatc
             assert row['answer'] == 'fixture' and row['criteria'] == p.grade_record(turns[0].id)['criteria']
             assert row['judge_attempts'][0]['request_id'] == 'offline-attempt-1'
 
-
 def test_unknown_dispatch_remains_claimed_and_missing_receipt_stays_ungraded(tmp_path):
     calls, journal = [], Recorder()
     with checkpoints(tmp_path) as (p, turns):
@@ -121,7 +125,6 @@ def test_unknown_dispatch_remains_claimed_and_missing_receipt_stays_ungraded(tmp
         assert grading.grade_verified(p, no_receipt, tmp_path, journal, limit=2)==1
         assert len(calls)==2 and coverage(p.summary())['graded_criteria']==0
         assert p.grade_states()=={'claimed':1,'failed':1,'waiting':47}
-
 
 def test_judge_recovery_owner_never_can_send_for_driver(tmp_path):
     root = tmp_path/'memcal'
@@ -160,10 +163,9 @@ def test_judge_recovery_owner_never_can_send_for_driver(tmp_path):
             assert grading.grade_verified(p, checked, directory, Recorder(), limit=1)==1
         assert len(calls)==1
 
-
 def test_metrics_excludes_answer_visible_without_verification(tmp_path):
-    from pacbench.canary_capability import sha
-    from pacbench.campaigns.pizza_week import SPEC
+    from pacbench.evidence_store import file_sha as sha
+    from pacbench.corpus.r2 import SPEC
     _, _, turns, basis = compile_week('continuing-account')
     rows = [
         {'phase':'spec','sha256':sha(SPEC),'source_basis':basis,
@@ -177,7 +179,6 @@ def test_metrics_excludes_answer_visible_without_verification(tmp_path):
     result = summarize(path)
     assert result['verified_turns']==0 and result['unverified_answers']==1
     assert result['coverage']['planned_criteria']==192 and result['coverage']['full_accuracy'] is None
-
 
 @pytest.mark.parametrize('foreign', [False, True])
 def test_saved_direct_response_before_consumer_receives_it(tmp_path, foreign):
@@ -203,135 +204,7 @@ def test_saved_direct_response_before_consumer_receives_it(tmp_path, foreign):
         assert grading.grade_verified(p,interrupted,tmp_path,Recorder(),limit=1)==0
         assert len(calls)==1
 
-
 def test_complete_criteria_do_not_turn_an_unsealed_arm_into_a_full_score():
     row = {'planned_turns':4, 'answered':4, 'planned_criteria':7, 'graded_criteria':7, 'correct':6}
     assert coverage({'smoke':row}, complete=False)['full_accuracy'] is None
     assert coverage({'all':row}, complete=True)['full_accuracy'] == 6/7
-
-
-@pytest.mark.parametrize('judge_during_run',[False, True])
-def test_native_stream_first_answer_can_be_graded_after_second_dispatch_fails(tmp_path, monkeypatch, capsys,
-                                                                           judge_during_run):
-    """Exercise real stream, progress, provenance checks, judge and CLI with in-memory site boundaries."""
-    from types import SimpleNamespace
-    from pacbench.workflows import stream as stream
-    from pacbench.openrouter_route import with_route
-    from pacbench.workflows.conformance import RecordingAccount
-    from pacbench.workflows.runner import Condition
-
-    _, docs, turns, basis = compile_week('continuing-account')
-    condition = Condition('memcal','first-party-connector','continuing-account','unit fixture','openai/gpt-6-luna',
-                          'amazon-bedrock/global','unit fixture','unit fixture','unit fixture','scenario',())
-    directory = tmp_path/'workflow'
-    public, judged = [], []
-    class TestSite(RecordingAccount):
-        evidence_kind = 'native'  # Unit-test boundary only. No deployed connector or real driver.
-        def process_sync(self):
-            return {'unit_test':True}
-        def observe_sync(self, accepted, dream):
-            return self.sync_readback(accepted)
-        def capture_answer(self, prompt, *, at, session_id, on_return):
-            public.append(prompt)
-            if len(public)==2:
-                raise ConnectionError('interrupted second native dispatch')
-            result = self.ask(prompt, at=at, session_id=session_id)
-            for request in result['model_requests']:
-                request['request'] = with_route({'messages':request['messages']},profile='luna-bedrock-global')
-            on_return({'fixture':True})
-            return result
-        def observe_answer(self, result):
-            return result
-
-    account = TestSite(condition, docs)
-    account.frontend = SimpleNamespace(gateway_identity=lambda:account.gateway)
-    monkeypatch.setattr(stream,'qualify_account',lambda *args:({'unit_test':True},account.identity))
-    try:
-        with pytest.raises(ConnectionError,match='second native'):
-            stream.run_account_stream(condition, account, docs, turns, directory, spec_digest='unit fixture',
-                                      source_basis=basis, judge=local_judge(directory,judged) if judge_during_run else None)
-    finally:
-        account.close()
-    assert len(judged)==int(judge_during_run)
-    meta = json.loads((directory/'run.json').read_text())
-    with WorkflowProgress(directory, meta['run_key']) as progress:
-        assert progress.summary()['initial']['answered']==1
-        assert grading.grade_verified(progress, local_judge(directory,judged),directory,Recorder(),limit=2)==int(not judge_during_run)
-        with pytest.raises(RuntimeError,match='uncertain'):
-            progress.get_effect('answer',turns[1].id)
-    grading.main([str(directory),'--reconcile','--limit','2'])
-    result = json.loads(capsys.readouterr().out)
-    assert result['coverage']['graded_criteria']==len(turns[0].claims)
-    assert result['coverage']['planned_criteria']==192 and result['coverage']['full_accuracy'] is None
-    assert len(public)==2 and len(judged)==1 and not result['complete']
-    meta['identity']['store'] = 'another store'
-    (directory/'run.json').write_text(json.dumps(meta))
-    with pytest.raises(ValueError,match='original incremental'):
-        grading.main([str(directory)])
-
-
-@pytest.mark.parametrize('legacy_scope', [False, True])
-def test_document_campaign_stop_blocks_launch_and_judge_recovery(tmp_path, monkeypatch, legacy_scope):
-    import os
-    import urllib.request
-
-    from pacbench import observational_receipts
-    from pacbench import openrouter_route
-    from pacbench.workflows import capability as cap
-    from pacbench.providers import reme as workflow_reme
-    from pacbench.canary_capability import read, sha
-    from pacbench.workflows.document_progress import PROTOCOL
-
-    root = tmp_path/'campaign'/'week'/'reme'
-    stop = tmp_path/'campaign'/'ACCOUNT_STOP'
-    stop.parent.mkdir()
-    stop.touch()
-    confirmation = tmp_path/'verified-setting.json'
-    confirmation.write_text(json.dumps(dict(auto_recharge='off', confirmed_by='test',
-                                            confirmed_at='2026-11-26T00:00:00+00:00')))
-    monkeypatch.setattr(openrouter_route, 'PROFILE_NAME', cap.PROFILE)
-    monkeypatch.setattr(urllib.request, 'urlopen', lambda *a, **kw: pytest.fail('unexpected network request'))
-    monkeypatch.setattr(observational_receipts, 'credit_snapshot', lambda: pytest.fail('unexpected credit check'))
-    monkeypatch.delenv(cap.ENV, raising=False)
-    monkeypatch.delenv('PACBENCH_OPENROUTER_PROFILE', raising=False)
-    monkeypatch.setenv(observational_receipts.COHORT_STOP, str(root.parent/'ACCOUNT_STOP'))
-    original_env = dict(os.environ)
-    with pytest.raises(RuntimeError, match='Shared OpenRouter account stopped'):
-        workflow_reme.run(root, confirmation, canary=True)
-    assert dict(os.environ) == original_env
-
-    root.mkdir(parents=True, exist_ok=True)
-    (root/'receipts.jsonl').touch()
-    verification = root/'prepaid-verification'
-    verification.mkdir()
-    balance = verification/'fixture.json'
-    balance.write_text(json.dumps({'data':{'total_credits':10,'total_usage':0}}))
-    balance_sha = sha(balance)
-    balance.rename(verification/(balance_sha+'.private.json'))
-    prepaid = dict(remaining_usd='10', receipt_sha256=balance_sha, source='OpenRouter GET /api/v1/credits')
-    with subprocess.Popen([sys.executable, '-c', 'import time; time.sleep(30)']) as child:
-        try:
-            with monkeypatch.context() as local:
-                owner = process_identity(child.pid)
-                local.setattr(cap, 'process_identity', lambda: owner)
-                bound = cap.create(root, 'reme', canary=True, prepaid=prepaid,
-                                   auto_recharge_evidence=binding(confirmation))
-        finally:
-            child.terminate()
-    scope = read(bound)
-    assert scope['campaign_stop'] == str(stop)
-    if legacy_scope:
-        scope.pop('campaign_stop')
-        (root/'workflow-scope.json').write_text(json.dumps(scope))
-        bound = binding(root/'workflow-scope.json')
-
-    directory = root/'workflow'
-    with checkpoints(directory, verified=1) as (progress, _):
-        progress.bind('workflow_scope', bound)
-        progress.bind('identity', dict(protocol=PROTOCOL, condition={'provider':'reme'}, account=str(root),
-                                       spec_sha256=scope['spec_sha256']))
-        assert progress.grade_states()['ready'] == 1
-        with pytest.raises(RuntimeError, match='original run is stopped'):
-            grading.paid_batch(progress, directory, 1)
-        assert progress.grade_states()['ready'] == 1
-        assert dict(os.environ) == original_env

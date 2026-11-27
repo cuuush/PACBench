@@ -1,18 +1,24 @@
 """Continuing-account OpenViking native file and conversation witnesses."""
-from contextlib import ExitStack, closing, contextmanager
-from datetime import datetime, timezone
+from __future__ import annotations
+
+import argparse
 import hashlib
 import json
 import re
-from pathlib import Path, PurePosixPath
+import shutil
 import sqlite3
 import time
+import urllib.parse
 import urllib.request
+from contextlib import closing
+from datetime import datetime, timezone
+from pathlib import Path, PurePosixPath
 
-from ..gateway.reuse_runtime import PROTOCOL
-from ..live_dispatch import process_identity
+from pacbench.evidence_store import save
+from pacbench.gateway.observer import PROTOCOL
+from pacbench.providers import HERMES_TOOLS, validate_native_deployment
 from pacbench.workflows.native import receipt_lineage
-from pacbench.workflows.tracks import HERMES_TOOLS, validate_native_deployment
+from pacbench.workflows.progress import process_identity
 
 
 def uri_rows(client, root):
@@ -28,7 +34,6 @@ def uri_rows(client, root):
 
 
 def observe_queues(client, *, deadline):
-    from ..document_audit import openviking_observer_state
 
     while time.monotonic()<deadline:
         value = client.get('/api/v1/observer/queue?format=json',timeout=15)
@@ -98,7 +103,6 @@ class OpenVikingWitness:
                     request={'interface':'temp_upload and resources(wait=true)','root_uri':uri})
 
     def document_readback(self, doc, acceptance):
-        from ..document_audit import openviking_failure_log, openviking_generated_artifacts, openviking_response_evidence
 
         if self.documents[len(self.sources)]!=doc:
             raise ValueError('OpenViking file readback differs from frozen source order')
@@ -175,14 +179,15 @@ class OpenVikingWitness:
 
     def observe_capture(self, captures):
         from urllib.parse import quote
-        from ..terminal_processing import capture_snapshot
+
+        from pacbench.native_writes import capture_snapshot
 
         return capture_snapshot(self.root,dict(turns=captures,explicit_writes=self.explicit_writes),
                                 lambda id:self.client.get('/api/v1/tasks/'+quote(id,safe=''),timeout=15)['result'],
                                 account=self.client._account,user=self.client._user)
 
     def native_write_barrier(self, session, answer):
-        from ..canary_capability import digest
+        from pacbench.evidence_store import binding_digest as digest
 
         self.idle()
         path = self.owner.home/'state.db'
@@ -254,59 +259,17 @@ class OpenVikingWitness:
         pass
 
 
-@contextmanager
-def open_account(root, scope, ledger):
-    from tempfile import TemporaryDirectory
-    from pacbench import harness
-    from pacbench.workflows import capability as cap
-    from ..checkpoint_clock import CheckpointClock
-    from ..gateway_reuse import PersistentGateway, atomic
-    from ..native_pilot import probe, provision, stop_arm_model_work
-    from ..openrouter_route import ENDPOINT, MODEL
-    from ..providers import provider_module
-    from . import run_environment
-    from pacbench.workflows.native import NativeAccount, WarmHermes
-    from pacbench.workflows.runner import Condition
-
-    with ExitStack() as stack:
-        stack.callback(stop_arm_model_work,root)
-        env = provision(root,'openviking',model=MODEL,local_timezone='America/New_York',inference_route='openrouter')
-        home = root/'hermes-home'
-        receipt = json.loads((root/'native-server-setup.json').read_text())
-        if (receipt['version']!='0.5.4.1' or receipt['endpoint']!=env['OPENVIKING_ENDPOINT'] or not receipt['health']
-                or not env['OPENVIKING_ENDPOINT'].startswith('http://127.0.0.1:') or env['OPENVIKING_API_KEY']):
-            raise ValueError('OpenViking native deployment is not the fresh pinned localhost arm')
-        server = process_identity(receipt['pid'])
-        ready = probe(root,'openviking',env)
-        atomic(root/'provider-probe.json',ready)
-        if not ready['available']:
-            raise RuntimeError('OpenViking native plugin preflight failed')
-        with run_environment({'HERMES_HOME':str(home)}):
-            client = provider_module('openviking')._VikingClient(env['OPENVIKING_ENDPOINT'],account=env['OPENVIKING_ACCOUNT'],
-                user=env['OPENVIKING_USER'],agent='',extra_headers={})
-        docs, _, _ = cap.schedule(scope['spec_sha256'],scope['canary'])
-        all_docs, _, _ = cap.schedule(scope['spec_sha256'],False)
-        tools = HERMES_TOOLS['openviking']
-        env.update(PACBENCH_WORKFLOW_CAPTURE=scope['protocol'],PACBENCH_API_INPUT_TRACE=str(root/'api-inputs.jsonl'),
-                   PACBENCH_SOURCE_ARGUMENT_RULES='{}')
-        child = harness.turn_env(docs[0].cutoff,home,','.join(tools),env)
-        clock = CheckpointClock(home,docs[0].cutoff,scope['spec_sha256'])
-        cwd = Path(stack.enter_context(TemporaryDirectory(prefix='pacbench-openviking-chat-')))
-        owner = stack.enter_context(PersistentGateway(home,harness.ISOLATED_BIN.parent/'python',child,cwd=cwd,
-            checkpoint=scope['spec_sha256'],observation_clock=clock,provider='openviking'))
-        condition = Condition('openviking','nightly-document','continuing-account','Hermes '+owner.pins['hermes'],
-            MODEL,ENDPOINT,'OpenViking 0.5.4.1 native local server','0.5.4.1',owner.pins['hermes_isolation_sha256'],
-            'Physical OpenViking server and simulated Hermes question time',tools)
-        witness = OpenVikingWitness(root,owner,client,server,docs,all_docs,ledger)
-        yield condition,NativeAccount(str(root),'openviking',str(root),client,WarmHermes(owner,clock,witness.idle),witness)
-
-
 def check_canary(root):
     """Verify the retained native source, session, process and receipt evidence."""
-    from ..canary_capability import binding, read
+    from pacbench.evidence_store import file_binding as binding
+    from pacbench.judging.retained_scope import read_canary_binding as read
+    from pacbench.judging.retained_week import (
+        audit_document_canary,
+        verify_listener_stopped,
+    )
+    from pacbench.workflows.progress import OwnershipConflict
+
     from ..catalog_plugins import verify_retained_catalog_provider
-    from ..live_dispatch import OwnershipConflict
-    from pacbench.workflows.document_canary import audit_document_canary, verify_listener_stopped
 
     audit = audit_document_canary(root, 'openviking')
     root = audit.root
@@ -328,15 +291,6 @@ def check_canary(root):
         raise ValueError('OpenViking canary server remains active')
     verify_listener_stopped(setup['endpoint'], 'OpenViking')
     return audit.bindings
-
-
-def run(root, confirmation, *, canary, after_canary=None):
-    from pacbench.workflows.lifecycle import run_document_week
-
-    return run_document_week(
-        root, confirmation, provider='openviking', canary=canary, after_canary=after_canary,
-        check_canary=check_canary, open_account=open_account, fresh_account_error='expected a fresh dedicated OpenViking Luna account',
-        extra_environment={'PACBENCH_OPENVIKING_IMPORT_CONDITION': 'native-defaults'})
 
 
 def verify_open_clone(observation, manifest):
@@ -369,3 +323,318 @@ def verify_open_clone(observation, manifest):
             raise GatewayLifecycleError('OpenViking opened index failed native resource consistency')
         reports[uri]=data
     return {'changed_storage_files':sorted(changed),'index_reports':reports}
+
+
+def read(path):
+    return json.loads(path.read_text())
+
+
+def renew_empty_workspace(root, history):
+    """A temporary workspace belongs to its runner's process lifetime."""
+    from pacbench.context_isolation import workspace_for
+    from pacbench.workflows.delivery import record_recall_isolation
+    record_recall_isolation(root)
+    receipt=root/'recall-workspace.json'
+    if receipt.exists():shutil.move(receipt,history/'recall-workspace.json')
+    # Create this in the long-lived runner, so its atexit cleanup cannot run
+    # before the actual Hermes questions. Never delete the old directory.
+    return workspace_for(root/'hermes-home')
+
+
+def ready_prefix(output, report, messages):
+    from pacbench.workflows.source_plan import daily_batches, document_text
+    root=output/'repeat-1/openviking'
+    if list((root/'turns').glob('*/turn.json')) or (root/'recall.json').exists():
+        raise ValueError('Ingestion resume cannot replay or replace existing answers')
+    if (root/'evaluation.json').exists() and any(
+            c.get('verdict') is not None for c in read(root/'evaluation.json').get('checks',[])):
+        raise ValueError('Ingestion resume cannot replace existing grades')
+    expected=daily_batches(messages,report['process_timezone'])
+    schedule=report['ingestion_schedule']
+    if [d for d,_ in expected]!=[r['id'] for r in schedule]:
+        raise ValueError('Resume source schedule differs from frozen corpus')
+    completed=[];missing=False
+    for row,(_,batch) in zip(schedule,expected):
+        source=output/'sources'/row['id']
+        meta=read(source/'source.json')
+        text=document_text(batch,row['at'],version=report['ingestion_version'])
+        sha=hashlib.sha256(text.encode()).hexdigest()
+        if (read(source/'messages.json')!=batch or (source/'messages.txt').read_text()!=text or
+                row['source_ids']!=[m['source_id'] for m in batch] or meta['source_ids']!=row['source_ids'] or
+                meta['at']!=row['at'] or
+                meta['document_sha256']!=sha or
+                hashlib.sha256((source/'source.json').read_bytes()).hexdigest()!=row['source_manifest_sha256']):
+            raise ValueError('Resume source delivery changed')
+        for name,expected_sha in meta.get('fixture_hashes',{}).items():
+            if Path(name).name!=name or hashlib.sha256((source/name).read_bytes()).hexdigest()!=expected_sha:
+                raise ValueError('Resume native source fixture changed')
+        path=root/row['file']
+        if not path.exists():missing=True;continue
+        record=read(path)
+        if (missing or record.get('ready') is not True or record.get('state')!='ready' or
+                record.get('provider')!='openviking' or record.get('source_ids')!=row['source_ids'] or
+                record.get('document_sha256')!=sha or record.get('at')!=row['at']):
+            raise ValueError('Only a contiguous, successful import prefix can be resumed')
+        native=record.get('result',{}).get('result',{}).get('result',{})
+        if (native.get('root_uri')!='viking://resources/'+row['id'] or
+                audit_openviking_receipt(record.get('result',{}))):
+            raise ValueError('Missing healthy native persisted resource receipt')
+        completed.append((row['id'],native['root_uri']))
+    if not completed:raise ValueError('No successful imports to resume')
+    return completed
+
+
+def resume(output, *, max_messages=4500, question_dir=None):
+    from pacbench.providers import require_live_trials_ready
+    require_live_trials_ready()
+    from pacbench.corpus.evaluation import judge_evidence, load_evaluations
+    from pacbench.gateway_client import (
+        client_settings,
+        load_driver,
+        require_live_cost_boundary,
+        validate_route,
+    )
+    from pacbench.model_calls import ModelClient
+    from pacbench.native_audit import audit
+    from pacbench.providers.provision import (
+        probe,
+        provision,
+        smoke_succeeded,
+        stop_arm_model_work,
+        verify_retained_trial_home,
+    )
+    from pacbench.source_policy import policy_record
+    from pacbench.usage import snapshot
+    from pacbench.workflows.delivery import record_recall_isolation
+    from pacbench.workflows.native_run import read_prepared, run_checks
+    from pacbench.workflows.source_plan import ready_sources
+    output=output.resolve();report=read(output/'summary.json')
+    from pacbench.judging.grade import (
+        DIAGNOSTIC_VERSIONS,
+        JUDGE_PROTOCOLS,
+        LEGACY_DIAGNOSTIC_VERSION,
+        LEGACY_JUDGE_PROTOCOL,
+    )
+    if report.get('provenance_version', 'source-provenance-v1') not in {'source-provenance-v1', 'source-provenance-v2', 'source-provenance-v3'}:
+        raise ValueError('Unsupported provenance protocol')
+    if 'evidence_diagnostic_protocol' in report and report['evidence_diagnostic_protocol'] not in DIAGNOSTIC_VERSIONS:
+        raise ValueError('Unsupported evidence diagnostic protocol')
+    if report.get('judge_protocol', LEGACY_JUDGE_PROTOCOL) not in JUDGE_PROTOCOLS:
+        raise ValueError('Unsupported semantic judge protocol')
+    from pacbench.context_isolation import NATIVE_QUESTION as NATIVE
+    from pacbench.harness import PROMPT_PROTOCOL
+    if report.get('question_prompt_protocol') != PROMPT_PROTOCOL:
+        raise ValueError('Resume requires the current question prompt protocol; legacy or unknown runs cannot change condition')
+    if report.get('clock_context_protocol') != NATIVE:
+        raise ValueError('Resume requires native-question-v2 clock context; historical instruction conditions are audit-only')
+    if (report.get('state')!='incomplete' or len(report['results'])!=1 or
+            report['results'][0]['provider']!='openviking' or report['results'][0]['repetition']!=1):
+        raise ValueError('Resume requires one interrupted OpenViking arm')
+    messages,contract,resolved=read_prepared((output/report['source']).resolve(),max_messages)
+    source=(output/report['source']).resolve()
+    if (hashlib.sha256(json.dumps(messages,sort_keys=True,ensure_ascii=False).encode()).hexdigest()!=report['input_hash'] or
+            contract.contract_hash!=report['contract_hash'] or
+            read(source/'summary.json')['bundle_hash']!=report['bundle_hash'] or
+            resolved['timezone']!=report['process_timezone']):
+        raise ValueError('Resume frozen input identity or timezone changed')
+    for name in ('bundle.json','contract.json','resolved-spec.json','evaluation-plan.json'):
+        if (output/name).read_bytes()!=(source/name).read_bytes():
+            raise ValueError('Resume frozen source/contract changed')
+    completed=ready_prefix(output,report,messages);root=output/'repeat-1/openviking'
+    verify_retained_trial_home('openviking', root/'hermes-home')
+    record_recall_isolation(root)
+    cfg=read(root/'ov.conf');_,key=client_settings('resume-validation')
+    validate_route(cfg['vlm']['api_base'],cfg['vlm']['api_key'])
+    if (Path(cfg['storage']['workspace']).resolve()!=root/'openviking-data' or
+            not (root/'openviking-data').is_dir() or cfg['vlm'].get('max_tokens') is not None):
+        raise ValueError('Resume requires the original native store and processing defaults')
+    health=require_live_cost_boundary();driver=load_driver()
+    if cfg['vlm']['model']!=driver.model_id:raise ValueError('Resume model changed')
+    plan,checks=load_evaluations(output,messages,resolved)
+    if plan['plan_hash']!=report['evaluation_plan_hash']:raise ValueError('Resume questions changed')
+    if any(ready_sources(report['ingestion_schedule'],'openviking',row['at'],report['process_timezone'])
+           !=report['ingestion_schedule'] for row,_,_ in checks):
+        raise ValueError('Ingestion resume currently requires final-only questions')
+    history=root/'resumes'/str(1+len(list((root/'resumes').glob('*'))))
+    history.mkdir(parents=True)
+    for name in ('summary.json','native-audit.json'):
+        if (output/name).exists():shutil.copyfile(output/name,history/name)
+    for name in ('evaluation.json','model-usage.json','model-usage-after-settlement.json','native-server-setup.json'):
+        if (root/name).exists():shutil.copyfile(root/name,history/name)
+    renew_empty_workspace(root,history)
+    env=None
+    try:
+        env=provision(root,'openviking',driver.model_id,local_timezone=report['process_timezone'],resume=True)
+        if report.get('clock_context_protocol'):
+            env['PACBENCH_CLOCK_CONTEXT_PROTOCOL']=report['clock_context_protocol']
+            from pacbench.context_isolation import NATIVE_QUESTION as CLOCK_CONTEXT
+            if report['clock_context_protocol']==CLOCK_CONTEXT:env['PACBENCH_API_INPUT_TRACE']=str(root/'api-inputs.jsonl')
+        restarted=read(root/'ov.conf')
+        if any(restarted.get(k)!=cfg.get(k) for k in ('storage','embedding','vlm')):
+            raise ValueError('Native processing configuration changed on restart')
+        save(history/'resume.json',{'input_hash':report['input_hash'],
+             'completed_days':[day for day,_ in completed],'gateway_before':health,
+             'processing_configuration_preserved':True,'policy':'Successful imports only; no prior answers'})
+        (root/'model-usage-after-settlement.json').unlink(missing_ok=True)
+        # Confirm the native server reopened every retained resource before
+        # skipping its import. This is ingestion telemetry, not Hermes recall.
+        persisted=[]
+        for day,uri in completed:
+            url=env['OPENVIKING_ENDPOINT']+'/api/v1/fs/stat?'+urllib.parse.urlencode({'uri':uri})
+            request=urllib.request.Request(url,headers={'X-OpenViking-Account':env['OPENVIKING_ACCOUNT'],
+                                                       'X-OpenViking-User':env['OPENVIKING_USER']})
+            with urllib.request.urlopen(request,timeout=10) as response:status=json.load(response)
+            if status.get('status')!='ok' or not status.get('result'):
+                raise RuntimeError('Native persisted resource unavailable: '+day)
+            persisted.append({'day':day,'uri':uri,'stat':status})
+        save(history/'persisted-resources.json',persisted)
+        capability=probe(root,'openviking',env,smoke=True,smoke_timeout_s=120)
+        if not smoke_succeeded(capability):raise RuntimeError('Resumed native capability check failed')
+        policy=policy_record('openviking',capability['tools'])
+        if policy!=read(root/'tool-policy.json'):raise ValueError('Resume tool policy changed')
+        env['PACBENCH_SOURCE_ARGUMENT_RULES']=json.dumps(policy['source_argument_rules'])
+        result=report['results'][0];result.update(state='available-unverified',capability=capability)
+        from pacbench.native_writes import VERSION as WRITE_READINESS
+        report['write_readiness_protocol']=result['write_readiness_protocol']=WRITE_READINESS
+        capability['wiring_verified']=True
+        report.pop('spending_stop',None);report['state']='running';save(output/'summary.json',report)
+        from pacbench.process_cleanup import check_stop
+        from pacbench.workflows.native_run import check_provider_health, ingest_pending
+
+        ingested = [day for day, _ in completed]
+        failed_batches = set()
+        stop_file = output / 'STOP'
+        def before_check(row, directory):
+            check_stop(stop_file)
+            check_provider_health(root, env)
+            ingest_pending(report['ingestion_schedule'], ingested, failed_batches, output, root,
+                           'openviking', env, report['process_timezone'], stop_file)
+            if not (root/'pre-recall-isolation.json').exists():record_recall_isolation(root)
+            from pacbench.native_writes import ensure_ready
+            ensure_ready('openviking',row,checks,plan['context'],root,env,directory)
+            from pacbench.workflows.source_plan import source_state
+            save(directory/'source-state.json',source_state(row['at'],ingested))
+        # No prior answers exist; preserve the earlier ungraded statuses.
+        if (root/'turns').exists():shutil.move(root/'turns',history/'turns')
+        (root/'evaluation.json').unlink(missing_ok=True)
+        judge=ModelClient(key=key,model=driver.model_id,record_dir=output/'model-calls',
+                          url=client_settings('pacbench-judge')[0]+'/chat/completions',
+                          reasoning_effort=report.get('judge_generation_conditions',{}).get('reasoning_effort'))
+        def evidence_for_check(row):
+            return judge_evidence(output, messages, resolved, row, plan['context'], diagnostic_version=report.get('evidence_diagnostic_protocol', LEGACY_DIAGNOSTIC_VERSION))
+        sequence=run_checks(checks,plan['context'],root,judge,','.join(policy['allowed_tools']),env,
+                            question_dir=question_dir or output/'combined-questions',before_check=before_check,
+                            provenance_version=report.get('provenance_version','source-provenance-v1'),
+                            evidence_by_id=evidence_for_check if report.get('evidence_diagnostic_protocol') else None,
+                            diagnostic_version=report.get('evidence_diagnostic_protocol', LEGACY_DIAGNOSTIC_VERSION),
+                            judge_protocol=report.get('judge_protocol', LEGACY_JUDGE_PROTOCOL))
+        result.update(state=sequence['state'],checks=sequence['checks'],
+                      reason='' if sequence['state']=='diagnostic' else 'Resumed evaluation incomplete')
+        capability['live_verified']=sequence['state']=='diagnostic'
+    finally:
+        stop_arm_model_work(root)
+        if env:save(root/'model-usage.json',snapshot(json.loads(env['PACBENCH_USAGE_ROLES'])))
+    report['state']='diagnostic' if result['state']=='diagnostic' else 'incomplete'
+    try:report['gateway_after']=require_live_cost_boundary()
+    except RuntimeError as exc:report.update(state='incomplete',spending_stop=str(exc))
+    save(root/'status.json',result);save(output/'summary.json',report)
+    checked=audit(output);report['audit']=checked
+    if checked['state']!='pass':report['state']='incomplete'
+    save(output/'native-audit.json',checked);save(output/'summary.json',report)
+    return report
+
+
+def resume_main(argv=None):
+    parser=argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('output',type=Path);parser.add_argument('--max-messages',type=int,default=4500)
+    parser.add_argument('--question-dir',type=Path)
+    args=parser.parse_args(argv);report=resume(args.output,max_messages=args.max_messages,question_dir=args.question_dir)
+    print(report['state']);return int(report['state']!='diagnostic')
+
+
+def openviking_observer_state(value):
+    """Validate the native post-wait snapshot; distinguish busy from malformed/error."""
+    result=value.get('result') or {}
+    queues=(result.get('status') or {}).get('queues')
+    if (value.get('status')!='ok' or result.get('is_healthy') is not True
+            or result.get('has_errors') is not False or not isinstance(queues,list)
+            or not all(isinstance(q,dict) for q in queues)
+            or not {'Embedding','Semantic'}.issubset({q.get('queue') for q in queues})):
+        return 'invalid'
+    counters=[q.get(k) for q in queues for k in ('pending','in_progress','errors')]
+    if any(type(v) is not int or v<0 for v in counters) or any(q['errors'] for q in queues):
+        return 'invalid'
+    return 'busy' if any(q['pending'] or q['in_progress'] for q in queues) else 'ready'
+
+
+def openviking_generated_artifacts(workspace):
+    """Read-only check for native unresolved summary placeholders after drain."""
+    files=[]
+    for name in ('.overview.md','.abstract.md'):
+        for path in sorted((Path(workspace)/'viking').rglob(name)):
+            body=path.read_bytes()
+            failed=any(marker in body for marker in (
+                b'[Directory overview is not generated]',b'[Directory overview is not ready]',b'[Directory abstract is not ready]'))
+            files.append({'path':str(path.relative_to(workspace)),
+                'sha256':hashlib.sha256(body).hexdigest(),'failed_placeholder':failed})
+    return {'state':'complete' if files and not any(f['failed_placeholder'] for f in files) else 'incomplete',
+        'files':files,'scope':'Native generated summary artifacts read without alteration; queue health alone can conceal model failures.'}
+
+
+OPENVIKING_FAILURE_MARKERS=(
+    'Failed to generate summary for','VLM not available, using empty summary',
+    'Failed to generate partial overview batch','Failed to merge partial overviews',
+    'Failed to generate overview for','Failed to dispatch directory')
+
+
+def openviking_failure_log(path):
+    path=Path(path)
+    if not path.is_file():return {'state':'unproven','failures':[]}
+    failures=[{'line':i+1,'marker':marker} for i,line in enumerate(path.read_text(errors='replace').splitlines())
+              for marker in OPENVIKING_FAILURE_MARKERS if marker in line]
+    return {'state':'incomplete' if failures else 'complete','failures':failures,
+        'sha256':hashlib.sha256(path.read_bytes()).hexdigest()}
+
+
+def openviking_response_evidence(rows):
+    results=[]
+    for row in rows:
+        v=row.get('response_validation') or {}
+        valid=(row.get('http_status')==200 and v.get('body_complete') is True
+            and v.get('envelope_errors')==[] and v.get('assistant_nonwhitespace_characters',0)>0
+            and v.get('finish_reasons')==['stop'])
+        results.append({'id':row['id'],'complete':valid,'response_validation':v})
+    return {'state':'complete' if results and all(r['complete'] for r in results) else 'incomplete',
+        'requests':results,'scope':'Every request in the isolated import; native recovery would need separately reviewed evidence.'}
+
+
+def audit_openviking_receipt(result):
+    native=result.get('result',{}).get('result',{})
+    queues=native.get('queue_status')
+    if (native.get('status')!='success' or native.get('errors') or not native.get('root_uri') or
+            not isinstance(queues,dict) or not queues or any(
+                not isinstance(q,dict) or q.get('errors') or q.get('error_count',0)
+                for q in queues.values())):
+        return ['OpenViking native semantic/vector processing did not succeed']
+    if result.get('completion_protocol') is not None:
+        global_value=result.get('native_global_queue_completion') or {}
+        global_queues=global_value.get('result')
+        if (result['completion_protocol']!='openviking-global-import-readiness-v4'
+                or global_value.get('status')!='ok' or not isinstance(global_queues,dict)
+                or not global_queues or any(not isinstance(q,dict) or q.get('error_count')!=0
+                    or q.get('errors')!=[] for q in global_queues.values())
+                or openviking_observer_state(result.get('native_global_queue_observation') or {})!='ready'):
+            return ['OpenViking global processing completion is unproven']
+        artifacts=result.get('native_generated_artifact_check') or {}
+        files=artifacts.get('files')
+        if (artifacts.get('state')!='complete' or not isinstance(files,list) or not files
+                or any(not isinstance(f,dict) or f.get('failed_placeholder') is not False
+                    or not f.get('sha256') or not f.get('path') for f in files)):
+            return ['OpenViking generated summaries contain unresolved processing failures']
+        log=result.get('native_failure_log_check') or {}
+        responses=result.get('native_model_response_check') or {}
+        if (log.get('state')!='complete' or log.get('failures')!=[]
+                or responses.get('state')!='complete' or not responses.get('requests')
+                or any(r.get('complete') is not True for r in responses['requests'])):
+            return ['OpenViking model/subtask completion is unproven']
+    return []

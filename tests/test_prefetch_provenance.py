@@ -1,8 +1,8 @@
 import pytest
 
-from pacbench.followups import tool_profile
+from pacbench.judging.recovery import tool_profile
 from pacbench.harness import TurnResult
-from pacbench.prefetch_provenance import VERSION, observe
+from pacbench.source_policy import PREFETCH_PROTOCOL as VERSION, observe_prefetch as observe
 
 
 def turn(state):
@@ -47,7 +47,7 @@ def test_supermemory_v5_hybrid_context_cannot_imply_retention():
         'reason':'Native hybrid formatter omits original result type.'},t.prefetch_context)
     result=tool_profile(t,provenance_version='source-provenance-v3')
     assert result['unclassified_operations']==1
-    from pacbench.followups import tool_category
+    from pacbench.judging.recovery import tool_category
     assert tool_category('supermemory-read-document',{})=='source_evidence'
     assert tool_category('supermemory-search',{'query':'Friday'})=='unclassified'
 
@@ -58,7 +58,7 @@ def test_memcal_automatic_snapshot_is_logged_but_never_assumed_source_free():
     t.prefetch_provenance=observe({'protocol':VERSION,'provider':'memcal','state':'unverified',
         'reason':'Native injection has no typed per-block witness.'},t.prefetch_context)
     assert tool_profile(t,provenance_version='source-provenance-v3')['unclassified_operations']==1
-    from pacbench.strict_memory import classify
+    from pacbench.source_policy import classify_retention as classify
     assert classify('memcal',t)['state']=='unknown'
     t.tool_calls=[{'name':'memcal_open','input':{'ref':'me'}}]
     t.tool_results=[{'success':True,'text':'Generated page\ncited sources (1):\noriginal text'}]

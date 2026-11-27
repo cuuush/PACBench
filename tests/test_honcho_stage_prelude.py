@@ -48,12 +48,12 @@ def test_regular_hard_deadline_is_unchanged(tmp_path,monkeypatch):
 
 def test_prelude_does_not_bypass_stop_or_spending_boundary(tmp_path,monkeypatch):
     import pytest
-    from pacbench.stop import OperatorStop
+    from pacbench.process_cleanup import OperatorStop
     c,_=setup_wait(monkeypatch,tmp_path,'2026-10-06T09:09:06-04:00')
     def stop(*a,**kw):raise OperatorStop()
-    monkeypatch.setattr('pacbench.stop.check_stop',stop)
+    monkeypatch.setattr('pacbench.process_cleanup.check_stop',stop)
     with pytest.raises(OperatorStop):c.stage_turn(tmp_path,'2026-10-06T09:10:00-04:00',{})
-    monkeypatch.setattr('pacbench.stop.check_stop',lambda *a,**kw:None)
+    monkeypatch.setattr('pacbench.process_cleanup.check_stop',lambda *a,**kw:None)
     def denied():raise RuntimeError('budget stopped')
     monkeypatch.setattr('pacbench.gateway_client.require_live_cost_boundary',denied)
     with pytest.raises(RuntimeError,match='budget stopped'):c.stage_turn(tmp_path,'2026-10-06T09:10:00-04:00',{})
